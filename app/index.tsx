@@ -21,7 +21,7 @@ export default function Page() {
       <AppProvider>
         <ClientProvider>
           <Stack.Navigator
-            initialRouteName="Home"
+            initialRouteName="Welcome"
             screenOptions={{
               headerShown: false,
             }}
