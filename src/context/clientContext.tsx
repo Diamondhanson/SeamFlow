@@ -15,8 +15,13 @@ export interface OrderDetails {
 export interface Measurements {
   shoulder: number;
   hips: number;
-  length: number;
   chest: number;
+  waist: number;
+  topLength: number;
+  trouserLength: number;
+  legRound: number;
+  armRound: number;
+  wrist: number;
 }
 
 export interface Client {

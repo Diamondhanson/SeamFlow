@@ -78,8 +78,28 @@ const ClientDetails = ({ client, visible, onClose }: ClientDetailsProps) => {
                   <Text style={styles.value}>{client.measurements.hips}</Text>
                 </View>
                 <View style={styles.measurementItem}>
-                  <Text style={styles.label}>Length:</Text>
-                  <Text style={styles.value}>{client.measurements.length}</Text>
+                  <Text style={styles.label}>Waist:</Text>
+                  <Text style={styles.value}>{client.measurements.waist}</Text>
+                </View>
+                <View style={styles.measurementItem}>
+                  <Text style={styles.label}>Top Length:</Text>
+                  <Text style={styles.value}>{client.measurements.topLength}</Text>
+                </View>
+                <View style={styles.measurementItem}>
+                  <Text style={styles.label}>Trouser Length:</Text>
+                  <Text style={styles.value}>{client.measurements.trouserLength}</Text>
+                </View>
+                <View style={styles.measurementItem}>
+                  <Text style={styles.label}>Leg Round:</Text>
+                  <Text style={styles.value}>{client.measurements.legRound}</Text>
+                </View>
+                <View style={styles.measurementItem}>
+                  <Text style={styles.label}>Arm Round:</Text>
+                  <Text style={styles.value}>{client.measurements.armRound}</Text>
+                </View>
+                <View style={styles.measurementItem}>
+                  <Text style={styles.label}>Wrist:</Text>
+                  <Text style={styles.value}>{client.measurements.wrist}</Text>
                 </View>
               </View>
             </View>
@@ -162,7 +182,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    width: width * 0.9,
+    width: width * 0.95,
     minHeight: '80%',
     backgroundColor: colors.background,
     borderRadius: 20,
@@ -175,6 +195,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    borderWidth: 1,
   },
   scrollView: {
     flex: 1,
