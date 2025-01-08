@@ -1,5 +1,13 @@
 // web 879451838140-61nh1t2425rmls49dmrje3u2b1k35i03.apps.googleusercontent.com
 
+// android 879451838140-bv1p041seq0npbidt87sic0qd9gfntfl.apps.googleusercontent.com
+
+
+// ios 879451838140-ajf5n7fqf37tobbn3ilec17jcjmee8br.apps.googleusercontent.com
+
+
+// SHA 07:8A:F9:1E:D0:3F:D9:95:E0:C6:AD:C8:39:25:CA:5A:C8:2A:E1:AC
+
 import React, { useState } from "react";
 import {
   View,
@@ -18,12 +26,48 @@ import { useNavigation } from "@react-navigation/native";
 import { useApp } from "../context/AppContext";
 import * as ImagePicker from "expo-image-picker";
 import Icons from "react-native-vector-icons/FontAwesome5";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+WebBrowser.maybeCompleteAuthSession();
 
 const EnterDetails = () => {
   const navigation = useNavigation();
-  const { updateCompanyInfo } = useApp();
   const [companyName, setCompanyName] = useState("");
   const [logo, setLogo] = useState<string | undefined>();
+  const { companyInfo,updateCompanyInfo } = useApp();
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: "879451838140-bv1p041seq0npbidt87sic0qd9gfntfl.apps.googleusercontent.com",
+    iosClientId: "879451838140-ajf5n7fqf37tobbn3ilec17jcjmee8br.apps.googleusercontent.com",
+    webClientId: "879451838140-61nh1t2425rmls49dmrje3u2b1k35i03.apps.googleusercontent.com",
+  })
+  const [userInfo, setUserInfo] = useState(null);
+
+  React.useEffect(() => {
+    handleSignInResponse();
+  }, [response]);
+
+  async function handleSignInResponse() {
+    if (response?.type === 'success' && response.authentication) {
+      try {
+        const userResponse = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+          headers: { Authorization: `Bearer ${response.authentication.accessToken}` },
+        });
+        
+        const user = await userResponse.json();
+        setUserInfo(user);
+        await AsyncStorage.setItem('userInfo', JSON.stringify(user));
+        
+        // If you have company name from Google profile, you can set it
+        if (user.name) {
+          setCompanyName(user.name);
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+  }
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -43,6 +87,7 @@ const EnterDetails = () => {
       updateCompanyInfo({
         name: companyName.trim(),
         logo: logo,
+        googleUser: userInfo
       });
       navigation.navigate("Home");
     }
@@ -82,6 +127,14 @@ const EnterDetails = () => {
             disabled={!companyName.trim()}
           >
             <Text style={styles.buttonText}>Proceed</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.googleButton} 
+            onPress={() => promptAsync()}
+            disabled={!request}
+          >
+            <Icons name="google" size={20} color={colors.mainText} />
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -148,6 +201,20 @@ const styles = StyleSheet.create({
     color: colors.mainText,
     fontSize: 16,
     fontWeight: "bold",
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4285F4',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    gap: 12,
+  },
+  googleButtonText: {
+    color: colors.mainText,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

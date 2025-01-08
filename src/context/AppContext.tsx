@@ -12,6 +12,8 @@ interface DesignItem {
 interface CompanyInfo {
   name: string;
   logo?: string;
+  userEmail?: string;
+  googleUser?: any;
 }
 
 interface AppContextType {
@@ -29,6 +31,7 @@ interface AppContextType {
 const initialCompanyInfo: CompanyInfo = {
   name: 'LYZMA CREATIONS',
   logo: undefined,
+  userEmail: undefined,
 };
 
 const initialDesigns: DesignItem[] = [

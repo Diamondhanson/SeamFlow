@@ -37,6 +37,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "fb6e2ea2-97b6-4829-9e5a-b421d61429d9"
+      }
+    },
+    "owner": "bambothanson"
   }
 }
