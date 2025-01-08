@@ -48,6 +48,7 @@ const EnterDetails = () => {
     handleSignInResponse();
   }, [response]);
 
+  
   async function handleSignInResponse() {
     if (response?.type === 'success' && response.authentication) {
       try {
