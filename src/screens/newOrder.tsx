@@ -7,6 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Header from '../components/Header';
 
 
 
@@ -98,18 +99,12 @@ const NewOrder = () => {
   return (
     <SafeAreaWrapper>
       <KeyboardAwareScrollView>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.title}>New Order</Text>
+        <Header 
+          title="New Order" 
+          onBack={() => navigation.goBack()} 
+        />
 
-        
-        <Text  style={styles.sectionTitle}>Client Information</Text>
+        <Text style={styles.sectionTitle}>Client Information</Text>
         <TextInput
           style={styles.input}
           placeholder="Full Name"
@@ -253,7 +248,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
     color: colors.mainText,
-    fontSize: textVariants.H3.fontSize,
+    fontSize: textVariants.H6.fontSize,
   },
   input: {
     backgroundColor: '#ffffff15',
@@ -346,7 +341,7 @@ const styles = StyleSheet.create({
   },
   measurementLabel: {
     color: colors.subText,
-    fontSize: textVariants.body1.fontSize,
+    fontSize: textVariants.body3.fontSize,
   },
   measurementInput: {
     color: colors.mainText,

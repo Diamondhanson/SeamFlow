@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import ClientDetails from '../components/clientDetails';
 import Icons from "react-native-vector-icons/FontAwesome5";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import Header from '../components/Header';
 
 const MyClients = () => {
   const navigation = useNavigation();
@@ -53,15 +54,10 @@ const MyClients = () => {
   return (
     <SafeAreaWrapper>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.title}>My Clients</Text>
+        <Header 
+          title="My Clients" 
+          onBack={() => navigation.goBack()} 
+        />
         
         {/* Search Input */}
         <View style={styles.searchContainer}>
@@ -146,18 +142,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.mainText,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backButtonText: {
-    color: colors.mainText,
-    fontSize: 18,
-  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -166,6 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 16,
     height: 48,
+    marginTop: 16,
   },
   searchIcon: {
     marginRight: 8,

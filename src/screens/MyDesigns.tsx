@@ -18,6 +18,7 @@ import Icons from "react-native-vector-icons/FontAwesome5";
 import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '../context/AppContext';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import Header from '../components/Header';
 
 const { width } = Dimensions.get('window');
 const TILE_SIZE = (width - 48) / 2; // 2 columns with 16px padding on sides and between
@@ -180,81 +181,62 @@ const MyDesigns = () => {
 
   return (
     <SafeAreaWrapper>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.title}>My Designs</Text>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Icons name="search" size={20} color={colors.subText} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search designs by tag..."
-          placeholderTextColor={colors.subText}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+      <View style={styles.container}>
+        <Header 
+          title="My Designs" 
+          onBack={() => navigation.goBack()} 
         />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity 
-            onPress={() => setSearchQuery('')}
-            style={styles.clearButton}
-          >
-            <Icons name="times-circle" size={20} color={colors.subText} />
-          </TouchableOpacity>
-        )}
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Icons name="search" size={20} color={colors.subText} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search designs by tag..."
+            placeholderTextColor={colors.subText}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity 
+              onPress={() => setSearchQuery('')}
+              style={styles.clearButton}
+            >
+              <Icons name="times-circle" size={20} color={colors.subText} />
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        <FlatList
+          data={[{ id: 'upload' }, ...filteredDesigns]}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.columnWrapper}
+        />
+
+        <TagModal
+          visible={tagModalVisible}
+          onClose={() => {
+            setTagModalVisible(false);
+            setSelectedImage(null);
+          }}
+          onSave={handleAddTag}
+        />
+
+        <FullImageView
+          imageUrl={selectedFullImage || ''}
+          visible={!!selectedFullImage}
+          onClose={() => setSelectedFullImage(null)}
+        />
       </View>
-      
-      <FlatList
-        data={[{ id: 'upload' }, ...filteredDesigns]}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-      />
-
-      <TagModal
-        visible={tagModalVisible}
-        onClose={() => {
-          setTagModalVisible(false);
-          setSelectedImage(null);
-        }}
-        onSave={handleAddTag}
-      />
-
-      <FullImageView
-        imageUrl={selectedFullImage || ''}
-        visible={!!selectedFullImage}
-        onClose={() => setSelectedFullImage(null)}
-      />
     </SafeAreaWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backButtonText: {
-    color: colors.mainText,
-    fontSize: 18,
-  },
-  title: {
-    fontSize: textVariants.H1.fontSize,
-    fontWeight: 'bold',
-    color: colors.mainText,
-    marginBottom: 24,
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -359,6 +341,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 16,
     height: 48,
+    marginTop: 16,
   },
   searchIcon: {
     marginRight: 8,

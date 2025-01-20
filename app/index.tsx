@@ -11,6 +11,7 @@ import NewOrder from "@/src/screens/newOrder";
 import { AppProvider } from '../src/context/AppContext';
 import Welcome from "@/src/screens/Welcome";
 import EnterDetails from "@/src/screens/enterDetails";
+import CalendarScreen from "@/src/screens/calender";
 
 
 const Stack = createStackNavigator();
@@ -49,6 +50,10 @@ export default function Page() {
             <Stack.Screen 
               name="EnterDetails" 
               component={EnterDetails}
+            />
+            <Stack.Screen 
+              name="Calendar" 
+              component={CalendarScreen}
             />
           </Stack.Navigator>
         </ClientProvider>
