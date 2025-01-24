@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { useClients } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
@@ -249,6 +249,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: colors.mainText,
     fontSize: textVariants.H6.fontSize,
+    width: "75%",
+    alignSelf: "center",
   },
   input: {
     backgroundColor: '#ffffff15',
@@ -256,10 +258,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     color: colors.mainText,
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    alignSelf: "center",
   },
   notesInput: {
     height: 100,
     textAlignVertical: 'top',
+    width: "75%",
+    alignSelf: "center",
   },
   button: {
     backgroundColor: colors.primary,
@@ -268,6 +274,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 40,
+    width: "75%",
+    alignSelf: "center",
   },
   buttonText: {
     color: colors.mainText,
@@ -291,16 +299,21 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
+    width: "75%",
+    alignSelf: "center",
   },
   dateText: {
     color: colors.mainText,
     fontSize: 16,
+    width: "75%",
   },
   measurementsTable: {
     backgroundColor: '#ffffff08',
     borderRadius: 8,
     marginBottom: 16,
     overflow: 'hidden',
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    alignSelf: "center",
   },
   tableHeader: {
     flexDirection: 'row',
@@ -341,7 +354,7 @@ const styles = StyleSheet.create({
   },
   measurementLabel: {
     color: colors.subText,
-    fontSize: textVariants.body3.fontSize,
+    fontSize: textVariants.body4.fontSize,
   },
   measurementInput: {
     color: colors.mainText,

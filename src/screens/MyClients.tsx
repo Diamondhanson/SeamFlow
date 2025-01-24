@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, Text,  FlatList, Pressable, TouchableOpacity, TextInput } from 'react-native';
+import { View, StyleSheet, Text,  FlatList, Pressable, TouchableOpacity, TextInput, Platform, Dimensions } from 'react-native';
 import { Client, useClients } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { useNavigation } from "@react-navigation/native";
@@ -118,6 +118,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    alignSelf: "center",
   },
   clientInfo: {
     flex: 1,
@@ -151,6 +153,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     height: 48,
     marginTop: 16,
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    alignSelf: "center",
   },
   searchIcon: {
     marginRight: 8,

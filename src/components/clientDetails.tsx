@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Modal, 
   View, 
@@ -7,12 +7,16 @@ import {
   TouchableOpacity, 
   ScrollView,
   Pressable,
-  Dimensions
+  Dimensions,
+  Platform
 } from 'react-native';
 import { Client } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
 import AddNewOrder from './addNewOrder';
+import Icons from "react-native-vector-icons/MaterialIcons";
+import EditMeasurementValue from './editMeasurementValue';
+import { useClients } from '../context/clientContext';
 
 interface ClientDetailsProps {
   client: Client | null;
@@ -22,12 +26,33 @@ interface ClientDetailsProps {
 
 const { width } = Dimensions.get('window');
 
-const ClientDetails = ({ client, visible, onClose }: ClientDetailsProps) => {
+const ClientDetails = ({ client: initialClient, visible, onClose }: ClientDetailsProps) => {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [showAddOrder, setShowAddOrder] = useState(false);
+  const { updateClientMeasurements, clients } = useClients();
+  const [editingMeasurement, setEditingMeasurement] = useState<{
+    name: string;
+    value: number;
+  } | null>(null);
+
+  // Get the latest client data from context
+  const client = useMemo(() => {
+    if (!initialClient) return null;
+    return clients.find(c => c.id === initialClient.id) || initialClient;
+  }, [clients, initialClient]);
 
   const toggleOrderExpansion = (orderId: string) => {
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
+  };
+
+  const handleUpdateMeasurement = (newValue: number) => {
+    if (editingMeasurement && client) {
+      const updatedMeasurements = {
+        ...client.measurements,
+        [editingMeasurement.name]: newValue
+      };
+      updateClientMeasurements(client.id, updatedMeasurements);
+    }
   };
 
   if (!client) return null;
@@ -67,39 +92,120 @@ const ClientDetails = ({ client, visible, onClose }: ClientDetailsProps) => {
               <View style={styles.measurementsGrid}>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Shoulder:</Text>
-                  <Text style={styles.value}>{client.measurements.shoulder}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'shoulder',
+                      value: client.measurements.shoulder
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.shoulder}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Chest:</Text>
-                  <Text style={styles.value}>{client.measurements.chest}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'chest',
+                      value: client.measurements.chest
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.chest}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Hips:</Text>
-                  <Text style={styles.value}>{client.measurements.hips}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'hips',
+                      value: client.measurements.hips
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.hips}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Waist:</Text>
-                  <Text style={styles.value}>{client.measurements.waist}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'waist',
+                      value: client.measurements.waist
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.waist}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Top Length:</Text>
-                  <Text style={styles.value}>{client.measurements.topLength}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'topLength',
+                      value: client.measurements.topLength
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.topLength}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Trouser Length:</Text>
-                  <Text style={styles.value}>{client.measurements.trouserLength}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'trouserLength',
+                      value: client.measurements.trouserLength
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.trouserLength}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Leg Round:</Text>
-                  <Text style={styles.value}>{client.measurements.legRound}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'legRound',
+                      value: client.measurements.legRound
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.legRound}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Arm Round:</Text>
-                  <Text style={styles.value}>{client.measurements.armRound}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'armRound',
+                      value: client.measurements.armRound
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.armRound}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.measurementItem}>
                   <Text style={styles.label}>Wrist:</Text>
-                  <Text style={styles.value}>{client.measurements.wrist}</Text>
+                  <TouchableOpacity 
+                    style={styles.measurementValueContainer}
+                    onPress={() => setEditingMeasurement({
+                      name: 'wrist',
+                      value: client.measurements.wrist
+                    })}
+                  >
+                    <Text style={styles.value}>{client.measurements.wrist}</Text>
+                    <Icons name="edit" size={14} color={colors.subText} style={styles.editIcon} />
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -168,6 +274,16 @@ const ClientDetails = ({ client, visible, onClose }: ClientDetailsProps) => {
               clientId={client.id}
             />
           )}
+
+          {editingMeasurement && (
+            <EditMeasurementValue
+              visible={!!editingMeasurement}
+              onClose={() => setEditingMeasurement(null)}
+              attributeName={editingMeasurement.name}
+              currentValue={editingMeasurement.value}
+              onSave={handleUpdateMeasurement}
+            />
+          )}
         </View>
       </View>
     </Modal>
@@ -182,8 +298,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    width: width * 0.95,
-    minHeight: '80%',
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    alignSelf: "center",
+    minHeight: '90%',
     backgroundColor: colors.background,
     borderRadius: 20,
     padding: 20,
@@ -207,7 +324,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   headerText: {
-    fontSize: textVariants.H2.fontSize,
+    fontSize: textVariants.H5.fontSize,
     fontWeight: 'bold',
     color: colors.mainText,
   },
@@ -222,18 +339,18 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: textVariants.H3.fontSize,
+    fontSize: textVariants.H6.fontSize,
     fontWeight: 'bold',
     color: colors.mainText,
     marginBottom: 12,
   },
   label: {
-    fontSize: 14,
+    fontSize: 20,
     color: colors.subText,
     marginBottom: 4,
   },
   value: {
-    fontSize: 16,
+    fontSize: textVariants.body5.fontSize,
     color: colors.mainText,
     marginBottom: 12,
   },
@@ -245,6 +362,14 @@ const styles = StyleSheet.create({
   measurementItem: {
     width: '48%',
     marginBottom: 12,
+  },
+  measurementValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editIcon: {
+    opacity: 0.7,
   },
   orderItem: {
     backgroundColor: '#ffffff15',

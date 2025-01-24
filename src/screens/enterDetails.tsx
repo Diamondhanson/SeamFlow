@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
-    width: "100%",
+    width: "60%",
     backgroundColor: "#ffffff15",
     borderRadius: 8,
     padding: 16,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 8,
-    width: "100%",
+    width: "60%",
     alignItems: "center",
   },
   buttonDisabled: {
