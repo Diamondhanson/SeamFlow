@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, Text,  FlatList, Pressable, TouchableOpacity, TextInput } from 'react-native';
+import { View, StyleSheet, Text,  FlatList, Pressable, TouchableOpacity, TextInput, Platform, Dimensions } from 'react-native';
 import { Client, useClients } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { useNavigation } from "@react-navigation/native";
 import ClientDetails from '../components/clientDetails';
 import Icons from "react-native-vector-icons/FontAwesome5";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import Header from '../components/Header';
 
 const MyClients = () => {
   const navigation = useNavigation();
@@ -53,15 +54,10 @@ const MyClients = () => {
   return (
     <SafeAreaWrapper>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.title}>My Clients</Text>
+        <Header 
+          title="My Clients" 
+          onBack={() => navigation.goBack()} 
+        />
         
         {/* Search Input */}
         <View style={styles.searchContainer}>
@@ -122,6 +118,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    alignSelf: "center",
   },
   clientInfo: {
     flex: 1,
@@ -146,18 +144,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.mainText,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  backButtonText: {
-    color: colors.mainText,
-    fontSize: 18,
-  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -166,6 +152,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 16,
     height: 48,
+    marginTop: 16,
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    alignSelf: "center",
   },
   searchIcon: {
     marginRight: 8,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Modal, 
   View, 
@@ -10,7 +10,9 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
+  Dimensions,
+  ScaledSize
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
@@ -23,6 +25,9 @@ interface AddNewOrderProps {
   clientId: string;
 }
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const isTablet = SCREEN_WIDTH >= 768; // Common tablet breakpoint
+
 const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
   const { addOrderToClient } = useClients();
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -31,6 +36,24 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
     deliveryDate: new Date(Date.now() + 12096e5), // Default to 2 weeks from now
     notes: ''
   });
+
+  const [dimensions, setDimensions] = useState({ 
+    window: Dimensions.get('window') 
+  });
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener(
+      'change',
+      ({ window }) => {
+        setDimensions({ window });
+      }
+    );
+    return () => subscription?.remove();
+  }, []);
+
+  const { width, height } = dimensions.window;
+  const isLandscape = width > height;
+  const isTabletLayout = width >= 768;
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -71,9 +94,16 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.keyboardAvoidingView}
           >
-            <View style={styles.modalContent}>
+            <View style={[
+              styles.modalContent,
+              isTabletLayout && styles.tabletModalContent,
+              isTabletLayout && isLandscape && styles.tabletLandscapeModalContent
+            ]}>
               <ScrollView 
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={[
+                  styles.scrollContent,
+                  isTabletLayout && styles.tabletScrollContent
+                ]}
                 showsVerticalScrollIndicator={false}
               >
                 <View style={styles.header}>
@@ -144,22 +174,36 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: isTablet ? 40 : 16,
   },
   keyboardAvoidingView: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: isTablet ? 40 : 20,
   },
   modalContent: {
     width: '90%',
-    maxHeight: '80%', // Limit height to ensure it's not too tall
+    maxHeight: '80%',
     backgroundColor: colors.background,
     borderRadius: 20,
     overflow: 'hidden',
   },
+  tabletModalContent: {
+    width: isTablet ? Math.min(600, SCREEN_WIDTH * 0.7) : '90%',
+    maxHeight: '90%',
+    borderRadius: 24,
+  },
+  tabletLandscapeModalContent: {
+    flexDirection: 'row',
+    width: Math.min(800, SCREEN_WIDTH * 0.8),
+  },
   scrollContent: {
     padding: 20,
+  },
+  tabletScrollContent: {
+    padding: 32,
   },
   header: {
     flexDirection: 'row',
@@ -168,7 +212,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   headerText: {
-    fontSize: textVariants.H2.fontSize,
+    fontSize: isTablet ? textVariants.H1.fontSize : textVariants.H2.fontSize,
     fontWeight: 'bold',
     color: colors.mainText,
   },
@@ -181,39 +225,39 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#ffffff15',
-    padding: 12,
+    padding: isTablet ? 16 : 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: isTablet ? 16 : 12,
     color: colors.mainText,
-    fontSize: 16,
+    fontSize: isTablet ? 18 : 16,
   },
   dateInput: {
     backgroundColor: '#ffffff15',
-    padding: 12,
+    padding: isTablet ? 16 : 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: isTablet ? 16 : 12,
   },
   dateText: {
     color: colors.mainText,
-    fontSize: 16,
+    fontSize: isTablet ? 18 : 16,
   },
   notesInput: {
-    height: 100,
+    height: isTablet ? 150 : 100,
     textAlignVertical: 'top',
   },
   submitButton: {
     backgroundColor: colors.primary,
-    padding: 16,
-    borderRadius: 8,
+    padding: isTablet ? 20 : 16,
+    borderRadius: isTablet ? 12 : 8,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: isTablet ? 24 : 16,
   },
   submitButtonDisabled: {
     opacity: 0.5,
   },
   submitButtonText: {
     color: colors.mainText,
-    fontSize: 16,
+    fontSize: isTablet ? 18 : 16,
     fontWeight: 'bold',
   },
 });
