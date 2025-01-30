@@ -14,9 +14,9 @@ import { Client } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
 import AddNewOrder from './addNewOrder';
-import Icons from "react-native-vector-icons/MaterialIcons";
 import EditMeasurementValue from './editMeasurementValue';
 import { useClients } from '../context/clientContext';
+import Icons from "react-native-vector-icons/MaterialIcons";
 
 interface ClientDetailsProps {
   client: Client | null;

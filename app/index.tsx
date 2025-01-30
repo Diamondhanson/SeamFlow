@@ -12,24 +12,22 @@ import { AppProvider } from "../src/context/AppContext";
 import Welcome from "@/src/screens/Welcome";
 import EnterDetails from "@/src/screens/enterDetails";
 import CalendarScreen from "@/src/screens/calender";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const Stack = createStackNavigator();
 
-const [screen, setScreen] = useState(Dimensions.get("window"));
-useEffect(() => {
-  const onChange = ({ window }: { window: ScaledSize }) => setScreen(window);
-  const subscription = Dimensions.addEventListener("change", onChange);
-
-  return () => subscription.remove();
-}, []);
-
-const isLandscape = screen.width > screen.height;
-
 export default function Page() {
+  const [screen, setScreen] = useState(Dimensions.get("window"));
+  
+  useEffect(() => {
+    const onChange = ({ window }: { window: ScaledSize }) => setScreen(window);
+    const subscription = Dimensions.addEventListener("change", onChange);
+    return () => subscription.remove();
+  }, []);
+
+  const isLandscape = screen.width > screen.height;
+
   return (
-    <View style={[styles.container, isLandscape && styles.landscape]}>
       <ThemeProvider theme={theme}>
         <AppProvider>
           <ClientProvider>
@@ -50,7 +48,6 @@ export default function Page() {
           </ClientProvider>
         </AppProvider>
       </ThemeProvider>
-    </View>
   );
 }
 
