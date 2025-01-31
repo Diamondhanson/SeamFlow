@@ -8,6 +8,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Header from '../components/Header';
+import { useApp } from '../context/AppContext';
 
 
 
@@ -38,6 +39,7 @@ const MeasurementInput = ({ label, value, onChangeText }: {
 const NewOrder = () => {
   const navigation = useNavigation();
   const { addClient } = useClients();
+  const { measurementAttributes } = useApp();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -46,16 +48,15 @@ const NewOrder = () => {
     orderName: '',
     deliveryDate: new Date(Date.now() + 12096e5), // Default to 2 weeks from now
     notes: '',
-    // Updated measurements
-    shoulder: '',
-    hips: '',
-    chest: '',
-    waist: '',
-    topLength: '',
-    trouserLength: '',
-    legRound: '',
-    armRound: '',
-    wrist: '',
+  });
+
+  // Initialize measurements state dynamically
+  const [measurements, setMeasurements] = useState<Measurements>(() => {
+    const initialMeasurements: Measurements = {};
+    measurementAttributes.forEach(attr => {
+      initialMeasurements[attr] = 0;
+    });
+    return initialMeasurements;
   });
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -66,18 +67,6 @@ const NewOrder = () => {
   };
 
   const handleSubmit = () => {
-    const measurements: Measurements = {
-      shoulder: Number(formData.shoulder),
-      hips: Number(formData.hips),
-      chest: Number(formData.chest),
-      waist: Number(formData.waist),
-      topLength: Number(formData.topLength),
-      trouserLength: Number(formData.trouserLength),
-      legRound: Number(formData.legRound),
-      armRound: Number(formData.armRound),
-      wrist: Number(formData.wrist),
-    };
-
     const newClient = {
       fullName: formData.fullName,
       phoneNumber: formData.phoneNumber,
@@ -169,51 +158,33 @@ const NewOrder = () => {
             </View>
           </View>
           
-          <MeasurementInput
-            label="Shoulder"
-            value={formData.shoulder}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, shoulder: text }))}
-          />
-          <MeasurementInput
-            label="Chest"
-            value={formData.chest}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, chest: text }))}
-          />
-          <MeasurementInput
-            label="Hips"
-            value={formData.hips}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, hips: text }))}
-          />
-          <MeasurementInput
-            label="Waist"
-            value={formData.waist}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, waist: text }))}
-          />
-          <MeasurementInput
-            label="Top Length"
-            value={formData.topLength}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, topLength: text }))}
-          />
-          <MeasurementInput
-            label="Trouser Length"
-            value={formData.trouserLength}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, trouserLength: text }))}
-          />
-          <MeasurementInput
-            label="Leg Round"
-            value={formData.legRound}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, legRound: text }))}
-          />
-          <MeasurementInput
-            label="Arm Round"
-            value={formData.armRound}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, armRound: text }))}
-          />
-          <MeasurementInput
-            label="Wrist"
-            value={formData.wrist}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, wrist: text }))}
-          />
+          {measurementAttributes.map((attr) => (
+            <View key={attr} style={styles.measurementRow}>
+              <View style={styles.columnLeft}>
+                <Text style={styles.measurementLabel}>
+                  {attr.charAt(0).toUpperCase() + attr.slice(1)}
+                </Text>
+              </View>
+              <View style={styles.separatorContainer}>
+                <View style={styles.separator} />
+              </View>
+              <View style={styles.columnRight}>
+                <TextInput
+                  style={styles.measurementInput}
+                  value={measurements[attr].toString()}
+                  onChangeText={(text) => {
+                    const value = parseFloat(text) || 0;
+                    setMeasurements(prev => ({
+                      ...prev,
+                      [attr]: value
+                    }));
+                  }}
+                  keyboardType="numeric"
+                  placeholderTextColor={colors.subText}
+                />
+              </View>
+            </View>
+          ))}
         </View>
         
         <TextInput
@@ -249,7 +220,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: colors.mainText,
     fontSize: textVariants.H6.fontSize,
-    width: "75%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
     alignSelf: "center",
   },
   input: {
@@ -260,11 +231,12 @@ const styles = StyleSheet.create({
     color: colors.mainText,
     width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
     alignSelf: "center",
+    fontSize: textVariants.body2.fontSize,
   },
   notesInput: {
     height: 100,
     textAlignVertical: 'top',
-    width: "75%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
     alignSelf: "center",
   },
   button: {
@@ -274,7 +246,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 40,
-    width: "75%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
     alignSelf: "center",
   },
   buttonText: {
@@ -299,7 +271,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
-    width: "75%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
     alignSelf: "center",
   },
   dateText: {
@@ -354,7 +326,7 @@ const styles = StyleSheet.create({
   },
   measurementLabel: {
     color: colors.subText,
-    fontSize: textVariants.body4.fontSize,
+    fontSize: textVariants.body2.fontSize,
   },
   measurementInput: {
     color: colors.mainText,

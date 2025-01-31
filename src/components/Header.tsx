@@ -35,7 +35,7 @@ const Header = ({ title, onBack }: HeaderProps) => {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    paddingTop: Platform.OS === 'ios' ? 44 : 0, // Space for notch
+    paddingTop: Platform.OS === 'ios' ? 10 : 0, // Space for notch
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.primary,

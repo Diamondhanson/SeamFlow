@@ -17,6 +17,48 @@ import { useApp } from '../context/AppContext';
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
 
+// Define the tile data structure
+interface TileData {
+  id: string;
+  title: string;
+  icon: string;
+  route: string;
+}
+
+// Define the tiles data
+const TILES_DATA: TileData[] = [
+  {
+    id: '1',
+    title: 'New order',
+    icon: 'border-all',
+    route: 'NewOrder'
+  },
+  {
+    id: '2',
+    title: 'My clients',
+    icon: 'person-booth',
+    route: 'MyClients'
+  },
+  {
+    id: '3',
+    title: 'My designs',
+    icon: 'icons',
+    route: 'MyDesigns'
+  },
+  {
+    id: '4',
+    title: 'Calendar',
+    icon: 'business-time',
+    route: 'Calendar'
+  },
+  {
+    id: '5',
+    title: 'Setting',
+    icon: 'tools',
+    route: 'Setting'
+  }
+];
+
 const Home = () => {
   const navigation = useNavigation();
   const { companyInfo } = useApp();
@@ -39,6 +81,27 @@ const Home = () => {
   const tileSize = isTabletLayout ? 220 : 160;
   const containerPadding = isTabletLayout ? 32 : 16;
 
+  const renderTile = ({ id, title, icon, route }: TileData) => (
+    <TouchableOpacity 
+      key={id}
+      style={[
+        styles.tiles,
+        { width: tileSize, height: tileSize }
+      ]}
+      onPress={() => navigation.navigate(route)}
+    >
+      <Text style={[
+        styles.text,
+        isTabletLayout && styles.tabletText
+      ]}>{title}</Text>
+      <Icons 
+        name={icon} 
+        size={isTabletLayout ? 80 : 60} 
+        color={theme.colors.mainText} 
+      />
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaWrapper>
       <ScrollView contentContainerStyle={styles.container}>
@@ -58,77 +121,8 @@ const Home = () => {
           styles.tilesContainer,
           { padding: containerPadding }
         ]}>
-          <TouchableOpacity 
-            style={[
-              styles.tiles,
-              { width: tileSize, height: tileSize }
-            ]}
-            onPress={() => navigation.navigate("NewOrder")}
-          >
-            <Text style={[
-              styles.text,
-              isTabletLayout && styles.tabletText
-            ]}>New order</Text>
-            <Icons 
-              name="border-all" 
-              size={isTabletLayout ? 80 : 60} 
-              color={theme.colors.mainText} 
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[
-              styles.tiles,
-              { width: tileSize, height: tileSize }
-            ]}
-            onPress={() => navigation.navigate("MyClients")}
-          >
-            <Text style={[
-              styles.text,
-              isTabletLayout && styles.tabletText
-            ]}>My clients</Text>
-            <Icons 
-              name="person-booth" 
-              size={isTabletLayout ? 80 : 60} 
-              color={theme.colors.mainText} 
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[
-              styles.tiles,
-              { width: tileSize, height: tileSize }
-            ]}
-            onPress={() => navigation.navigate("MyDesigns")}
-          >
-            <Text style={[
-              styles.text,
-              isTabletLayout && styles.tabletText
-            ]}>My designs</Text>
-            <Icons 
-              name="icons" 
-              size={isTabletLayout ? 80 : 60} 
-              color={theme.colors.mainText} 
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[
-              styles.tiles,
-              { width: tileSize, height: tileSize }
-            ]}
-            onPress={() => navigation.navigate("Calendar")}
-          >
-            <Text style={[
-              styles.text,
-              isTabletLayout && styles.tabletText
-            ]}>Calendar</Text>
-            <Icons 
-              name="business-time" 
-              size={isTabletLayout ? 80 : 60} 
-              color={theme.colors.mainText} 
-            />
-          </TouchableOpacity>
+          {TILES_DATA.map(renderTile)}
+       
         </View>
       </ScrollView>
     </SafeAreaWrapper>

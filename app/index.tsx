@@ -12,6 +12,7 @@ import { AppProvider } from "../src/context/AppContext";
 import Welcome from "@/src/screens/Welcome";
 import EnterDetails from "@/src/screens/enterDetails";
 import CalendarScreen from "@/src/screens/calender";
+import CustomizeMeasurementAttributes from "@/src/screens/CustomizeMeasurementAttributes";
 import { useState, useEffect } from "react";
 
 const Stack = createStackNavigator();
@@ -44,6 +45,7 @@ export default function Page() {
               <Stack.Screen name="NewOrder" component={NewOrder} />
               <Stack.Screen name="EnterDetails" component={EnterDetails} />
               <Stack.Screen name="Calendar" component={CalendarScreen} />
+              <Stack.Screen name="CustomizeMeasurementAttributes" component={CustomizeMeasurementAttributes} />
             </Stack.Navigator>
           </ClientProvider>
         </AppProvider>

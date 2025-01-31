@@ -12,7 +12,6 @@ const MyClients = () => {
   const navigation = useNavigation();
   const { clients } = useClients();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter clients based on search query
@@ -23,16 +22,21 @@ const MyClients = () => {
   }, [clients, searchQuery]);
 
   const handleClientPress = (client: Client) => {
-    // console.log('Selected client:', client);
     setSelectedClient(client);
-    setModalVisible(true);
   };
 
-  const handleAddNewOrder = (clientId: string) => {
-    setModalVisible(false);
-    // Navigate to NewOrder screen with client ID
-    navigation.navigate('NewOrder', { clientId });
+  const handleBack = () => {
+    setSelectedClient(null);
   };
+
+  if (selectedClient) {
+    return (
+      <ClientDetails
+        client={selectedClient}
+        onBack={handleBack}
+      />
+    );
+  }
 
   const renderClient = ({ item }: { item: Client }) => (
     <TouchableOpacity 
@@ -85,13 +89,6 @@ const MyClients = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
         />
-
-        <ClientDetails
-          client={selectedClient}
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onAddNewOrder={handleAddNewOrder}
-        />
       </View>
     </SafeAreaWrapper>
   );
@@ -101,7 +98,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: 16,
   },
   title: {
     marginBottom: 20,

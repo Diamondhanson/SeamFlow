@@ -83,14 +83,13 @@ const EnterDetails = () => {
     }
   };
 
-  const handleProceed = () => {
+  const handleSubmit = async () => {
     if (companyName.trim()) {
       updateCompanyInfo({
-        name: companyName.trim(),
-        logo: logo,
-        googleUser: userInfo
+        name: companyName,
+        logo: logo || '',
       });
-      navigation.navigate("Home");
+      navigation.navigate('CustomizeMeasurementAttributes');
     }
   };
 
@@ -124,7 +123,7 @@ const EnterDetails = () => {
               styles.button,
               !companyName.trim() && styles.buttonDisabled,
             ]}
-            onPress={handleProceed}
+            onPress={handleSubmit}
             disabled={!companyName.trim()}
           >
             <Text style={styles.buttonText}>Proceed</Text>

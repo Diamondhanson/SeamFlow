@@ -25,6 +25,8 @@ interface AppContextType {
   addInspiration: (inspiration: Omit<DesignItem, 'id' | 'dateAdded'>) => void;
   removeDesign: (id: string) => void;
   removeInspiration: (id: string) => void;
+  measurementAttributes: string[];
+  updateMeasurementAttributes: (attributes: string[]) => void;
 }
 
 // Initial dummy data
@@ -40,15 +42,35 @@ const initialDesigns: DesignItem[] = [
 const initialInspirations: DesignItem[] = [
 ];
 
+const DEFAULT_MEASUREMENT_ATTRIBUTES = [
+  'shoulder',
+  'chest',
+  'waist',
+  'hips',
+  'topLength',
+  'trouserLength',
+  'legRound',
+  'armRound',
+  'wrist'
+];
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(initialCompanyInfo);
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    name: '',
+    logo: '',
+  });
   const [designs, setDesigns] = useState<DesignItem[]>(initialDesigns);
   const [inspirations, setInspirations] = useState<DesignItem[]>(initialInspirations);
+  const [measurementAttributes, setMeasurementAttributes] = useState<string[]>(DEFAULT_MEASUREMENT_ATTRIBUTES);
 
   const updateCompanyInfo = (info: CompanyInfo) => {
     setCompanyInfo(info);
+  };
+
+  const updateMeasurementAttributes = (attributes: string[]) => {
+    setMeasurementAttributes(attributes);
   };
 
   const addDesign = (design: Omit<DesignItem, 'id' | 'dateAdded'>) => {
@@ -87,7 +109,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         addDesign,
         addInspiration,
         removeDesign,
-        removeInspiration
+        removeInspiration,
+        measurementAttributes,
+        updateMeasurementAttributes
       }}
     >
       {children}

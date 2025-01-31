@@ -13,15 +13,7 @@ export interface OrderDetails {
 }
 
 export interface Measurements {
-  shoulder: number;
-  hips: number;
-  chest: number;
-  waist: number;
-  topLength: number;
-  trouserLength: number;
-  legRound: number;
-  armRound: number;
-  wrist: number;
+  [key: string]: number;
 }
 
 export interface Client {
@@ -48,12 +40,7 @@ const initialClients: Client[] = [
     fullName: 'John Smith',
     phoneNumber: '+1234567890',
     address: '123 Main St, City',
-    measurements: {
-      shoulder: 42,
-      hips: 38,
-      length: 70,
-      chest: 40,
-    },
+    measurements: {},  // Empty object as measurements will be dynamic
     orders: [
       {
         id: '1',
