@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../FirebaseConfig';
+import { useApp } from './AppContext';
 
 // Types
 export type OrderStatus = 'registered' | 'in_progress' | 'testing' | 'on_pause' | 'delivered';
@@ -58,17 +61,54 @@ const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
   const [clients, setClients] = useState<Client[]>(initialClients);
+  const { user } = useApp();
 
-  const addClient = (newClient: Omit<Client, 'id'>) => {
+  // Load clients data when user changes
+  useEffect(() => {
+    const loadClientsData = async () => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (userData.clients) {
+              setClients(userData.clients);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading clients:', error);
+        }
+      }
+    };
+
+    loadClientsData();
+  }, [user]);
+
+  // Save clients data to Firestore
+  const saveClientsToFirestore = async (updatedClients: Client[]) => {
+    if (user) {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          clients: updatedClients,
+        });
+      } catch (error) {
+        console.error('Error saving clients:', error);
+      }
+    }
+  };
+
+  const addClient = async (newClient: Omit<Client, 'id'>) => {
     const client: Client = {
       ...newClient,
       id: Date.now().toString(),
     };
-    setClients(prev => [...prev, client]);
+    const updatedClients = [...clients, client];
+    setClients(updatedClients);
+    await saveClientsToFirestore(updatedClients);
   };
 
-  const addOrderToClient = (clientId: string, order: Omit<OrderDetails, 'id' | 'status'>) => {
-    setClients(prev => prev.map(client => {
+  const addOrderToClient = async (clientId: string, order: Omit<OrderDetails, 'id' | 'status'>) => {
+    const updatedClients = clients.map(client => {
       if (client.id === clientId) {
         return {
           ...client,
@@ -80,11 +120,13 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         };
       }
       return client;
-    }));
+    });
+    setClients(updatedClients);
+    await saveClientsToFirestore(updatedClients);
   };
 
-  const updateOrderStatus = (clientId: string, orderId: string, status: OrderStatus) => {
-    setClients(prev => prev.map(client => {
+  const updateOrderStatus = async (clientId: string, orderId: string, status: OrderStatus) => {
+    const updatedClients = clients.map(client => {
       if (client.id === clientId) {
         return {
           ...client,
@@ -94,11 +136,13 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         };
       }
       return client;
-    }));
+    });
+    setClients(updatedClients);
+    await saveClientsToFirestore(updatedClients);
   };
 
-  const updateClientMeasurements = (clientId: string, measurements: Measurements) => {
-    setClients(prev => prev.map(client => {
+  const updateClientMeasurements = async (clientId: string, measurements: Measurements) => {
+    const updatedClients = clients.map(client => {
       if (client.id === clientId) {
         return {
           ...client,
@@ -106,7 +150,9 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         };
       }
       return client;
-    }));
+    });
+    setClients(updatedClients);
+    await saveClientsToFirestore(updatedClients);
   };
 
   return (

@@ -24,6 +24,7 @@ export const colors = {
        secondary: "#00BFA6",
        accent: "#FFB300",
        mainText: "#F8F9FA",
-       subText: "#ADB5BD"
+       subText: "#ADB5BD",
+       error: "#FF0000",
          // Ensure full opacity    
 }

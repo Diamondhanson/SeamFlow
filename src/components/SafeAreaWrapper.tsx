@@ -1,14 +1,22 @@
-import React, { ReactNode } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import React, { ReactNode, useEffect } from 'react';
+import { Dimensions, SafeAreaView, StyleSheet, View, StatusBar } from 'react-native';
 import { colors } from '../theme/colors';
+
+
+const {height} = Dimensions.get('screen');
 
 interface Props {
   children: ReactNode;
 }
 
 const SafeAreaWrapper = ({ children }: Props) => {
+
+useEffect(()=>{
+    StatusBar.setBarStyle('dark-content');
+    StatusBar.setBackgroundColor(colors.background);
+},[])
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { height: height }]}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           {children}

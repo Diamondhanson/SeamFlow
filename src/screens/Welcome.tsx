@@ -3,18 +3,51 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
 import { useNavigation } from "@react-navigation/native";
+import { auth } from '../../FirebaseConfig';
+import { useApp } from '../context/AppContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
 const Welcome = () => {
   const navigation = useNavigation();
+  const { setUser } = useApp();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.navigate('EnterDetails');
-    }, 3000); // 3 seconds
+    const checkAuthState = async () => {
+      try {
+        // Check if user data exists in AsyncStorage
+        const userData = await AsyncStorage.getItem('user');
+        
+        if (userData) {
+          // If we have stored user data, set it in context
+          setUser(JSON.parse(userData));
+          navigation.navigate('Home' as never);
+          return;
+        }
 
-    return () => clearTimeout(timer); // Cleanup timer on unmount
+        // Listen for auth state changes
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+          if (user) {
+            // Store user data in AsyncStorage
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+            setUser(user);
+            navigation.navigate('Home' as never);
+          } else {
+            navigation.navigate('EnterDetails' as never);
+          }
+        });
+
+        // Cleanup subscription
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Auth state check failed:', error);
+        navigation.navigate('EnterDetails' as never);
+      }
+    };
+
+    const timer = setTimeout(checkAuthState, 2000); // Reduced to 2 seconds
+    return () => clearTimeout(timer);
   }, []);
 
   return (

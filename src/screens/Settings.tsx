@@ -1,0 +1,460 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  TextInput,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
+import { colors } from '../theme/colors';
+import { textVariants } from '../theme/textVariants';
+import Icons from "react-native-vector-icons/FontAwesome5";
+import { useApp } from '../context/AppContext';
+import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import { auth } from '../../FirebaseConfig';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+
+const Settings = () => {
+  const { logout, user, companyInfo, updateCompanyInfo } = useApp();
+  const navigation = useNavigation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState(companyInfo.name);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setIsLoading(true);
+        await updateCompanyInfo({
+          ...companyInfo,
+          logo: result.assets[0].uri,
+        });
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to update logo. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateCompanyName = async () => {
+    if (newCompanyName.trim() === '') {
+      Alert.alert('Error', 'Company name cannot be empty');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await updateCompanyInfo({
+        ...companyInfo,
+        name: newCompanyName.trim(),
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating company name:', error);
+      Alert.alert('Error', 'Failed to update company name. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!user?.email) {
+      Alert.alert('Error', 'No user email found');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      Alert.alert('Error', 'New password must be at least 6 characters');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // First sign in again to verify current password
+      const { signInWithEmailAndPassword } = require('firebase/auth');
+      const { auth } = require('../../FirebaseConfig');
+      
+      // Verify current credentials
+      await signInWithEmailAndPassword(auth, user.email, passwordForm.currentPassword);
+      
+      // If sign in successful, update password
+      await updatePassword(user, passwordForm.newPassword);
+
+      Alert.alert('Success', 'Password updated successfully');
+      setShowPasswordChange(false);
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      });
+    } catch (error: any) {
+      let errorMessage = 'Failed to change password. Please try again.';
+      
+      if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Current password is incorrect';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many attempts. Please try again later';
+      } else if (error.code === 'auth/requires-recent-login') {
+        errorMessage = 'Please sign out and sign in again before changing your password';
+      }
+      
+      console.error('Error changing password:', error);
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          onPress: async () => {
+            await logout();
+            navigation.navigate('Welcome' as never);
+          },
+          style: 'destructive'
+        }
+      ]
+    );
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Settings</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Company Profile</Text>
+        
+        <View style={styles.logoSection}>
+          <TouchableOpacity style={styles.logoContainer} onPress={pickImage} disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={colors.mainText} />
+            ) : companyInfo.logo ? (
+              <Image source={{ uri: companyInfo.logo }} style={styles.logo} />
+            ) : (
+              <>
+                <Icons name="image" size={40} color={colors.mainText} />
+                <Text style={styles.logoText}>Add Logo</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <Text style={styles.logoHint}>Tap to change logo</Text>
+        </View>
+
+        <View style={styles.companyNameSection}>
+          {isEditing ? (
+            <View style={styles.editNameContainer}>
+              <TextInput
+                style={styles.nameInput}
+                value={newCompanyName}
+                onChangeText={setNewCompanyName}
+                placeholder="Enter company name"
+                placeholderTextColor={colors.subText}
+              />
+              <View style={styles.editButtonsRow}>
+                <TouchableOpacity 
+                  style={[styles.editButton, styles.cancelButton]}
+                  onPress={() => {
+                    setIsEditing(false);
+                    setNewCompanyName(companyInfo.name);
+                  }}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.editButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.editButton, styles.saveButton]}
+                  onPress={handleUpdateCompanyName}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.editButtonText}>
+                    {isLoading ? 'Saving...' : 'Save'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.nameContainer}>
+              <Text style={styles.companyName}>{companyInfo.name}</Text>
+              <TouchableOpacity 
+                style={styles.editNameButton}
+                onPress={() => setIsEditing(true)}
+              >
+                <Icons name="edit" size={16} color={colors.mainText} />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Account</Text>
+        <Text style={styles.userEmail}>{user?.email}</Text>
+        
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => setShowPasswordChange(true)}
+        >
+          <Icons name="key" size={20} color={colors.mainText} />
+          <Text style={styles.menuItemText}>Change Password</Text>
+          <Icons name="chevron-right" size={16} color={colors.mainText} />
+        </TouchableOpacity>
+
+        {showPasswordChange && (
+          <View style={styles.passwordChangeForm}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Current Password"
+              placeholderTextColor={colors.subText}
+              secureTextEntry
+              value={passwordForm.currentPassword}
+              onChangeText={(text) => setPasswordForm(prev => ({
+                ...prev,
+                currentPassword: text
+              }))}
+            />
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="New Password"
+              placeholderTextColor={colors.subText}
+              secureTextEntry
+              value={passwordForm.newPassword}
+              onChangeText={(text) => setPasswordForm(prev => ({
+                ...prev,
+                newPassword: text
+              }))}
+            />
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Confirm New Password"
+              placeholderTextColor={colors.subText}
+              secureTextEntry
+              value={passwordForm.confirmPassword}
+              onChangeText={(text) => setPasswordForm(prev => ({
+                ...prev,
+                confirmPassword: text
+              }))}
+            />
+            <View style={styles.editButtonsRow}>
+              <TouchableOpacity 
+                style={[styles.editButton, styles.cancelButton]}
+                onPress={() => {
+                  setShowPasswordChange(false);
+                  setPasswordForm({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: '',
+                  });
+                }}
+                disabled={isLoading}
+              >
+                <Text style={styles.editButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.editButton, styles.saveButton]}
+                onPress={handleChangePassword}
+                disabled={isLoading}
+              >
+                <Text style={styles.editButtonText}>
+                  {isLoading ? 'Updating...' : 'Update Password'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <TouchableOpacity 
+          style={[styles.menuItem, styles.logoutButton]} 
+          onPress={handleLogout}
+        >
+          <Icons name="sign-out-alt" size={20} color={colors.error} />
+          <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    padding: 20,
+    paddingTop: 40,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  title: {
+    fontSize: textVariants.H2.fontSize,
+    color: colors.mainText,
+    fontWeight: 'bold',
+  },
+  section: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  sectionTitle: {
+    fontSize: textVariants.H3.fontSize,
+    color: colors.mainText,
+    marginBottom: 15,
+    fontWeight: '500',
+  },
+  logoSection: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  logoContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  logo: {
+    width: '100%',
+    height: '100%',
+  },
+  logoText: {
+    color: colors.mainText,
+    marginTop: 8,
+    fontSize: 14,
+  },
+  logoHint: {
+    color: colors.subText,
+    marginTop: 8,
+    fontSize: 12,
+  },
+  errorText: {
+    color: "red",
+  },
+  error: {
+    color: "red",
+  },
+  companyNameSection: {
+    marginTop: 20,
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff10',
+    padding: 12,
+    borderRadius: 8,
+  },
+  companyName: {
+    fontSize: 18,
+    color: colors.mainText,
+    fontWeight: '500',
+  },
+  editNameButton: {
+    padding: 8,
+  },
+  editNameContainer: {
+    gap: 12,
+  },
+  nameInput: {
+    backgroundColor: '#ffffff15',
+    borderRadius: 8,
+    padding: 12,
+    color: colors.mainText,
+    fontSize: 16,
+  },
+  editButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#ffffff15',
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+  },
+  editButtonText: {
+    color: colors.mainText,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  userEmail: {
+    fontSize: 16,
+    color: colors.subText,
+    marginBottom: 15,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    gap: 15,
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: colors.mainText,
+    flex: 1,
+  },
+  logoutButton: {
+    marginTop: 20,
+  },
+  logoutText: {
+    color: colors.error,
+  },
+  passwordChangeForm: {
+    marginTop: 15,
+    gap: 12,
+  },
+  passwordInput: {
+    backgroundColor: '#ffffff15',
+    borderRadius: 8,
+    padding: 12,
+    color: colors.mainText,
+    fontSize: 16,
+  },
+});
+
+export default Settings; 

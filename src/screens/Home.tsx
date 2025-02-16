@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { ScrollView } from "react-native-gesture-handler";
@@ -50,12 +51,6 @@ const TILES_DATA: TileData[] = [
     title: 'Calendar',
     icon: 'business-time',
     route: 'Calendar'
-  },
-  {
-    id: '5',
-    title: 'Setting',
-    icon: 'tools',
-    route: 'Setting'
   }
 ];
 
@@ -80,6 +75,7 @@ const Home = () => {
   const isTabletLayout = width >= 768;
   const tileSize = isTabletLayout ? 220 : 160;
   const containerPadding = isTabletLayout ? 32 : 16;
+  const logoSize = isTabletLayout ? 60 : 40;
 
   const renderTile = ({ id, title, icon, route }: TileData) => (
     <TouchableOpacity 
@@ -109,12 +105,31 @@ const Home = () => {
           styles.titleContainer,
           { paddingHorizontal: containerPadding }
         ]}>
-          <Text style={[
-            styles.title,
-            isTabletLayout && styles.tabletTitle
-          ]}>
-            {companyInfo.name}
-          </Text>
+          <View style={styles.titleLeftSection}>
+            {companyInfo.logo ? (
+              <Image 
+                source={{ uri: companyInfo.logo }} 
+                style={[styles.logo, { width: logoSize, height: logoSize }]} 
+                resizeMode="contain"
+              />
+            ) : (
+              <View style={[styles.logoPlaceholder, { width: logoSize, height: logoSize }]}>
+                <Icons name="store" size={logoSize/2} color={theme.colors.mainText} />
+              </View>
+            )}
+            <Text style={[
+              styles.title,
+              isTabletLayout && styles.tabletTitle
+            ]}>
+              {companyInfo.name}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings' as never)}
+            style={styles.settingsButton}
+          >
+            <Icons name="cog" size={24} color={theme.colors.mainText} />
+          </TouchableOpacity>
         </View>
         
         <View style={[
@@ -122,7 +137,6 @@ const Home = () => {
           { padding: containerPadding }
         ]}>
           {TILES_DATA.map(renderTile)}
-       
         </View>
       </ScrollView>
     </SafeAreaWrapper>
@@ -135,10 +149,26 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     width: '100%',
-    alignItems: "flex-start",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 20,
     marginBottom: 20,
+  },
+  titleLeftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logo: {
+    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+  },
+  logoPlaceholder: {
+    borderRadius: 8,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tilesContainer: {
     flexDirection: "row",
@@ -178,6 +208,9 @@ const styles = StyleSheet.create({
   },
   tabletTitle: {
     fontSize: 40,
+  },
+  settingsButton: {
+    padding: 10,
   },
 });
 

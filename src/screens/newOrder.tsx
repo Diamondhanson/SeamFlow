@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, TouchableOpacity, Platform, Dimensions } from 'react-native';
-import { useClients } from '../context/clientContext';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, TouchableOpacity, Platform, Dimensions, ActivityIndicator } from 'react-native';
+import { useClients, Client, Measurements } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Header from '../components/Header';
 import { useApp } from '../context/AppContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../FirebaseConfig';
 
-
+type RouteParams = {
+  clientId?: string;
+};
 
 const MeasurementInput = ({ label, value, onChangeText }: {
   label: string;
@@ -38,52 +42,125 @@ const MeasurementInput = ({ label, value, onChangeText }: {
 
 const NewOrder = () => {
   const navigation = useNavigation();
-  const { addClient } = useClients();
-  const { measurementAttributes } = useApp();
+  const route = useRoute();
+  const { clientId } = route.params as RouteParams || {};
+  const { addClient, clients, addOrderToClient, updateClientMeasurements } = useClients();
+  const { measurementAttributes, user } = useApp();
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  
+  // Find existing client if clientId is provided
+  const existingClient = clientId ? clients.find(c => c.id === clientId) : null;
+
   const [formData, setFormData] = useState({
     fullName: '',
     phoneNumber: '',
     address: '',
     orderName: '',
-    deliveryDate: new Date(Date.now() + 12096e5), // Default to 2 weeks from now
+    deliveryDate: new Date(Date.now() + 12096e5),
     notes: '',
   });
 
-  // Initialize measurements state dynamically
-  const [measurements, setMeasurements] = useState<Measurements>(() => {
-    const initialMeasurements: Measurements = {};
-    measurementAttributes.forEach(attr => {
-      initialMeasurements[attr] = 0;
-    });
-    return initialMeasurements;
-  });
+  const [measurements, setMeasurements] = useState<Measurements>({});
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setFormData(prev => ({ ...prev, deliveryDate: selectedDate }));
+  // Load initial data from Firestore
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        if (user) {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            if (userData.clients) {
+              const currentClient = userData.clients.find((c: Client) => c.id === clientId);
+              if (currentClient) {
+                setFormData(prev => ({
+                  ...prev,
+                  fullName: currentClient.fullName,
+                  phoneNumber: currentClient.phoneNumber,
+                  address: currentClient.address,
+                }));
+                
+                // Initialize measurements with existing data
+                const initialMeasurements: Measurements = {};
+                measurementAttributes.forEach(attr => {
+                  initialMeasurements[attr] = currentClient.measurements[attr] || 0;
+                });
+                setMeasurements(initialMeasurements);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+        setDataLoaded(true);
+      }
+    };
+
+    loadData();
+  }, [user, clientId, measurementAttributes]);
+
+  const handleMeasurementChange = (attr: string, text: string) => {
+    if (!dataLoaded) return; // Prevent updates before data is loaded
+    
+    const value = parseFloat(text) || 0;
+    setMeasurements(prev => ({
+      ...prev,
+      [attr]: value
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!dataLoaded) return; // Prevent submission before data is loaded
+
+    const orderDetails = {
+      orderName: formData.orderName,
+      dateOrdered: new Date().toISOString().split('T')[0],
+      dateDelivery: formData.deliveryDate.toISOString().split('T')[0],
+      notes: formData.notes,
+    };
+
+    setIsLoading(true);
+    try {
+      if (existingClient) {
+        await updateClientMeasurements(existingClient.id, measurements);
+        await addOrderToClient(existingClient.id, orderDetails);
+      } else {
+        const newClient: Omit<Client, 'id'> = {
+          fullName: formData.fullName,
+          phoneNumber: formData.phoneNumber,
+          address: formData.address,
+          measurements,
+          orders: [{
+            ...orderDetails,
+            id: Date.now().toString(),
+            status: 'registered'
+          }]
+        };
+        await addClient(newClient);
+      }
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error saving data:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = () => {
-    const newClient = {
-      fullName: formData.fullName,
-      phoneNumber: formData.phoneNumber,
-      address: formData.address,
-      measurements,
-      orders: [{
-        orderName: formData.orderName,
-        dateOrdered: new Date().toISOString().split('T')[0], // Current date
-        dateDelivery: formData.deliveryDate.toISOString().split('T')[0],
-        notes: formData.notes
-      }]
-    };
-
-    addClient(newClient);
-    alert('Client order has been added successfully!');
-    navigation.navigate('Home');
-  };
+  if (isLoading) {
+    return (
+      <SafeAreaWrapper>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaWrapper>
+    );
+  }
 
   return (
     <SafeAreaWrapper>
@@ -171,16 +248,11 @@ const NewOrder = () => {
               <View style={styles.columnRight}>
                 <TextInput
                   style={styles.measurementInput}
-                  value={measurements[attr].toString()}
-                  onChangeText={(text) => {
-                    const value = parseFloat(text) || 0;
-                    setMeasurements(prev => ({
-                      ...prev,
-                      [attr]: value
-                    }));
-                  }}
+                  value={measurements[attr]?.toString()}
+                  onChangeText={(text) => handleMeasurementChange(attr, text)}
                   keyboardType="numeric"
                   placeholderTextColor={colors.subText}
+                  editable={dataLoaded} // Disable input until data is loaded
                 />
               </View>
             </View>
@@ -196,8 +268,14 @@ const NewOrder = () => {
           placeholderTextColor={colors.subText}
         />
 
-        <Pressable style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Save Order</Text>
+        <Pressable 
+          style={[styles.button, !dataLoaded && styles.buttonDisabled]} 
+          onPress={handleSubmit}
+          disabled={!dataLoaded || isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? 'Saving...' : 'Save Order'}
+          </Text>
         </Pressable>
       </KeyboardAwareScrollView>
     </SafeAreaWrapper>
@@ -333,6 +411,19 @@ const styles = StyleSheet.create({
     fontSize: textVariants.body1.fontSize,
     textAlign: 'right',
     padding: 0,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.mainText,
+    marginTop: 16,
+    fontSize: 16,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
 });
 
