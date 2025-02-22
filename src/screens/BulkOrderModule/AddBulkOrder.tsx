@@ -7,11 +7,11 @@ import {
   TouchableOpacity, 
   Platform,
   ActivityIndicator,
-  Alert
+  Alert,
+  Dimensions
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { textVariants } from '../../theme/textVariants';
@@ -19,6 +19,7 @@ import { useClients } from '../../context/clientContext';
 import { useApp } from '../../context/AppContext';
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 import Header from '../../components/Header';
+import DatePicker from '../../components/DatePicker';
 
 interface Member {
   id: string;
@@ -46,6 +47,7 @@ const MeasurementInput = ({ label, value, onChangeText }: {
         onChangeText={onChangeText}
         keyboardType="numeric"
         placeholderTextColor={colors.subText}
+        placeholder="0.00"
       />
     </View>
   </View>
@@ -64,6 +66,8 @@ const AddBulkOrder = () => {
     address: '',
     deliveryDate: new Date(Date.now() + 12096e5), // Default to 2 weeks from now
     notes: '',
+    price: '',
+    advancePayment: ''
   });
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -71,13 +75,6 @@ const AddBulkOrder = () => {
     name: '',
     measurements: {},
   });
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setFormData(prev => ({ ...prev, deliveryDate: selectedDate }));
-    }
-  };
 
   const handleAddMember = () => {
     if (!currentMember.name.trim()) {
@@ -107,7 +104,7 @@ const AddBulkOrder = () => {
       ...prev,
       measurements: {
         ...prev.measurements,
-        [attr]: parseFloat(value) || 0,
+        [attr]: value === '' ? '' : parseFloat(value) || 0,
       },
     }));
   };
@@ -133,6 +130,8 @@ const AddBulkOrder = () => {
         dateDelivery: formData.deliveryDate.toISOString().split('T')[0],
         notes: formData.notes,
         members: members,
+        price: parseFloat(formData.price) || 0,
+        advancePayment: parseFloat(formData.advancePayment) || 0
       });
       navigation.goBack();
     } catch (error) {
@@ -198,18 +197,37 @@ const AddBulkOrder = () => {
             </Text>
           </TouchableOpacity>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={formData.deliveryDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-            />
-          )}
+          <DatePicker
+            visible={showDatePicker}
+            selectedDate={formData.deliveryDate}
+            onClose={() => setShowDatePicker(false)}
+            onDateChange={(date) => {
+              setFormData(prev => ({ ...prev, deliveryDate: date }));
+            }}
+            mode="date"
+          />
 
           <Text style={styles.sectionTitle}>Add Members</Text>
           
+            {/* Members List */}
+            {members.length > 0 && (
+            <View style={styles.membersList}>
+              <Text style={styles.sectionTitle}>Members ({members.length})</Text>
+              {members.map((member) => (
+                <View key={member.id} style={styles.memberCard}>
+                  <Text style={styles.memberName}>{member.name}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveMember(member.id)}
+                    style={styles.removeMemberButton}
+                  >
+                    <MaterialIcons name="close" size={20} color={colors.error} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+
+
           {/* Current Member Form */}
           <View style={styles.memberForm}>
             <TextInput
@@ -240,23 +258,7 @@ const AddBulkOrder = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Members List */}
-          {members.length > 0 && (
-            <View style={styles.membersList}>
-              <Text style={styles.sectionTitle}>Members ({members.length})</Text>
-              {members.map((member) => (
-                <View key={member.id} style={styles.memberCard}>
-                  <Text style={styles.memberName}>{member.name}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveMember(member.id)}
-                    style={styles.removeMemberButton}
-                  >
-                    <MaterialIcons name="close" size={20} color={colors.error} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
+        
 
           {/* Only Bulk Order Notes */}
           <TextInput
@@ -267,6 +269,33 @@ const AddBulkOrder = () => {
             multiline
             placeholderTextColor={colors.subText}
           />
+
+          <Text style={styles.sectionTitle}>Payment Details</Text>
+          <View style={styles.paymentContainer}>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Bulk Order Price</Text>
+              <TextInput
+                style={[styles.input, styles.priceInput]}
+                placeholder="Enter total price"
+                value={formData.price}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
+                keyboardType="numeric"
+                placeholderTextColor={colors.subText}
+              />
+            </View>
+            
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Advance Received</Text>
+              <TextInput
+                style={[styles.input, styles.priceInput]}
+                placeholder="Enter advance amount"
+                value={formData.advancePayment}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
+                keyboardType="numeric"
+                placeholderTextColor={colors.subText}
+              />
+            </View>
+          </View>
 
           <TouchableOpacity 
             style={[styles.submitButton, isLoading && styles.buttonDisabled]}
@@ -335,7 +364,10 @@ const styles = StyleSheet.create({
   measurementRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 2,
+    borderBottomWidth: 1,
+    borderColor: '#ffffff20',
+    height: 40,
   },
   columnLeft: {
     flex: 1,
@@ -414,6 +446,25 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  paymentContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
+    alignSelf: "center",
+  },
+  priceInput: {
+    flex: 1,
+    marginBottom: 12,
+  },
+  inputWrapper: {
+    flex: 1,
+  },
+  inputLabel: {
+    color: colors.subText,
+    fontSize: textVariants.body2.fontSize,
+    marginBottom: 4,
   },
 });
 

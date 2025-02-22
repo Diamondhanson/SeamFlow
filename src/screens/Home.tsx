@@ -87,7 +87,7 @@ const Home = () => {
 
   const { width } = dimensions.window;
   const isTabletLayout = width >= 768;
-  const tileSize = isTabletLayout ? 220 : 155;
+  const tileSize = isTabletLayout ? 220 : 170;
   const containerPadding = isTabletLayout ? 32 : 16;
   const logoSize = isTabletLayout ? 60 : 40;
 

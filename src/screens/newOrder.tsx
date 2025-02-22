@@ -6,7 +6,7 @@ import { textVariants } from '../theme/textVariants';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from '../components/DatePicker';
 import Header from '../components/Header';
 import { useApp } from '../context/AppContext';
 import { doc, getDoc } from 'firebase/firestore';
@@ -35,6 +35,7 @@ const MeasurementInput = ({ label, value, onChangeText }: {
         onChangeText={onChangeText}
         keyboardType="numeric"
         placeholderTextColor={colors.subText}
+        placeholder="0.00"
       />
     </View>
   </View>
@@ -60,6 +61,8 @@ const NewOrder = () => {
     orderName: '',
     deliveryDate: new Date(Date.now() + 12096e5),
     notes: '',
+    price: '',
+    advancePayment: ''
   });
 
   const [measurements, setMeasurements] = useState<Measurements>({});
@@ -107,10 +110,9 @@ const NewOrder = () => {
   const handleMeasurementChange = (attr: string, text: string) => {
     if (!dataLoaded) return; // Prevent updates before data is loaded
     
-    const value = parseFloat(text) || 0;
     setMeasurements(prev => ({
       ...prev,
-      [attr]: value
+      [attr]: text === '' ? '' : parseFloat(text) || 0
     }));
   };
 
@@ -122,6 +124,9 @@ const NewOrder = () => {
       dateOrdered: new Date().toISOString().split('T')[0],
       dateDelivery: formData.deliveryDate.toISOString().split('T')[0],
       notes: formData.notes,
+      price: parseFloat(formData.price) || 0,
+      advancePayment: parseFloat(formData.advancePayment) || 0,
+      status: 'registered'
     };
 
     setIsLoading(true);
@@ -211,15 +216,15 @@ const NewOrder = () => {
           </Text>
         </TouchableOpacity>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={formData.deliveryDate}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleDateChange}
-            minimumDate={new Date()} // Can't select past dates
-          />
-        )}
+        <DatePicker
+          visible={showDatePicker}
+          selectedDate={formData.deliveryDate}
+          onClose={() => setShowDatePicker(false)}
+          onDateChange={(date) => {
+            setFormData(prev => ({ ...prev, deliveryDate: date }));
+          }}
+          mode="date"
+        />
 
         <Text style={styles.sectionTitle}>Measurements</Text>
         <View style={styles.measurementsTable}>
@@ -248,11 +253,12 @@ const NewOrder = () => {
               <View style={styles.columnRight}>
                 <TextInput
                   style={styles.measurementInput}
-                  value={measurements[attr]?.toString()}
+                  value={measurements[attr]?.toString() || ''}
                   onChangeText={(text) => handleMeasurementChange(attr, text)}
                   keyboardType="numeric"
                   placeholderTextColor={colors.subText}
-                  editable={dataLoaded} // Disable input until data is loaded
+                  placeholder="0.00"
+                  editable={dataLoaded}
                 />
               </View>
             </View>
@@ -267,6 +273,33 @@ const NewOrder = () => {
           multiline
           placeholderTextColor={colors.subText}
         />
+
+        <Text style={styles.sectionTitle}>Payment Details</Text>
+        <View style={styles.paymentContainer}>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Total Price</Text>
+            <TextInput
+              style={[styles.input, styles.priceInput]}
+              placeholder="Enter total price"
+              value={formData.price}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
+              keyboardType="numeric"
+              placeholderTextColor={colors.subText}
+            />
+          </View>
+          
+          <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Advance Received</Text>
+            <TextInput
+              style={[styles.input, styles.priceInput]}
+              placeholder="Enter advance amount"
+              value={formData.advancePayment}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
+              keyboardType="numeric"
+              placeholderTextColor={colors.subText}
+            />
+          </View>
+        </View>
 
         <Pressable 
           style={[styles.button, !dataLoaded && styles.buttonDisabled]} 
@@ -424,6 +457,25 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  paymentContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
+    alignSelf: "center",
+  },
+  priceInput: {
+    flex: 1,
+    marginBottom: 12,
+  },
+  inputWrapper: {
+    flex: 1,
+  },
+  inputLabel: {
+    color: colors.subText,
+    fontSize: textVariants.body2.fontSize,
+    marginBottom: 4,
   },
 });
 

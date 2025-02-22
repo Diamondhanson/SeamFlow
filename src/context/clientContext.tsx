@@ -13,6 +13,8 @@ export interface OrderDetails {
   dateDelivery: string;
   notes: string;
   status: OrderStatus;
+  price?: number;
+  advancePayment?: number;
 }
 
 export interface Measurements {
@@ -46,6 +48,8 @@ export interface BulkOrder {
   members: BulkOrderMember[];
   notes: string;
   status: OrderStatus;
+  price?: number;
+  advancePayment?: number;
 }
 
 interface ClientContextType {

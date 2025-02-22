@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: textVariants.body3.fontSize,
+    fontSize: textVariants.body1.fontSize,
     color: colors.mainText,
     fontWeight: '600',
   },

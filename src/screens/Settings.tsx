@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { auth } from '../../FirebaseConfig';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import Header from '../components/Header';
 
 const Settings = () => {
   const { logout, user, companyInfo, updateCompanyInfo } = useApp();
@@ -153,9 +154,10 @@ const Settings = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-      </View>
+      <Header 
+        title="Settings" 
+        onBack={() => navigation.navigate('Home')}
+      />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Company Profile</Text>
@@ -316,17 +318,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  title: {
-    fontSize: textVariants.H2.fontSize,
-    color: colors.mainText,
-    fontWeight: 'bold',
   },
   section: {
     padding: 20,

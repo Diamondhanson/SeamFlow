@@ -58,11 +58,12 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
 
   return (
     <SafeAreaWrapper>
-      <View style={styles.container}>
-        <Header 
+       <Header 
           title="Client Details" 
           onBack={onBack}
         />
+      <View style={styles.container}>
+       
         
         <ScrollView style={styles.scrollView}>
           {/* Personal Information */}
@@ -134,6 +135,32 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
                     {order.notes && (
                       <Text style={styles.orderNote}>{order.notes}</Text>
                     )}
+                    
+                    {/* Add Payment Details Section */}
+                    <View style={styles.paymentDetails}>
+                      <View style={styles.paymentRow}>
+                        <Text style={styles.paymentLabel}>Total Price:</Text>
+                        <Text style={styles.paymentValue}>
+                          ${order.price?.toFixed(2) || '0.00'}
+                        </Text>
+                      </View>
+                      <View style={styles.paymentRow}>
+                        <Text style={styles.paymentLabel}>Advance Paid:</Text>
+                        <Text style={styles.paymentValue}>
+                          ${order.advancePayment?.toFixed(2) || '0.00'}
+                        </Text>
+                      </View>
+                      <View style={styles.paymentRow}>
+                        <Text style={styles.paymentLabel}>Balance:</Text>
+                        <Text style={[
+                          styles.paymentValue,
+                          { color: ((order.price || 0) - (order.advancePayment || 0)) > 0 ? colors.error : colors.success }
+                        ]}>
+                          ${((order.price || 0) - (order.advancePayment || 0)).toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
+
                     <View style={styles.orderFooter}>
                       <View style={styles.dateGroup}>
                         <Text style={styles.dateLabel}>Ordered:</Text>
@@ -190,6 +217,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    paddingHorizontal: 16,
   },
   scrollView: {
     flex: 1,
@@ -338,6 +366,27 @@ const styles = StyleSheet.create({
   delivered: {
     backgroundColor: '#90EE90',
     color: '#000',
+  },
+  paymentDetails: {
+    backgroundColor: '#ffffff08',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  paymentLabel: {
+    color: colors.subText,
+    fontSize: textVariants.body2.fontSize,
+  },
+  paymentValue: {
+    color: colors.mainText,
+    fontSize: textVariants.body2.fontSize,
+    fontWeight: '600',
   },
 });
 

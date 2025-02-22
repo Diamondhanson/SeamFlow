@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from './DatePicker';
 import { useClients } from '../context/clientContext';
 
 interface AddNewOrderProps {
@@ -34,7 +34,9 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
   const [formData, setFormData] = useState({
     orderName: '',
     deliveryDate: new Date(Date.now() + 12096e5), // Default to 2 weeks from now
-    notes: ''
+    notes: '',
+    price: '',
+    advancePayment: ''
   });
 
   const [dimensions, setDimensions] = useState({ 
@@ -55,27 +57,25 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
   const isLandscape = width > height;
   const isTabletLayout = width >= 768;
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setFormData(prev => ({ ...prev, deliveryDate: selectedDate }));
-    }
-  };
-
   const handleSubmit = () => {
     if (formData.orderName.trim()) {
       addOrderToClient(clientId, {
         orderName: formData.orderName.trim(),
         dateDelivery: formData.deliveryDate.toISOString().split('T')[0],
         dateOrdered: new Date().toISOString().split('T')[0],
-        notes: formData.notes.trim()
+        notes: formData.notes.trim(),
+        price: parseFloat(formData.price) || 0,
+        advancePayment: parseFloat(formData.advancePayment) || 0,
+        status: 'registered'
       });
       
       // Reset form and close modal
       setFormData({
         orderName: '',
         deliveryDate: new Date(Date.now() + 12096e5),
-        notes: ''
+        notes: '',
+        price: '',
+        advancePayment: ''
       });
       onClose();
     }
@@ -130,15 +130,15 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                   </Text>
                 </TouchableOpacity>
 
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={formData.deliveryDate}
-                    mode="date"
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={handleDateChange}
-                    minimumDate={new Date()}
-                  />
-                )}
+                <DatePicker
+                  visible={showDatePicker}
+                  selectedDate={formData.deliveryDate}
+                  onClose={() => setShowDatePicker(false)}
+                  onDateChange={(date) => {
+                    setFormData(prev => ({ ...prev, deliveryDate: date }));
+                  }}
+                  mode="date"
+                />
 
                 <TextInput
                   style={[styles.input, styles.notesInput]}
@@ -148,6 +148,33 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                   onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
                   multiline
                 />
+
+                <Text style={styles.sectionTitle}>Payment Details</Text>
+                <View style={styles.paymentContainer}>
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Total Price</Text>
+                    <TextInput
+                      style={[styles.input, styles.priceInput]}
+                      placeholder="Enter total price"
+                      placeholderTextColor={colors.subText}
+                      value={formData.price}
+                      onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.inputLabel}>Advance Received</Text>
+                    <TextInput
+                      style={[styles.input, styles.priceInput]}
+                      placeholder="Enter advance amount"
+                      placeholderTextColor={colors.subText}
+                      value={formData.advancePayment}
+                      onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                </View>
 
                 <TouchableOpacity 
                   style={[
@@ -184,7 +211,7 @@ const styles = StyleSheet.create({
     paddingVertical: isTablet ? 40 : 20,
   },
   modalContent: {
-    width: '90%',
+    width: '100%',
     maxHeight: '80%',
     backgroundColor: colors.background,
     borderRadius: 20,
@@ -259,6 +286,28 @@ const styles = StyleSheet.create({
     color: colors.mainText,
     fontSize: isTablet ? 18 : 16,
     fontWeight: 'bold',
+  },
+  paymentContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  priceInput: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: isTablet ? textVariants.H5.fontSize : textVariants.H6.fontSize,
+    color: colors.mainText,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flex: 1,
+  },
+  inputLabel: {
+    color: colors.subText,
+    fontSize: textVariants.body2.fontSize,
+    marginBottom: 4,
   },
 });
 
