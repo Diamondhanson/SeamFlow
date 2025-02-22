@@ -14,6 +14,7 @@ import Icons from "react-native-vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useApp } from '../context/AppContext';
+import { colors } from "../theme/colors";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
@@ -51,6 +52,19 @@ const TILES_DATA: TileData[] = [
     title: 'Calendar',
     icon: 'business-time',
     route: 'Calendar'
+  },
+  {
+    id: '5',
+    title: 'My inspirations',
+    icon: 'lightbulb',
+    route: 'MyInspirations'
+  }
+  ,
+  {
+    id: '6',
+    title: 'Bulk Order',
+    icon: 'boxes',
+    route: 'BulkOrder'
   }
 ];
 
@@ -73,7 +87,7 @@ const Home = () => {
 
   const { width } = dimensions.window;
   const isTabletLayout = width >= 768;
-  const tileSize = isTabletLayout ? 220 : 160;
+  const tileSize = isTabletLayout ? 220 : 155;
   const containerPadding = isTabletLayout ? 32 : 16;
   const logoSize = isTabletLayout ? 60 : 40;
 
@@ -99,7 +113,7 @@ const Home = () => {
   );
 
   return (
-    <SafeAreaWrapper>
+    // <SafeAreaWrapper>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={[
           styles.titleContainer,
@@ -139,13 +153,14 @@ const Home = () => {
           {TILES_DATA.map(renderTile)}
         </View>
       </ScrollView>
-    </SafeAreaWrapper>
+    // </SafeAreaWrapper>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    backgroundColor: colors.background,
   },
   titleContainer: {
     width: '100%',
@@ -173,8 +188,9 @@ const styles = StyleSheet.create({
   tilesContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
+    justifyContent: "space-between",
     gap: 20,
+    
   },
   text: {
     fontSize: 20,

@@ -20,6 +20,7 @@ const palette = {
 
 export const colors = {
        background: '#121417',
+       backgroundLight: '#22252A',
        primary: "#0000ff",
        secondary: "#00BFA6",
        accent: "#FFB300",

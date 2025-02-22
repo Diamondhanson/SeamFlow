@@ -28,12 +28,36 @@ export interface Client {
   orders: OrderDetails[];
 }
 
+// Add new types for bulk orders
+export interface BulkOrderMember {
+  id: string;
+  name: string;
+  measurements: Measurements;
+  notes?: string;
+}
+
+export interface BulkOrder {
+  id: string;
+  orderName: string;
+  dateOrdered: string;
+  dateDelivery: string;
+  phoneNumber: string;
+  address: string;
+  members: BulkOrderMember[];
+  notes: string;
+  status: OrderStatus;
+}
+
 interface ClientContextType {
   clients: Client[];
   addClient: (client: Omit<Client, 'id'>) => void;
   addOrderToClient: (clientId: string, order: Omit<OrderDetails, 'id' | 'status'>) => void;
   updateOrderStatus: (clientId: string, orderId: string, status: OrderStatus) => void;
   updateClientMeasurements: (clientId: string, measurements: Measurements) => void;
+  bulkOrders: BulkOrder[];
+  addBulkOrder: (order: Omit<BulkOrder, 'id' | 'status'>) => void;
+  updateBulkOrderStatus: (orderId: string, status: OrderStatus) => void;
+  updateBulkOrderMember: (orderId: string, memberId: string, updates: Partial<BulkOrderMember>) => void;
 }
 
 // Initial dummy data
@@ -61,6 +85,7 @@ const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
   const [clients, setClients] = useState<Client[]>(initialClients);
+  const [bulkOrders, setBulkOrders] = useState<BulkOrder[]>([]);
   const { user } = useApp();
 
   // Load clients data when user changes
@@ -74,9 +99,12 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
             if (userData.clients) {
               setClients(userData.clients);
             }
+            if (userData.bulkOrders) {
+              setBulkOrders(userData.bulkOrders);
+            }
           }
         } catch (error) {
-          console.error('Error loading clients:', error);
+          console.error('Error loading data:', error);
         }
       }
     };
@@ -155,6 +183,70 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     await saveClientsToFirestore(updatedClients);
   };
 
+  // Add new bulk order functions
+  const addBulkOrder = async (newOrder: Omit<BulkOrder, 'id' | 'status'>) => {
+    const order: BulkOrder = {
+      ...newOrder,
+      id: Date.now().toString(),
+      status: 'registered'
+    };
+    const updatedOrders = [...bulkOrders, order];
+    setBulkOrders(updatedOrders);
+    if (user) {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          bulkOrders: updatedOrders,
+        });
+      } catch (error) {
+        console.error('Error saving bulk order:', error);
+      }
+    }
+  };
+
+  const updateBulkOrderStatus = async (orderId: string, status: OrderStatus) => {
+    const updatedOrders = bulkOrders.map(order =>
+      order.id === orderId ? { ...order, status } : order
+    );
+    setBulkOrders(updatedOrders);
+    if (user) {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          bulkOrders: updatedOrders,
+        });
+      } catch (error) {
+        console.error('Error updating bulk order status:', error);
+      }
+    }
+  };
+
+  const updateBulkOrderMember = async (
+    orderId: string,
+    memberId: string,
+    updates: Partial<BulkOrderMember>
+  ) => {
+    const updatedOrders = bulkOrders.map(order => {
+      if (order.id === orderId) {
+        return {
+          ...order,
+          members: order.members.map(member =>
+            member.id === memberId ? { ...member, ...updates } : member
+          ),
+        };
+      }
+      return order;
+    });
+    setBulkOrders(updatedOrders);
+    if (user) {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), {
+          bulkOrders: updatedOrders,
+        });
+      } catch (error) {
+        console.error('Error updating bulk order member:', error);
+      }
+    }
+  };
+
   return (
     <ClientContext.Provider 
       value={{ 
@@ -162,7 +254,11 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         addClient, 
         addOrderToClient,
         updateOrderStatus,
-        updateClientMeasurements
+        updateClientMeasurements,
+        bulkOrders,
+        addBulkOrder,
+        updateBulkOrderStatus,
+        updateBulkOrderMember,
       }}
     >
       {children}

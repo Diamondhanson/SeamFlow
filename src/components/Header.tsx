@@ -3,13 +3,17 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
 import Icons from "react-native-vector-icons/FontAwesome5";
+import { Dimensions } from 'react-native';
 
 interface HeaderProps {
   title: string;
   onBack: () => void;
 }
 
-const Header = ({ title, onBack }: HeaderProps) => {
+const width = Dimensions.get('window').width;
+
+
+const Header = ({ title, onBack }: HeaderProps) => {  
   return (
     <View style={styles.headerContainer}>
       <View style={styles.header}>
@@ -39,6 +43,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: colors.primary,
+    width: width,
   },
   header: {
     flexDirection: 'row',

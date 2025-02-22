@@ -19,7 +19,8 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  Dimensions
 } from "react-native";
 import { colors } from "../theme/colors";
 import { textVariants } from "../theme/textVariants";
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
-    width: "60%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
     backgroundColor: "#ffffff15",
     borderRadius: 8,
     padding: 16,
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 8,
-    width: "60%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
     alignItems: "center",
   },
   buttonDisabled: {

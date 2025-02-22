@@ -9,7 +9,8 @@ import {
   FlatList,
   Image,
   Dimensions,
-  SafeAreaView
+  SafeAreaView,
+  Platform
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { useNavigation } from "@react-navigation/native";
@@ -205,7 +206,7 @@ const MyDesigns = () => {
             </TouchableOpacity>
           )}
         </View>
-        
+        <View style={{width: "95%"}}>
         <FlatList
           data={[{ id: 'upload' }, ...filteredDesigns]}
           renderItem={renderItem}
@@ -213,6 +214,8 @@ const MyDesigns = () => {
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
         />
+        </View>
+        
 
         <TagModal
           visible={tagModalVisible}
@@ -237,6 +240,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    alignItems: "center",
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -338,10 +342,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff15',
     borderRadius: 8,
-    paddingHorizontal: 12,
     marginBottom: 16,
     height: 48,
     marginTop: 16,
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
+    paddingLeft: "2.5%",
   },
   searchIcon: {
     marginRight: 8,

@@ -89,6 +89,14 @@ const MyClients = () => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
         />
+
+        {/* Floating Action Button */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('NewOrder')}
+        >
+          <Icons name="plus" size={24} color="white" />
+        </TouchableOpacity>
       </View>
     </SafeAreaWrapper>
   );
@@ -104,7 +112,7 @@ const styles = StyleSheet.create({
     color: colors.mainText,
   },
   listContainer: {
-    gap: 16,
+    gap: 5,
   },
   clientCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -114,7 +122,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
   },
   clientInfo: {
@@ -149,7 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     height: 48,
     marginTop: 16,
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
   },
   searchIcon: {
@@ -163,6 +171,26 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 4,
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    backgroundColor: colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    // Adjust position for tablet layout
+    right: Platform.OS === "android" && Dimensions.get("window").width >= 768 
+      ? '15%' 
+      : 16,
   },
 });
 

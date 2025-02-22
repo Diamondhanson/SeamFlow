@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: colors.mainText,
     fontSize: textVariants.H6.fontSize,
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
   },
   input: {
@@ -307,14 +307,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     color: colors.mainText,
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
     fontSize: textVariants.body2.fontSize,
   },
   notesInput: {
-    height: 100,
+    height: 95,
     textAlignVertical: 'top',
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
   },
   button: {
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 40,
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
   },
   buttonText: {
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
   },
   dateText: {
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
     overflow: 'hidden',
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
     alignSelf: "center",
   },
   tableHeader: {
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   measurementRow: {
     flexDirection: 'row',
-    minHeight: 56,
+    minHeight: 45,
     borderBottomWidth: 1,
     borderBottomColor: '#ffffff10',
   },

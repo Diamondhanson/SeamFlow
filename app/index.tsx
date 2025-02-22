@@ -16,6 +16,11 @@ import CalendarScreen from "@/src/screens/calender";
 import CustomizeMeasurementAttributes from "@/src/screens/CustomizeMeasurementAttributes";
 import Settings from "@/src/screens/Settings";
 import { useState, useEffect } from "react";
+import BulkOrder from '@/src/screens/BulkOrderModule/BulkOrder';
+import AddBulkOrder from '@/src/screens/BulkOrderModule/AddBulkOrder';
+import SafeAreaWrapper from '@/src/components/SafeAreaWrapper';
+import { StatusBar } from 'react-native';
+import { colors } from '@/src/theme/colors';
 
 const Stack = createStackNavigator();
 
@@ -45,6 +50,8 @@ function NavigationStack() {
         <Stack.Screen name="Calendar" component={CalendarScreen} />
         <Stack.Screen name="CustomizeMeasurementAttributes" component={CustomizeMeasurementAttributes} />
         <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="BulkOrder" component={BulkOrder} />
+        <Stack.Screen name="AddBulkOrder" component={AddBulkOrder} />
       </Stack.Group>
     </Stack.Navigator>
   );
@@ -52,37 +59,21 @@ function NavigationStack() {
 
 export default function Page() {
   return (
-    <AppProvider>
-      <ThemeProvider theme={theme}>
-        <ClientProvider>
-          <NavigationStack />
-        </ClientProvider>
-      </ThemeProvider>
-    </AppProvider>
+    <>
+      {/* <StatusBar 
+        barStyle="light-content"
+        backgroundColor={colors.background}
+        translucent
+      /> */}
+      <AppProvider>
+        <ThemeProvider theme={theme}>
+          <ClientProvider>
+            <NavigationStack />
+          </ClientProvider>
+        </ThemeProvider>
+      </AppProvider>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    padding: 24,
-  },
-  main: {
-    flex: 1,
-    justifyContent: "center",
-    maxWidth: 960,
-    marginHorizontal: "auto",
-  },
-  title: {
-    fontSize: 64,
-    fontWeight: "bold",
-  },
-  subtitle: {
-    fontSize: 36,
-    color: "#38434D",
-  },
-  landscape: {
-    flexDirection: "row", // Adjust layout for landscape
-  },
-});
+
