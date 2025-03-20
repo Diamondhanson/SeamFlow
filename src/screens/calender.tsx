@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Calendar, MarkedDates } from 'react-native-calendars';
+import { Calendar } from 'react-native-calendars';
 import { useClients } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
@@ -8,20 +8,33 @@ import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
 
+// Define MarkedDates type locally since it's not exported from the library
+type MarkedDates = {
+  [date: string]: {
+    marked?: boolean;
+    selected?: boolean;
+    dots?: Array<{key: string; color: string}>;
+  };
+};
+
 const CalendarScreen = () => {
   const navigation = useNavigation();
   const { clients } = useClients();
 
   // Process all due dates and create marked dates object
-  const markedDates = useMemo(() => {
+  const markedDates: MarkedDates = useMemo(() => {
     const dates: MarkedDates = {};
     
     clients.forEach(client => {
       client.orders.forEach(order => {
         const dueDate = order.dateDelivery;
+        
+        // Skip if date is invalid
+        if (!dueDate || !dueDate.match(/^\d{4}-\d{2}-\d{2}$/)) return;
+        
         if (dates[dueDate]) {
           // If date already exists, increment dots
-          dates[dueDate].dots.push({
+          dates[dueDate].dots?.push({
             key: order.id,
             color: colors.primary,
           });
@@ -43,7 +56,7 @@ const CalendarScreen = () => {
 
   // Get orders due on selected date
   const getDueDatesForDay = (date: string) => {
-    const dueOrders = [];
+    const dueOrders: Array<any> = [];
     clients.forEach(client => {
       client.orders.forEach(order => {
         if (order.dateDelivery === date) {
@@ -59,6 +72,22 @@ const CalendarScreen = () => {
 
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
   const dueOrders = getDueDatesForDay(selectedDate);
+
+  // Map the order status to the correct style class
+  const getStatusStyle = (status: string) => {
+    const statusMap: {[key: string]: string} = {
+      'registered': 'registered',
+      'in_progress': 'in_progress',
+      'in-progress': 'in_progress', // Handle hyphenated version
+      'testing': 'testing',
+      'on_pause': 'on_pause',
+      'on-pause': 'on_pause', // Handle hyphenated version
+      'delivered': 'delivered',
+      'completed': 'delivered', // Map completed to delivered style
+    };
+    
+    return statusMap[status] || 'registered'; // Default to registered if unknown
+  };
 
   return (
     <SafeAreaWrapper>
@@ -104,8 +133,8 @@ const CalendarScreen = () => {
                 <View key={order.id} style={styles.orderItem}>
                   <View style={styles.orderHeader}>
                     <Text style={styles.orderName}>{order.orderName}</Text>
-                    <View style={[styles.statusBadge, styles[order.status]]}>
-                      <Text style={styles.statusText}>{order.status}</Text>
+                    <View style={[styles.statusBadge, styles[getStatusStyle(order.status)]]}>
+                      <Text style={styles.statusText}>{order.status.replace('_', ' ')}</Text>
                     </View>
                   </View>
                   <Text style={styles.clientName}>Client: {order.clientName}</Text>

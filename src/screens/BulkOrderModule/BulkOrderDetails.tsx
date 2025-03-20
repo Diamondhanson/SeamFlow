@@ -5,6 +5,7 @@ import { colors } from '../../theme/colors';
 import { textVariants } from '../../theme/textVariants';
 import { BulkOrder, OrderStatus } from '../../context/clientContext';
 import Header from '@/src/components/Header';
+import { theme } from '@/src/theme';
 
 interface BulkOrderDetailsProps {
   order: BulkOrder;
@@ -15,7 +16,7 @@ interface BulkOrderDetailsProps {
 const StatusBadge = ({ status }: { status: OrderStatus }) => {
   const getStatusColor = (status: OrderStatus) => {
     const colors = {
-      registered: '#3498db',
+      registered: theme.colors.primary,
       in_progress: '#f1c40f',
       testing: '#e67e22',
       on_pause: '#e74c3c',
@@ -130,7 +131,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',

@@ -263,7 +263,7 @@ const AddBulkOrder = () => {
           {/* Only Bulk Order Notes */}
           <TextInput
             style={[styles.input, styles.notesInput]}
-            placeholder="Order Notes"
+            placeholder="Bulk order notes"
             value={formData.notes}
             onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
             multiline

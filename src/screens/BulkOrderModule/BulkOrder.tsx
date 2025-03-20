@@ -8,11 +8,13 @@ import { theme } from '@/src/theme';
 import Header from '@/src/components/Header';
 import { colors } from '@/src/theme/colors';
 import BulkOrderDetails from './BulkOrderDetails';
+import Icons from "react-native-vector-icons/FontAwesome5";
+
 
 // Helper function to get status color
 const getStatusColor = (status: OrderStatus) => {
   const colors = {
-    registered: '#3498db',    // Blue
+    registered: theme.colors.primary,    // Blue
     in_progress: '#f1c40f',   // Yellow
     testing: '#e67e22',       // Orange
     on_pause: '#e74c3c',      // Red
@@ -36,13 +38,13 @@ const BulkOrderList = ({ onSelectOrder }) => {
           <Text style={styles.statusText}>{item.status.replace('_', ' ').toUpperCase()}</Text>
         </View>
       </View>
-      
+
       <View style={styles.orderInfo}>
         <View style={styles.infoRow}>
           <MaterialIcons name="event" size={16} color="#666" />
           <Text style={styles.dateText}>Delivery: {item.dateDelivery}</Text>
         </View>
-        
+
         <View style={styles.infoRow}>
           <MaterialIcons name="group" size={16} color="#666" />
           <Text style={styles.memberCount}>
@@ -82,7 +84,7 @@ const BulkOrderList = ({ onSelectOrder }) => {
         style={styles.fab}
         onPress={() => navigation.navigate('AddBulkOrder')}
       >
-        <MaterialIcons name="add" size={24} color="white" />
+        <Icons name="plus" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );
@@ -109,8 +111,8 @@ const BulkOrder = () => {
 
   if (selectedOrder) {
     return (
-      <BulkOrderDetails 
-        order={selectedOrder} 
+      <BulkOrderDetails
+        order={selectedOrder}
         onBack={handleBack}
         onStatusChange={handleStatusChange}
       />
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     bottom: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     width: 56,
     height: 56,
     borderRadius: 28,
