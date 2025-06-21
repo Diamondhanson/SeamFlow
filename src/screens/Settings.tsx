@@ -16,8 +16,6 @@ import Icons from "react-native-vector-icons/FontAwesome5";
 import { useApp } from '../context/AppContext';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { auth } from '../../FirebaseConfig';
-import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import Header from '../components/Header';
 
 const Settings = () => {
@@ -26,12 +24,6 @@ const Settings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState(companyInfo.name);
   const [isLoading, setIsLoading] = useState(false);
-  const [showPasswordChange, setShowPasswordChange] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
 
   const pickImage = async () => {
     try {
@@ -78,59 +70,6 @@ const Settings = () => {
     }
   };
 
-  const handleChangePassword = async () => {
-    if (!user?.email) {
-      Alert.alert('Error', 'No user email found');
-      return;
-    }
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      Alert.alert('Error', 'New password must be at least 6 characters');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // First sign in again to verify current password
-      const { signInWithEmailAndPassword } = require('firebase/auth');
-      const { auth } = require('../../FirebaseConfig');
-      
-      // Verify current credentials
-      await signInWithEmailAndPassword(auth, user.email, passwordForm.currentPassword);
-      
-      // If sign in successful, update password
-      await updatePassword(user, passwordForm.newPassword);
-
-      Alert.alert('Success', 'Password updated successfully');
-      setShowPasswordChange(false);
-      setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
-    } catch (error: any) {
-      let errorMessage = 'Failed to change password. Please try again.';
-      
-      if (error.code === 'auth/wrong-password') {
-        errorMessage = 'Current password is incorrect';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many attempts. Please try again later';
-      } else if (error.code === 'auth/requires-recent-login') {
-        errorMessage = 'Please sign out and sign in again before changing your password';
-      }
-      
-      console.error('Error changing password:', error);
-      Alert.alert('Error', errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogout = () => {
     Alert.alert(
       "Logout",
@@ -143,8 +82,13 @@ const Settings = () => {
         {
           text: "Logout",
           onPress: async () => {
-            await logout();
-            navigation.navigate('Welcome' as never);
+            try {
+              await logout();
+              (navigation as any).navigate('Welcome');
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
           },
           style: 'destructive'
         }
@@ -156,7 +100,7 @@ const Settings = () => {
     <ScrollView style={styles.container}>
       <Header 
         title="Settings" 
-        onBack={() => navigation.navigate('Home')}
+        onBack={() => (navigation as any).navigate('Home')}
       />
 
       <View style={styles.section}>
@@ -227,78 +171,6 @@ const Settings = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
         <Text style={styles.userEmail}>{user?.email}</Text>
-        
-        <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => setShowPasswordChange(true)}
-        >
-          <Icons name="key" size={20} color={colors.mainText} />
-          <Text style={styles.menuItemText}>Change Password</Text>
-          <Icons name="chevron-right" size={16} color={colors.mainText} />
-        </TouchableOpacity>
-
-        {showPasswordChange && (
-          <View style={styles.passwordChangeForm}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Current Password"
-              placeholderTextColor={colors.subText}
-              secureTextEntry
-              value={passwordForm.currentPassword}
-              onChangeText={(text) => setPasswordForm(prev => ({
-                ...prev,
-                currentPassword: text
-              }))}
-            />
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="New Password"
-              placeholderTextColor={colors.subText}
-              secureTextEntry
-              value={passwordForm.newPassword}
-              onChangeText={(text) => setPasswordForm(prev => ({
-                ...prev,
-                newPassword: text
-              }))}
-            />
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Confirm New Password"
-              placeholderTextColor={colors.subText}
-              secureTextEntry
-              value={passwordForm.confirmPassword}
-              onChangeText={(text) => setPasswordForm(prev => ({
-                ...prev,
-                confirmPassword: text
-              }))}
-            />
-            <View style={styles.editButtonsRow}>
-              <TouchableOpacity 
-                style={[styles.editButton, styles.cancelButton]}
-                onPress={() => {
-                  setShowPasswordChange(false);
-                  setPasswordForm({
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: '',
-                  });
-                }}
-                disabled={isLoading}
-              >
-                <Text style={styles.editButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.editButton, styles.saveButton]}
-                onPress={handleChangePassword}
-                disabled={isLoading}
-              >
-                <Text style={styles.editButtonText}>
-                  {isLoading ? 'Updating...' : 'Update Password'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
       </View>
 
       <View style={styles.section}>
@@ -322,7 +194,7 @@ const styles = StyleSheet.create({
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#ffffff15',
   },
   sectionTitle: {
     fontSize: textVariants.H3.fontSize,
@@ -356,12 +228,6 @@ const styles = StyleSheet.create({
     color: colors.subText,
     marginTop: 8,
     fontSize: 12,
-  },
-  errorText: {
-    color: "red",
-  },
-  error: {
-    color: "red",
   },
   companyNameSection: {
     marginTop: 20,
@@ -434,17 +300,6 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: colors.error,
-  },
-  passwordChangeForm: {
-    marginTop: 15,
-    gap: 12,
-  },
-  passwordInput: {
-    backgroundColor: '#ffffff15',
-    borderRadius: 8,
-    padding: 12,
-    color: colors.mainText,
-    fontSize: 16,
   },
 });
 

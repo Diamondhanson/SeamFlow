@@ -35,7 +35,7 @@ function NavigationStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="CustomizeMeasurementAttributes"
+      initialRouteName="Welcome"
       screenOptions={{
         headerShown: false,
       }}

@@ -10,7 +10,8 @@ import {
   Image,
   Dimensions,
   SafeAreaView,
-  Platform
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { useNavigation } from "@react-navigation/native";
@@ -112,6 +113,7 @@ const MyDesigns = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFullImage, setSelectedFullImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Filter designs based on search query
   const filteredDesigns = useMemo(() => {
@@ -124,7 +126,7 @@ const MyDesigns = () => {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: 'images',
       allowsEditing: false, // Changed to false to prevent cropping
       quality: 1,
     });
@@ -135,14 +137,24 @@ const MyDesigns = () => {
     }
   };
 
-  const handleAddTag = (tag: string) => {
+  const handleAddTag = async (tag: string) => {
     if (selectedImage) {
-      addDesign({
-        imageUrl: selectedImage,
-        tags: [tag],
-        description: ''
-      });
-      setSelectedImage(null);
+      setIsUploading(true);
+      setTagModalVisible(false);
+      
+      try {
+        await addDesign({
+          imageUrl: selectedImage,
+          tags: [tag],
+          description: ''
+        });
+        setSelectedImage(null);
+      } catch (error) {
+        console.error('Error uploading design:', error);
+        alert('Failed to upload design. Please try again.');
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -153,9 +165,22 @@ const MyDesigns = () => {
   const renderItem = ({ item, index }: { item: any; index: number }) => {
     if (index === 0) {
       return (
-        <TouchableOpacity style={styles.uploadTile} onPress={pickImage}>
-          <Icons name="plus" size={40} color={colors.mainText} />
-          <Text style={styles.uploadText}>Upload Design</Text>
+        <TouchableOpacity 
+          style={[styles.uploadTile, isUploading && styles.disabledTile]} 
+          onPress={pickImage}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <>
+              <ActivityIndicator size={40} color={colors.mainText} />
+              <Text style={styles.uploadText}>Uploading...</Text>
+            </>
+          ) : (
+            <>
+              <Icons name="plus" size={40} color={colors.mainText} />
+              <Text style={styles.uploadText}>Upload Design</Text>
+            </>
+          )}
         </TouchableOpacity>
       );
     }
@@ -220,8 +245,10 @@ const MyDesigns = () => {
         <TagModal
           visible={tagModalVisible}
           onClose={() => {
-            setTagModalVisible(false);
-            setSelectedImage(null);
+            if (!isUploading) {
+              setTagModalVisible(false);
+              setSelectedImage(null);
+            }
           }}
           onSave={handleAddTag}
         />
@@ -381,6 +408,9 @@ const styles = StyleSheet.create({
     color: colors.mainText,
     fontSize: 40,
     fontWeight: 'bold',
+  },
+  disabledTile: {
+    opacity: 0.6,
   },
 });
 

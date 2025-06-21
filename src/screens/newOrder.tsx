@@ -9,8 +9,6 @@ import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import DatePicker from '../components/DatePicker';
 import Header from '../components/Header';
 import { useApp } from '../context/AppContext';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../FirebaseConfig';
 
 type RouteParams = {
   clientId?: string;
@@ -48,8 +46,7 @@ const NewOrder = () => {
   const { addClient, clients, addOrderToClient, updateClientMeasurements } = useClients();
   const { measurementAttributes, user } = useApp();
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [dataLoaded, setDataLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Find existing client if clientId is provided
   const existingClient = clientId ? clients.find(c => c.id === clientId) : null;
@@ -67,58 +64,40 @@ const NewOrder = () => {
 
   const [measurements, setMeasurements] = useState<Measurements>({});
 
-  // Load initial data from Firestore
+  // Initialize form data and measurements for existing client
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        if (user) {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            if (userData.clients) {
-              const currentClient = userData.clients.find((c: Client) => c.id === clientId);
-              if (currentClient) {
-                setFormData(prev => ({
-                  ...prev,
-                  fullName: currentClient.fullName,
-                  phoneNumber: currentClient.phoneNumber,
-                  address: currentClient.address,
-                }));
-                
-                // Initialize measurements with existing data
-                const initialMeasurements: Measurements = {};
-                measurementAttributes.forEach(attr => {
-                  initialMeasurements[attr] = currentClient.measurements[attr] || 0;
-                });
-                setMeasurements(initialMeasurements);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setIsLoading(false);
-        setDataLoaded(true);
-      }
-    };
-
-    loadData();
-  }, [user, clientId, measurementAttributes]);
+    if (existingClient) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: existingClient.fullName,
+        phoneNumber: existingClient.phoneNumber,
+        address: existingClient.address,
+      }));
+      
+      // Initialize measurements with existing data
+      const initialMeasurements: Measurements = {};
+      measurementAttributes.forEach(attr => {
+        initialMeasurements[attr] = existingClient.measurements[attr] || 0;
+      });
+      setMeasurements(initialMeasurements);
+    } else {
+      // Initialize measurements for new client
+      const initialMeasurements: Measurements = {};
+      measurementAttributes.forEach(attr => {
+        initialMeasurements[attr] = 0;
+      });
+      setMeasurements(initialMeasurements);
+    }
+  }, [existingClient, measurementAttributes]);
 
   const handleMeasurementChange = (attr: string, text: string) => {
-    if (!dataLoaded) return; // Prevent updates before data is loaded
-    
     setMeasurements(prev => ({
       ...prev,
-      [attr]: text === '' ? '' : parseFloat(text) || 0
+      [attr]: text === '' ? 0 : parseFloat(text) || 0
     }));
   };
 
   const handleSubmit = async () => {
-    if (!dataLoaded) return; // Prevent submission before data is loaded
-
     const orderDetails = {
       orderName: formData.orderName,
       dateOrdered: new Date().toISOString().split('T')[0],
@@ -126,7 +105,6 @@ const NewOrder = () => {
       notes: formData.notes,
       price: parseFloat(formData.price) || 0,
       advancePayment: parseFloat(formData.advancePayment) || 0,
-      status: 'registered'
     };
 
     setIsLoading(true);
@@ -155,17 +133,6 @@ const NewOrder = () => {
       setIsLoading(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <SafeAreaWrapper>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      </SafeAreaWrapper>
-    );
-  }
 
   return (
     <SafeAreaWrapper>
@@ -258,7 +225,6 @@ const NewOrder = () => {
                   keyboardType="numeric"
                   placeholderTextColor={colors.subText}
                   placeholder="0.00"
-                  editable={dataLoaded}
                 />
               </View>
             </View>
@@ -302,9 +268,9 @@ const NewOrder = () => {
         </View>
 
         <Pressable 
-          style={[styles.button, !dataLoaded && styles.buttonDisabled]} 
+          style={[styles.button, isLoading && styles.buttonDisabled]} 
           onPress={handleSubmit}
-          disabled={!dataLoaded || isLoading}
+          disabled={isLoading}
         >
           <Text style={styles.buttonText}>
             {isLoading ? 'Saving...' : 'Save Order'}

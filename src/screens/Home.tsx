@@ -5,66 +5,87 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
+  ScrollView,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import { ScrollView } from "react-native-gesture-handler";
-import { theme } from "../theme";
+import { colors } from "../theme/colors";
 import { textVariants } from "../theme/textVariants";
+import { spacing } from "../theme/spacing";
+import { defaultStyles, themeUtils } from "../theme";
 import Icons from "react-native-vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useApp } from '../context/AppContext';
-import { colors } from "../theme/colors";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
 
-// Define the tile data structure
+// Define the tile data structure with enhanced styling
 interface TileData {
   id: string;
   title: string;
   icon: string;
   route: string;
+  description: string;
+  color: string;
+  gradient: string[];
 }
 
-// Define the tiles data
+// Define the tiles data with craft aesthetic
 const TILES_DATA: TileData[] = [
   {
     id: '1',
-    title: 'New order',
-    icon: 'border-all',
-    route: 'NewOrder'
+    title: 'New Order',
+    description: 'Create custom orders',
+    icon: 'plus-circle',
+    route: 'NewOrder',
+    color: colors.primary,
+    gradient: [colors.primary, colors.primaryDark],
   },
   {
     id: '2',
-    title: 'My clients',
-    icon: 'person-booth',
-    route: 'MyClients'
+    title: 'My Clients',
+    description: 'Manage client profiles',
+    icon: 'users',
+    route: 'MyClients',
+    color: colors.secondary,
+    gradient: [colors.secondary, colors.secondaryDark],
   },
   {
     id: '3',
-    title: 'My designs',
-    icon: 'icons',
-    route: 'MyDesigns'
+    title: 'My Designs',
+    description: 'Design gallery',
+    icon: 'palette',
+    route: 'MyDesigns',
+    color: colors.accent,
+    gradient: [colors.accent, colors.accentDark],
   },
   {
     id: '4',
     title: 'Calendar',
-    icon: 'business-time',
-    route: 'Calendar'
+    description: 'Delivery schedule',
+    icon: 'calendar-alt',
+    route: 'Calendar',
+    color: colors.info,
+    gradient: [colors.info, '#2563eb'],
   },
   {
     id: '5',
-    title: 'My inspirations',
+    title: 'Inspirations',
+    description: 'Creative references',
     icon: 'lightbulb',
-    route: 'MyInspirations'
-  }
-  ,
+    route: 'MyInspirations',
+    color: colors.warning,
+    gradient: [colors.warning, '#d97706'],
+  },
   {
     id: '6',
-    title: 'Bulk Order',
+    title: 'Bulk Orders',
+    description: 'Large volume orders',
     icon: 'boxes',
-    route: 'BulkOrder'
+    route: 'BulkOrder',
+    color: colors.success,
+    gradient: [colors.success, '#059669'],
   }
 ];
 
@@ -87,73 +108,130 @@ const Home = () => {
 
   const { width } = dimensions.window;
   const isTabletLayout = width >= 768;
-  const tileSize = isTabletLayout ? 220 : 170;
-  const containerPadding = isTabletLayout ? 32 : 16;
-  const logoSize = isTabletLayout ? 60 : 40;
+  const tileWidth = isTabletLayout ? 
+    (width - (spacing.pageTablet * 2) - (spacing.cardGap * 2)) / 3 : 
+    (width - (spacing.page * 2) - spacing.cardGap) / 2;
+  const tileHeight = isTabletLayout ? 160 : 140;
+  const containerPadding = isTabletLayout ? spacing.pageTablet : spacing.page;
 
-  const renderTile = ({ id, title, icon, route }: TileData) => (
+  const renderTile = ({ id, title, description, icon, route, color }: TileData) => (
     <TouchableOpacity 
       key={id}
       style={[
-        styles.tiles,
-        { width: tileSize, height: tileSize }
+        styles.tile,
+        { 
+          width: tileWidth, 
+          height: tileHeight,
+          backgroundColor: color,
+        }
       ]}
-      onPress={() => navigation.navigate(route)}
+      onPress={() => (navigation as any).navigate(route)}
+      activeOpacity={0.8}
     >
-      <Text style={[
-        styles.text,
-        isTabletLayout && styles.tabletText
-      ]}>{title}</Text>
-      <Icons 
-        name={icon} 
-        size={isTabletLayout ? 80 : 60} 
-        color={theme.colors.mainText} 
-      />
+      <View style={styles.tileContent}>
+        <View style={styles.tileHeader}>
+          <Icons 
+            name={icon} 
+            size={isTabletLayout ? 28 : 24} 
+            color={colors.textOnPrimary}
+            style={styles.tileIcon}
+          />
+        </View>
+        
+        <View style={styles.tileFooter}>
+          <Text style={[
+            styles.tileTitle,
+            { fontSize: isTabletLayout ? 16 : 14 }
+          ]}>
+            {title}
+          </Text>
+          <Text style={[
+            styles.tileDescription,
+            { fontSize: isTabletLayout ? 12 : 11 }
+          ]}>
+            {description}
+          </Text>
+        </View>
+      </View>
     </TouchableOpacity>
   );
 
   return (
-    // <SafeAreaWrapper>
-      <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaWrapper>
+      <ScrollView 
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Section */}
         <View style={[
-          styles.titleContainer,
+          styles.headerSection,
           { paddingHorizontal: containerPadding }
         ]}>
-          <View style={styles.titleLeftSection}>
+          <View style={styles.companyInfoSection}>
             {companyInfo.logo ? (
               <Image 
                 source={{ uri: companyInfo.logo }} 
-                style={[styles.logo, { width: logoSize, height: logoSize }]} 
-                resizeMode="contain"
+                style={styles.companyLogo} 
+                resizeMode="cover"
               />
             ) : (
-              <View style={[styles.logoPlaceholder, { width: logoSize, height: logoSize }]}>
-                <Icons name="store" size={logoSize/2} color={theme.colors.mainText} />
+              <View style={styles.logoPlaceholder}>
+                <Icons name="store" size={24} color={colors.textSecondary} />
               </View>
             )}
-            <Text style={[
-              styles.title,
-              isTabletLayout && styles.tabletTitle
-            ]}>
-              {companyInfo.name}
-            </Text>
+            
+            <View style={styles.companyTextSection}>
+              <Text style={styles.companyName}>
+                {companyInfo.name}
+              </Text>
+              <Text style={styles.welcomeSubtext}>
+                Welcome back to your workspace
+              </Text>
+            </View>
           </View>
+          
           <TouchableOpacity
             onPress={() => navigation.navigate('Settings' as never)}
             style={styles.settingsButton}
           >
-            <Icons name="cog" size={24} color={theme.colors.mainText} />
+            <Icons name="cog" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
-        
+
+        {/* Quick Stats Section */}
         <View style={[
-          styles.tilesContainer,
-          { padding: containerPadding }
+          styles.statsSection,
+          { paddingHorizontal: containerPadding }
         ]}>
-          {TILES_DATA.map(renderTile)}
+          <Text style={styles.sectionTitle}>Quick Overview</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statLabel}>Active Orders</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>45</Text>
+              <Text style={styles.statLabel}>Total Clients</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>3</Text>
+              <Text style={styles.statLabel}>Due Today</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Main Actions Section */}
+        <View style={[
+          styles.actionsSection,
+          { paddingHorizontal: containerPadding }
+        ]}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.tilesContainer}>
+            {TILES_DATA.map(renderTile)}
+          </View>
         </View>
       </ScrollView>
-    // </SafeAreaWrapper>
+    </SafeAreaWrapper>
   );
 };
 
@@ -161,72 +239,149 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: colors.background,
+    paddingBottom: spacing.xl,
   },
-  titleContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 20,
-    marginBottom: 20,
+  
+  // Header Section
+  headerSection: {
+    paddingTop: spacing.l,
+    paddingBottom: spacing.section,
   },
-  titleLeftSection: {
+  companyInfoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    marginBottom: spacing.m,
   },
-  logo: {
-    borderRadius: 8,
-    backgroundColor: theme.colors.primary,
+  companyLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: spacing.borderRadius.l,
+    backgroundColor: colors.surfaceElevated,
   },
   logoPlaceholder: {
-    borderRadius: 8,
-    backgroundColor: theme.colors.primary,
+    width: 48,
+    height: 48,
+    borderRadius: spacing.borderRadius.l,
+    backgroundColor: colors.surfaceElevated,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  companyTextSection: {
+    flex: 1,
+    marginLeft: spacing.m,
+  },
+  companyName: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: colors.text,
+    letterSpacing: 0.3,
+    lineHeight: 28,
+  },
+  welcomeSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 2,
+    letterSpacing: 0.2,
+    lineHeight: 18,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    borderRadius: spacing.borderRadius.round,
+    backgroundColor: colors.surfaceElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
+  },
+
+  // Stats Section
+  statsSection: {
+    marginBottom: spacing.section,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    color: colors.text,
+    marginBottom: spacing.m,
+    letterSpacing: 0.2,
+    lineHeight: 22,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.cardGap,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: spacing.borderRadius.l,
+    padding: spacing.m,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    color: colors.primary,
+    lineHeight: 28,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+    letterSpacing: 0.3,
+    lineHeight: 16,
+  },
+
+  // Actions Section
+  actionsSection: {
+    flex: 1,
   },
   tilesContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 20,
-    
+    gap: spacing.cardGap,
+    justifyContent: 'space-between',
   },
-  text: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: theme.colors.mainText,
-    textAlign: 'center',
+  
+  // Tile Styles
+  tile: {
+    borderRadius: spacing.borderRadius.xl,
+    overflow: 'hidden',
+    ...themeUtils.getElevation('s'),
+    marginBottom: spacing.cardGap,
   },
-  tabletText: {
-    fontSize: 24,
+  tileContent: {
+    flex: 1,
+    padding: spacing.m,
+    justifyContent: 'space-between',
   },
-  tiles: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+  tileHeader: {
+    alignItems: 'flex-end',
   },
-  title: {
-    fontSize: textVariants.H6.fontSize,
-    fontWeight: "bold",
-    color: theme.colors.mainText,
-    fontFamily: "Poppins_700Bold",
+  tileIcon: {
+    opacity: 0.9,
   },
-  tabletTitle: {
-    fontSize: 40,
+  tileFooter: {
+    alignItems: 'flex-start',
   },
-  settingsButton: {
-    padding: 10,
+  tileTitle: {
+    fontWeight: '600' as const,
+    color: colors.textOnPrimary,
+    letterSpacing: 0.2,
+    lineHeight: 18,
+    marginBottom: 2,
+  },
+  tileDescription: {
+    color: colors.textOnPrimary,
+    opacity: 0.8,
+    letterSpacing: 0.1,
+    lineHeight: 14,
   },
 });
 
