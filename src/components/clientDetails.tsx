@@ -11,6 +11,8 @@ import {
 import { Client } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
+import { spacing } from '../theme/spacing';
+import { defaultStyles, themeUtils } from '../theme';
 import AddNewOrder from './addNewOrder';
 import EditMeasurementValue from './editMeasurementValue';
 import { useClients } from '../context/clientContext';
@@ -65,21 +67,37 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
       <View style={styles.container}>
        
         
-        <ScrollView style={styles.scrollView}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* Personal Information */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Personal Information</Text>
-            <Text style={styles.label}>Name:</Text>
-            <Text style={styles.value}>{client.fullName}</Text>
-            <Text style={styles.label}>Phone:</Text>
-            <Text style={styles.value}>{client.phoneNumber}</Text>
-            <Text style={styles.label}>Address:</Text>
-            <Text style={styles.value}>{client.address}</Text>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.primary }]}>
+                <Text style={styles.sectionIconText}>👤</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Personal Information</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Name:</Text>
+              <Text style={styles.value}>{client.fullName}</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Phone:</Text>
+              <Text style={styles.value}>{client.phoneNumber}</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Address:</Text>
+              <Text style={styles.value}>{client.address}</Text>
+            </View>
           </View>
 
           {/* Measurements */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Measurements</Text>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.accent }]}>
+                <Text style={styles.sectionIconText}>📏</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Measurements</Text>
+            </View>
             <View style={styles.measurementsGrid}>
               {measurementAttributes.map((attr) => (
                 <View key={attr} style={styles.measurementItem}>
@@ -99,7 +117,7 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
                     <Icons 
                       name="edit" 
                       size={14} 
-                      color={colors.subText} 
+                      color={colors.primary} 
                       style={styles.editIcon} 
                     />
                   </TouchableOpacity>
@@ -110,7 +128,12 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
 
           {/* Orders List */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Orders History</Text>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.secondary }]}>
+                <Text style={styles.sectionIconText}>📦</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Orders History</Text>
+            </View>
             {client.orders.map((order) => (
               <TouchableOpacity 
                 key={order.id} 
@@ -217,20 +240,43 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: 16,
+    paddingHorizontal: Dimensions.get('window').width >= 768 ? spacing.pageTablet : spacing.page,
   },
-  scrollView: {
-    flex: 1,
+  scrollContainer: {
+    paddingBottom: spacing.huge,
   },
   section: {
-    marginBottom: 24,
-    marginTop: 24,
+    backgroundColor: colors.surface,
+    borderRadius: spacing.borderRadius.l,
+    padding: spacing.l,
+    marginVertical: spacing.m,
+    ...themeUtils.getElevation('xs'),
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.l,
+  },
+  sectionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: spacing.borderRadius.round,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+    ...themeUtils.getElevation('xs'),
+  },
+  sectionIconText: {
+    fontSize: 18,
   },
   sectionTitle: {
-    fontSize: textVariants.H4.fontSize,
-    fontWeight: 'bold',
-    color: colors.mainText,
-    marginBottom: 12,
+    fontSize: textVariants.H5.fontSize,
+    fontWeight: '600',
+    color: colors.text,
+    letterSpacing: 0.2,
+  },
+  infoItem: {
+    marginBottom: spacing.m,
   },
   label: {
     fontSize: textVariants.body2.fontSize,

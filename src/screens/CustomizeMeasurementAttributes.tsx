@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
+import { spacing } from '../theme/spacing';
+import { defaultStyles, themeUtils } from '../theme';
 import { useNavigation } from "@react-navigation/native";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import Icons from "react-native-vector-icons/FontAwesome5";
@@ -66,10 +68,16 @@ const CustomizeMeasurementAttributes = () => {
   return (
     <SafeAreaWrapper>
       <View style={styles.container}>
-        <Text style={styles.title}>Customize Measurements</Text>
-        <Text style={styles.subtitle}>
-          Add your preferred measurement attributes or skip to use our defaults
-        </Text>
+        {/* Welcome Header */}
+        <View style={styles.headerSection}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.iconText}>📏</Text>
+          </View>
+          <Text style={styles.title}>Customize Measurements</Text>
+          <Text style={styles.subtitle}>
+            Add your preferred measurement attributes or skip to use our defaults
+          </Text>
+        </View>
 
         <View style={styles.inputContainer}>
           <TextInput
@@ -135,18 +143,44 @@ const CustomizeMeasurementAttributes = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: Dimensions.get('window').width >= 768 ? spacing.pageTablet : spacing.page,
+    paddingVertical: spacing.l,
+  },
+  headerSection: {
+    backgroundColor: colors.surface,
+    borderRadius: spacing.borderRadius.l,
+    padding: spacing.xl,
+    marginBottom: spacing.l,
+    alignItems: 'center',
+    ...themeUtils.getElevation('xs'),
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: spacing.borderRadius.round,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.l,
+    ...themeUtils.getElevation('s'),
+  },
+  iconText: {
+    fontSize: 40,
   },
   title: {
-    fontSize: textVariants.H4.fontSize,
-    color: colors.mainText,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: textVariants.H3.fontSize,
+    color: colors.text,
+    fontWeight: '700',
+    marginBottom: spacing.m,
+    textAlign: 'center',
+    letterSpacing: 0.3,
   },
   subtitle: {
-    fontSize: textVariants.body2.fontSize,
-    color: colors.subText,
-    marginBottom: 24,
+    fontSize: textVariants.body1.fontSize,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    letterSpacing: 0.1,
   },
   inputContainer: {
     flexDirection: 'row',

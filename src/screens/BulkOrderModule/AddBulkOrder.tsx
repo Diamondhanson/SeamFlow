@@ -15,6 +15,8 @@ import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { textVariants } from '../../theme/textVariants';
+import { spacing } from '../../theme/spacing';
+import { defaultStyles, themeUtils } from '../../theme';
 import { useClients } from '../../context/clientContext';
 import { useApp } from '../../context/AppContext';
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
@@ -73,7 +75,7 @@ const AddBulkOrder = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [currentMember, setCurrentMember] = useState({
     name: '',
-    measurements: {},
+    measurements: {} as { [key: string]: number },
   });
 
   const handleAddMember = () => {
@@ -104,7 +106,7 @@ const AddBulkOrder = () => {
       ...prev,
       measurements: {
         ...prev.measurements,
-        [attr]: value === '' ? '' : parseFloat(value) || 0,
+        [attr]: value === '' ? 0 : parseFloat(value) || 0,
       },
     }));
   };
@@ -155,145 +157,199 @@ const AddBulkOrder = () => {
 
   return (
     <SafeAreaWrapper>
-      <KeyboardAwareScrollView>
+      <KeyboardAwareScrollView contentContainerStyle={styles.scrollContainer}>
         <Header 
           title="New Bulk Order" 
           onBack={() => navigation.goBack()} 
         />
 
-        <View style={styles.container}>
-          <Text style={styles.sectionTitle}>Order Information</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Order Name (e.g., HANSEN WEDDING)"
-            value={formData.orderName}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, orderName: text }))}
-            placeholderTextColor={colors.subText}
-          />
-          
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            value={formData.phoneNumber}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, phoneNumber: text }))}
-            placeholderTextColor={colors.subText}
-            keyboardType="phone-pad"
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Address"
-            value={formData.address}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
-            placeholderTextColor={colors.subText}
-          />
-
-          <TouchableOpacity 
-            style={styles.dateInput}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={styles.dateText}>
-              Delivery Date: {formData.deliveryDate.toLocaleDateString()}
+        <View style={styles.contentContainer}>
+          {/* Welcome Section */}
+          <View style={styles.welcomeSection}>
+            <Text style={styles.pageTitle}>Create Bulk Order</Text>
+            <Text style={styles.pageSubtitle}>
+              Organize multiple orders for events, families, or groups
             </Text>
-          </TouchableOpacity>
-
-          <DatePicker
-            visible={showDatePicker}
-            selectedDate={formData.deliveryDate}
-            onClose={() => setShowDatePicker(false)}
-            onDateChange={(date) => {
-              setFormData(prev => ({ ...prev, deliveryDate: date }));
-            }}
-            mode="date"
-          />
-
-          <Text style={styles.sectionTitle}>Add Members</Text>
-          
-            {/* Members List */}
-            {members.length > 0 && (
-            <View style={styles.membersList}>
-              <Text style={styles.sectionTitle}>Members ({members.length})</Text>
-              {members.map((member) => (
-                <View key={member.id} style={styles.memberCard}>
-                  <Text style={styles.memberName}>{member.name}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveMember(member.id)}
-                    style={styles.removeMemberButton}
-                  >
-                    <MaterialIcons name="close" size={20} color={colors.error} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-
-
-          {/* Current Member Form */}
-          <View style={styles.memberForm}>
-            <TextInput
-              style={styles.input}
-              placeholder="Member Name"
-              value={currentMember.name}
-              onChangeText={(text) => setCurrentMember(prev => ({ ...prev, name: text }))}
-              placeholderTextColor={colors.subText}
-            />
-
-            <View style={styles.measurementsTable}>
-              {measurementAttributes.map((attr) => (
-                <MeasurementInput
-                  key={attr}
-                  label={attr.charAt(0).toUpperCase() + attr.slice(1)}
-                  value={currentMember.measurements[attr]?.toString() || ''}
-                  onChangeText={(text) => handleMeasurementChange(attr, text)}
-                />
-              ))}
-            </View>
-
-            <TouchableOpacity 
-              style={styles.addMemberButton}
-              onPress={handleAddMember}
-            >
-              <MaterialIcons name="person-add" size={20} color="white" />
-              <Text style={styles.addMemberButtonText}>Add Member</Text>
-            </TouchableOpacity>
           </View>
 
-        
+          {/* Order Information Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.primary }]}>
+                <Text style={styles.sectionIconText}>📋</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Order Information</Text>
+            </View>
 
-          {/* Only Bulk Order Notes */}
-          <TextInput
-            style={[styles.input, styles.notesInput]}
-            placeholder="Bulk order notes"
-            value={formData.notes}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
-            multiline
-            placeholderTextColor={colors.subText}
-          />
-
-          <Text style={styles.sectionTitle}>Payment Details</Text>
-          <View style={styles.paymentContainer}>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Bulk Order Price</Text>
+            <View style={styles.sectionContent}>
               <TextInput
-                style={[styles.input, styles.priceInput]}
-                placeholder="Enter total price"
-                value={formData.price}
-                onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
-                keyboardType="numeric"
+                style={styles.input}
+                placeholder="Order Name (e.g., HANSEN WEDDING)"
+                value={formData.orderName}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, orderName: text }))}
+                placeholderTextColor={colors.subText}
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Phone Number"
+                value={formData.phoneNumber}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, phoneNumber: text }))}
+                placeholderTextColor={colors.subText}
+                keyboardType="phone-pad"
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Address"
+                value={formData.address}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
+                placeholderTextColor={colors.subText}
+              />
+
+              <TouchableOpacity 
+                style={styles.dateInput}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <MaterialIcons name="event" size={20} color={colors.primary} style={styles.inputIcon} />
+                <Text style={styles.dateText}>
+                  Delivery Date: {formData.deliveryDate.toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+
+              <DatePicker
+                visible={showDatePicker}
+                selectedDate={formData.deliveryDate}
+                onClose={() => setShowDatePicker(false)}
+                onDateChange={(date) => {
+                  setFormData(prev => ({ ...prev, deliveryDate: date }));
+                }}
+                mode="date"
+              />
+            </View>
+          </View>
+
+          {/* Members Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.success }]}>
+                <Text style={styles.sectionIconText}>👥</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Add Members</Text>
+            </View>
+
+            <View style={styles.sectionContent}>
+              {/* Members List */}
+              {members.length > 0 && (
+                <View style={styles.membersList}>
+                  <View style={styles.membersHeader}>
+                    <Text style={styles.membersCount}>Members ({members.length})</Text>
+                  </View>
+                  {members.map((member) => (
+                    <View key={member.id} style={styles.memberCard}>
+                      <Text style={styles.memberName}>{member.name}</Text>
+                      <TouchableOpacity
+                        onPress={() => handleRemoveMember(member.id)}
+                        style={styles.removeMemberButton}
+                      >
+                        <MaterialIcons name="close" size={20} color={colors.error} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Current Member Form */}
+              <View style={styles.memberForm}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Member Name"
+                  value={currentMember.name}
+                  onChangeText={(text) => setCurrentMember(prev => ({ ...prev, name: text }))}
+                  placeholderTextColor={colors.subText}
+                />
+
+                <View style={styles.measurementsContainer}>
+                  <Text style={styles.measurementsTitle}>📏 Measurements</Text>
+                  <View style={styles.measurementsTable}>
+                    {measurementAttributes.map((attr) => (
+                      <MeasurementInput
+                        key={attr}
+                        label={attr.charAt(0).toUpperCase() + attr.slice(1)}
+                        value={currentMember.measurements[attr]?.toString() || ''}
+                        onChangeText={(text) => handleMeasurementChange(attr, text)}
+                      />
+                    ))}
+                  </View>
+                </View>
+
+                <TouchableOpacity 
+                  style={styles.addMemberButton}
+                  onPress={handleAddMember}
+                >
+                  <MaterialIcons name="person-add" size={20} color="white" />
+                  <Text style={styles.addMemberButtonText}>Add Member</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* Notes Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.warning }]}>
+                <Text style={styles.sectionIconText}>📝</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Order Notes</Text>
+            </View>
+
+            <View style={styles.sectionContent}>
+              <TextInput
+                style={[styles.input, styles.notesInput]}
+                placeholder="Add any special instructions or notes for this bulk order..."
+                value={formData.notes}
+                onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+                multiline
                 placeholderTextColor={colors.subText}
               />
             </View>
-            
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputLabel}>Advance Received</Text>
-              <TextInput
-                style={[styles.input, styles.priceInput]}
-                placeholder="Enter advance amount"
-                value={formData.advancePayment}
-                onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
-                keyboardType="numeric"
-                placeholderTextColor={colors.subText}
-              />
+          </View>
+
+          {/* Payment Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.accent }]}>
+                <Text style={styles.sectionIconText}>💰</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Payment Details</Text>
+            </View>
+
+            <View style={styles.sectionContent}>
+              <View style={styles.paymentContainer}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Bulk Order Price</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter total price"
+                    value={formData.price}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
+                    keyboardType="numeric"
+                    placeholderTextColor={colors.subText}
+                  />
+                </View>
+                
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Advance Received</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter advance amount"
+                    value={formData.advancePayment}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
+                    keyboardType="numeric"
+                    placeholderTextColor={colors.subText}
+                  />
+                </View>
+              </View>
             </View>
           </View>
 
@@ -313,9 +369,16 @@ const AddBulkOrder = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  scrollContainer: {
+    paddingBottom: 32,
+  },
+  contentContainer: {
     flex: 1,
-    padding: 16,
+    backgroundColor: colors.background,
+    paddingHorizontal: 20,
+    maxWidth: 900,
+    alignSelf: 'center',
+    width: '100%',
   },
   loadingContainer: {
     flex: 1,
@@ -327,47 +390,127 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.mainText,
   },
-  sectionTitle: {
-    fontSize: textVariants.H6.fontSize,
+  welcomeSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    marginBottom: 16,
+  },
+  pageTitle: {
+    fontSize: 28,
     fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8,
     color: colors.mainText,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  pageSubtitle: {
+    fontSize: 16,
+    color: colors.subText,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  section: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    marginBottom: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    backgroundColor: colors.surface + '80',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  sectionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  sectionIconText: {
+    fontSize: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.mainText,
+    flex: 1,
+  },
+  sectionContent: {
+    padding: 24,
   },
   input: {
-    backgroundColor: '#ffffff15',
-    padding: 12,
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.border,
+    borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 12,
-    color: colors.mainText,
-    fontSize: textVariants.body2.fontSize,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    minHeight: 48,
+    fontSize: 16,
+    color: colors.text,
+    marginBottom: 16,
   },
   dateInput: {
-    backgroundColor: '#ffffff15',
-    padding: 12,
+    backgroundColor: colors.surfaceElevated,
+    borderColor: colors.border,
+    borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   dateText: {
+    fontSize: 16,
     color: colors.mainText,
-    fontSize: textVariants.body2.fontSize,
+    flex: 1,
   },
   memberForm: {
-    backgroundColor: '#ffffff08',
-    padding: 16,
-    borderRadius: 8,
+    backgroundColor: colors.surface + '40',
+    padding: 24,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  measurementsContainer: {
+    marginBottom: 24,
+  },
+  measurementsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.mainText,
     marginBottom: 16,
   },
   measurementsTable: {
-    marginBottom: 16,
+    backgroundColor: colors.surface + '60',
+    borderRadius: 8,
+    padding: 16,
   },
   measurementRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderColor: '#ffffff20',
-    height: 40,
+    borderColor: colors.border + '40',
   },
   columnLeft: {
     flex: 1,
@@ -377,94 +520,113 @@ const styles = StyleSheet.create({
   },
   separatorContainer: {
     width: 1,
-    marginHorizontal: 12,
+    marginHorizontal: 16,
   },
   separator: {
     flex: 1,
     width: 1,
-    backgroundColor: '#ffffff20',
+    backgroundColor: colors.border,
   },
   measurementLabel: {
+    fontSize: 14,
     color: colors.subText,
-    fontSize: textVariants.body2.fontSize,
   },
   measurementInput: {
+    fontSize: 14,
     color: colors.mainText,
-    fontSize: textVariants.body2.fontSize,
     textAlign: 'right',
-  },
-  notesInput: {
-    height: 100,
-    textAlignVertical: 'top',
+    padding: 4,
   },
   addMemberButton: {
     backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 8,
-    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
   },
   addMemberButtonText: {
-    color: 'white',
-    marginLeft: 8,
-    fontSize: textVariants.body2.fontSize,
+    fontSize: 16,
     fontWeight: 'bold',
+    color: 'white',
+    marginLeft: 12,
   },
   membersList: {
+    marginBottom: 24,
+  },
+  membersHeader: {
     marginBottom: 16,
+  },
+  membersCount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.primary,
   },
   memberCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff15',
-    padding: 12,
+    backgroundColor: colors.surface + '60',
+    padding: 16,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
   },
   memberName: {
-    flex: 1,
+    fontSize: 16,
     color: colors.mainText,
-    fontSize: textVariants.body2.fontSize,
+    flex: 1,
   },
   removeMemberButton: {
     padding: 4,
+    borderRadius: 16,
+    backgroundColor: colors.error + '20',
+  },
+  notesInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  paymentContainer: {
+    flexDirection: Platform.OS === 'ios' && Dimensions.get('window').width >= 768 ? 'row' : 'column',
+    gap: 16,
+  },
+  inputWrapper: {
+    flex: Platform.OS === 'ios' && Dimensions.get('window').width >= 768 ? 1 : undefined,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: colors.subText,
+    marginBottom: 4,
   },
   submitButton: {
     backgroundColor: colors.primary,
-    padding: 16,
-    borderRadius: 8,
+    paddingVertical: 24,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 40,
+    marginTop: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 4,
   },
   submitButtonText: {
-    color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: 'white',
   },
   buttonDisabled: {
     opacity: 0.5,
-  },
-  paymentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
-    alignSelf: "center",
-  },
-  priceInput: {
-    flex: 1,
-    marginBottom: 12,
-  },
-  inputWrapper: {
-    flex: 1,
-  },
-  inputLabel: {
-    color: colors.subText,
-    fontSize: textVariants.body2.fontSize,
-    marginBottom: 4,
   },
 });
 

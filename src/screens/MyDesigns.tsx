@@ -16,6 +16,8 @@ import {
 import { colors } from '../theme/colors';
 import { useNavigation } from "@react-navigation/native";
 import { textVariants } from '../theme/textVariants';
+import { spacing } from '../theme/spacing';
+import { defaultStyles, themeUtils } from '../theme';
 import Icons from "react-native-vector-icons/FontAwesome5";
 import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '../context/AppContext';
@@ -212,33 +214,44 @@ const MyDesigns = () => {
           title="My Designs" 
           onBack={() => navigation.goBack()} 
         />
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Icons name="search" size={20} color={colors.subText} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search designs by tag..."
-            placeholderTextColor={colors.subText}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+        
+        <View style={styles.contentContainer}>
+          {/* Welcome Section */}
+          <View style={styles.welcomeSection}>
+            <Text style={styles.pageTitle}>Design Gallery</Text>
+            <Text style={styles.pageSubtitle}>
+              Upload and organize your design inspirations
+            </Text>
+          </View>
+
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Icons name="search" size={20} color={colors.accent} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search designs by tag..."
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity 
+                onPress={() => setSearchQuery('')}
+                style={styles.clearButton}
+              >
+                <Icons name="times-circle" size={20} color={colors.error} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <FlatList
+            data={[{ id: 'upload' }, ...filteredDesigns]}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.gridContainer}
           />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity 
-              onPress={() => setSearchQuery('')}
-              style={styles.clearButton}
-            >
-              <Icons name="times-circle" size={20} color={colors.subText} />
-            </TouchableOpacity>
-          )}
-        </View>
-        <View style={{width: "95%"}}>
-        <FlatList
-          data={[{ id: 'upload' }, ...filteredDesigns]}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.columnWrapper}
-        />
         </View>
         
 
@@ -267,11 +280,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    alignItems: "center",
+  },
+  contentContainer: {
+    paddingHorizontal: Dimensions.get('window').width >= 768 ? spacing.pageTablet : spacing.page,
+    flex: 1,
+  },
+  welcomeSection: {
+    backgroundColor: colors.surface,
+    borderRadius: spacing.borderRadius.l,
+    padding: spacing.l,
+    marginVertical: spacing.m,
+    ...themeUtils.getElevation('xs'),
+  },
+  pageTitle: {
+    fontSize: textVariants.H3.fontSize,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.xs,
+    letterSpacing: 0.3,
+  },
+  pageSubtitle: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.textSecondary,
+    letterSpacing: 0.1,
+    lineHeight: 20,
+  },
+  gridContainer: {
+    paddingBottom: spacing.huge,
   },
   columnWrapper: {
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: spacing.m,
   },
 
   uploadTile: {

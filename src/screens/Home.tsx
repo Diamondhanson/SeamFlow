@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { colors } from "../theme/colors";
@@ -16,6 +17,7 @@ import Icons from "react-native-vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useApp } from '../context/AppContext';
+import { supabase } from "@/supabaseConfig";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
@@ -91,10 +93,97 @@ const TILES_DATA: TileData[] = [
 
 const Home = () => {
   const navigation = useNavigation();
-  const { companyInfo } = useApp();
+  const { companyInfo, user } = useApp();
   const [dimensions, setDimensions] = useState({ 
     window: Dimensions.get('window') 
   });
+
+  // Quick Overview State
+  const [overview, setOverview] = useState({
+    loading: true,
+    activeOrders: 0,
+    dueThisWeek: 0,
+    dueToday: 0,
+  });
+
+  useEffect(() => {
+    if (!user) {
+      setOverview({ loading: true, activeOrders: 0, dueThisWeek: 0, dueToday: 0 });
+      return;
+    }
+    const fetchOverview = async () => {
+      setOverview(prev => ({ ...prev, loading: true }));
+      try {
+        // Get today's and week's date range
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Sunday
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6); // Saturday
+        const weekStartStr = weekStart.toISOString().split('T')[0];
+        const weekEndStr = weekEnd.toISOString().split('T')[0];
+
+        // Fetch ALL simple orders for user
+        const { count: allSimple, error: err1 } = await supabase
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+        // Fetch ALL bulk orders for user
+        const { count: allBulk, error: err2 } = await supabase
+          .from('bulk_orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        // Orders due this week (simple)
+        const { count: weekSimple, error: err3 } = await supabase
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .gte('dateDelivery', weekStartStr)
+          .lte('dateDelivery', weekEndStr);
+        // Orders due this week (bulk)
+        const { count: weekBulk, error: err4 } = await supabase
+          .from('bulk_orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .gte('dateDelivery', weekStartStr)
+          .lte('dateDelivery', weekEndStr);
+
+        // Orders due today (simple)
+        const { count: todaySimple, error: err5 } = await supabase
+          .from('orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('dateDelivery', todayStr);
+        // Orders due today (bulk)
+        const { count: todayBulk, error: err6 } = await supabase
+          .from('bulk_orders')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('dateDelivery', todayStr);
+
+        if (err1 || err2 || err3 || err4 || err5 || err6) {
+          throw new Error('Failed to fetch order stats');
+        }
+
+        setOverview({
+          loading: false,
+          activeOrders: (allSimple || 0) + (allBulk || 0),
+          dueThisWeek: (weekSimple || 0) + (weekBulk || 0),
+          dueToday: (todaySimple || 0) + (todayBulk || 0),
+        });
+      } catch (e) {
+        setOverview({
+          loading: false,
+          activeOrders: 0,
+          dueThisWeek: 0,
+          dueToday: 0,
+        });
+      }
+    };
+    fetchOverview();
+  }, [user]);
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener(
@@ -206,15 +295,27 @@ const Home = () => {
           <Text style={styles.sectionTitle}>Quick Overview</Text>
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>12</Text>
+              {overview.loading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Text style={styles.statNumber}>{overview.activeOrders}</Text>
+              )}
               <Text style={styles.statLabel}>Active Orders</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>45</Text>
-              <Text style={styles.statLabel}>Total Clients</Text>
+              {overview.loading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Text style={styles.statNumber}>{overview.dueThisWeek}</Text>
+              )}
+              <Text style={styles.statLabel}>Due This Week</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>3</Text>
+              {overview.loading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Text style={styles.statNumber}>{overview.dueToday}</Text>
+              )}
               <Text style={styles.statLabel}>Due Today</Text>
             </View>
           </View>

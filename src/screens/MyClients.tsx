@@ -2,6 +2,8 @@ import React, { useState, useMemo, useRef } from 'react';
 import { View, StyleSheet, Text, FlatList, Pressable, TouchableOpacity, TextInput, Platform, Dimensions, ScrollView } from 'react-native';
 import { Client, useClients } from '../context/clientContext';
 import { colors } from '../theme/colors';
+import { spacing } from '../theme/spacing';
+import { defaultStyles, themeUtils } from '../theme';
 import { useNavigation } from "@react-navigation/native";
 import ClientDetails from '../components/clientDetails';
 import Icons from "react-native-vector-icons/FontAwesome5";
@@ -23,8 +25,8 @@ const MONTHS = [
   { name: 'DEC', value: '12' },
 ];
 
-// Approximate width of each month tile including margin
-const MONTH_TILE_WIDTH = 70;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const isTablet = SCREEN_WIDTH >= 768;
 
 const MyClients = () => {
   const navigation = useNavigation();
@@ -33,6 +35,14 @@ const MyClients = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const monthScrollRef = useRef<ScrollView>(null);
+  const [dimensions, setDimensions] = useState({ 
+    window: Dimensions.get('window') 
+  });
+
+  // Responsive calculations
+  const { width } = dimensions.window;
+  const isTabletLayout = width >= 768;
+  const containerPadding = isTabletLayout ? spacing.pageTablet : spacing.page;
 
   // Filter clients based on search query and selected month
   const filteredClients = useMemo(() => {
@@ -75,29 +85,9 @@ const MyClients = () => {
       // Handle scrolling - delay slightly to ensure UI updates first
       setTimeout(() => {
         if (monthScrollRef.current) {
-          // Calculate approximate scroll position based on index
-          const screenWidth = Dimensions.get('window').width;
-          const visibleMonths = Math.floor((screenWidth * 0.95) / MONTH_TILE_WIDTH);
-          
-          // Determine the best position to scroll to
-          let scrollToIndex = index;
-          
-          // If near the beginning, show from beginning
-          if (index < 2) {
-            scrollToIndex = 0;
-          } 
-          // If near the end, show the end
-          else if (index > MONTHS.length - 3) {
-            scrollToIndex = Math.max(0, MONTHS.length - visibleMonths);
-          } 
-          // Otherwise, center the selected month
-          else {
-            scrollToIndex = Math.max(0, index - Math.floor(visibleMonths / 2));
-          }
-          
-          // Scroll to the calculated position
+          const scrollToX = Math.max(0, (index - 2) * 60);
           monthScrollRef.current.scrollTo({
-            x: scrollToIndex * MONTH_TILE_WIDTH,
+            x: scrollToX,
             animated: true
           });
         }
@@ -118,14 +108,18 @@ const MyClients = () => {
     <TouchableOpacity 
       style={styles.clientCard}
       onPress={() => handleClientPress(item)}
+      activeOpacity={0.8}
     >
       <View style={styles.clientInfo}>
         <Text style={styles.clientName}>{item.fullName}</Text>
         <Text style={styles.phoneNumber}>{item.phoneNumber}</Text>
       </View>
-      <View style={styles.orderCount}>
+      <View style={styles.orderBadge}>
         <Text style={styles.orderCountText}>
-          {item.orders.length} {item.orders.length === 1 ? 'order' : 'orders'}
+          {item.orders.length}
+        </Text>
+        <Text style={styles.orderLabel}>
+          {item.orders.length === 1 ? 'order' : 'orders'}
         </Text>
       </View>
     </TouchableOpacity>
@@ -139,6 +133,7 @@ const MyClients = () => {
         selectedMonth === month.value && styles.selectedMonthTile
       ]}
       onPress={() => handleMonthPress(month.value, index)}
+      activeOpacity={0.8}
     >
       <Text 
         style={[
@@ -159,63 +154,91 @@ const MyClients = () => {
           onBack={() => navigation.goBack()} 
         />
         
-        {/* Search Input */}
-        <View style={styles.searchContainer}>
-          <Icons name="search" size={20} color={colors.subText} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search clients by name..."
-            placeholderTextColor={colors.subText}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity 
-              onPress={() => setSearchQuery('')}
-              style={styles.clearButton}
-            >
-              <Icons name="times-circle" size={20} color={colors.subText} />
-            </TouchableOpacity>
-          )}
-        </View>
-        
-        {/* Month Tiles */}
-        <View style={styles.monthsContainerWrapper}>
-          <Text style={styles.monthLabel}>Search by delivery month</Text>
-          <View style={styles.monthFilterContainer}>
-            <ScrollView 
-              ref={monthScrollRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.monthsContainer}
-            >
-              {MONTHS.map((month, index) => renderMonthTile(month, index))}
-            </ScrollView>
-            {selectedMonth && (
-              <TouchableOpacity 
-                onPress={() => setSelectedMonth(null)}
-                style={styles.clearMonthButton}
+        {/* Content Container */}
+        <View style={[
+          styles.contentContainer,
+          { paddingHorizontal: containerPadding }
+        ]}>
+          {/* Search Section */}
+          <View style={styles.searchSection}>
+            <View style={styles.searchContainer}>
+              <Icons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search clients by name..."
+                placeholderTextColor={colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity 
+                  onPress={() => setSearchQuery('')}
+                  style={styles.clearButton}
+                  activeOpacity={0.7}
+                >
+                  <Icons name="times-circle" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          
+          {/* Month Filter Section */}
+          <View style={styles.monthFilterSection}>
+            <Text style={styles.sectionLabel}>Filter by delivery month</Text>
+            <View style={styles.monthFilterContainer}>
+              <ScrollView 
+                ref={monthScrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.monthsContainer}
               >
-                <Icons name="times-circle" size={16} color={colors.subText} />
-                <Text style={styles.clearMonthText}>Clear</Text>
-              </TouchableOpacity>
+                {MONTHS.map((month, index) => renderMonthTile(month, index))}
+              </ScrollView>
+              {selectedMonth && (
+                <TouchableOpacity 
+                  onPress={() => setSelectedMonth(null)}
+                  style={styles.clearMonthButton}
+                  activeOpacity={0.7}
+                >
+                  <Icons name="times" size={12} color={colors.textSecondary} />
+                  <Text style={styles.clearMonthText}>Clear</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          
+          {/* Clients List */}
+          <View style={styles.listSection}>
+            {filteredClients.length > 0 ? (
+              <FlatList
+                data={filteredClients}
+                renderItem={renderClient}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContainer}
+                showsVerticalScrollIndicator={false}
+              />
+            ) : (
+              <View style={styles.emptyState}>
+                <Icons name="users" size={48} color={colors.textTertiary} />
+                <Text style={styles.emptyStateTitle}>No clients found</Text>
+                <Text style={styles.emptyStateSubtitle}>
+                  {searchQuery || selectedMonth 
+                    ? 'Try adjusting your search or filters' 
+                    : 'Create your first order to add clients'
+                  }
+                </Text>
+              </View>
             )}
           </View>
         </View>
-        
-        <FlatList
-          data={filteredClients}
-          renderItem={renderClient}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-        />
 
         {/* Floating Action Button */}
         <TouchableOpacity
           style={styles.fab}
-          onPress={() => navigation.navigate('NewOrder')}
+          onPress={() => (navigation as any).navigate('NewOrder')}
+          activeOpacity={0.8}
         >
-          <Icons name="plus" size={24} color="white" />
+          <Icons name="plus" size={24} color={colors.textOnPrimary} />
         </TouchableOpacity>
       </View>
     </SafeAreaWrapper>
@@ -227,81 +250,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  title: {
-    marginBottom: 20,
-    color: colors.mainText,
-  },
-  listContainer: {
-    gap: 5,
-  },
-  clientCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
-    alignSelf: "center",
-  },
-  clientInfo: {
+  contentContainer: {
     flex: 1,
+    paddingTop: spacing.m,
   },
-  clientName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.mainText,
-    marginBottom: 4,
-  },
-  phoneNumber: {
-    fontSize: 14,
-    color: colors.subText,
-  },
-  orderCount: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  orderCountText: {
-    fontSize: 12,
-    color: colors.mainText,
+  
+  // Search Section
+  searchSection: {
+    marginBottom: spacing.l,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff15',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 8,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: spacing.borderRadius.m,
+    paddingHorizontal: spacing.m,
     height: 48,
-    marginTop: 16,
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
-    alignSelf: "center",
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: spacing.s,
   },
   searchInput: {
     flex: 1,
-    color: colors.mainText,
+    color: colors.text,
     fontSize: 16,
-    height: '100%',
+    letterSpacing: 0.2,
   },
   clearButton: {
-    padding: 4,
+    padding: spacing.xs,
   },
-  monthsContainerWrapper: {
-    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "95%",
-    alignSelf: "center",
-    marginBottom: 16,
+  
+  // Month Filter Section
+  monthFilterSection: {
+    marginBottom: spacing.section,
   },
-  monthLabel: {
-    color: colors.subText,
-    fontSize: 14,
-    marginBottom: 8,
-    marginLeft: 4,
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.s,
+    letterSpacing: 0.2,
   },
   monthFilterContainer: {
     flexDirection: 'row',
@@ -309,60 +300,145 @@ const styles = StyleSheet.create({
   },
   monthsContainer: {
     flexDirection: 'row',
-    paddingVertical: 8,
+    paddingVertical: spacing.xs,
+    gap: spacing.s,
   },
   monthTile: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    marginRight: 8,
-    minWidth: 50,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+    borderRadius: spacing.borderRadius.l,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     alignItems: 'center',
+    minWidth: 52,
+    ...themeUtils.getElevation('xs'),
   },
   selectedMonthTile: {
     backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   monthText: {
-    color: colors.subText,
+    color: colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
   selectedMonthText: {
-    color: colors.mainText,
+    color: colors.textOnPrimary,
   },
   clearMonthButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    marginLeft: 8,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+    borderRadius: spacing.borderRadius.m,
+    marginLeft: spacing.s,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   clearMonthText: {
-    color: colors.subText,
-    fontSize: 12,
-    marginLeft: 4,
+    color: colors.textSecondary,
+    fontSize: 11,
+    marginLeft: spacing.xs,
+    fontWeight: '500',
   },
+  
+  // List Section
+  listSection: {
+    flex: 1,
+  },
+  listContainer: {
+    gap: spacing.cardGap,
+    paddingBottom: spacing.xl + 56, // Extra padding for FAB
+  },
+  clientCard: {
+    backgroundColor: colors.surface,
+    borderRadius: spacing.borderRadius.l,
+    padding: spacing.card,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
+  },
+  clientInfo: {
+    flex: 1,
+    marginRight: spacing.m,
+  },
+  clientName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.xs,
+    letterSpacing: 0.2,
+    lineHeight: 22,
+  },
+  phoneNumber: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    letterSpacing: 0.1,
+    lineHeight: 18,
+  },
+  orderBadge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.s,
+    paddingVertical: spacing.xs,
+    borderRadius: spacing.borderRadius.m,
+    alignItems: 'center',
+    minWidth: 48,
+  },
+  orderCountText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+    lineHeight: 18,
+  },
+  orderLabel: {
+    fontSize: 10,
+    color: colors.textOnPrimary,
+    opacity: 0.9,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+  },
+  
+  // Empty State
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: spacing.m,
+    marginBottom: spacing.xs,
+    letterSpacing: 0.2,
+  },
+  emptyStateSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    letterSpacing: 0.1,
+    lineHeight: 18,
+  },
+  
+  // Floating Action Button
   fab: {
     position: 'absolute',
-    bottom: 16,
+    bottom: spacing.m,
+    right: isTablet ? spacing.pageTablet : spacing.page,
     backgroundColor: colors.primary,
     width: 56,
     height: 56,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    // Adjust position for tablet layout
-    right: Platform.OS === "android" && Dimensions.get("window").width >= 768 
-      ? '15%' 
-      : 16,
+    ...themeUtils.getElevation('m'),
   },
 });
 
