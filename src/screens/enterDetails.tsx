@@ -41,6 +41,38 @@ const EnterDetails = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  
+  // Development helper for manual token entry
+  const [showDevHelper, setShowDevHelper] = useState(__DEV__);
+  const [devToken, setDevToken] = useState('');
+
+  // Development helper function to manually test password reset
+  const handleDevTokenTest = () => {
+    if (!devToken.trim()) {
+      Alert.alert('Token Required', 'Please enter a reset token from the email link');
+      return;
+    }
+    
+    Alert.alert(
+      'Test Reset Token',
+      'Navigate to password reset screen with this token?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes',
+          onPress: () => {
+            (navigation as any).navigate('PasswordReset', {
+              token: devToken.trim(),
+              type: 'recovery',
+            });
+            setDevToken('');
+          }
+        }
+      ]
+    );
+  };
 
   // Handle OAuth callback from deep link
   useEffect(() => {
@@ -54,6 +86,17 @@ const EnterDetails = () => {
   useEffect(() => {
     const handleUrl = async (url: string) => {
       console.log('Received deep link URL:', url);
+      
+      // Check if this is a password reset URL
+      if (url.includes('reset-password')) {
+        console.log('Processing password reset from deep link:', url);
+        try {
+          await handlePasswordResetCallback(url);
+        } catch (error) {
+          console.error('Error processing password reset deep link:', error);
+        }
+        return;
+      }
       
       // Check if this is an OAuth callback URL (fallback handling)
       if (url.includes('/auth/callback')) {
@@ -101,6 +144,7 @@ const EnterDetails = () => {
         });
         if (error) throw error;
         Alert.alert('Success', 'Account created! Please check your email for verification.');
+        setShowForgotPassword(false); // Hide forgot password on successful signup
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: email,
@@ -108,11 +152,68 @@ const EnterDetails = () => {
         });
         if (error) throw error;
         (navigation as any).navigate('CustomizeMeasurementAttributes');
+        setShowForgotPassword(false); // Hide forgot password on successful login
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      // Show forgot password option for login errors (not signup)
+      if (!isSignUp && (
+        error.message.includes('Invalid login credentials') || 
+        error.message.includes('Email not confirmed') ||
+        error.message.includes('Invalid email or password')
+      )) {
+        setShowForgotPassword(true);
+        Alert.alert(
+          'Login Failed', 
+          error.message + '\n\nNeed help accessing your account?',
+          [
+            { text: 'Try Again', style: 'cancel' },
+            { 
+              text: 'Reset Password', 
+              onPress: handleForgotPassword 
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Error', error.message);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Email Required', 'Please enter your email address first, then tap "Forgot Password"');
+      return;
+    }
+
+    setIsResettingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'myapp://reset-password',
+      });
+      
+      if (error) throw error;
+      
+      Alert.alert(
+        'Reset Email Sent',
+        `We've sent a password reset link to ${email}. 
+
+📱 DEVELOPMENT NOTE: If the link doesn't open the app directly, copy the link from the email and test it manually, or check the Expo logs for the reset token.`,
+        [
+          { 
+            text: 'OK', 
+            onPress: () => {
+              setShowForgotPassword(false);
+              setPassword(''); // Clear password field
+            }
+          }
+        ]
+      );
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to send reset email. Please try again.');
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -171,6 +272,66 @@ const EnterDetails = () => {
       Alert.alert('Error', error.message || 'Failed to sign in with Google');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to handle password reset callback
+  const handlePasswordResetCallback = async (url: string) => {
+    try {
+      console.log('Processing password reset callback URL:', url);
+      
+      // Parse the callback URL for reset tokens
+      const urlObj = new URL(url.replace('myapp://', 'http://localhost/'));
+      
+      // Check for tokens in hash
+      if (urlObj.hash) {
+        const hashParams = new URLSearchParams(urlObj.hash.substring(1));
+        const token = hashParams.get('access_token');
+        const type = hashParams.get('type');
+        
+        if (token && type === 'recovery') {
+          console.log('Found password reset token, navigating to reset screen...');
+          
+          // Navigate to password reset screen with token
+          (navigation as any).navigate('PasswordReset', {
+            token: token,
+            type: type,
+          });
+          return true;
+        }
+      }
+      
+      // Check for tokens in query params as backup
+      if (urlObj.search) {
+        const queryParams = new URLSearchParams(urlObj.search);
+        const token = queryParams.get('access_token') || queryParams.get('token');
+        const type = queryParams.get('type');
+        
+        if (token && type === 'recovery') {
+          console.log('Found password reset token in query, navigating to reset screen...');
+          
+          (navigation as any).navigate('PasswordReset', {
+            token: token,
+            type: type,
+          });
+          return true;
+        }
+      }
+      
+      console.log('No password reset tokens found in callback URL');
+      Alert.alert(
+        'Invalid Reset Link',
+        'The password reset link appears to be invalid or expired. Please request a new one.'
+      );
+      return false;
+      
+    } catch (error) {
+      console.error('Error processing password reset callback:', error);
+      Alert.alert(
+        'Error',
+        'There was an error processing the password reset link. Please try requesting a new one.'
+      );
+      throw error;
     }
   };
 
@@ -289,6 +450,14 @@ const EnterDetails = () => {
             onChangeText={setPassword}
           />
 
+          {/* Help text for forgot password */}
+          {!isSignUp && !showForgotPassword && (
+            <Text style={styles.helpText}>
+              Trouble signing in? Enter your email and password, then try again. 
+              A "Forgot Password" option will appear if needed.
+            </Text>
+          )}
+
           <TouchableOpacity
             style={[
               styles.button,
@@ -306,9 +475,49 @@ const EnterDetails = () => {
             )}
           </TouchableOpacity>
 
+          {/* Forgot Password Section */}
+          {showForgotPassword && !isSignUp && (
+            <View style={styles.forgotPasswordSection}>
+              <View style={styles.forgotPasswordHeader}>
+                <Icons name="info-circle" size={14} color={colors.info} />
+                <Text style={styles.forgotPasswordHeaderText}>
+                  Need help accessing your account?
+                </Text>
+              </View>
+              
+              <TouchableOpacity
+                style={[
+                  styles.forgotPasswordButton,
+                  (!email.trim()) && styles.forgotPasswordButtonDisabled
+                ]}
+                onPress={handleForgotPassword}
+                disabled={isResettingPassword || !email.trim()}
+              >
+                {isResettingPassword ? (
+                  <View style={styles.forgotPasswordContent}>
+                    <ActivityIndicator size="small" color={colors.warning} />
+                    <Text style={[styles.forgotPasswordText, { marginLeft: 8 }]}>
+                      Sending reset email...
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.forgotPasswordContent}>
+                    <Icons name="key" size={16} color={colors.warning} />
+                    <Text style={styles.forgotPasswordText}>
+                      {!email.trim() ? 'Enter email above first' : 'Send Password Reset Email'}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+
           <TouchableOpacity
             style={styles.switchButton}
-            onPress={() => setIsSignUp(!isSignUp)}
+            onPress={() => {
+              setIsSignUp(!isSignUp);
+              setShowForgotPassword(false); // Hide forgot password when switching modes
+            }}
             disabled={loading}
           >
             <Text style={styles.switchText}>
@@ -318,6 +527,42 @@ const EnterDetails = () => {
               }
             </Text>
           </TouchableOpacity>
+
+          {/* Development Helper - Only visible in DEV mode */}
+          {showDevHelper && (
+            <View style={styles.devHelperContainer}>
+              <Text style={styles.devHelperTitle}>🛠️ Development Helper</Text>
+              <Text style={styles.devHelperText}>
+                If deep linking isn't working, copy the token from the reset email and paste below:
+              </Text>
+              
+              <TextInput
+                style={styles.devTokenInput}
+                placeholder="Paste reset token here (access_token from email link)"
+                placeholderTextColor={colors.subText}
+                value={devToken}
+                onChangeText={setDevToken}
+                multiline
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              
+              <TouchableOpacity
+                style={[styles.devButton, !devToken.trim() && styles.buttonDisabled]}
+                onPress={handleDevTokenTest}
+                disabled={!devToken.trim()}
+              >
+                <Text style={styles.devButtonText}>Test Reset Token</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.devCloseButton}
+                onPress={() => setShowDevHelper(false)}
+              >
+                <Text style={styles.devCloseText}>Hide Helper</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </ScrollView>
@@ -405,6 +650,116 @@ const styles = StyleSheet.create({
   switchText: {
     color: colors.primary,
     fontSize: 14,
+  },
+  forgotPasswordButton: {
+    backgroundColor: colors.warning + '15', // Semi-transparent warning color
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    width: "100%",
+    alignItems: "center",
+  },
+  forgotPasswordContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  forgotPasswordText: {
+    color: colors.warning,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  helpText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: -8,
+    marginBottom: 8,
+    lineHeight: 16,
+    paddingHorizontal: 16,
+  },
+  forgotPasswordSection: {
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    marginTop: 8,
+  },
+  forgotPasswordHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  forgotPasswordHeaderText: {
+    color: colors.info,
+    fontSize: 13,
+    fontWeight: '500',
+    marginLeft: 6,
+  },
+  forgotPasswordButtonDisabled: {
+    opacity: 0.5,
+  },
+  devHelperContainer: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: colors.warning,
+    marginTop: 20,
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+  },
+  devHelperTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.warning,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  devHelperText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 12,
+    lineHeight: 16,
+  },
+  devTokenInput: {
+    backgroundColor: "#ffffff15",
+    borderRadius: 8,
+    padding: 12,
+    color: colors.mainText,
+    fontSize: 14,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  devButton: {
+    backgroundColor: colors.warning,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  devButtonText: {
+    color: colors.background,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  devCloseButton: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  devCloseText: {
+    color: colors.textSecondary,
+    fontSize: 12,
   },
 });
 

@@ -14,7 +14,13 @@ import Welcome from "@/src/screens/Welcome";
 import EnterDetails from "@/src/screens/enterDetails";
 import CalendarScreen from "@/src/screens/calender";
 import CustomizeMeasurementAttributes from "@/src/screens/CustomizeMeasurementAttributes";
+import ChangeMeasurementAttributes from "@/src/screens/ChangeMeasurementAttributes";
 import Settings from "@/src/screens/Settings";
+import PinSetup from "@/src/screens/PinSetup";
+import PinRecovery from "@/src/screens/PinRecovery";
+import SecurityQuestionsSetup from "@/src/screens/SecurityQuestionsSetup";
+import PasswordReset from "@/src/screens/PasswordReset";
+import PinWrapper from "@/src/components/PinWrapper";
 import { useState, useEffect } from "react";
 import BulkOrder from '@/src/screens/BulkOrderModule/BulkOrder';
 import AddBulkOrder from '@/src/screens/BulkOrderModule/AddBulkOrder';
@@ -34,26 +40,33 @@ function NavigationStack() {
   }, []);
 
   return (
-    <Stack.Navigator
-      initialRouteName="Welcome"
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="Welcome" component={Welcome} />
-      <Stack.Screen name="EnterDetails" component={EnterDetails} />
-      <Stack.Group>
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="MyClients" component={MyClients} />
-        <Stack.Screen name="MyDesigns" component={MyDesigns} />
-        <Stack.Screen name="NewOrder" component={NewOrder} />
-        <Stack.Screen name="Calendar" component={CalendarScreen} />
+    <PinWrapper>
+      <Stack.Navigator
+        initialRouteName="Welcome"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="Welcome" component={Welcome} />
+        <Stack.Screen name="EnterDetails" component={EnterDetails} />
         <Stack.Screen name="CustomizeMeasurementAttributes" component={CustomizeMeasurementAttributes} />
-        <Stack.Screen name="Settings" component={Settings} />
-        <Stack.Screen name="BulkOrder" component={BulkOrder} />
-        <Stack.Screen name="AddBulkOrder" component={AddBulkOrder} />
-      </Stack.Group>
-    </Stack.Navigator>
+        <Stack.Screen name="PinSetup" component={PinSetup} />
+        <Stack.Screen name="PinRecovery" component={PinRecovery} />
+        <Stack.Screen name="SecurityQuestionsSetup" component={SecurityQuestionsSetup} />
+        <Stack.Screen name="PasswordReset" component={PasswordReset} />
+        <Stack.Group>
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="MyClients" component={MyClients} />
+          <Stack.Screen name="MyDesigns" component={MyDesigns} />
+          <Stack.Screen name="NewOrder" component={NewOrder} />
+          <Stack.Screen name="Calendar" component={CalendarScreen} />
+          <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="ChangeMeasurementAttributes" component={ChangeMeasurementAttributes} />
+          <Stack.Screen name="BulkOrder" component={BulkOrder} />
+          <Stack.Screen name="AddBulkOrder" component={AddBulkOrder} />
+        </Stack.Group>
+      </Stack.Navigator>
+    </PinWrapper>
   );
 }
 

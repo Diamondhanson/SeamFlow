@@ -16,6 +16,7 @@ import { defaultStyles, themeUtils } from "../theme";
 import Icons from "react-native-vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import OverviewModal from '../components/OverviewModal';
 import { useApp } from '../context/AppContext';
 import { supabase } from "@/supabaseConfig";
 
@@ -106,11 +107,21 @@ const Home = () => {
     dueToday: 0,
   });
 
+  // Modal State
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalInitialTab, setModalInitialTab] = useState<'active' | 'week' | 'today'>('active');
+
+  const openModal = (tab: 'active' | 'week' | 'today') => {
+    setModalInitialTab(tab);
+    setModalVisible(true);
+  };
+
   useEffect(() => {
     if (!user) {
       setOverview({ loading: true, activeOrders: 0, dueThisWeek: 0, dueToday: 0 });
       return;
     }
+    
     const fetchOverview = async () => {
       setOverview(prev => ({ ...prev, loading: true }));
       try {
@@ -124,56 +135,48 @@ const Home = () => {
         const weekStartStr = weekStart.toISOString().split('T')[0];
         const weekEndStr = weekEnd.toISOString().split('T')[0];
 
-        // Fetch ALL simple orders for user
-        const { count: allSimple, error: err1 } = await supabase
+        // Optimized: Fetch all simple orders data in one query
+        const { data: simpleOrders, error: simpleError } = await supabase
           .from('orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-        // Fetch ALL bulk orders for user
-        const { count: allBulk, error: err2 } = await supabase
-          .from('bulk_orders')
-          .select('id', { count: 'exact', head: true })
+          .select('id, date_delivery')
           .eq('user_id', user.id);
 
-        // Orders due this week (simple)
-        const { count: weekSimple, error: err3 } = await supabase
-          .from('orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .gte('dateDelivery', weekStartStr)
-          .lte('dateDelivery', weekEndStr);
-        // Orders due this week (bulk)
-        const { count: weekBulk, error: err4 } = await supabase
+        // Optimized: Fetch all bulk orders data in one query  
+        const { data: bulkOrders, error: bulkError } = await supabase
           .from('bulk_orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .gte('dateDelivery', weekStartStr)
-          .lte('dateDelivery', weekEndStr);
+          .select('id, date_delivery')
+          .eq('user_id', user.id);
 
-        // Orders due today (simple)
-        const { count: todaySimple, error: err5 } = await supabase
-          .from('orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('dateDelivery', todayStr);
-        // Orders due today (bulk)
-        const { count: todayBulk, error: err6 } = await supabase
-          .from('bulk_orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('dateDelivery', todayStr);
-
-        if (err1 || err2 || err3 || err4 || err5 || err6) {
-          throw new Error('Failed to fetch order stats');
+        if (simpleError) {
+          console.error('Simple orders error:', simpleError);
+          throw simpleError;
         }
+        
+        if (bulkError) {
+          console.error('Bulk orders error:', bulkError);
+          throw bulkError;
+        }
+
+        // Calculate stats from fetched data
+        const allOrders = [...(simpleOrders || []), ...(bulkOrders || [])];
+        const activeOrders = allOrders.length;
+        
+        const dueThisWeek = allOrders.filter(order => 
+          order.date_delivery >= weekStartStr && order.date_delivery <= weekEndStr
+        ).length;
+        
+        const dueToday = allOrders.filter(order => 
+          order.date_delivery === todayStr
+        ).length;
 
         setOverview({
           loading: false,
-          activeOrders: (allSimple || 0) + (allBulk || 0),
-          dueThisWeek: (weekSimple || 0) + (weekBulk || 0),
-          dueToday: (todaySimple || 0) + (todayBulk || 0),
+          activeOrders,
+          dueThisWeek,
+          dueToday,
         });
       } catch (e) {
+        console.error('Error fetching overview:', e);
         setOverview({
           loading: false,
           activeOrders: 0,
@@ -182,6 +185,7 @@ const Home = () => {
         });
       }
     };
+    
     fetchOverview();
   }, [user]);
 
@@ -294,30 +298,42 @@ const Home = () => {
         ]}>
           <Text style={styles.sectionTitle}>Quick Overview</Text>
           <View style={styles.statsRow}>
-            <View style={styles.statCard}>
+            <TouchableOpacity 
+              style={[styles.statCard, styles.activeOrdersCard]}
+              onPress={() => openModal('active')}
+              activeOpacity={0.8}
+            >
               {overview.loading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
+                <ActivityIndicator size="small" color={colors.textOnPrimary} />
               ) : (
-                <Text style={styles.statNumber}>{overview.activeOrders}</Text>
+                <Text style={[styles.statNumber, styles.activeOrdersNumber]}>{overview.activeOrders}</Text>
               )}
-              <Text style={styles.statLabel}>Active Orders</Text>
-            </View>
-            <View style={styles.statCard}>
+              <Text style={[styles.statLabel, styles.activeOrdersLabel]}>Active Orders</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.statCard, styles.dueWeekCard]}
+              onPress={() => openModal('week')}
+              activeOpacity={0.8}
+            >
               {overview.loading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
+                <ActivityIndicator size="small" color={colors.textOnPrimary} />
               ) : (
-                <Text style={styles.statNumber}>{overview.dueThisWeek}</Text>
+                <Text style={[styles.statNumber, styles.dueWeekNumber]}>{overview.dueThisWeek}</Text>
               )}
-              <Text style={styles.statLabel}>Due This Week</Text>
-            </View>
-            <View style={styles.statCard}>
+              <Text style={[styles.statLabel, styles.dueWeekLabel]}>Due This Week</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.statCard, styles.dueTodayCard]}
+              onPress={() => openModal('today')}
+              activeOpacity={0.8}
+            >
               {overview.loading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
+                <ActivityIndicator size="small" color={colors.textOnPrimary} />
               ) : (
-                <Text style={styles.statNumber}>{overview.dueToday}</Text>
+                <Text style={[styles.statNumber, styles.dueTodayNumber]}>{overview.dueToday}</Text>
               )}
-              <Text style={styles.statLabel}>Due Today</Text>
-            </View>
+              <Text style={[styles.statLabel, styles.dueTodayLabel]}>Due Today</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -332,6 +348,13 @@ const Home = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Overview Modal */}
+      <OverviewModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        initialTab={modalInitialTab}
+      />
     </SafeAreaWrapper>
   );
 };
@@ -425,18 +448,59 @@ const styles = StyleSheet.create({
     borderColor: colors.borderLight,
     ...themeUtils.getElevation('xs'),
   },
+  
+  // Colorful stat card variants
+  activeOrdersCard: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryDark,
+  },
+  dueWeekCard: {
+    backgroundColor: colors.warning,
+    borderColor: '#d97706',
+  },
+  dueTodayCard: {
+    backgroundColor: colors.success,
+    borderColor: '#059669',
+  },
+  
   statNumber: {
     fontSize: 24,
     fontWeight: '700' as const,
     color: colors.primary,
     lineHeight: 28,
   },
+  
+  // Colorful stat number variants
+  activeOrdersNumber: {
+    color: colors.textOnPrimary,
+  },
+  dueWeekNumber: {
+    color: colors.textOnPrimary,
+  },
+  dueTodayNumber: {
+    color: colors.textOnPrimary,
+  },
+  
   statLabel: {
     fontSize: 12,
     color: colors.textSecondary,
     marginTop: 4,
     letterSpacing: 0.3,
     lineHeight: 16,
+  },
+  
+  // Colorful stat label variants
+  activeOrdersLabel: {
+    color: colors.textOnPrimary,
+    opacity: 0.9,
+  },
+  dueWeekLabel: {
+    color: colors.textOnPrimary,
+    opacity: 0.9,
+  },
+  dueTodayLabel: {
+    color: colors.textOnPrimary,
+    opacity: 0.9,
   },
 
   // Actions Section

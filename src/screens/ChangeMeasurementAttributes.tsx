@@ -6,23 +6,21 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Platform,
-  Dimensions,
   ActivityIndicator,
   Alert
 } from 'react-native';
 import { colors } from '../theme/colors';
-import { textVariants } from '../theme/textVariants';
 import { spacing } from '../theme/spacing';
-import { defaultStyles, themeUtils } from '../theme';
+import { themeUtils } from '../theme';
 import { useNavigation } from "@react-navigation/native";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import Header from '../components/Header';
 import Icons from "react-native-vector-icons/FontAwesome5";
 import { useApp } from '../context/AppContext';
 
-const CustomizeMeasurementAttributes = () => {
+const ChangeMeasurementAttributes = () => {
   const navigation = useNavigation();
-  const { updateMeasurementAttributes, user, measurementAttributes } = useApp();
+  const { updateMeasurementAttributes, measurementAttributes } = useApp();
   const [newAttribute, setNewAttribute] = useState('');
   const [attributes, setAttributes] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -60,37 +58,44 @@ const CustomizeMeasurementAttributes = () => {
     );
   };
 
-  const handleSave = async () => {
-    if (!user) return;
-    
+  const handleConfirm = async () => {
+    if (attributes.length === 0) {
+      Alert.alert('Error', 'Please add at least one measurement attribute.');
+      return;
+    }
+
     setIsSaving(true);
     try {
       await updateMeasurementAttributes(attributes);
-      // Navigate to PIN setup after saving measurement attributes
-      (navigation as any).navigate('PinSetup');
+      Alert.alert(
+        'Success', 
+        'Measurement attributes updated successfully!',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
     } catch (error) {
-      Alert.alert('Error', 'Failed to save attributes. Please try again.');
-      console.error('Error saving attributes:', error);
+      console.error('Error updating attributes:', error);
+      Alert.alert('Error', 'Failed to update measurement attributes. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleSkip = () => {
-    (navigation as any).navigate('PinSetup');
-  };
-
   return (
     <SafeAreaWrapper>
+      <Header 
+        title="Edit Measurements" 
+        onBack={() => navigation.goBack()}
+      />
+      
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header Section */}
         <View style={styles.headerSection}>
           <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
             <Icons name="ruler-combined" size={32} color={colors.textOnPrimary} />
           </View>
-          <Text style={styles.title}>Customize Measurements</Text>
+          <Text style={styles.title}>Measurement Attributes</Text>
           <Text style={styles.subtitle}>
-            Add your preferred measurement attributes or use our defaults to get started
+            Customize the measurement fields used throughout your app
           </Text>
         </View>
 
@@ -137,7 +142,7 @@ const CustomizeMeasurementAttributes = () => {
               <Icons name="inbox" size={48} color={colors.textSecondary} />
               <Text style={styles.emptyTitle}>No Attributes Added</Text>
               <Text style={styles.emptyMessage}>
-                Start by adding your first measurement attribute above, or skip to use defaults
+                Start by adding your first measurement attribute above
               </Text>
             </View>
           ) : (
@@ -163,23 +168,14 @@ const CustomizeMeasurementAttributes = () => {
           )}
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.buttonSection}>
-          <TouchableOpacity 
-            style={[styles.skipButton, isSaving && styles.buttonDisabled]}
-            onPress={handleSkip}
-            disabled={isSaving}
-          >
-            <Icons name="forward" size={16} color={colors.textSecondary} />
-            <Text style={styles.skipButtonText}>Skip & Use Defaults</Text>
-          </TouchableOpacity>
-
+        {/* Confirm Button */}
+        <View style={styles.confirmSection}>
           <TouchableOpacity 
             style={[
               styles.confirmButton,
               (isSaving || attributes.length === 0) && styles.confirmButtonDisabled
             ]}
-            onPress={handleSave}
+            onPress={handleConfirm}
             disabled={isSaving || attributes.length === 0}
           >
             {isSaving ? (
@@ -190,7 +186,7 @@ const CustomizeMeasurementAttributes = () => {
             ) : (
               <>
                 <Icons name="check" size={20} color={colors.textOnPrimary} />
-                <Text style={styles.confirmButtonText}>Continue</Text>
+                <Text style={styles.confirmButtonText}>Confirm Changes</Text>
               </>
             )}
           </TouchableOpacity>
@@ -211,7 +207,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: spacing.borderRadius.xl,
     margin: spacing.page,
-    marginTop: spacing.xl,
     padding: spacing.xl,
     alignItems: 'center',
     borderWidth: 1,
@@ -366,28 +361,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Button Section
-  buttonSection: {
+  // Confirm Section
+  confirmSection: {
     padding: spacing.page,
-    gap: spacing.m,
-  },
-  skipButton: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: spacing.borderRadius.l,
-    paddingVertical: spacing.m,
-    paddingHorizontal: spacing.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.s,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    ...themeUtils.getElevation('xs'),
-  },
-  skipButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textSecondary,
   },
   confirmButton: {
     backgroundColor: colors.success,
@@ -415,4 +391,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomizeMeasurementAttributes;
+export default ChangeMeasurementAttributes; 

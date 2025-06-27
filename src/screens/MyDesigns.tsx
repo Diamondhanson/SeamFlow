@@ -164,42 +164,19 @@ const MyDesigns = () => {
     setSelectedFullImage(imageUrl);
   };
 
-  const renderItem = ({ item, index }: { item: any; index: number }) => {
-    if (index === 0) {
-      return (
-        <TouchableOpacity 
-          style={[styles.uploadTile, isUploading && styles.disabledTile]} 
-          onPress={pickImage}
-          disabled={isUploading}
-        >
-          {isUploading ? (
-            <>
-              <ActivityIndicator size={40} color={colors.mainText} />
-              <Text style={styles.uploadText}>Uploading...</Text>
-            </>
-          ) : (
-            <>
-              <Icons name="plus" size={40} color={colors.mainText} />
-              <Text style={styles.uploadText}>Upload Design</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      );
-    }
-
-    const design = item;
+  const renderItem = ({ item }: { item: any }) => {
     return (
       <TouchableOpacity 
         style={styles.designTile}
-        onPress={() => handleImagePress(design.imageUrl)}
+        onPress={() => handleImagePress(item.imageUrl)}
       >
         <Image 
-          source={{ uri: design.imageUrl }} 
+          source={{ uri: item.imageUrl }} 
           style={styles.designImage}
           resizeMode="cover"
         />
         <View style={styles.tagContainer}>
-          {design.tags.map((tag: string, idx: number) => (
+          {item.tags.map((tag: string, idx: number) => (
             <Text key={idx} style={styles.tag}>{tag}</Text>
           ))}
         </View>
@@ -245,7 +222,7 @@ const MyDesigns = () => {
           </View>
 
           <FlatList
-            data={[{ id: 'upload' }, ...filteredDesigns]}
+            data={filteredDesigns}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             numColumns={2}
@@ -254,6 +231,18 @@ const MyDesigns = () => {
           />
         </View>
         
+        {/* Floating Action Button */}
+        <TouchableOpacity 
+          style={[styles.fab, isUploading && styles.fabDisabled]} 
+          onPress={pickImage}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <ActivityIndicator size={24} color={colors.textOnPrimary} />
+          ) : (
+            <Icons name="plus" size={24} color={colors.textOnPrimary} />
+          )}
+        </TouchableOpacity>
 
         <TagModal
           visible={tagModalVisible}
@@ -311,22 +300,6 @@ const styles = StyleSheet.create({
   columnWrapper: {
     justifyContent: 'space-between',
     marginBottom: spacing.m,
-  },
-
-  uploadTile: {
-    width: TILE_SIZE,
-    height: TILE_SIZE,
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-  },
-
-  uploadText: {
-    color: colors.mainText,
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   
   designTile: {
@@ -448,7 +421,19 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: 'bold',
   },
-  disabledTile: {
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 64,
+    height: 64,
+    backgroundColor: colors.primary,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...themeUtils.getElevation('m'),
+  },
+  fabDisabled: {
     opacity: 0.6,
   },
 });

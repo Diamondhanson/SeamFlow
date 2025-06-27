@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../../supabaseConfig';
 import { Session, User, AuthChangeEvent } from '@supabase/supabase-js';
+import { hashPin, validatePin as validatePinUtil } from '../utils/pinUtils';
+import {
+  hashSecurityAnswer,
+  validateSecurityAnswer,
+  logRecoveryAttempt,
+  trackPinAttempt,
+  checkPinLockout
+} from '../utils/recoveryUtils';
 
 // Types
 interface DesignItem {
@@ -14,6 +22,13 @@ interface DesignItem {
 interface CompanyInfo {
   name: string;
   logo?: string;
+}
+
+interface SecurityQuestions {
+  question1: string;
+  answer1: string;
+  question2: string;
+  answer2: string;
 }
 
 interface AppContextType {
@@ -31,6 +46,20 @@ interface AppContextType {
   measurementAttributes: string[];
   updateMeasurementAttributes: (attributes: string[]) => Promise<void>;
   isLoading: boolean;
+  // PIN functionality
+  hasPinSet: boolean;
+  setupPin: (pin: string) => Promise<void>;
+  validatePin: (pin: string) => Promise<boolean>;
+  removePin: () => Promise<void>;
+  // Recovery functionality
+  hasSecurityQuestions: boolean;
+  setupSecurityQuestions: (questions: SecurityQuestions) => Promise<void>;
+  validateSecurityQuestions: (question1Answer: string, question2Answer: string) => Promise<boolean>;
+  getSecurityQuestions: () => Promise<{ question1: string; question2: string } | null>;
+  resetPinWithPassword: (email: string, password: string) => Promise<void>;
+  resetPinWithSecurityQuestions: (question1Answer: string, question2Answer: string) => Promise<void>;
+  checkPinLockoutStatus: () => Promise<{ locked: boolean; attemptsRemaining: number; lockedUntil?: Date }>;
+  validatePinWithTracking: (pin: string) => Promise<{ success: boolean; locked: boolean; attemptsRemaining: number }>;
 }
 
 const DEFAULT_MEASUREMENT_ATTRIBUTES = [
@@ -55,6 +84,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [inspirations, setInspirations] = useState<DesignItem[]>([]);
   const [measurementAttributes, setMeasurementAttributes] = useState<string[]>(DEFAULT_MEASUREMENT_ATTRIBUTES);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasPinSet, setHasPinSet] = useState(false);
+  const [hasSecurityQuestions, setHasSecurityQuestions] = useState(false);
 
   useEffect(() => {
     // Get initial session
@@ -115,6 +146,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           logo: profile.company_logo,
         });
         setMeasurementAttributes(profile.measurement_attributes || DEFAULT_MEASUREMENT_ATTRIBUTES);
+        setHasPinSet(!!profile.pin_hash); // Check if PIN is set
+        setHasSecurityQuestions(!!(profile.security_question_1 && profile.security_answer_1_hash && 
+                                   profile.security_question_2 && profile.security_answer_2_hash)); // Check if security questions are set
       }
 
       // Load designs
@@ -353,6 +387,288 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const setupPin = async (pin: string) => {
+    if (!user) return;
+    
+    try {
+      const hashedPin = await hashPin(pin);
+      const { error } = await supabase
+        .from('users_profile')
+        .update({ pin_hash: hashedPin })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setHasPinSet(true);
+    } catch (error) {
+      console.error('Error setting up PIN:', error);
+      throw error;
+    }
+  };
+
+  const validatePin = async (pin: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { data: profile } = await supabase
+        .from('users_profile')
+        .select('pin_hash')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || !profile.pin_hash) return false;
+      return await validatePinUtil(pin, profile.pin_hash);
+    } catch (error) {
+      console.error('Error validating PIN:', error);
+      return false;
+    }
+  };
+
+  const removePin = async () => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('users_profile')
+        .update({ pin_hash: null })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setHasPinSet(false);
+    } catch (error) {
+      console.error('Error removing PIN:', error);
+      throw error;
+    }
+  };
+
+  // Recovery functionality
+  const setupSecurityQuestions = async (questions: SecurityQuestions) => {
+    if (!user) return;
+    
+    try {
+      const answer1Hash = await hashSecurityAnswer(questions.answer1);
+      const answer2Hash = await hashSecurityAnswer(questions.answer2);
+      
+      const { error } = await supabase
+        .from('users_profile')
+        .update({
+          security_question_1: questions.question1,
+          security_answer_1_hash: answer1Hash,
+          security_question_2: questions.question2,
+          security_answer_2_hash: answer2Hash,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      setHasSecurityQuestions(true);
+    } catch (error) {
+      console.error('Error setting up security questions:', error);
+      throw error;
+    }
+  };
+
+  const validateSecurityQuestions = async (question1Answer: string, question2Answer: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { data: profile } = await supabase
+        .from('users_profile')
+        .select('security_answer_1_hash, security_answer_2_hash')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || !profile.security_answer_1_hash || !profile.security_answer_2_hash) {
+        return false;
+      }
+
+      const answer1Valid = await validateSecurityAnswer(question1Answer, profile.security_answer_1_hash);
+      const answer2Valid = await validateSecurityAnswer(question2Answer, profile.security_answer_2_hash);
+      
+      const success = answer1Valid && answer2Valid;
+      
+      // Log the attempt
+      await logRecoveryAttempt(
+        user.id,
+        'pin_reset',
+        'security_questions',
+        success,
+        success ? undefined : 'Invalid security answers'
+      );
+      
+      return success;
+    } catch (error) {
+      console.error('Error validating security questions:', error);
+      await logRecoveryAttempt(
+        user.id,
+        'pin_reset',
+        'security_questions',
+        false,
+        'Validation error'
+      );
+      return false;
+    }
+  };
+
+  const getSecurityQuestions = async (): Promise<{ question1: string; question2: string } | null> => {
+    if (!user) return null;
+    
+    try {
+      const { data: profile } = await supabase
+        .from('users_profile')
+        .select('security_question_1, security_question_2')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile || !profile.security_question_1 || !profile.security_question_2) {
+        return null;
+      }
+
+      return {
+        question1: profile.security_question_1,
+        question2: profile.security_question_2,
+      };
+    } catch (error) {
+      console.error('Error getting security questions:', error);
+      return null;
+    }
+  };
+
+  const resetPinWithPassword = async (email: string, password: string) => {
+    if (!user) return;
+    
+    try {
+      // Verify the user's credentials
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        await logRecoveryAttempt(
+          user.id,
+          'pin_reset',
+          'email_password',
+          false,
+          'Invalid credentials'
+        );
+        throw new Error('Invalid email or password');
+      }
+
+      // Get current reset count
+      const { data: currentProfile } = await supabase
+        .from('users_profile')
+        .select('pin_reset_count')
+        .eq('id', user.id)
+        .single();
+
+      // Remove the PIN
+      const { error } = await supabase
+        .from('users_profile')
+        .update({ 
+          pin_hash: null,
+          pin_reset_count: (currentProfile?.pin_reset_count || 0) + 1,
+          last_pin_reset: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      setHasPinSet(false);
+      
+      // Log successful recovery
+      await logRecoveryAttempt(
+        user.id,
+        'pin_reset',
+        'email_password',
+        true
+      );
+    } catch (error) {
+      console.error('Error resetting PIN with password:', error);
+      await logRecoveryAttempt(
+        user.id,
+        'pin_reset',
+        'email_password',
+        false,
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+      throw error;
+    }
+  };
+
+  const resetPinWithSecurityQuestions = async (question1Answer: string, question2Answer: string) => {
+    if (!user) return;
+    
+    try {
+      const isValid = await validateSecurityQuestions(question1Answer, question2Answer);
+      
+      if (!isValid) {
+        throw new Error('Invalid security answers');
+      }
+
+      // Get current reset count
+      const { data: currentProfile } = await supabase
+        .from('users_profile')
+        .select('pin_reset_count')
+        .eq('id', user.id)
+        .single();
+
+      // Remove the PIN
+      const { error } = await supabase
+        .from('users_profile')
+        .update({ 
+          pin_hash: null,
+          pin_reset_count: (currentProfile?.pin_reset_count || 0) + 1,
+          last_pin_reset: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      setHasPinSet(false);
+      
+      // Success was already logged in validateSecurityQuestions
+    } catch (error) {
+      console.error('Error resetting PIN with security questions:', error);
+      throw error;
+    }
+  };
+
+  const checkPinLockoutStatus = async () => {
+    if (!user) return { locked: false, attemptsRemaining: 5 };
+    
+    return await checkPinLockout(user.id);
+  };
+
+  const validatePinWithTracking = async (pin: string) => {
+    if (!user) return { success: false, locked: false, attemptsRemaining: 5 };
+    
+    try {
+      // First check if user is currently locked out
+      const lockoutStatus = await checkPinLockout(user.id);
+      if (lockoutStatus.locked) {
+        return {
+          success: false,
+          locked: true,
+          attemptsRemaining: 0
+        };
+      }
+
+      // Validate the PIN
+      const isValid = await validatePin(pin);
+      
+      // Track the attempt
+      const trackingResult = await trackPinAttempt(user.id, isValid);
+      
+      return {
+        success: isValid,
+        locked: trackingResult.locked,
+        attemptsRemaining: trackingResult.attemptsRemaining
+      };
+    } catch (error) {
+      console.error('Error validating PIN with tracking:', error);
+      return { success: false, locked: false, attemptsRemaining: 5 };
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -370,6 +686,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         measurementAttributes,
         updateMeasurementAttributes,
         isLoading,
+        hasPinSet,
+        setupPin,
+        validatePin,
+        removePin,
+        hasSecurityQuestions,
+        setupSecurityQuestions,
+        validateSecurityQuestions,
+        getSecurityQuestions,
+        resetPinWithPassword,
+        resetPinWithSecurityQuestions,
+        checkPinLockoutStatus,
+        validatePinWithTracking,
       }}
     >
       {children}

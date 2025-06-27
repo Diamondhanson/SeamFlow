@@ -90,7 +90,7 @@ const createThemeColors = (isDark: boolean) => ({
   backgroundTertiary: isDark ? palette.neutral700 : palette.neutral200,
   
   // Surface System (for cards, modals, etc.)
-  surface: isDark ? palette.neutral900 : palette.white,
+  surface: isDark ? palette.neutral900 : '#f5f0fc',
   surfaceElevated: isDark ? palette.neutral800 : palette.neutral50,
   surfaceSecondary: isDark ? palette.neutral700 : palette.neutral100,
   
