@@ -174,7 +174,7 @@ const EnterDetails = () => {
           ]
         );
       } else {
-        Alert.alert('Error', error.message);
+      Alert.alert('Error', error.message);
       }
     } finally {
       setLoading(false);

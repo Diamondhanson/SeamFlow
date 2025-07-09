@@ -211,8 +211,8 @@ const Settings = () => {
               <Icons name="palette" size={20} color={colors.textOnPrimary} />
             </View>
             <Text style={styles.sectionTitle}>Customization</Text>
-          </View>
-          
+      </View>
+
           <TouchableOpacity 
             style={styles.menuItem} 
             onPress={() => navigation.navigate('ChangeMeasurementAttributes' as never)}
@@ -235,8 +235,8 @@ const Settings = () => {
               <Icons name="shield-alt" size={20} color={colors.textOnPrimary} />
             </View>
             <Text style={styles.sectionTitle}>Security & Privacy</Text>
-          </View>
-          
+      </View>
+
           <TouchableOpacity 
             style={styles.menuItem} 
             onPress={hasPinSet ? handleRemovePin : handleSetupPin}

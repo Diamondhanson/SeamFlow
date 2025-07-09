@@ -17,21 +17,21 @@ import CustomizeMeasurementAttributes from "@/src/screens/CustomizeMeasurementAt
 import ChangeMeasurementAttributes from "@/src/screens/ChangeMeasurementAttributes";
 import Settings from "@/src/screens/Settings";
 import PinSetup from "@/src/screens/PinSetup";
+import PinEntry from "@/src/screens/PinEntry";
 import PinRecovery from "@/src/screens/PinRecovery";
 import SecurityQuestionsSetup from "@/src/screens/SecurityQuestionsSetup";
 import PasswordReset from "@/src/screens/PasswordReset";
-import PinWrapper from "@/src/components/PinWrapper";
 import { useState, useEffect } from "react";
 import BulkOrder from '@/src/screens/BulkOrderModule/BulkOrder';
 import AddBulkOrder from '@/src/screens/BulkOrderModule/AddBulkOrder';
 import SafeAreaWrapper from '@/src/components/SafeAreaWrapper';
 import { StatusBar } from 'react-native';
 import { colors } from '@/src/theme/colors';
-
 const Stack = createStackNavigator();
 
 function NavigationStack() {
   const [screen, setScreen] = useState(Dimensions.get("window"));
+  const { session, hasPinSet } = useApp();
   
   useEffect(() => {
     const onChange = ({ window }: { window: ScaledSize }) => setScreen(window);
@@ -39,34 +39,51 @@ function NavigationStack() {
     return () => subscription.remove();
   }, []);
 
+  // Determine initial route based on session and PIN state
+  const getInitialRoute = () => {
+    if (!session) return "Welcome";
+    if (hasPinSet) return "PinEntry";
+    return "Home";
+  };
+
   return (
-    <PinWrapper>
-      <Stack.Navigator
-        initialRouteName="Welcome"
-        screenOptions={{
-          headerShown: false,
+    <Stack.Navigator
+      initialRouteName={getInitialRoute()}
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      {/* Authentication Screens */}
+      <Stack.Screen name="Welcome" component={Welcome} />
+      <Stack.Screen name="EnterDetails" component={EnterDetails} />
+      
+      {/* PIN & Security Screens */}
+      <Stack.Screen 
+        name="PinEntry" 
+        component={PinEntry}
+        options={{
+          gestureEnabled: false, // Prevent swipe back
         }}
-      >
-        <Stack.Screen name="Welcome" component={Welcome} />
-        <Stack.Screen name="EnterDetails" component={EnterDetails} />
-        <Stack.Screen name="CustomizeMeasurementAttributes" component={CustomizeMeasurementAttributes} />
-        <Stack.Screen name="PinSetup" component={PinSetup} />
-        <Stack.Screen name="PinRecovery" component={PinRecovery} />
-        <Stack.Screen name="SecurityQuestionsSetup" component={SecurityQuestionsSetup} />
-        <Stack.Screen name="PasswordReset" component={PasswordReset} />
-        <Stack.Group>
-          <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="MyClients" component={MyClients} />
-          <Stack.Screen name="MyDesigns" component={MyDesigns} />
-          <Stack.Screen name="NewOrder" component={NewOrder} />
-          <Stack.Screen name="Calendar" component={CalendarScreen} />
-          <Stack.Screen name="Settings" component={Settings} />
-          <Stack.Screen name="ChangeMeasurementAttributes" component={ChangeMeasurementAttributes} />
-          <Stack.Screen name="BulkOrder" component={BulkOrder} />
-          <Stack.Screen name="AddBulkOrder" component={AddBulkOrder} />
-        </Stack.Group>
-      </Stack.Navigator>
-    </PinWrapper>
+      />
+      <Stack.Screen name="PinSetup" component={PinSetup} />
+      <Stack.Screen name="PinRecovery" component={PinRecovery} />
+      <Stack.Screen name="SecurityQuestionsSetup" component={SecurityQuestionsSetup} />
+      <Stack.Screen name="PasswordReset" component={PasswordReset} />
+      <Stack.Screen name="CustomizeMeasurementAttributes" component={CustomizeMeasurementAttributes} />
+      
+      {/* Main App Screens */}
+      <Stack.Group>
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="MyClients" component={MyClients} />
+        <Stack.Screen name="MyDesigns" component={MyDesigns} />
+        <Stack.Screen name="NewOrder" component={NewOrder} />
+        <Stack.Screen name="Calendar" component={CalendarScreen} />
+        <Stack.Screen name="Settings" component={Settings} />
+        <Stack.Screen name="ChangeMeasurementAttributes" component={ChangeMeasurementAttributes} />
+        <Stack.Screen name="BulkOrder" component={BulkOrder} />
+        <Stack.Screen name="AddBulkOrder" component={AddBulkOrder} />
+      </Stack.Group>
+    </Stack.Navigator>
   );
 }
 

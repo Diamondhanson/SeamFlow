@@ -10,11 +10,24 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bambothanson.FashionApp"
+      "bundleIdentifier": "com.bambothanson.FashionApp",
+      "buildNumber": "1",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "background-fetch",
+          "remote-notification"
+        ]
+      },
+      "appleTeamId": "F86SVQC989"
     },
     "androidStatusBar": {
       "translucent": true,
-      "backgroundColor": "#000000"
+      "backgroundColor": "#ffffff"
+    },
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +35,13 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.bambothanson.FashionApp",
+      "versionCode": 1,
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "com.google.android.c2dm.permission.RECEIVE"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -51,6 +71,21 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#ffffff",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./node_modules/react-native-international-phone-number/lib/assets/fonts/TwemojiMozilla.woff2"
+          ]
         }
       ]
     ],

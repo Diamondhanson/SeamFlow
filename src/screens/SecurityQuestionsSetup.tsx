@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
+  Text
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -127,7 +128,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
 
     return (
       <View style={styles.questionContainer}>
-        <Text variant="bodyLarge" style={styles.questionLabel}>
+        <Text  style={styles.questionLabel}>
           Security Question {questionNumber}
         </Text>
         
@@ -135,7 +136,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
           style={[styles.dropdownButton, showDropdown && styles.dropdownButtonActive]}
           onPress={toggleDropdown}
         >
-          <Text variant="bodyMedium" style={styles.dropdownText}>
+          <Text  style={styles.dropdownText}>
             {selectedQuestion || 'Select a question...'}
           </Text>
           <Ionicons
@@ -157,7 +158,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
                     toggleDropdown();
                   }}
                 >
-                  <Text variant="bodyMedium" style={styles.dropdownItemText}>
+                  <Text  style={styles.dropdownItemText}>
                     {question}
                   </Text>
                 </TouchableOpacity>
@@ -176,10 +177,10 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
           <View style={styles.stepContainer}>
             <View style={styles.headerContainer}>
               <Ionicons name="help-circle" size={32} color={colors.primary} />
-              <Text variant="headingMedium" style={styles.title}>
+              <Text  style={styles.title}>
                 Choose First Question
               </Text>
-              <Text variant="bodyMedium" style={styles.subtitle}>
+              <Text  style={styles.subtitle}>
                 Select a question you'll remember the answer to
               </Text>
             </View>
@@ -198,7 +199,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
                 disabled={!selectedQuestion1}
                 onPress={() => setCurrentStep(2)}
               >
-                <Text variant="bodyLarge" style={styles.buttonText}>
+                <Text  style={styles.buttonText}>
                   Next
                 </Text>
               </TouchableOpacity>
@@ -211,10 +212,10 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
           <View style={styles.stepContainer}>
             <View style={styles.headerContainer}>
               <Ionicons name="help-circle" size={32} color={colors.primary} />
-              <Text variant="headingMedium" style={styles.title}>
+              <Text  style={styles.title}>
                 Choose Second Question
               </Text>
-              <Text variant="bodyMedium" style={styles.subtitle}>
+              <Text  style={styles.subtitle}>
                 Pick a different question for additional security
               </Text>
             </View>
@@ -232,7 +233,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
                 style={styles.backButton}
                 onPress={() => setCurrentStep(1)}
               >
-                <Text variant="bodyMedium" style={styles.backButtonText}>
+                <Text  style={styles.backButtonText}>
                   Back
                 </Text>
               </TouchableOpacity>
@@ -242,7 +243,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
                 disabled={!selectedQuestion2}
                 onPress={() => setCurrentStep(3)}
               >
-                <Text variant="bodyLarge" style={styles.buttonText}>
+                <Text  style={styles.buttonText}>
                   Next
                 </Text>
               </TouchableOpacity>
@@ -255,16 +256,16 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
           <View style={styles.stepContainer}>
             <View style={styles.headerContainer}>
               <Ionicons name="key" size={32} color={colors.primary} />
-              <Text variant="headingMedium" style={styles.title}>
+              <Text  style={styles.title}>
                 Provide Your Answers
               </Text>
-              <Text variant="bodyMedium" style={styles.subtitle}>
+              <Text  style={styles.subtitle}>
                 Enter answers you'll remember exactly
               </Text>
             </View>
 
             <View style={styles.answerContainer}>
-              <Text variant="bodyMedium" style={styles.questionText}>
+              <Text  style={styles.questionText}>
                 {selectedQuestion1}
               </Text>
               <TextInput
@@ -279,7 +280,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
             </View>
 
             <View style={styles.answerContainer}>
-              <Text variant="bodyMedium" style={styles.questionText}>
+              <Text  style={styles.questionText}>
                 {selectedQuestion2}
               </Text>
               <TextInput
@@ -298,7 +299,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
                 style={styles.backButton}
                 onPress={() => setCurrentStep(2)}
               >
-                <Text variant="bodyMedium" style={styles.backButtonText}>
+                <Text  style={styles.backButtonText}>
                   Back
                 </Text>
               </TouchableOpacity>
@@ -314,7 +315,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
                 {isLoading ? (
                   <ActivityIndicator color={colors.background} size="small" />
                 ) : (
-                  <Text variant="bodyLarge" style={styles.buttonText}>
+                  <Text  style={styles.buttonText}>
                     Complete Setup
                   </Text>
                 )}
@@ -335,13 +336,13 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         
-        <Text variant="headingSmall" style={styles.headerTitle}>
+        <Text  style={styles.headerTitle}>
           Security Questions
         </Text>
         
         {isOnboarding && (
           <TouchableOpacity onPress={handleSkip}>
-            <Text variant="bodyMedium" style={styles.skipText}>
+            <Text  style={styles.skipText}>
               Skip
             </Text>
           </TouchableOpacity>
@@ -353,7 +354,7 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: `${(currentStep / 3) * 100}%` }]} />
         </View>
-        <Text variant="bodySmall" style={styles.progressText}>
+        <Text  style={styles.progressText}>
           Step {currentStep} of 3
         </Text>
       </View>

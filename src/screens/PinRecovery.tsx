@@ -7,11 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
+  Text
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import { spacing } from '../theme/spacing';
+import { themeUtils } from '../theme';
 import { useApp } from '../context/AppContext';
 
 
@@ -69,11 +72,11 @@ const PinRecovery: React.FC = () => {
       
       Alert.alert(
         'PIN Reset Successfully',
-        'Your PIN has been removed. You can now access the app normally and set up a new PIN if desired.',
+        'Your PIN has been removed. You can now set up a new PIN.',
         [
           {
-            text: 'OK',
-            onPress: () => navigation.navigate('Home' as never),
+            text: 'Set New PIN',
+            onPress: () => navigation.navigate('PinSetup' as never),
           },
         ]
       );
@@ -97,11 +100,11 @@ const PinRecovery: React.FC = () => {
       
       Alert.alert(
         'PIN Reset Successfully',
-        'Your PIN has been removed. You can now access the app normally and set up a new PIN if desired.',
+        'Your PIN has been removed. You can now set up a new PIN.',
         [
           {
-            text: 'OK',
-            onPress: () => navigation.navigate('Home' as never),
+            text: 'Set New PIN',
+            onPress: () => navigation.navigate('PinSetup' as never),
           },
         ]
       );
@@ -112,71 +115,209 @@ const PinRecovery: React.FC = () => {
     }
   };
 
+  const renderMethodSelection = () => (
+    <View style={styles.methodContainer}>
+      <View style={styles.headerContainer}>
+        <Ionicons name="lock-open" size={32} color={colors.primary} />
+        <Text style={styles.title}>
+          Reset Your PIN
+        </Text>
+        <Text style={styles.subtitle}>
+          Choose a recovery method to reset your PIN
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        style={styles.methodCard}
+        onPress={() => setSelectedMethod('password')}
+      >
+        <View style={styles.methodIconContainer}>
+          <Ionicons name="mail" size={24} color={colors.primary} />
+        </View>
+        <View style={styles.methodContent}>
+          <Text style={styles.methodTitle}>
+            Email & Password
+          </Text>
+          <Text style={styles.methodDescription}>
+            Verify your account credentials to reset PIN
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+
+      {hasSecurityQuestions && (
+        <TouchableOpacity
+          style={styles.methodCard}
+          onPress={() => setSelectedMethod('security_questions')}
+        >
+          <View style={styles.methodIconContainer}>
+            <Ionicons name="help-circle" size={24} color={colors.warning} />
+          </View>
+          <View style={styles.methodContent}>
+            <Text style={styles.methodTitle}>
+              Security Questions
+            </Text>
+            <Text style={styles.methodDescription}>
+              Answer your security questions to reset PIN
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const renderPasswordForm = () => (
+    <View style={styles.formContainer}>
+      <View style={styles.headerContainer}>
+        <Ionicons name="mail" size={32} color={colors.primary} />
+        <Text style={styles.title}>
+          Email & Password Recovery
+        </Text>
+        <Text style={styles.subtitle}>
+          Enter your account credentials to reset your PIN
+        </Text>
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Email</Text>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Enter your email"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Password</Text>
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Enter your password"
+          secureTextEntry
+          autoComplete="password"
+        />
+      </View>
+
+      <TouchableOpacity
+        style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+        onPress={handlePasswordRecovery}
+        disabled={isLoading || !email.trim() || !password.trim()}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color={colors.textOnPrimary} />
+        ) : (
+          <Text style={styles.submitButtonText}>Reset PIN</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.backToMethodsButton}
+        onPress={() => setSelectedMethod(null)}
+      >
+        <Text style={styles.backToMethodsText}>Choose Different Method</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderSecurityQuestionsForm = () => (
+    <View style={styles.formContainer}>
+      <View style={styles.headerContainer}>
+        <Ionicons name="help-circle" size={32} color={colors.warning} />
+        <Text style={styles.title}>
+          Security Questions Recovery
+        </Text>
+        <Text style={styles.subtitle}>
+          Answer your security questions to reset your PIN
+        </Text>
+      </View>
+
+      {securityQuestions && (
+        <>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>{securityQuestions.question1}</Text>
+            <TextInput
+              style={styles.input}
+              value={answer1}
+              onChangeText={setAnswer1}
+              placeholder="Enter your answer"
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>{securityQuestions.question2}</Text>
+            <TextInput
+              style={styles.input}
+              value={answer2}
+              onChangeText={setAnswer2}
+              placeholder="Enter your answer"
+              autoCapitalize="none"
+            />
+          </View>
+        </>
+      )}
+
+      <TouchableOpacity
+        style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
+        onPress={handleSecurityQuestionsRecovery}
+        disabled={isLoading || !answer1.trim() || !answer2.trim()}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color={colors.textOnPrimary} />
+        ) : (
+          <Text style={styles.submitButtonText}>Reset PIN</Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.backToMethodsButton}
+        onPress={() => setSelectedMethod(null)}
+      >
+        <Text style={styles.backToMethodsText}>Choose Different Method</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderContent = () => {
+    switch (selectedMethod) {
+      case 'password':
+        return renderPasswordForm();
+      case 'security_questions':
+        return renderSecurityQuestionsForm();
+      default:
+        return renderMethodSelection();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backIcon}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (selectedMethod) {
+              setSelectedMethod(null);
+            } else {
+              navigation.goBack();
+            }
+          }}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         
-        <Text variant="headingSmall" style={styles.headerTitle}>
+        <Text style={styles.headerTitle}>
           PIN Recovery
         </Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.container}>
-          <View style={styles.headerContainer}>
-            <Ionicons name="lock-open" size={32} color={colors.primary} />
-            <Text variant="headingMedium" style={styles.title}>
-              Reset Your PIN
-            </Text>
-            <Text variant="bodyMedium" style={styles.subtitle}>
-              Choose a recovery method to reset your PIN
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.methodCard}
-            onPress={() => setSelectedMethod('password')}
-          >
-            <View style={styles.methodIconContainer}>
-              <Ionicons name="mail" size={24} color={colors.primary} />
-            </View>
-            <View style={styles.methodContent}>
-              <Text variant="bodyLarge" style={styles.methodTitle}>
-                Email & Password
-              </Text>
-              <Text variant="bodyMedium" style={styles.methodDescription}>
-                Verify your account credentials to reset PIN
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-
-          {hasSecurityQuestions && (
-            <TouchableOpacity
-              style={styles.methodCard}
-              onPress={() => setSelectedMethod('security_questions')}
-            >
-              <View style={styles.methodIconContainer}>
-                <Ionicons name="help-circle" size={24} color={colors.warning} />
-              </View>
-              <View style={styles.methodContent}>
-                <Text variant="bodyLarge" style={styles.methodTitle}>
-                  Security Questions
-                </Text>
-                <Text variant="bodyMedium" style={styles.methodDescription}>
-                  Answer your security questions to reset PIN
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-          )}
-        </View>
+        {renderContent()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -186,51 +327,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingVertical: 20,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.m,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
   },
   backIcon: {
-    padding: 4,
+    padding: spacing.xs,
   },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 16,
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginRight: spacing.l + spacing.xs, // Balance the back button space
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.m,
+  },
+  methodContainer: {
+    paddingVertical: spacing.l,
+  },
+  formContainer: {
+    paddingVertical: spacing.l,
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: spacing.xxl,
   },
   title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
     textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: spacing.m,
+    marginBottom: spacing.s,
   },
   subtitle: {
-    textAlign: 'center',
+    fontSize: 16,
     color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   methodCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.l,
     backgroundColor: colors.surface,
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: spacing.borderRadius.m,
+    marginBottom: spacing.m,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
   },
   methodIconContainer: {
     width: 48,
@@ -239,17 +395,67 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: spacing.m,
   },
   methodContent: {
     flex: 1,
   },
   methodTitle: {
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
   methodDescription: {
+    fontSize: 14,
     color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  inputContainer: {
+    marginBottom: spacing.l,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.s,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    borderRadius: spacing.borderRadius.m,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.m,
+    fontSize: 16,
+    color: colors.text,
+    ...themeUtils.getElevation('xs'),
+  },
+  submitButton: {
+    backgroundColor: colors.primary,
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.m,
+    alignItems: 'center',
+    marginTop: spacing.l,
+    ...themeUtils.getElevation('s'),
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textOnPrimary,
+  },
+  backToMethodsButton: {
+    alignItems: 'center',
+    marginTop: spacing.l,
+    paddingVertical: spacing.s,
+  },
+  backToMethodsText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textDecorationLine: 'underline',
   },
 });
 

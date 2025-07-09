@@ -10,6 +10,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import DatePicker from '../components/DatePicker';
 import Header from '../components/Header';
+import PhoneNumberInput from '../components/PhoneNumberInput';
 import { useApp } from '../context/AppContext';
 
 type RouteParams = {
@@ -168,13 +169,11 @@ const NewOrder = () => {
               onChangeText={(text) => setFormData(prev => ({ ...prev, fullName: text }))}
               placeholderTextColor={colors.textSecondary}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Phone Number"
+            <PhoneNumberInput
               value={formData.phoneNumber}
-              onChangeText={(text) => setFormData(prev => ({ ...prev, phoneNumber: text }))}
-              placeholderTextColor={colors.textSecondary}
-              keyboardType="phone-pad"
+              onChangePhoneNumber={(phone) => setFormData(prev => ({ ...prev, phoneNumber: phone }))}
+              placeholder="Phone Number"
+              defaultCountry="US"
             />
             <TextInput
               style={styles.input}

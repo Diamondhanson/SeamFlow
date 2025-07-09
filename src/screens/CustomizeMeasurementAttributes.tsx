@@ -62,7 +62,7 @@ const CustomizeMeasurementAttributes = () => {
 
   const handleSave = async () => {
     if (!user) return;
-    
+
     setIsSaving(true);
     try {
       await updateMeasurementAttributes(attributes);
@@ -101,25 +101,25 @@ const CustomizeMeasurementAttributes = () => {
               <Icons name="plus" size={16} color={colors.textOnPrimary} />
             </View>
             <Text style={styles.sectionTitle}>Add New Attribute</Text>
-          </View>
-          
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, isSaving && styles.inputDisabled]}
-              value={newAttribute}
-              onChangeText={setNewAttribute}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[styles.input, isSaving && styles.inputDisabled]}
+            value={newAttribute}
+            onChangeText={setNewAttribute}
               placeholder="Enter measurement attribute (e.g., shoulder, waist...)"
               placeholderTextColor={colors.textSecondary}
-              onSubmitEditing={handleAddAttribute}
-              editable={!isSaving}
-            />
-            <TouchableOpacity 
+            onSubmitEditing={handleAddAttribute}
+            editable={!isSaving}
+          />
+          <TouchableOpacity 
               style={[styles.addButton, (!newAttribute.trim() || isSaving) && styles.buttonDisabled]}
-              onPress={handleAddAttribute}
+            onPress={handleAddAttribute}
               disabled={!newAttribute.trim() || isSaving}
-            >
+          >
               <Icons name="plus" size={20} color={colors.textOnPrimary} />
-            </TouchableOpacity>
+          </TouchableOpacity>
           </View>
         </View>
 
@@ -142,23 +142,23 @@ const CustomizeMeasurementAttributes = () => {
             </View>
           ) : (
             <View style={styles.attributesList}>
-              {attributes.map((attribute, index) => (
-                <View key={index} style={styles.attributeItem}>
+          {attributes.map((attribute, index) => (
+            <View key={index} style={styles.attributeItem}>
                   <View style={styles.attributeContent}>
                     <View style={[styles.attributeIcon, { backgroundColor: colors.info }]}>
                       <Icons name="ruler" size={12} color={colors.textOnPrimary} />
                     </View>
-                    <Text style={styles.attributeText}>{attribute}</Text>
+              <Text style={styles.attributeText}>{attribute}</Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveAttribute(index)}
-                    style={[styles.removeButton, isSaving && styles.buttonDisabled]}
-                    disabled={isSaving}
-                  >
+              <TouchableOpacity
+                onPress={() => handleRemoveAttribute(index)}
+                style={[styles.removeButton, isSaving && styles.buttonDisabled]}
+                disabled={isSaving}
+              >
                     <Icons name="trash" size={14} color={colors.error} />
-                  </TouchableOpacity>
-                </View>
-              ))}
+              </TouchableOpacity>
+            </View>
+          ))}
             </View>
           )}
         </View>

@@ -15,12 +15,7 @@ import Icons from 'react-native-vector-icons/FontAwesome5';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useApp } from '../context/AppContext';
 
-interface PinEntryProps {
-  onSuccess: () => void;
-  onForgotPin?: () => void;
-}
-
-const PinEntry: React.FC<PinEntryProps> = ({ onSuccess, onForgotPin }) => {
+const PinEntry: React.FC = () => {
   const navigation = useNavigation();
   const { 
     validatePinWithTracking, 
@@ -88,7 +83,11 @@ const PinEntry: React.FC<PinEntryProps> = ({ onSuccess, onForgotPin }) => {
       const result = await validatePinWithTracking(pin);
       
       if (result.success) {
-        onSuccess();
+        // PIN validation successful - reset navigation stack to Home
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' as never }],
+        });
       } else {
         setAttemptsRemaining(result.attemptsRemaining);
         
@@ -114,6 +113,10 @@ const PinEntry: React.FC<PinEntryProps> = ({ onSuccess, onForgotPin }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleForgotPin = () => {
+    navigation.navigate('PinRecovery' as never);
   };
 
   useEffect(() => {
@@ -154,13 +157,7 @@ const PinEntry: React.FC<PinEntryProps> = ({ onSuccess, onForgotPin }) => {
       
       <TouchableOpacity 
         style={[styles.keypadButton, styles.forgotButton]} 
-        onPress={() => {
-          if (onForgotPin) {
-            onForgotPin();
-          } else {
-            navigation.navigate('PinRecovery' as never);
-          }
-        }}
+        onPress={handleForgotPin}
         disabled={isLocked}
       >
         <Text style={styles.forgotButtonText}>Forgot?</Text>

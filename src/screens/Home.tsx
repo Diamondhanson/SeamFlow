@@ -7,8 +7,10 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  AppState,
+  AppStateStatus,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { colors } from "../theme/colors";
 import { textVariants } from "../theme/textVariants";
 import { spacing } from "../theme/spacing";
@@ -19,6 +21,7 @@ import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import OverviewModal from '../components/OverviewModal';
 import { useApp } from '../context/AppContext';
 import { supabase } from "@/supabaseConfig";
+import * as Device from 'expo-device';
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
@@ -94,7 +97,7 @@ const TILES_DATA: TileData[] = [
 
 const Home = () => {
   const navigation = useNavigation();
-  const { companyInfo, user } = useApp();
+  const { companyInfo, user, sendTestNotification, notificationPermissionStatus, hasPinSet } = useApp();
   const [dimensions, setDimensions] = useState({ 
     window: Dimensions.get('window') 
   });
@@ -110,10 +113,86 @@ const Home = () => {
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [modalInitialTab, setModalInitialTab] = useState<'active' | 'week' | 'today'>('active');
+  
+  // Test Notification State
+  const [testingNotification, setTestingNotification] = useState(false);
+
+  // PIN protection state
+  const [pinChecked, setPinChecked] = useState(true); // Start as true, set to false only when timeout occurs
+  const lastActiveTime = useRef(Date.now());
+  const PIN_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+  
+  // Track if we've had a user before (to detect session expiration)
+  const [hadUser, setHadUser] = useState(false);
+
+  // Handle app state changes for PIN timeout
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active' && hasPinSet && pinChecked) {
+        // App is coming to foreground
+        const now = Date.now();
+        const timeDiff = now - lastActiveTime.current;
+        
+                 if (timeDiff > PIN_TIMEOUT) {
+           setPinChecked(false);
+           navigation.reset({
+             index: 0,
+             routes: [{ name: 'PinEntry' as never }],
+           });
+         }
+      } else if (nextAppState.match(/inactive|background/)) {
+        // App is going to background
+        lastActiveTime.current = Date.now();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [hasPinSet, pinChecked, navigation]);
+
+  // Reset PIN check when returning from PinEntry
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // If we're coming back to Home screen, mark PIN as checked
+      setPinChecked(true);
+      lastActiveTime.current = Date.now();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  // Handle session expiration during runtime
+  useEffect(() => {
+    if (user) {
+      setHadUser(true);
+    } else if (hadUser) {
+      // We had a user before but now we don't - session expired
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Welcome' as never }],
+      });
+    }
+  }, [user, hadUser, navigation]);
 
   const openModal = (tab: 'active' | 'week' | 'today') => {
     setModalInitialTab(tab);
     setModalVisible(true);
+  };
+
+  const handleTestNotification = async () => {
+    if (!user) return;
+    
+    setTestingNotification(true);
+    try {
+      await sendTestNotification();
+      // You could add a success toast here
+      console.log('Test notification sent successfully!');
+    } catch (error) {
+      console.error('Failed to send test notification:', error);
+      // You could add an error toast here
+    } finally {
+      setTestingNotification(false);
+    }
   };
 
   useEffect(() => {
@@ -347,6 +426,54 @@ const Home = () => {
             {TILES_DATA.map(renderTile)}
           </View>
         </View>
+
+        {/* Test Notification Section */}
+        <View style={[
+          styles.testSection,
+          { paddingHorizontal: containerPadding }
+        ]}>
+          <Text style={styles.sectionTitle}>🧪 Developer Testing</Text>
+          <TouchableOpacity
+            style={[
+              styles.testButton,
+              testingNotification && styles.testButtonLoading
+            ]}
+            onPress={handleTestNotification}
+            disabled={testingNotification || !user}
+            activeOpacity={0.8}
+          >
+            {testingNotification ? (
+              <ActivityIndicator size="small" color={colors.textOnPrimary} />
+            ) : (
+              <Icons name="bell" size={20} color={colors.textOnPrimary} />
+            )}
+            <Text style={styles.testButtonText}>
+              {testingNotification ? 'Sending...' : 'Send Test Notification'}
+            </Text>
+          </TouchableOpacity>
+          
+          <View style={styles.notificationStatus}>
+            <Text style={styles.statusText}>
+              📱 Notification Status: {notificationPermissionStatus}
+            </Text>
+            {notificationPermissionStatus !== 'granted' && (
+              <Text style={styles.statusHint}>
+                ⚠️ Please enable notifications in app settings to receive push notifications
+              </Text>
+            )}
+            
+            {/* Add simulator-specific message */}
+            <Text style={styles.deviceInfo}>
+              🖥️ Device: {Device.isDevice ? 'Physical Device' : 'Simulator'}
+            </Text>
+            {!Device.isDevice && (
+              <Text style={styles.simulatorHint}>
+                💡 On simulator: Test button will show local notifications.{'\n'}
+                📱 For push notifications: Test on physical device.
+              </Text>
+            )}
+          </View>
+        </View>
       </ScrollView>
 
       {/* Overview Modal */}
@@ -547,6 +674,65 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     letterSpacing: 0.1,
     lineHeight: 14,
+  },
+
+  // Test Section Styles
+  testSection: {
+    marginTop: spacing.section,
+    marginBottom: spacing.l,
+  },
+  testButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: spacing.borderRadius.l,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.l,
+    gap: spacing.s,
+    ...themeUtils.getElevation('s'),
+  },
+  testButtonLoading: {
+    opacity: 0.7,
+  },
+  testButtonText: {
+    color: colors.textOnPrimary,
+    fontSize: 16,
+    fontWeight: '600' as const,
+    letterSpacing: 0.2,
+  },
+  notificationStatus: {
+    marginTop: spacing.m,
+    padding: spacing.m,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: spacing.borderRadius.m,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  statusText: {
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: '500' as const,
+    marginBottom: spacing.xs,
+  },
+  statusHint: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 16,
+    fontStyle: 'italic',
+  },
+  deviceInfo: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  simulatorHint: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
 

@@ -9,6 +9,7 @@ import {
   trackPinAttempt,
   checkPinLockout
 } from '../utils/recoveryUtils';
+import { notificationService, NotificationData } from '../utils/notificationService';
 
 // Types
 interface DesignItem {
@@ -60,6 +61,14 @@ interface AppContextType {
   resetPinWithSecurityQuestions: (question1Answer: string, question2Answer: string) => Promise<void>;
   checkPinLockoutStatus: () => Promise<{ locked: boolean; attemptsRemaining: number; lockedUntil?: Date }>;
   validatePinWithTracking: (pin: string) => Promise<{ success: boolean; locked: boolean; attemptsRemaining: number }>;
+  // Notification functionality
+  notificationPermissionStatus: string;
+  pushToken: string | null;
+  registerForNotifications: () => Promise<void>;
+  sendTestNotification: () => Promise<void>;
+  sendPushNotification: (userIds: string[], notificationData: NotificationData) => Promise<void>;
+  scheduleLocalNotification: (notificationData: NotificationData, trigger: Date | number) => Promise<string>;
+  getNotificationPermissionStatus: () => Promise<string>;
 }
 
 const DEFAULT_MEASUREMENT_ATTRIBUTES = [
@@ -86,6 +95,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasPinSet, setHasPinSet] = useState(false);
   const [hasSecurityQuestions, setHasSecurityQuestions] = useState(false);
+  const [notificationPermissionStatus, setNotificationPermissionStatus] = useState<string>('unknown');
+  const [pushToken, setPushToken] = useState<string | null>(null);
 
   useEffect(() => {
     // Get initial session
@@ -118,6 +129,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (user) {
       loadUserData();
+      // Register for notifications when user is available
+      registerForNotifications();
     } else {
       // Reset state when user is null
       setCompanyInfo({ name: 'LYZMA CREATIONS' });
@@ -125,6 +138,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setInspirations([]);
       setMeasurementAttributes(DEFAULT_MEASUREMENT_ATTRIBUTES);
       setIsLoading(false);
+      setPushToken(null);
+      setNotificationPermissionStatus('unknown');
     }
   }, [user]);
 
@@ -669,6 +684,72 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Notification functionality
+  const registerForNotifications = async () => {
+    try {
+      if (!user) return;
+      
+      // Register for push notifications
+      const token = await notificationService.registerForPushNotifications();
+      if (token) {
+        setPushToken(token);
+        await notificationService.storePushToken(user.id, token);
+      }
+      
+      // Setup notification listeners
+      notificationService.setupNotificationListeners((notification) => {
+        console.log('Notification received in app:', notification);
+        // Handle foreground notification if needed
+      });
+      
+      // Update permission status
+      const status = await notificationService.getPermissionStatus();
+      setNotificationPermissionStatus(status);
+      
+    } catch (error) {
+      console.error('Error registering for notifications:', error);
+    }
+  };
+
+  const sendTestNotification = async () => {
+    try {
+      if (!user) throw new Error('User not authenticated');
+      await notificationService.sendTestNotification(user.id);
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      throw error;
+    }
+  };
+
+  const sendPushNotification = async (userIds: string[], notificationData: NotificationData) => {
+    try {
+      await notificationService.sendPushNotification(userIds, notificationData);
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+      throw error;
+    }
+  };
+
+  const scheduleLocalNotification = async (notificationData: NotificationData, trigger: Date | number) => {
+    try {
+      return await notificationService.scheduleLocalNotification(notificationData, trigger);
+    } catch (error) {
+      console.error('Error scheduling local notification:', error);
+      throw error;
+    }
+  };
+
+  const getNotificationPermissionStatus = async () => {
+    try {
+      const status = await notificationService.getPermissionStatus();
+      setNotificationPermissionStatus(status);
+      return status;
+    } catch (error) {
+      console.error('Error getting notification permission status:', error);
+      return 'unknown';
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -698,6 +779,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         resetPinWithSecurityQuestions,
         checkPinLockoutStatus,
         validatePinWithTracking,
+        notificationPermissionStatus,
+        pushToken,
+        registerForNotifications,
+        sendTestNotification,
+        sendPushNotification,
+        scheduleLocalNotification,
+        getNotificationPermissionStatus,
       }}
     >
       {children}

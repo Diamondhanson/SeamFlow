@@ -22,6 +22,7 @@ import { useApp } from '../../context/AppContext';
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 import Header from '../../components/Header';
 import DatePicker from '../../components/DatePicker';
+import PhoneNumberInput from '../../components/PhoneNumberInput';
 
 interface Member {
   id: string;
@@ -190,13 +191,11 @@ const AddBulkOrder = () => {
                 placeholderTextColor={colors.subText}
               />
               
-              <TextInput
-                style={styles.input}
-                placeholder="Phone Number"
+              <PhoneNumberInput
                 value={formData.phoneNumber}
-                onChangeText={(text) => setFormData(prev => ({ ...prev, phoneNumber: text }))}
-                placeholderTextColor={colors.subText}
-                keyboardType="phone-pad"
+                onChangePhoneNumber={(phone) => setFormData(prev => ({ ...prev, phoneNumber: phone }))}
+                placeholder="Phone Number"
+                defaultCountry="CMR"
               />
 
               <TextInput
@@ -482,7 +481,6 @@ const styles = StyleSheet.create({
   },
   memberForm: {
     backgroundColor: colors.surface + '40',
-    padding: 24,
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000',
@@ -528,11 +526,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   measurementLabel: {
-    fontSize: 14,
+    fontSize: 18,
     color: colors.subText,
   },
   measurementInput: {
-    fontSize: 14,
+    fontSize: 18,
     color: colors.mainText,
     textAlign: 'right',
     padding: 4,
