@@ -16,7 +16,9 @@ import {
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
+import { themeUtils } from '../theme';
 import DatePicker from './DatePicker';
+import OrderImagePicker from './OrderImagePicker';
 import { useClients } from '../context/clientContext';
 
 interface AddNewOrderProps {
@@ -37,6 +39,11 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
     notes: '',
     price: '',
     advancePayment: ''
+  });
+
+  const [orderImages, setOrderImages] = useState({
+    image1Uri: undefined as string | undefined,
+    image2Uri: undefined as string | undefined,
   });
 
   const [dimensions, setDimensions] = useState({ 
@@ -66,7 +73,8 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
         notes: formData.notes.trim(),
         price: parseFloat(formData.price) || 0,
         advancePayment: parseFloat(formData.advancePayment) || 0,
-        status: 'registered'
+        image1Url: orderImages.image1Uri,
+        image2Url: orderImages.image2Uri,
       });
       
       // Reset form and close modal
@@ -76,6 +84,10 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
         notes: '',
         price: '',
         advancePayment: ''
+      });
+      setOrderImages({
+        image1Uri: undefined,
+        image2Uri: undefined,
       });
       onClose();
     }
@@ -147,6 +159,14 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                   value={formData.notes}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
                   multiline
+                />
+
+                <OrderImagePicker
+                  image1Uri={orderImages.image1Uri}
+                  image2Uri={orderImages.image2Uri}
+                  onImagesChange={(image1Uri, image2Uri) => {
+                    setOrderImages({ image1Uri, image2Uri });
+                  }}
                 />
 
                 <Text style={styles.sectionTitle}>Payment Details</Text>
@@ -251,18 +271,24 @@ const styles = StyleSheet.create({
     color: colors.mainText,
   },
   input: {
-    backgroundColor: '#ffffff15',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     padding: isTablet ? 16 : 12,
     borderRadius: 8,
     marginBottom: isTablet ? 16 : 12,
     color: colors.mainText,
     fontSize: isTablet ? 18 : 16,
+    ...themeUtils.getElevation('xs'),
   },
   dateInput: {
-    backgroundColor: '#ffffff15',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
     padding: isTablet ? 16 : 12,
     borderRadius: 8,
     marginBottom: isTablet ? 16 : 12,
+    ...themeUtils.getElevation('xs'),
   },
   dateText: {
     color: colors.mainText,

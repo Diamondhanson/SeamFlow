@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   ScrollView,
   Platform,
-  Dimensions
+  Dimensions,
+  Image,
 } from 'react-native';
 import { Client } from '../context/clientContext';
 import { colors } from '../theme/colors';
@@ -15,6 +16,7 @@ import { spacing } from '../theme/spacing';
 import { defaultStyles, themeUtils } from '../theme';
 import AddNewOrder from './addNewOrder';
 import EditMeasurementValue from './editMeasurementValue';
+import AddOrderImagesModal from './AddOrderImagesModal';
 import { useClients } from '../context/clientContext';
 import Icons from "react-native-vector-icons/MaterialIcons";
 import Header from './Header';
@@ -35,6 +37,15 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
     name: string;
     value: number;
   } | null>(null);
+  const [addImagesModal, setAddImagesModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    orderName: string;
+  }>({
+    visible: false,
+    orderId: '',
+    orderName: '',
+  });
 
   // Get the latest client data from context
   const client = useMemo(() => {
@@ -159,7 +170,45 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
                       <Text style={styles.orderNote}>{order.notes}</Text>
                     )}
                     
-                    {/* Add Payment Details Section */}
+                    {/* Order Images Section */}
+                    {(order.image1Url || order.image2Url) && (
+                      <View style={styles.orderImagesSection}>
+                        <Text style={styles.orderImagesTitle}>Order Images</Text>
+                        <View style={styles.orderImagesContainer}>
+                          {order.image1Url && (
+                            <Image 
+                              source={{ uri: order.image1Url }} 
+                              style={styles.orderImage} 
+                              resizeMode="cover"
+                            />
+                          )}
+                          {order.image2Url && (
+                            <Image 
+                              source={{ uri: order.image2Url }} 
+                              style={styles.orderImage} 
+                              resizeMode="cover"
+                            />
+                          )}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Add Images Button for orders without images */}
+                    {!order.image1Url && !order.image2Url && (
+                      <TouchableOpacity
+                        style={styles.addImagesButton}
+                        onPress={() => setAddImagesModal({
+                          visible: true,
+                          orderId: order.id,
+                          orderName: order.orderName,
+                        })}
+                      >
+                        <Icons name="add-a-photo" size={20} color={colors.primary} />
+                        <Text style={styles.addImagesButtonText}>Add Images</Text>
+                      </TouchableOpacity>
+                    )}
+                    
+                    {/* Payment Details Section */}
                     <View style={styles.paymentDetails}>
                       <View style={styles.paymentRow}>
                         <Text style={styles.paymentLabel}>Total Price:</Text>
@@ -231,6 +280,14 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
             onSave={handleUpdateMeasurement}
           />
         )}
+
+        <AddOrderImagesModal
+          visible={addImagesModal.visible}
+          onClose={() => setAddImagesModal({ visible: false, orderId: '', orderName: '' })}
+          clientId={client.id}
+          orderId={addImagesModal.orderId}
+          orderName={addImagesModal.orderName}
+        />
       </View>
     </SafeAreaWrapper>
   );
@@ -433,6 +490,44 @@ const styles = StyleSheet.create({
     color: colors.mainText,
     fontSize: textVariants.body2.fontSize,
     fontWeight: '600',
+  },
+  orderImagesSection: {
+    marginVertical: spacing.m,
+  },
+  orderImagesTitle: {
+    fontSize: textVariants.H6.fontSize,
+    fontWeight: '600',
+    color: colors.mainText,
+    marginBottom: spacing.s,
+  },
+  orderImagesContainer: {
+    flexDirection: 'row',
+    gap: spacing.m,
+  },
+  orderImage: {
+    width: 120,
+    height: 90,
+    borderRadius: spacing.borderRadius.m,
+    backgroundColor: colors.surface,
+    ...themeUtils.getElevation('xs'),
+  },
+  addImagesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.l,
+    marginVertical: spacing.m,
+    gap: spacing.s,
+  },
+  addImagesButtonText: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.primary,
+    fontWeight: '500',
   },
 });
 

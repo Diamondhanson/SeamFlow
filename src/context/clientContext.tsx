@@ -14,6 +14,8 @@ export interface OrderDetails {
   status: OrderStatus;
   price?: number;
   advancePayment?: number;
+  image1Url?: string;
+  image2Url?: string;
 }
 
 export interface Measurements {
@@ -49,6 +51,8 @@ export interface BulkOrder {
   status: OrderStatus;
   price?: number;
   advancePayment?: number;
+  image1Url?: string;
+  image2Url?: string;
 }
 
 interface ClientContextType {
@@ -56,10 +60,12 @@ interface ClientContextType {
   addClient: (client: Omit<Client, 'id'>) => void;
   addOrderToClient: (clientId: string, order: Omit<OrderDetails, 'id' | 'status'>) => void;
   updateOrderStatus: (clientId: string, orderId: string, status: OrderStatus) => void;
+  updateOrderImages: (clientId: string, orderId: string, image1Url?: string, image2Url?: string) => void;
   updateClientMeasurements: (clientId: string, measurements: Measurements) => void;
   bulkOrders: BulkOrder[];
   addBulkOrder: (order: Omit<BulkOrder, 'id' | 'status'>) => void;
   updateBulkOrderStatus: (orderId: string, status: OrderStatus) => void;
+  updateBulkOrderImages: (orderId: string, image1Url?: string, image2Url?: string) => void;
   updateBulkOrderMember: (orderId: string, memberId: string, updates: Partial<BulkOrderMember>) => void;
 }
 
@@ -112,6 +118,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
             status: order.status,
             price: order.price || 0,
             advancePayment: order.advance_payment || 0,
+            image1Url: order.image_1_url,
+            image2Url: order.image_2_url,
           })),
         }));
         setClients(formattedClients);
@@ -141,6 +149,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           status: bulkOrder.status,
           price: bulkOrder.price || 0,
           advancePayment: bulkOrder.advance_payment || 0,
+          image1Url: bulkOrder.image_1_url,
+          image2Url: bulkOrder.image_2_url,
           members: (bulkOrder.bulk_order_members || []).map((member: any) => ({
             id: member.id,
             name: member.name,
@@ -186,6 +196,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           status: order.status,
           price: order.price || 0,
           advance_payment: order.advancePayment || 0,
+          image_1_url: order.image1Url,
+          image_2_url: order.image2Url,
         }));
 
         const { error: ordersError } = await supabase
@@ -219,6 +231,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           status: 'registered',
           price: order.price || 0,
           advance_payment: order.advancePayment || 0,
+          image_1_url: order.image1Url,
+          image_2_url: order.image2Url,
         });
 
       if (error) throw error;
@@ -256,6 +270,38 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
       ));
     } catch (error) {
       console.error('Error updating order status:', error);
+      throw error;
+    }
+  };
+
+  const updateOrderImages = async (clientId: string, orderId: string, image1Url?: string, image2Url?: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          image_1_url: image1Url,
+          image_2_url: image2Url
+        })
+        .eq('id', orderId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setClients(prev => prev.map(client =>
+        client.id === clientId
+          ? {
+              ...client,
+              orders: client.orders.map(order =>
+                order.id === orderId ? { ...order, image1Url, image2Url } : order
+              ),
+            }
+          : client
+      ));
+    } catch (error) {
+      console.error('Error updating order images:', error);
       throw error;
     }
   };
@@ -300,6 +346,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           status: 'registered',
           price: newOrder.price || 0,
           advance_payment: newOrder.advancePayment || 0,
+          image_1_url: newOrder.image1Url,
+          image_2_url: newOrder.image2Url,
         })
         .select()
         .single();
@@ -352,6 +400,31 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateBulkOrderImages = async (orderId: string, image1Url?: string, image2Url?: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('bulk_orders')
+        .update({ 
+          image_1_url: image1Url,
+          image_2_url: image2Url
+        })
+        .eq('id', orderId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setBulkOrders(prev => prev.map(order =>
+        order.id === orderId ? { ...order, image1Url, image2Url } : order
+      ));
+    } catch (error) {
+      console.error('Error updating bulk order images:', error);
+      throw error;
+    }
+  };
+
   const updateBulkOrderMember = async (
     orderId: string,
     memberId: string,
@@ -391,10 +464,12 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         addClient,
         addOrderToClient,
         updateOrderStatus,
+        updateOrderImages,
         updateClientMeasurements,
         bulkOrders,
         addBulkOrder,
         updateBulkOrderStatus,
+        updateBulkOrderImages,
         updateBulkOrderMember,
       }}
     >

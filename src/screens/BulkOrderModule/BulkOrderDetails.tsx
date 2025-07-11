@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Modal, TextInput, Alert, ActivityIndicator, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { textVariants } from '../../theme/textVariants';
@@ -8,6 +8,7 @@ import { defaultStyles, themeUtils } from '../../theme';
 import { BulkOrder, OrderStatus } from '../../context/clientContext';
 import Header from '@/src/components/Header';
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
+import AddBulkOrderImagesModal from '../../components/AddBulkOrderImagesModal';
 import { supabase } from '../../../supabaseConfig';
 
 interface Member {
@@ -55,6 +56,11 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [addImagesModal, setAddImagesModal] = useState({
+    visible: false,
+    orderId: '',
+    orderName: '',
+  });
 
   // Fetch members from Supabase
   useEffect(() => {
@@ -190,6 +196,47 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
               <MaterialIcons name="location-on" size={18} color={colors.error} />
               <Text style={styles.infoText}>{order.address}</Text>
             </View>
+          </View>
+
+          {/* Order Images Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.secondary }]}>
+                <Text style={styles.sectionIconText}>📸</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Order Images</Text>
+            </View>
+            
+            {(order.image1Url || order.image2Url) ? (
+              <View style={styles.orderImagesContainer}>
+                {order.image1Url && (
+                  <Image 
+                    source={{ uri: order.image1Url }} 
+                    style={styles.orderImage} 
+                    resizeMode="cover"
+                  />
+                )}
+                {order.image2Url && (
+                  <Image 
+                    source={{ uri: order.image2Url }} 
+                    style={styles.orderImage} 
+                    resizeMode="cover"
+                  />
+                )}
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.addImagesButton}
+                onPress={() => setAddImagesModal({
+                  visible: true,
+                  orderId: order.id,
+                  orderName: order.orderName,
+                })}
+              >
+                <MaterialIcons name="add-a-photo" size={24} color={colors.primary} />
+                <Text style={styles.addImagesButtonText}>Add Images</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Members Section */}
@@ -341,6 +388,14 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
           </View>
         </View>
       </Modal>
+
+      {/* Add Images Modal */}
+      <AddBulkOrderImagesModal
+        visible={addImagesModal.visible}
+        onClose={() => setAddImagesModal({ visible: false, orderId: '', orderName: '' })}
+        orderId={addImagesModal.orderId}
+        orderName={addImagesModal.orderName}
+      />
     </SafeAreaWrapper>
   );
 };
@@ -470,6 +525,37 @@ const styles = StyleSheet.create({
     fontSize: textVariants.body2.fontSize,
     lineHeight: 20,
     letterSpacing: 0.1,
+  },
+  orderImagesContainer: {
+    flexDirection: 'row',
+    gap: spacing.m,
+    flexWrap: 'wrap',
+  },
+  orderImage: {
+    width: 150,
+    height: 112,
+    borderRadius: spacing.borderRadius.m,
+    backgroundColor: colors.surface,
+    ...themeUtils.getElevation('xs'),
+  },
+  addImagesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.l,
+    paddingHorizontal: spacing.l,
+    gap: spacing.s,
+    ...themeUtils.getElevation('xs'),
+  },
+  addImagesButtonText: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
 

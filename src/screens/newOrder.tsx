@@ -11,6 +11,7 @@ import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import DatePicker from '../components/DatePicker';
 import Header from '../components/Header';
 import PhoneNumberInput from '../components/PhoneNumberInput';
+import OrderImagePicker from '../components/OrderImagePicker';
 import { useApp } from '../context/AppContext';
 
 type RouteParams = {
@@ -66,6 +67,10 @@ const NewOrder = () => {
   });
 
   const [measurements, setMeasurements] = useState<Measurements>({});
+  const [orderImages, setOrderImages] = useState({
+    image1Uri: undefined as string | undefined,
+    image2Uri: undefined as string | undefined,
+  });
 
   // Initialize form data and measurements for existing client
   useEffect(() => {
@@ -108,6 +113,8 @@ const NewOrder = () => {
       notes: formData.notes,
       price: parseFloat(formData.price) || 0,
       advancePayment: parseFloat(formData.advancePayment) || 0,
+      image1Url: orderImages.image1Uri,
+      image2Url: orderImages.image2Uri,
     };
 
     setIsLoading(true);
@@ -217,6 +224,15 @@ const NewOrder = () => {
                 setFormData(prev => ({ ...prev, deliveryDate: date }));
               }}
               mode="date"
+            />
+
+            <OrderImagePicker
+              image1Uri={orderImages.image1Uri}
+              image2Uri={orderImages.image2Uri}
+              onImagesChange={(image1Uri, image2Uri) => {
+                setOrderImages({ image1Uri, image2Uri });
+              }}
+              disabled={isLoading}
             />
           </View>
 

@@ -7,7 +7,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { themeUtils } from '../theme';
@@ -17,6 +17,10 @@ import { useApp } from '../context/AppContext';
 
 const PinEntry: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { mode } = (route.params as { mode?: string }) || {};
+  const isChangingPin = mode === 'change';
+  
   const { 
     validatePinWithTracking, 
     checkPinLockoutStatus, 
@@ -83,11 +87,17 @@ const PinEntry: React.FC = () => {
       const result = await validatePinWithTracking(pin);
       
       if (result.success) {
-        // PIN validation successful - reset navigation stack to Home
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home' as never }],
-        });
+        // PIN validation successful
+        if (isChangingPin) {
+          // If changing PIN, navigate to PinSetup
+          (navigation as any).navigate('PinSetup');
+        } else {
+          // Otherwise, reset navigation stack to Home
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home' as never }],
+          });
+        }
       } else {
         setAttemptsRemaining(result.attemptsRemaining);
         
@@ -206,7 +216,7 @@ const PinEntry: React.FC = () => {
               style={styles.lockIcon}
             />
             <Text style={styles.title}>
-              {isLocked ? 'App Locked' : 'Enter Your PIN'}
+              {isLocked ? 'App Locked' : (isChangingPin ? 'Enter Current PIN' : 'Enter Your PIN')}
             </Text>
             {isLocked ? (
               <Text style={styles.lockMessage}>
@@ -215,7 +225,7 @@ const PinEntry: React.FC = () => {
               </Text>
             ) : (
               <Text style={styles.subtitle}>
-                Enter your 4-digit PIN to continue
+                {isChangingPin ? 'Enter your current PIN to change it' : 'Enter your 4-digit PIN to continue'}
               </Text>
             )}
           </View>

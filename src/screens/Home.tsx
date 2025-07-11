@@ -118,12 +118,28 @@ const Home = () => {
   const [testingNotification, setTestingNotification] = useState(false);
 
   // PIN protection state
-  const [pinChecked, setPinChecked] = useState(true); // Start as true, set to false only when timeout occurs
+  const [pinChecked, setPinChecked] = useState(false); // Start as false, set to true only after PIN validation
   const lastActiveTime = useRef(Date.now());
   const PIN_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
   
   // Track if we've had a user before (to detect session expiration)
   const [hadUser, setHadUser] = useState(false);
+
+  // Check if PIN is required when component loads
+  useEffect(() => {
+    // Add a small delay to allow navigation focus listener to run first
+    const timer = setTimeout(() => {
+      if (hasPinSet && !pinChecked) {
+        // PIN is set but not checked, require PIN entry
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'PinEntry' as never }],
+        });
+      }
+    }, 100); // Small delay to allow other effects to run first
+
+    return () => clearTimeout(timer);
+  }, [hasPinSet, pinChecked, navigation]);
 
   // Handle app state changes for PIN timeout
   useEffect(() => {
@@ -153,13 +169,19 @@ const Home = () => {
   // Reset PIN check when returning from PinEntry
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      // If we're coming back to Home screen, mark PIN as checked
-      setPinChecked(true);
+      // If we're coming back to Home screen from somewhere other than PinEntry, 
+      // and PIN is not required, mark PIN as checked
+      if (!hasPinSet) {
+        setPinChecked(true);
+      } else {
+        // If PIN is set and we're on Home screen, assume PIN was validated
+        setPinChecked(true);
+      }
       lastActiveTime.current = Date.now();
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, hasPinSet]);
 
   // Handle session expiration during runtime
   useEffect(() => {

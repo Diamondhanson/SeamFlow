@@ -85,6 +85,11 @@ const Settings = () => {
     navigation.navigate('PinSetup' as never);
   };
 
+  const handleChangePin = () => {
+    // First verify current PIN before allowing change
+    (navigation as any).navigate('PinEntry', { mode: 'change' });
+  };
+
   const handleRemovePin = () => {
     Alert.alert(
       'Remove PIN',
@@ -265,7 +270,7 @@ const Settings = () => {
           {hasPinSet && (
             <TouchableOpacity 
               style={styles.menuItem} 
-              onPress={handleSetupPin}
+              onPress={handleChangePin}
             >
               <View style={[styles.menuIconContainer, { backgroundColor: colors.primary }]}>
                 <Icons name="key" size={16} color={colors.textOnPrimary} />

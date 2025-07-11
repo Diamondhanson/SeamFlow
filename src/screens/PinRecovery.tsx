@@ -10,12 +10,13 @@ import {
   Text
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 import { themeUtils } from '../theme';
 import { useApp } from '../context/AppContext';
+import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import Header from '../components/Header';
 
 
 type RecoveryMethod = 'password' | 'security_questions';
@@ -296,58 +297,26 @@ const PinRecovery: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backIcon}
-          onPress={() => {
-            if (selectedMethod) {
-              setSelectedMethod(null);
-            } else {
-              navigation.goBack();
-            }
-          }}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        
-        <Text style={styles.headerTitle}>
-          PIN Recovery
-        </Text>
-      </View>
-
+    <SafeAreaWrapper>
+      <Header 
+        title="PIN Recovery" 
+        onBack={() => {
+          if (selectedMethod) {
+            setSelectedMethod(null);
+          } else {
+            navigation.goBack();
+          }
+        }}
+      />
+      
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {renderContent()}
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.m,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-    ...themeUtils.getElevation('xs'),
-  },
-  backIcon: {
-    padding: spacing.xs,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginRight: spacing.l + spacing.xs, // Balance the back button space
-  },
   content: {
     flex: 1,
     paddingHorizontal: spacing.m,

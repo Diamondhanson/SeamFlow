@@ -186,9 +186,9 @@ const FullImageView = ({ imageUrl, visible, onClose }: FullImageViewProps) => {
   );
 };
 
-const MyDesigns = () => {
+const MyInspirations = () => {
   const navigation = useNavigation();
-  const { designs, addMultipleDesigns } = useApp();
+  const { inspirations, addMultipleInspirations } = useApp();
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [selectedImages, setSelectedImages] = useState<CompressedImage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -198,14 +198,14 @@ const MyDesigns = () => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState({ current: 0, total: 0 });
 
-  // Filter designs based on search query
-  const filteredDesigns = useMemo(() => {
-    if (!searchQuery.trim()) return designs;
+  // Filter inspirations based on search query
+  const filteredInspirations = useMemo(() => {
+    if (!searchQuery.trim()) return inspirations;
     const query = searchQuery.toLowerCase().trim();
-    return designs.filter(design => 
-      design.tags.some(tag => tag.toLowerCase().includes(query))
+    return inspirations.filter(inspiration => 
+      inspiration.tags.some(tag => tag.toLowerCase().includes(query))
     );
-  }, [designs, searchQuery]);
+  }, [inspirations, searchQuery]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -268,23 +268,23 @@ const MyDesigns = () => {
       setUploadProgress({ current: 0, total: selectedImages.length });
       
       try {
-        // Prepare designs for batch upload using compressed images
-        const designsToUpload = selectedImages.map(img => ({
+        // Prepare inspirations for batch upload using compressed images
+        const inspirationsToUpload = selectedImages.map(img => ({
           imageUrl: img.compressedUri, // Use compressed version for storage
           tags: [tag],
           description: ''
         }));
         
-        // Upload all designs in parallel batches
-        await addMultipleDesigns(designsToUpload, (current, total) => {
+        // Upload all inspirations in parallel batches
+        await addMultipleInspirations(inspirationsToUpload, (current, total) => {
           setUploadProgress({ current, total });
         });
         
         setSelectedImages([]);
         setUploadProgress({ current: 0, total: 0 });
       } catch (error) {
-        console.error('Error uploading designs:', error);
-        alert('Failed to upload some designs. Please try again.');
+        console.error('Error uploading inspirations:', error);
+        alert('Failed to upload some inspirations. Please try again.');
       } finally {
         setIsUploading(false);
       }
@@ -298,12 +298,12 @@ const MyDesigns = () => {
   const renderItem = ({ item }: { item: any }) => {
     return (
       <TouchableOpacity 
-        style={styles.designTile}
+        style={styles.inspirationTile}
         onPress={() => handleImagePress(item.imageUrl)}
       >
         <Image 
           source={{ uri: item.imageUrl }} 
-          style={styles.designImage}
+          style={styles.inspirationImage}
           resizeMode="cover"
         />
         {/* <View style={styles.tagContainer}>
@@ -319,16 +319,16 @@ const MyDesigns = () => {
     <SafeAreaWrapper>
       <View style={styles.container}>
         <Header 
-          title="My Designs" 
+          title="My Inspirations" 
           onBack={() => navigation.goBack()} 
         />
         
         <View style={styles.contentContainer}>
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
-            <Text style={styles.pageTitle}>Design Gallery</Text>
+            <Text style={styles.pageTitle}>Inspiration Gallery</Text>
             <Text style={styles.pageSubtitle}>
-              Upload multiple images at once and organize your design inspirations
+              Upload multiple images at once and organize your creative inspirations
             </Text>
           </View>
 
@@ -337,7 +337,7 @@ const MyDesigns = () => {
             <Icons name="search" size={20} color={colors.accent} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search designs by tag..."
+              placeholder="Search inspirations by tag..."
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -353,7 +353,7 @@ const MyDesigns = () => {
           </View>
 
           <FlatList
-            data={filteredDesigns}
+            data={filteredInspirations}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             numColumns={2}
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: spacing.borderRadius.l,
     padding: spacing.l,
-    marginVertical: spacing.xs,
+    marginVertical: spacing.m,
     ...themeUtils.getElevation('xs'),
   },
   pageTitle: {
@@ -447,13 +447,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.m,
   },
   
-  designTile: {
+  inspirationTile: {
     width: TILE_SIZE,
     height: TILE_SIZE,
     borderRadius: 10,
     overflow: 'hidden',
   },
-  designImage: {
+  inspirationImage: {
     width: '100%',
     height: '100%',
   },
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: colors.mainText,
+    color: colors.text,
     marginBottom: 8,
     fontWeight: 'bold',
   },
@@ -552,9 +552,10 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: colors.mainText,
+    color: colors.text,
     fontSize: 16,
     height: '100%',
+    paddingHorizontal: spacing.xs,
   },
   clearButton: {
     padding: 4,
@@ -629,4 +630,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MyDesigns; 
+export default MyInspirations; 

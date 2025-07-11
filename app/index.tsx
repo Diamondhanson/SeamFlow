@@ -5,6 +5,7 @@ import { ThemeProvider } from "@shopify/restyle";
 import { theme } from "../src/theme";
 //import screens
 import MyDesigns from "@/src/screens/MyDesigns";
+import MyInspirations from "@/src/screens/MyInspirations";
 import MyClients from "@/src/screens/MyClients";
 import Home from "@/src/screens/Home";
 import { ClientProvider } from "../src/context/clientContext";
@@ -76,6 +77,7 @@ function NavigationStack() {
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="MyClients" component={MyClients} />
         <Stack.Screen name="MyDesigns" component={MyDesigns} />
+        <Stack.Screen name="MyInspirations" component={MyInspirations} />
         <Stack.Screen name="NewOrder" component={NewOrder} />
         <Stack.Screen name="Calendar" component={CalendarScreen} />
         <Stack.Screen name="Settings" component={Settings} />

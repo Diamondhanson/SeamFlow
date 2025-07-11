@@ -10,12 +10,13 @@ import {
   Text
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useApp } from '../context/AppContext';
 import { colors } from '../theme/colors';
 import { SECURITY_QUESTIONS } from '../utils/recoveryUtils';
+import SafeAreaWrapper from '../components/SafeAreaWrapper';
+import Header from '../components/Header';
 
 interface SecurityQuestionsSetupProps {
   isOnboarding?: boolean;
@@ -327,27 +328,21 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backIcon}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        
-        <Text  style={styles.headerTitle}>
-          Security Questions
-        </Text>
-        
-        {isOnboarding && (
-          <TouchableOpacity onPress={handleSkip}>
-            <Text  style={styles.skipText}>
-              Skip
+    <SafeAreaWrapper>
+      <Header 
+        title="Security Questions" 
+        onBack={() => navigation.goBack()}
+      />
+      
+      {isOnboarding && (
+        <View style={styles.skipContainer}>
+          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+            <Text style={styles.skipText}>
+              Skip for now
             </Text>
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* Progress indicator */}
       <View style={styles.progressContainer}>
@@ -362,34 +357,26 @@ const SecurityQuestionsSetup: React.FC<SecurityQuestionsSetupProps> = ({
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {renderStepContent()}
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  skipContainer: {
+    alignItems: 'flex-end',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  backIcon: {
-    padding: 4,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 16,
+  skipButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   skipText: {
     color: colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
   },
   progressContainer: {
     paddingHorizontal: 20,

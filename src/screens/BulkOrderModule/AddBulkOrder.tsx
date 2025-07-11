@@ -23,6 +23,7 @@ import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 import Header from '../../components/Header';
 import DatePicker from '../../components/DatePicker';
 import PhoneNumberInput from '../../components/PhoneNumberInput';
+import OrderImagePicker from '../../components/OrderImagePicker';
 
 interface Member {
   id: string;
@@ -77,6 +78,10 @@ const AddBulkOrder = () => {
   const [currentMember, setCurrentMember] = useState({
     name: '',
     measurements: {} as { [key: string]: number },
+  });
+  const [orderImages, setOrderImages] = useState({
+    image1Uri: undefined as string | undefined,
+    image2Uri: undefined as string | undefined,
   });
 
   const handleAddMember = () => {
@@ -134,7 +139,9 @@ const AddBulkOrder = () => {
         notes: formData.notes,
         members: members,
         price: parseFloat(formData.price) || 0,
-        advancePayment: parseFloat(formData.advancePayment) || 0
+        advancePayment: parseFloat(formData.advancePayment) || 0,
+        image1Url: orderImages.image1Uri,
+        image2Url: orderImages.image2Uri,
       });
       navigation.goBack();
     } catch (error) {
@@ -224,6 +231,15 @@ const AddBulkOrder = () => {
                   setFormData(prev => ({ ...prev, deliveryDate: date }));
                 }}
                 mode="date"
+              />
+
+              <OrderImagePicker
+                image1Uri={orderImages.image1Uri}
+                image2Uri={orderImages.image2Uri}
+                onImagesChange={(image1Uri, image2Uri) => {
+                  setOrderImages({ image1Uri, image2Uri });
+                }}
+                disabled={isLoading}
               />
             </View>
           </View>

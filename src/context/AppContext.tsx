@@ -41,7 +41,9 @@ interface AppContextType {
   logout: () => Promise<void>;
   updateCompanyInfo: (info: CompanyInfo) => Promise<void>;
   addDesign: (design: Omit<DesignItem, 'id' | 'dateAdded'>) => Promise<void>;
+  addMultipleDesigns: (designs: Omit<DesignItem, 'id' | 'dateAdded'>[], onProgress?: (current: number, total: number) => void) => Promise<void>;
   addInspiration: (inspiration: Omit<DesignItem, 'id' | 'dateAdded'>) => Promise<void>;
+  addMultipleInspirations: (inspirations: Omit<DesignItem, 'id' | 'dateAdded'>[], onProgress?: (current: number, total: number) => void) => Promise<void>;
   removeDesign: (id: string) => Promise<void>;
   removeInspiration: (id: string) => Promise<void>;
   measurementAttributes: string[];
@@ -321,6 +323,71 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addMultipleDesigns = async (designs: Omit<DesignItem, 'id' | 'dateAdded'>[], onProgress?: (current: number, total: number) => void) => {
+    if (!user || designs.length === 0) return;
+    
+    try {
+      const newDesigns: DesignItem[] = [];
+      
+      // Process uploads in parallel with limited concurrency (3 at a time)
+      const BATCH_SIZE = 3;
+      for (let i = 0; i < designs.length; i += BATCH_SIZE) {
+        const batch = designs.slice(i, i + BATCH_SIZE);
+        
+        const batchPromises = batch.map(async (design, batchIndex) => {
+          const actualIndex = i + batchIndex;
+          
+          // Upload image to storage first
+          const publicImageUrl = await uploadImage(design.imageUrl, 'designs');
+          
+          // Insert into database
+          const { data, error } = await supabase
+            .from('designs')
+            .insert({
+              user_id: user.id,
+              image_url: publicImageUrl,
+              tags: design.tags,
+              description: design.description,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+          
+          const newDesign: DesignItem = {
+            id: data.id,
+            imageUrl: data.image_url,
+            tags: data.tags || [],
+            dateAdded: data.date_added,
+            description: data.description,
+          };
+          
+          // Update progress
+          onProgress?.(actualIndex + 1, designs.length);
+          
+          return newDesign;
+        });
+        
+        // Wait for current batch to complete
+        const batchResults = await Promise.allSettled(batchPromises);
+        
+        // Add successful uploads to results
+        batchResults.forEach(result => {
+          if (result.status === 'fulfilled') {
+            newDesigns.push(result.value);
+          }
+        });
+      }
+      
+      // Update state with all new designs at once
+      setDesigns(prev => [...newDesigns, ...prev]);
+      
+    } catch (error) {
+      console.error('Error adding multiple designs:', error);
+      throw error;
+    }
+  };
+
   const addInspiration = async (inspiration: Omit<DesignItem, 'id' | 'dateAdded'>) => {
     if (!user) return;
     
@@ -352,6 +419,71 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setInspirations(prev => [newInspiration, ...prev]);
     } catch (error) {
       console.error('Error adding inspiration:', error);
+      throw error;
+    }
+  };
+
+  const addMultipleInspirations = async (inspirations: Omit<DesignItem, 'id' | 'dateAdded'>[], onProgress?: (current: number, total: number) => void) => {
+    if (!user || inspirations.length === 0) return;
+    
+    try {
+      const newInspirations: DesignItem[] = [];
+      
+      // Process uploads in parallel with limited concurrency (3 at a time)
+      const BATCH_SIZE = 3;
+      for (let i = 0; i < inspirations.length; i += BATCH_SIZE) {
+        const batch = inspirations.slice(i, i + BATCH_SIZE);
+        
+        const batchPromises = batch.map(async (inspiration, batchIndex) => {
+          const actualIndex = i + batchIndex;
+          
+          // Upload image to storage first
+          const publicImageUrl = await uploadImage(inspiration.imageUrl, 'inspirations');
+          
+          // Insert into database
+          const { data, error } = await supabase
+            .from('inspirations')
+            .insert({
+              user_id: user.id,
+              image_url: publicImageUrl,
+              tags: inspiration.tags,
+              description: inspiration.description,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+          
+          const newInspiration: DesignItem = {
+            id: data.id,
+            imageUrl: data.image_url,
+            tags: data.tags || [],
+            dateAdded: data.date_added,
+            description: data.description,
+          };
+          
+          // Update progress
+          onProgress?.(actualIndex + 1, inspirations.length);
+          
+          return newInspiration;
+        });
+        
+        // Wait for current batch to complete
+        const batchResults = await Promise.allSettled(batchPromises);
+        
+        // Add successful uploads to results
+        batchResults.forEach(result => {
+          if (result.status === 'fulfilled') {
+            newInspirations.push(result.value);
+          }
+        });
+      }
+      
+      // Update state with all new inspirations at once
+      setInspirations(prev => [...newInspirations, ...prev]);
+      
+    } catch (error) {
+      console.error('Error adding multiple inspirations:', error);
       throw error;
     }
   };
@@ -760,8 +892,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         session,
         logout,
         updateCompanyInfo,
-        addDesign,
-        addInspiration,
+            addDesign,
+    addMultipleDesigns,
+    addInspiration,
+    addMultipleInspirations,
         removeDesign,
         removeInspiration,
         measurementAttributes,
