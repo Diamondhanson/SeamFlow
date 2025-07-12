@@ -10,6 +10,7 @@ import Header from '@/src/components/Header';
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 import AddBulkOrderImagesModal from '../../components/AddBulkOrderImagesModal';
 import { supabase } from '../../../supabaseConfig';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface Member {
   id: string;
@@ -47,6 +48,7 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
 };
 
 const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsProps) => {
+  const { t } = useTranslation();
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -72,7 +74,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
         .eq('bulk_order_id', order.id)
         .order('id', { ascending: true });
       if (error) {
-        Alert.alert('Error', error.message);
+        Alert.alert(t('common.error'), error.message);
         setMembers([]);
       } else {
         setMembers(data || []);
@@ -80,7 +82,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
       setLoadingMembers(false);
     };
     fetchMembers();
-  }, [order.id]);
+  }, [order.id, t]);
 
   // Example measurement attributes (replace with dynamic if available)
   const measurementAttributes = React.useMemo(() => {
@@ -113,7 +115,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
   // Add Member Logic
   const handleAddMember = async () => {
     if (!newMember.name.trim()) {
-      Alert.alert('Error', 'Please enter member name');
+      Alert.alert(t('common.error'), t('addBulkOrder.enterMemberName'));
       return;
     }
     setAddLoading(true);
@@ -134,7 +136,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
       .single();
     setAddLoading(false);
     if (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
       return;
     }
     setMembers([...members, data]);
@@ -151,7 +153,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
       .eq('id', id);
     setDeleteLoading(false);
     if (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
       return;
     }
     setMembers(members.filter((m) => m.id !== id));
@@ -162,7 +164,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
   return (
     <SafeAreaWrapper>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Header title="Order Details" onBack={onBack} />
+        <Header title={t('bulkOrderDetails.title')} onBack={onBack} />
 
         <View style={styles.contentContainer}>
           {/* Order Information Section */}
@@ -171,7 +173,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
               <View style={[styles.sectionIcon, { backgroundColor: colors.primary }]}>
                 <Text style={styles.sectionIconText}>📋</Text>
               </View>
-              <Text style={styles.sectionTitle}>Order Information</Text>
+              <Text style={styles.sectionTitle}>{t('addBulkOrder.orderInformation')}</Text>
             </View>
             
             <Text style={styles.orderName}>{order.orderName}</Text>
@@ -179,12 +181,12 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
             
             <View style={styles.infoRow}>
               <MaterialIcons name="event" size={18} color={colors.accent} />
-              <Text style={styles.infoText}>Ordered: {order.dateOrdered}</Text>
+              <Text style={styles.infoText}>{t('clientDetails.ordered')}: {order.dateOrdered}</Text>
             </View>
             
             <View style={styles.infoRow}>
               <MaterialIcons name="event" size={18} color={colors.secondary} />
-              <Text style={styles.infoText}>Delivery: {order.dateDelivery}</Text>
+              <Text style={styles.infoText}>{t('bulkOrders.delivery')}: {order.dateDelivery}</Text>
             </View>
             
             <View style={styles.infoRow}>
@@ -204,7 +206,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
               <View style={[styles.sectionIcon, { backgroundColor: colors.secondary }]}>
                 <Text style={styles.sectionIconText}>📸</Text>
               </View>
-              <Text style={styles.sectionTitle}>Order Images</Text>
+              <Text style={styles.sectionTitle}>{t('clientDetails.orderImages')}</Text>
             </View>
             
             {(order.image1Url || order.image2Url) ? (
@@ -234,7 +236,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
                 })}
               >
                 <MaterialIcons name="add-a-photo" size={24} color={colors.primary} />
-                <Text style={styles.addImagesButtonText}>Add Images</Text>
+                <Text style={styles.addImagesButtonText}>{t('clientDetails.addImages')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -245,7 +247,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
               <View style={[styles.sectionIcon, { backgroundColor: colors.accent }]}>
                 <Text style={styles.sectionIconText}>👥</Text>
               </View>
-              <Text style={styles.sectionTitle}>Members ({members.length})</Text>
+              <Text style={styles.sectionTitle}>{t('addBulkOrder.membersCount', { count: members.length })}</Text>
               <TouchableOpacity onPress={() => setShowAddModal(true)} style={{ marginLeft: 12 }}>
                 <MaterialIcons name="person-add" size={24} color={colors.primary} />
               </TouchableOpacity>
@@ -254,7 +256,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
             {loadingMembers ? (
               <View style={{ padding: 24, alignItems: 'center' }}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={{ color: colors.subText, marginTop: 8 }}>Loading members...</Text>
+                <Text style={{ color: colors.subText, marginTop: 8 }}>{t('bulkOrderDetails.loadingMembers')}</Text>
               </View>
             ) : (
               members.map((member) => (
@@ -304,10 +306,10 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
               <View style={[styles.sectionIcon, { backgroundColor: colors.warning }]}>
                 <Text style={styles.sectionIconText}>📝</Text>
               </View>
-              <Text style={styles.sectionTitle}>Order Notes</Text>
+              <Text style={styles.sectionTitle}>{t('addBulkOrder.orderNotes')}</Text>
             </View>
             <View style={styles.notesCard}>
-              <Text style={styles.notesText}>{order.notes || 'No notes provided'}</Text>
+              <Text style={styles.notesText}>{order.notes || t('bulkOrderDetails.noNotes')}</Text>
             </View>
           </View>
         </View>
@@ -322,16 +324,16 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
       >
         <View style={modalStyles.overlay}>
           <View style={modalStyles.modalContainer}>
-            <Text style={modalStyles.modalTitle}>Add Member</Text>
+            <Text style={modalStyles.modalTitle}>{t('addBulkOrder.addMember')}</Text>
             <TextInput
               style={modalStyles.input}
-              placeholder="Member Name"
+              placeholder={t('addBulkOrder.memberName')}
               value={newMember.name}
               onChangeText={text => setNewMember(prev => ({ ...prev, name: text }))}
               placeholderTextColor={colors.subText}
               editable={!addLoading}
             />
-            <Text style={modalStyles.measurementsTitle}>Measurements</Text>
+            <Text style={modalStyles.measurementsTitle}>{t('newOrder.measurements')}</Text>
             {measurementAttributes.map(attr => (
               <View key={attr} style={modalStyles.measurementRow}>
                 <Text style={modalStyles.measurementLabel}>{attr.charAt(0).toUpperCase() + attr.slice(1)}</Text>
@@ -348,13 +350,13 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
             ))}
             <View style={modalStyles.buttonRow}>
               <TouchableOpacity style={modalStyles.cancelButton} onPress={() => setShowAddModal(false)} disabled={addLoading}>
-                <Text style={modalStyles.cancelButtonText}>Cancel</Text>
+                <Text style={modalStyles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={modalStyles.addButton} onPress={handleAddMember} disabled={addLoading}>
                 {addLoading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={modalStyles.addButtonText}>Add</Text>
+                  <Text style={modalStyles.addButtonText}>{t('common.add')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -371,17 +373,17 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
       >
         <View style={modalStyles.overlay}>
           <View style={modalStyles.confirmContainer}>
-            <Text style={modalStyles.confirmTitle}>Delete Member?</Text>
-            <Text style={modalStyles.confirmText}>Are you sure you want to delete this member?</Text>
+            <Text style={modalStyles.confirmTitle}>{t('bulkOrderDetails.deleteMember')}</Text>
+            <Text style={modalStyles.confirmText}>{t('bulkOrderDetails.confirmDeleteMember')}</Text>
             <View style={modalStyles.buttonRow}>
               <TouchableOpacity style={modalStyles.cancelButton} onPress={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
-                <Text style={modalStyles.cancelButtonText}>Cancel</Text>
+                <Text style={modalStyles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={modalStyles.deleteButton} onPress={() => handleDeleteMember(deleteMemberId!)} disabled={deleteLoading}>
                 {deleteLoading ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
-                  <Text style={modalStyles.deleteButtonText}>Delete</Text>
+                  <Text style={modalStyles.deleteButtonText}>{t('common.delete')}</Text>
                 )}
               </TouchableOpacity>
             </View>

@@ -20,6 +20,7 @@ import { themeUtils } from '../theme';
 import DatePicker from './DatePicker';
 import OrderImagePicker from './OrderImagePicker';
 import { useClients } from '../context/clientContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface AddNewOrderProps {
   visible: boolean;
@@ -32,6 +33,7 @@ const isTablet = SCREEN_WIDTH >= 768; // Common tablet breakpoint
 
 const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
   const { addOrderToClient } = useClients();
+  const { t } = useTranslation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [formData, setFormData] = useState({
     orderName: '',
@@ -119,7 +121,7 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                 showsVerticalScrollIndicator={false}
               >
                 <View style={styles.header}>
-                  <Text style={styles.headerText}>New Order</Text>
+                  <Text style={styles.headerText}>{t('addNewOrder.title')}</Text>
                   <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                     <Text style={styles.closeButtonText}>×</Text>
                   </TouchableOpacity>
@@ -127,7 +129,7 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
 
                 <TextInput
                   style={styles.input}
-                  placeholder="Order Name"
+                  placeholder={t('addNewOrder.orderNamePlaceholder')}
                   placeholderTextColor={colors.subText}
                   value={formData.orderName}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, orderName: text }))}
@@ -138,7 +140,7 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                   onPress={() => setShowDatePicker(true)}
                 >
                   <Text style={styles.dateText}>
-                    Delivery Date: {formData.deliveryDate.toLocaleDateString()}
+                    {t('addNewOrder.deliveryDate')} {formData.deliveryDate.toLocaleDateString()}
                   </Text>
                 </TouchableOpacity>
 
@@ -154,7 +156,7 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
 
                 <TextInput
                   style={[styles.input, styles.notesInput]}
-                  placeholder="Order Notes"
+                  placeholder={t('addNewOrder.orderNotesPlaceholder')}
                   placeholderTextColor={colors.subText}
                   value={formData.notes}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
@@ -169,13 +171,13 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                   }}
                 />
 
-                <Text style={styles.sectionTitle}>Payment Details</Text>
+                <Text style={styles.sectionTitle}>{t('addNewOrder.paymentDetails')}</Text>
                 <View style={styles.paymentContainer}>
                   <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>Total Price</Text>
+                    <Text style={styles.inputLabel}>{t('addNewOrder.totalPrice')}</Text>
                     <TextInput
                       style={[styles.input, styles.priceInput]}
-                      placeholder="Enter total price"
+                      placeholder={t('addNewOrder.totalPricePlaceholder')}
                       placeholderTextColor={colors.subText}
                       value={formData.price}
                       onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
@@ -184,10 +186,10 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                   </View>
                   
                   <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>Advance Received</Text>
+                    <Text style={styles.inputLabel}>{t('addNewOrder.advanceReceived')}</Text>
                     <TextInput
                       style={[styles.input, styles.priceInput]}
-                      placeholder="Enter advance amount"
+                      placeholder={t('addNewOrder.advancePlaceholder')}
                       placeholderTextColor={colors.subText}
                       value={formData.advancePayment}
                       onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
@@ -204,7 +206,7 @@ const AddNewOrder = ({ visible, onClose, clientId }: AddNewOrderProps) => {
                   onPress={handleSubmit}
                   disabled={!formData.orderName.trim()}
                 >
-                  <Text style={styles.submitButtonText}>Add Order</Text>
+                  <Text style={styles.submitButtonText}>{t('addNewOrder.addOrder')}</Text>
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -309,7 +311,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitButtonText: {
-    color: colors.mainText,
+    color: colors.textOnPrimary,
     fontSize: isTablet ? 18 : 16,
     fontWeight: 'bold',
   },

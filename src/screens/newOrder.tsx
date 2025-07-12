@@ -13,6 +13,7 @@ import Header from '../components/Header';
 import PhoneNumberInput from '../components/PhoneNumberInput';
 import OrderImagePicker from '../components/OrderImagePicker';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 type RouteParams = {
   clientId?: string;
@@ -49,6 +50,7 @@ const NewOrder = () => {
   const { clientId } = route.params as RouteParams || {};
   const { addClient, clients, addOrderToClient, updateClientMeasurements } = useClients();
   const { measurementAttributes, user } = useApp();
+  const { t } = useTranslation();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -148,16 +150,16 @@ const NewOrder = () => {
     <SafeAreaWrapper>
       <KeyboardAwareScrollView contentContainerStyle={styles.scrollContainer}>
         <Header 
-          title="New Order" 
+          title={t('newOrder.title')} 
           onBack={() => navigation.goBack()} 
         />
 
         <View style={styles.contentContainer}>
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
-            <Text style={styles.pageTitle}>Create New Order</Text>
+            <Text style={styles.pageTitle}>{t('newOrder.createNewOrder')}</Text>
             <Text style={styles.pageSubtitle}>
-              {existingClient ? `Adding order for ${existingClient.fullName}` : 'Add a new client and their first order'}
+              {existingClient ? t('newOrder.addingOrderFor', { clientName: existingClient.fullName }) : t('newOrder.addNewClientSubtitle')}
             </Text>
           </View>
 
@@ -167,11 +169,11 @@ const NewOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.primary }]}>
                 <Text style={styles.sectionIconText}>👤</Text>
               </View>
-              <Text style={styles.sectionTitle}>Client Information</Text>
+              <Text style={styles.sectionTitle}>{t('newOrder.clientInformation')}</Text>
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Full Name"
+              placeholder={t('newOrder.fullName')}
               value={formData.fullName}
               onChangeText={(text) => setFormData(prev => ({ ...prev, fullName: text }))}
               placeholderTextColor={colors.textSecondary}
@@ -179,12 +181,12 @@ const NewOrder = () => {
             <PhoneNumberInput
               value={formData.phoneNumber}
               onChangePhoneNumber={(phone) => setFormData(prev => ({ ...prev, phoneNumber: phone }))}
-              placeholder="Phone Number"
+              placeholder={t('newOrder.phoneNumber')}
               defaultCountry="US"
             />
             <TextInput
               style={styles.input}
-              placeholder="Address"
+              placeholder={t('newOrder.address')}
               value={formData.address}
               onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
               placeholderTextColor={colors.textSecondary}
@@ -197,11 +199,11 @@ const NewOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.secondary }]}>
                 <Text style={styles.sectionIconText}>📋</Text>
               </View>
-              <Text style={styles.sectionTitle}>Order Details</Text>
+              <Text style={styles.sectionTitle}>{t('newOrder.orderDetails')}</Text>
             </View>
             <TextInput
               style={styles.input}
-              placeholder="Order Name"
+              placeholder={t('newOrder.orderName')}
               value={formData.orderName}
               onChangeText={(text) => setFormData(prev => ({ ...prev, orderName: text }))}
               placeholderTextColor={colors.textSecondary}
@@ -212,7 +214,7 @@ const NewOrder = () => {
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={styles.dateText}>
-                Delivery Date: {formData.deliveryDate.toLocaleDateString()}
+                {t('newOrder.deliveryDate')}: {formData.deliveryDate.toLocaleDateString()}
               </Text>
             </TouchableOpacity>
 
@@ -242,18 +244,18 @@ const NewOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.accent }]}>
                 <Text style={styles.sectionIconText}>📏</Text>
               </View>
-              <Text style={styles.sectionTitle}>Measurements</Text>
+              <Text style={styles.sectionTitle}>{t('newOrder.measurements')}</Text>
             </View>
             <View style={styles.measurementsTable}>
               <View style={styles.tableHeader}>
                 <View style={styles.columnLeft}>
-                  <Text style={styles.headerText}>Attribute</Text>
+                  <Text style={styles.headerText}>{t('newOrder.attribute')}</Text>
                 </View>
                 <View style={styles.separatorContainer}>
                   <View style={styles.separator} />
                 </View>
                 <View style={styles.columnRight}>
-                  <Text style={styles.headerText}>Value</Text>
+                  <Text style={styles.headerText}>{t('newOrder.value')}</Text>
                 </View>
               </View>
               
@@ -283,7 +285,7 @@ const NewOrder = () => {
             
             <TextInput
               style={[styles.input, styles.notesInput]}
-              placeholder="Order Notes"
+              placeholder={t('newOrder.orderNotes')}
               value={formData.notes}
               onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
               multiline
@@ -297,14 +299,14 @@ const NewOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.success }]}>
                 <Text style={styles.sectionIconText}>💰</Text>
               </View>
-              <Text style={styles.sectionTitle}>Payment Details</Text>
+              <Text style={styles.sectionTitle}>{t('newOrder.paymentDetails')}</Text>
             </View>
             <View style={styles.paymentContainer}>
               <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>Total Price</Text>
+                <Text style={styles.inputLabel}>{t('newOrder.totalPrice')}</Text>
                 <TextInput
                   style={[styles.input, styles.priceInput]}
-                  placeholder="Enter total price"
+                  placeholder={t('newOrder.enterTotalPrice')}
                   value={formData.price}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
                   keyboardType="numeric"
@@ -313,10 +315,10 @@ const NewOrder = () => {
               </View>
               
               <View style={styles.inputWrapper}>
-                <Text style={styles.inputLabel}>Advance Received</Text>
+                <Text style={styles.inputLabel}>{t('newOrder.advanceReceived')}</Text>
                 <TextInput
                   style={[styles.input, styles.priceInput]}
-                  placeholder="Enter advance amount"
+                  placeholder={t('newOrder.enterAdvanceAmount')}
                   value={formData.advancePayment}
                   onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
                   keyboardType="numeric"
@@ -331,7 +333,7 @@ const NewOrder = () => {
               disabled={isLoading}
             >
               <Text style={styles.buttonText}>
-                {isLoading ? 'Saving...' : 'Save Order'}
+                {isLoading ? t('common.saving') : t('newOrder.saveOrder')}
               </Text>
             </Pressable>
           </View>

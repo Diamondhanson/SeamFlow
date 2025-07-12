@@ -24,6 +24,7 @@ import Header from '../../components/Header';
 import DatePicker from '../../components/DatePicker';
 import PhoneNumberInput from '../../components/PhoneNumberInput';
 import OrderImagePicker from '../../components/OrderImagePicker';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface Member {
   id: string;
@@ -61,6 +62,7 @@ const AddBulkOrder = () => {
   const navigation = useNavigation();
   const { addBulkOrder } = useClients();
   const { measurementAttributes } = useApp();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -86,7 +88,7 @@ const AddBulkOrder = () => {
 
   const handleAddMember = () => {
     if (!currentMember.name.trim()) {
-      Alert.alert('Error', 'Please enter member name');
+      Alert.alert(t('common.error'), t('addBulkOrder.enterMemberName'));
       return;
     }
 
@@ -119,12 +121,12 @@ const AddBulkOrder = () => {
 
   const handleSubmit = async () => {
     if (!formData.orderName.trim()) {
-      Alert.alert('Error', 'Please enter order name');
+      Alert.alert(t('common.error'), t('addBulkOrder.enterOrderName'));
       return;
     }
 
     if (members.length === 0) {
-      Alert.alert('Error', 'Please add at least one member');
+      Alert.alert(t('common.error'), t('addBulkOrder.addAtLeastOneMember'));
       return;
     }
 
@@ -146,7 +148,7 @@ const AddBulkOrder = () => {
       navigation.goBack();
     } catch (error) {
       console.error('Error saving bulk order:', error);
-      Alert.alert('Error', 'Failed to save bulk order');
+      Alert.alert(t('common.error'), t('addBulkOrder.orderSaveFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +159,7 @@ const AddBulkOrder = () => {
       <SafeAreaWrapper>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Saving order...</Text>
+          <Text style={styles.loadingText}>{t('addBulkOrder.savingOrder')}</Text>
         </View>
       </SafeAreaWrapper>
     );
@@ -167,16 +169,16 @@ const AddBulkOrder = () => {
     <SafeAreaWrapper>
       <KeyboardAwareScrollView contentContainerStyle={styles.scrollContainer}>
         <Header 
-          title="New Bulk Order" 
+          title={t('addBulkOrder.title')} 
           onBack={() => navigation.goBack()} 
         />
 
         <View style={styles.contentContainer}>
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
-            <Text style={styles.pageTitle}>Create Bulk Order</Text>
+            <Text style={styles.pageTitle}>{t('addBulkOrder.createBulkOrder')}</Text>
             <Text style={styles.pageSubtitle}>
-              Organize multiple orders for events, families, or groups
+              {t('addBulkOrder.organizeMultipleOrders')}
             </Text>
           </View>
 
@@ -186,13 +188,13 @@ const AddBulkOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.primary }]}>
                 <Text style={styles.sectionIconText}>📋</Text>
               </View>
-              <Text style={styles.sectionTitle}>Order Information</Text>
+              <Text style={styles.sectionTitle}>{t('addBulkOrder.orderInformation')}</Text>
             </View>
 
             <View style={styles.sectionContent}>
               <TextInput
                 style={styles.input}
-                placeholder="Order Name (e.g., HANSEN WEDDING)"
+                placeholder={t('addBulkOrder.orderNamePlaceholder')}
                 value={formData.orderName}
                 onChangeText={(text) => setFormData(prev => ({ ...prev, orderName: text }))}
                 placeholderTextColor={colors.subText}
@@ -201,13 +203,13 @@ const AddBulkOrder = () => {
               <PhoneNumberInput
                 value={formData.phoneNumber}
                 onChangePhoneNumber={(phone) => setFormData(prev => ({ ...prev, phoneNumber: phone }))}
-                placeholder="Phone Number"
+                placeholder={t('newOrder.phoneNumber')}
                 defaultCountry="CMR"
               />
 
               <TextInput
                 style={styles.input}
-                placeholder="Address"
+                placeholder={t('newOrder.address')}
                 value={formData.address}
                 onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
                 placeholderTextColor={colors.subText}
@@ -219,7 +221,7 @@ const AddBulkOrder = () => {
               >
                 <MaterialIcons name="event" size={20} color={colors.primary} style={styles.inputIcon} />
                 <Text style={styles.dateText}>
-                  Delivery Date: {formData.deliveryDate.toLocaleDateString()}
+                  {t('newOrder.deliveryDate')}: {formData.deliveryDate.toLocaleDateString()}
                 </Text>
               </TouchableOpacity>
 
@@ -250,7 +252,7 @@ const AddBulkOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.success }]}>
                 <Text style={styles.sectionIconText}>👥</Text>
               </View>
-              <Text style={styles.sectionTitle}>Add Members</Text>
+              <Text style={styles.sectionTitle}>{t('addBulkOrder.addMembers')}</Text>
             </View>
 
             <View style={styles.sectionContent}>
@@ -258,7 +260,7 @@ const AddBulkOrder = () => {
               {members.length > 0 && (
                 <View style={styles.membersList}>
                   <View style={styles.membersHeader}>
-                    <Text style={styles.membersCount}>Members ({members.length})</Text>
+                    <Text style={styles.membersCount}>{t('addBulkOrder.membersCount', { count: members.length })}</Text>
                   </View>
                   {members.map((member) => (
                     <View key={member.id} style={styles.memberCard}>
@@ -278,14 +280,14 @@ const AddBulkOrder = () => {
               <View style={styles.memberForm}>
                 <TextInput
                   style={styles.input}
-                  placeholder="Member Name"
+                  placeholder={t('addBulkOrder.memberName')}
                   value={currentMember.name}
                   onChangeText={(text) => setCurrentMember(prev => ({ ...prev, name: text }))}
                   placeholderTextColor={colors.subText}
                 />
 
                 <View style={styles.measurementsContainer}>
-                  <Text style={styles.measurementsTitle}>📏 Measurements</Text>
+                  <Text style={styles.measurementsTitle}>📏 {t('newOrder.measurements')}</Text>
                   <View style={styles.measurementsTable}>
                     {measurementAttributes.map((attr) => (
                       <MeasurementInput
@@ -303,7 +305,7 @@ const AddBulkOrder = () => {
                   onPress={handleAddMember}
                 >
                   <MaterialIcons name="person-add" size={20} color="white" />
-                  <Text style={styles.addMemberButtonText}>Add Member</Text>
+                  <Text style={styles.addMemberButtonText}>{t('addBulkOrder.addMember')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -315,13 +317,13 @@ const AddBulkOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.warning }]}>
                 <Text style={styles.sectionIconText}>📝</Text>
               </View>
-              <Text style={styles.sectionTitle}>Order Notes</Text>
+              <Text style={styles.sectionTitle}>{t('addBulkOrder.orderNotes')}</Text>
             </View>
 
             <View style={styles.sectionContent}>
               <TextInput
                 style={[styles.input, styles.notesInput]}
-                placeholder="Add any special instructions or notes for this bulk order..."
+                placeholder={t('addBulkOrder.addInstructions')}
                 value={formData.notes}
                 onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
                 multiline
@@ -336,16 +338,16 @@ const AddBulkOrder = () => {
               <View style={[styles.sectionIcon, { backgroundColor: colors.accent }]}>
                 <Text style={styles.sectionIconText}>💰</Text>
               </View>
-              <Text style={styles.sectionTitle}>Payment Details</Text>
+              <Text style={styles.sectionTitle}>{t('newOrder.paymentDetails')}</Text>
             </View>
 
             <View style={styles.sectionContent}>
               <View style={styles.paymentContainer}>
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>Bulk Order Price</Text>
+                  <Text style={styles.inputLabel}>{t('addBulkOrder.bulkOrderPrice')}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Enter total price"
+                    placeholder={t('newOrder.enterTotalPrice')}
                     value={formData.price}
                     onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
                     keyboardType="numeric"
@@ -354,10 +356,10 @@ const AddBulkOrder = () => {
                 </View>
                 
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.inputLabel}>Advance Received</Text>
+                  <Text style={styles.inputLabel}>{t('newOrder.advanceReceived')}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Enter advance amount"
+                    placeholder={t('newOrder.enterAdvanceAmount')}
                     value={formData.advancePayment}
                     onChangeText={(text) => setFormData(prev => ({ ...prev, advancePayment: text }))}
                     keyboardType="numeric"
@@ -374,7 +376,7 @@ const AddBulkOrder = () => {
             disabled={isLoading}
           >
             <Text style={styles.submitButtonText}>
-              {isLoading ? 'Saving...' : 'Save Bulk Order'}
+              {isLoading ? t('common.saving') : t('addBulkOrder.saveBulkOrder')}
             </Text>
           </TouchableOpacity>
         </View>

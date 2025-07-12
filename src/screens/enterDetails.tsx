@@ -30,6 +30,7 @@ import Icons from "react-native-vector-icons/FontAwesome5";
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Complete the auth session for web browser
 WebBrowser.maybeCompleteAuthSession();
@@ -37,6 +38,7 @@ WebBrowser.maybeCompleteAuthSession();
 const EnterDetails = () => {
   const navigation = useNavigation();
   const { session } = useApp();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -126,12 +128,12 @@ const EnterDetails = () => {
 
   const handleAuth = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert(t('common.error'), t('validation.fillAllFields'));
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password should be at least 6 characters');
+      Alert.alert(t('common.error'), t('validation.passwordTooShort'));
       return;
     }
 
@@ -143,7 +145,7 @@ const EnterDetails = () => {
           password: password,
         });
         if (error) throw error;
-        Alert.alert('Success', 'Account created! Please check your email for verification.');
+        Alert.alert(t('common.success'), t('alerts.accountCreated'));
         setShowForgotPassword(false); // Hide forgot password on successful signup
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -163,18 +165,18 @@ const EnterDetails = () => {
       )) {
         setShowForgotPassword(true);
         Alert.alert(
-          'Login Failed', 
-          error.message + '\n\nNeed help accessing your account?',
+          t('alerts.loginFailed'), 
+          error.message + '\n\n' + t('alerts.needHelp'),
           [
-            { text: 'Try Again', style: 'cancel' },
+            { text: t('common.tryAgain'), style: 'cancel' },
             { 
-              text: 'Reset Password', 
+              text: t('alerts.resetPasswordOption'), 
               onPress: handleForgotPassword 
             }
           ]
         );
       } else {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
       }
     } finally {
       setLoading(false);
@@ -183,7 +185,7 @@ const EnterDetails = () => {
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
-      Alert.alert('Email Required', 'Please enter your email address first, then tap "Forgot Password"');
+      Alert.alert(t('validation.emailRequired'), t('validation.emailRequired'));
       return;
     }
 
@@ -196,13 +198,13 @@ const EnterDetails = () => {
       if (error) throw error;
       
       Alert.alert(
-        'Reset Email Sent',
-        `We've sent a password reset link to ${email}. 
+        t('auth.resetPassword'),
+        `${t('alerts.emailSent')} ${email}. 
 
 📱 DEVELOPMENT NOTE: If the link doesn't open the app directly, copy the link from the email and test it manually, or check the Expo logs for the reset token.`,
         [
           { 
-            text: 'OK', 
+            text: t('common.ok'), 
             onPress: () => {
               setShowForgotPassword(false);
               setPassword(''); // Clear password field
@@ -404,7 +406,7 @@ const EnterDetails = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <Text style={styles.title}>Welcome to SeamFlow</Text>
+        <Text style={styles.title}>{t('auth.welcomeToSeamFlow')}</Text>
 
         <View style={styles.form}>
           {/* Google Sign-In Button */}
@@ -418,7 +420,7 @@ const EnterDetails = () => {
             ) : (
               <>
                 <Icons name="google" size={20} color={colors.mainText} />
-                <Text style={styles.googleButtonText}>Continue with Google</Text>
+                <Text style={styles.googleButtonText}>{t('auth.continueWithGoogle')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -426,14 +428,14 @@ const EnterDetails = () => {
           {/* Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>{t('auth.or')}</Text>
             <View style={styles.dividerLine} />
           </View>
 
           {/* Email/Password Form */}
           <TextInput
             style={styles.input}
-            placeholder="Enter Email"
+            placeholder={t('placeholders.enterEmail')}
             placeholderTextColor={colors.subText}
             value={email}
             onChangeText={setEmail}
@@ -443,7 +445,7 @@ const EnterDetails = () => {
 
           <TextInput
             style={styles.input}
-            placeholder="Enter Password"
+            placeholder={t('placeholders.enterPassword')}
             placeholderTextColor={colors.subText}
             value={password}
             secureTextEntry={true}
@@ -470,7 +472,7 @@ const EnterDetails = () => {
               <ActivityIndicator size="small" color={colors.mainText} />
             ) : (
               <Text style={styles.buttonText}>
-                {isSignUp ? 'Sign Up' : 'Sign In'}
+                {isSignUp ? t('auth.signUp') : t('auth.signIn')}
               </Text>
             )}
           </TouchableOpacity>
@@ -522,8 +524,8 @@ const EnterDetails = () => {
           >
             <Text style={styles.switchText}>
               {isSignUp 
-                ? 'Already have an account? Sign In' 
-                : "Don't have an account? Sign Up"
+                ? t('auth.alreadyHaveAccount') 
+                : t('auth.dontHaveAccount')
               }
             </Text>
           </TouchableOpacity>

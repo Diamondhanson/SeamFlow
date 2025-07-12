@@ -24,6 +24,8 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { useApp } from '../context/AppContext';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import Header from '../components/Header';
+import { useTranslation } from '../hooks/useTranslation';
+import ImageViewer from '../components/ImageViewer';
 
 const { width } = Dimensions.get('window');
 const TILE_SIZE = (width - 48) / 2; // 2 columns with 16px padding on sides and between
@@ -84,6 +86,7 @@ interface TagModalProps {
 }
 
 const TagModal = ({ visible, selectedCount, selectedImages, onClose, onSave }: TagModalProps) => {
+  const { t } = useTranslation();
   const [tag, setTag] = useState('');
 
   const handleSave = () => {
@@ -102,9 +105,9 @@ const TagModal = ({ visible, selectedCount, selectedImages, onClose, onSave }: T
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Add Tag</Text>
+          <Text style={styles.modalTitle}>{t('myInspirations.addTag')}</Text>
           <Text style={styles.modalSubtitle}>
-            {selectedCount} image{selectedCount !== 1 ? 's' : ''} selected
+            {t('myInspirations.imagesSelected', { count: selectedCount })}
           </Text>
           
           {/* Image Preview */}
@@ -125,7 +128,7 @@ const TagModal = ({ visible, selectedCount, selectedImages, onClose, onSave }: T
               />
               {selectedImages.length > 6 && (
                 <Text style={styles.moreImagesText}>
-                  +{selectedImages.length - 6} more
+                  {t('myInspirations.moreImages', { count: selectedImages.length - 6 })}
                 </Text>
               )}
             </View>
@@ -133,7 +136,7 @@ const TagModal = ({ visible, selectedCount, selectedImages, onClose, onSave }: T
           
           <TextInput
             style={styles.tagInput}
-            placeholder="Enter tag for all images..."
+            placeholder={t('myInspirations.enterTag')}
             placeholderTextColor={colors.textSecondary}
             value={tag}
             onChangeText={setTag}
@@ -143,13 +146,13 @@ const TagModal = ({ visible, selectedCount, selectedImages, onClose, onSave }: T
               style={[styles.modalButton, styles.cancelButton]} 
               onPress={onClose}
             >
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.modalButton, styles.saveButton]} 
               onPress={handleSave}
             >
-              <Text style={styles.saveButtonText}>Save</Text>
+              <Text style={styles.saveButtonText}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -158,41 +161,17 @@ const TagModal = ({ visible, selectedCount, selectedImages, onClose, onSave }: T
   );
 };
 
-// Add interface for selected image view
-interface FullImageViewProps {
-  imageUrl: string;
-  visible: boolean;
-  onClose: () => void;
-}
 
-// Full image view component
-const FullImageView = ({ imageUrl, visible, onClose }: FullImageViewProps) => {
-  return (
-    <Modal visible={visible} transparent animationType="fade">
-      <SafeAreaView style={styles.fullImageContainer}>
-        <TouchableOpacity 
-          style={styles.closeFullImageButton} 
-          onPress={onClose}
-        >
-          <Text style={styles.closeFullImageText}>×</Text>
-        </TouchableOpacity>
-        <Image
-          source={{ uri: imageUrl }}
-          style={styles.fullImage}
-          resizeMode="contain"
-        />
-      </SafeAreaView>
-    </Modal>
-  );
-};
 
 const MyInspirations = () => {
   const navigation = useNavigation();
   const { inspirations, addMultipleInspirations } = useApp();
+  const { t } = useTranslation();
   const [tagModalVisible, setTagModalVisible] = useState(false);
   const [selectedImages, setSelectedImages] = useState<CompressedImage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFullImage, setSelectedFullImage] = useState<string | null>(null);
+  const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
   const [isCompressing, setIsCompressing] = useState(false);
@@ -253,7 +232,7 @@ const MyInspirations = () => {
         
       } catch (error) {
         console.error('Error compressing images:', error);
-        alert('Failed to process images. Please try again.');
+        alert(t('myInspirations.imageProcessFailed'));
       } finally {
         setIsCompressing(false);
         setCompressionProgress({ current: 0, total: 0 });
@@ -284,7 +263,7 @@ const MyInspirations = () => {
         setUploadProgress({ current: 0, total: 0 });
       } catch (error) {
         console.error('Error uploading inspirations:', error);
-        alert('Failed to upload some inspirations. Please try again.');
+        alert(t('myInspirations.uploadFailed'));
       } finally {
         setIsUploading(false);
       }
@@ -292,7 +271,11 @@ const MyInspirations = () => {
   };
 
   const handleImagePress = (imageUrl: string) => {
-    setSelectedFullImage(imageUrl);
+    const index = filteredInspirations.findIndex(inspiration => inspiration.imageUrl === imageUrl);
+    if (index !== -1) {
+      setSelectedImageIndex(index);
+      setImageViewerVisible(true);
+    }
   };
 
   const renderItem = ({ item }: { item: any }) => {
@@ -319,16 +302,16 @@ const MyInspirations = () => {
     <SafeAreaWrapper>
       <View style={styles.container}>
         <Header 
-          title="My Inspirations" 
+          title={t('navigation.myInspirations')} 
           onBack={() => navigation.goBack()} 
         />
         
         <View style={styles.contentContainer}>
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
-            <Text style={styles.pageTitle}>Inspiration Gallery</Text>
+            <Text style={styles.pageTitle}>{t('myInspirations.title')}</Text>
             <Text style={styles.pageSubtitle}>
-              Upload multiple images at once and organize your creative inspirations
+              {t('myInspirations.subtitle')}
             </Text>
           </View>
 
@@ -337,7 +320,7 @@ const MyInspirations = () => {
             <Icons name="search" size={20} color={colors.accent} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search inspirations by tag..."
+              placeholder={t('myInspirations.searchInspirations')}
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -359,6 +342,15 @@ const MyInspirations = () => {
             numColumns={2}
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.gridContainer}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyState}>
+                <Icons name="lightbulb" size={48} color={colors.textTertiary} />
+                <Text style={styles.emptyStateTitle}>{t('myInspirations.noInspirations')}</Text>
+                <Text style={styles.emptyStateSubtitle}>
+                  {t('myInspirations.addFirstInspiration')}
+                </Text>
+              </View>
+            )}
           />
         </View>
         
@@ -372,7 +364,7 @@ const MyInspirations = () => {
             <View style={styles.uploadProgress}>
               <ActivityIndicator size={20} color={colors.textOnPrimary} />
               <Text style={styles.uploadProgressText}>
-                Compressing {compressionProgress.current}/{compressionProgress.total}
+                {t('myInspirations.compressing', { current: compressionProgress.current, total: compressionProgress.total })}
               </Text>
             </View>
           ) : isUploading ? (
@@ -400,10 +392,11 @@ const MyInspirations = () => {
           onSave={handleAddTag}
         />
 
-        <FullImageView
-          imageUrl={selectedFullImage || ''}
-          visible={!!selectedFullImage}
-          onClose={() => setSelectedFullImage(null)}
+        <ImageViewer
+          visible={imageViewerVisible}
+          images={filteredInspirations}
+          initialIndex={selectedImageIndex}
+          onClose={() => setImageViewerVisible(false)}
         />
       </View>
     </SafeAreaWrapper>
@@ -560,28 +553,6 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,
   },
-  fullImageContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fullImage: {
-    width: '100%',
-    height: '100%',
-  },
-  closeFullImageButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 1,
-    padding: 10,
-  },
-  closeFullImageText: {
-    color: '#FFFFFF',
-    fontSize: 40,
-    fontWeight: 'bold',
-  },
   fab: {
     position: 'absolute',
     bottom: 20,
@@ -626,6 +597,25 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 12,
     marginTop: 8,
+    textAlign: 'center',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.l,
+  },
+  emptyStateTitle: {
+    fontSize: textVariants.H5.fontSize,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginTop: spacing.s,
+    textAlign: 'center',
+  },
+  emptyStateSubtitle: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
     textAlign: 'center',
   },
 });

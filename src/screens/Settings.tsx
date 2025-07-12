@@ -9,6 +9,7 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
@@ -17,13 +18,16 @@ import { useApp } from '../context/AppContext';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import Header from '../components/Header';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Settings = () => {
   const { logout, user, companyInfo, updateCompanyInfo, hasPinSet, removePin, hasSecurityQuestions } = useApp();
   const navigation = useNavigation();
+  const { t, changeLanguage, availableLanguages, locale } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState(companyInfo.name);
   const [isLoading, setIsLoading] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
 
   const pickImage = async () => {
     try {
@@ -44,14 +48,14 @@ const Settings = () => {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to update logo. Please try again.');
+      Alert.alert(t('common.error'), t('settings.logoUpdateFailed'));
       setIsLoading(false);
     }
   };
 
   const handleUpdateCompanyName = async () => {
     if (newCompanyName.trim() === '') {
-      Alert.alert('Error', 'Company name cannot be empty');
+      Alert.alert(t('common.error'), t('settings.companyNameRequired'));
       return;
     }
 
@@ -64,19 +68,29 @@ const Settings = () => {
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating company name:', error);
-      Alert.alert('Error', 'Failed to update company name. Please try again.');
+      Alert.alert(t('common.error'), t('settings.companyNameUpdateFailed'));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleLanguageChange = async (languageCode: string) => {
+    try {
+      await changeLanguage(languageCode);
+      setShowLanguageSelector(false);
+    } catch (error) {
+      console.error('Error changing language:', error);
+      Alert.alert(t('common.error'), t('settings.languageChangeFailed'));
+    }
+  };
+
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      t('settings.logout'),
+      t('settings.confirmLogout'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Logout', style: 'destructive', onPress: logout }
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('settings.logout'), style: 'destructive', onPress: logout }
       ]
     );
   };
@@ -92,19 +106,19 @@ const Settings = () => {
 
   const handleRemovePin = () => {
     Alert.alert(
-      'Remove PIN',
-      'Are you sure you want to remove your PIN? This will make your app less secure.',
+      t('settings.removePin'),
+      t('settings.confirmRemovePin'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         { 
-          text: 'Remove', 
+          text: t('common.remove'), 
           style: 'destructive', 
           onPress: async () => {
             try {
               await removePin();
-              Alert.alert('Success', 'PIN has been removed successfully.');
+              Alert.alert(t('common.success'), t('settings.pinRemovedSuccess'));
             } catch (error) {
-              Alert.alert('Error', 'Failed to remove PIN. Please try again.');
+              Alert.alert(t('common.error'), t('settings.pinRemoveFailed'));
             }
           }
         }
@@ -115,7 +129,7 @@ const Settings = () => {
   return (
     <ScrollView style={styles.container}>
       <Header 
-        title="Settings" 
+        title={t('navigation.settings')} 
         onBack={() => (navigation as any).navigate('Home')}
       />
 
@@ -126,7 +140,7 @@ const Settings = () => {
             <View style={[styles.sectionIconContainer, { backgroundColor: colors.primary }]}>
               <Icons name="user-circle" size={20} color={colors.textOnPrimary} />
             </View>
-        <Text style={styles.sectionTitle}>Company Profile</Text>
+        <Text style={styles.sectionTitle}>{t('settings.companyProfile')}</Text>
           </View>
         
         <View style={styles.logoSection}>
@@ -138,11 +152,11 @@ const Settings = () => {
             ) : (
               <>
                   <Icons name="camera" size={32} color={colors.textOnPrimary} />
-                <Text style={styles.logoText}>Add Logo</Text>
+                <Text style={styles.logoText}>{t('settings.addLogo')}</Text>
               </>
             )}
           </TouchableOpacity>
-            <Text style={styles.logoHint}>Tap to update company logo</Text>
+            <Text style={styles.logoHint}>{t('settings.tapToUpdateLogo')}</Text>
         </View>
 
         <View style={styles.companyNameSection}>
@@ -152,7 +166,7 @@ const Settings = () => {
                 style={styles.nameInput}
                 value={newCompanyName}
                 onChangeText={setNewCompanyName}
-                placeholder="Enter company name"
+                placeholder={t('settings.enterCompanyName')}
                   placeholderTextColor={colors.textSecondary}
               />
               <View style={styles.editButtonsRow}>
@@ -164,7 +178,7 @@ const Settings = () => {
                   }}
                   disabled={isLoading}
                 >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.editButton, styles.saveButton]}
@@ -172,7 +186,7 @@ const Settings = () => {
                   disabled={isLoading}
                 >
                     <Text style={styles.saveButtonText}>
-                    {isLoading ? 'Saving...' : 'Save'}
+                    {isLoading ? t('settings.saving') : t('common.save')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -180,7 +194,7 @@ const Settings = () => {
           ) : (
               <View style={styles.nameDisplayContainer}>
                 <View style={styles.nameInfo}>
-                  <Text style={styles.nameLabel}>Company Name</Text>
+                  <Text style={styles.nameLabel}>{t('settings.companyName')}</Text>
               <Text style={styles.companyName}>{companyInfo.name}</Text>
                 </View>
               <TouchableOpacity 
@@ -200,7 +214,7 @@ const Settings = () => {
             <View style={[styles.sectionIconContainer, { backgroundColor: colors.secondary }]}>
               <Icons name="id-card" size={20} color={colors.textOnPrimary} />
             </View>
-            <Text style={styles.sectionTitle}>Account Information</Text>
+            <Text style={styles.sectionTitle}>{t('settings.accountInformation')}</Text>
           </View>
           
           <View style={styles.accountInfo}>
@@ -215,7 +229,7 @@ const Settings = () => {
             <View style={[styles.sectionIconContainer, { backgroundColor: colors.accent }]}>
               <Icons name="palette" size={20} color={colors.textOnPrimary} />
             </View>
-            <Text style={styles.sectionTitle}>Customization</Text>
+            <Text style={styles.sectionTitle}>{t('settings.customization')}</Text>
       </View>
 
           <TouchableOpacity 
@@ -226,8 +240,34 @@ const Settings = () => {
               <Icons name="ruler-combined" size={16} color={colors.textOnPrimary} />
             </View>
             <View style={styles.menuItemContent}>
-              <Text style={styles.menuItemText}>Customize Measurements</Text>
-              <Text style={styles.menuItemSubtext}>Configure measurement attributes</Text>
+              <Text style={styles.menuItemText}>{t('settings.customizeMeasurements')}</Text>
+              <Text style={styles.menuItemSubtext}>{t('settings.configureMeasurements')}</Text>
+            </View>
+            <Icons name="chevron-right" size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Language Section */}
+        <View style={[styles.section, styles.customizationSection]}>
+          <View style={styles.sectionHeaderWithIcon}>
+            <View style={[styles.sectionIconContainer, { backgroundColor: colors.success }]}>
+              <Icons name="language" size={20} color={colors.textOnPrimary} />
+            </View>
+            <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => setShowLanguageSelector(true)}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.info }]}>
+              <Icons name="globe" size={16} color={colors.textOnPrimary} />
+            </View>
+            <View style={styles.menuItemContent}>
+              <Text style={styles.menuItemText}>{t('settings.selectLanguage')}</Text>
+              <Text style={styles.menuItemSubtext}>
+                {availableLanguages.find(lang => lang.code === locale)?.nativeName || 'English'}
+              </Text>
             </View>
             <Icons name="chevron-right" size={16} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -239,7 +279,7 @@ const Settings = () => {
             <View style={[styles.sectionIconContainer, { backgroundColor: colors.warning }]}>
               <Icons name="shield-alt" size={20} color={colors.textOnPrimary} />
             </View>
-            <Text style={styles.sectionTitle}>Security & Privacy</Text>
+            <Text style={styles.sectionTitle}>{t('settings.securityPrivacy')}</Text>
       </View>
 
           <TouchableOpacity 
@@ -258,10 +298,10 @@ const Settings = () => {
             </View>
             <View style={styles.menuItemContent}>
               <Text style={styles.menuItemText}>
-                {hasPinSet ? 'PIN Protection Active' : 'Set Up PIN Protection'}
+                {hasPinSet ? t('settings.pinProtectionActive') : t('settings.setupPinProtection')}
               </Text>
               <Text style={styles.menuItemSubtext}>
-                {hasPinSet ? 'Tap to manage or remove PIN' : 'Secure your app with a 4-digit PIN'}
+                {hasPinSet ? t('settings.tapToManagePin') : t('settings.secureWithPin')}
               </Text>
             </View>
             <Icons name="chevron-right" size={16} color={colors.textSecondary} />
@@ -276,8 +316,8 @@ const Settings = () => {
                 <Icons name="key" size={16} color={colors.textOnPrimary} />
               </View>
               <View style={styles.menuItemContent}>
-                <Text style={styles.menuItemText}>Change PIN</Text>
-                <Text style={styles.menuItemSubtext}>Update your security PIN</Text>
+                <Text style={styles.menuItemText}>{t('settings.changePin')}</Text>
+                <Text style={styles.menuItemSubtext}>{t('settings.updateSecurityPin')}</Text>
               </View>
               <Icons name="chevron-right" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -299,10 +339,10 @@ const Settings = () => {
             </View>
             <View style={styles.menuItemContent}>
               <Text style={styles.menuItemText}>
-                {hasSecurityQuestions ? 'Security Questions Set' : 'Set Up Security Questions'}
+                {hasSecurityQuestions ? t('settings.securityQuestionsSet') : t('settings.setupSecurityQuestions')}
               </Text>
               <Text style={styles.menuItemSubtext}>
-                {hasSecurityQuestions ? 'Update your security questions' : 'Help recover your PIN if forgotten'}
+                {hasSecurityQuestions ? t('settings.updateSecurityQuestions') : t('settings.helpRecoverPin')}
               </Text>
             </View>
             <Icons name="chevron-right" size={16} color={colors.textSecondary} />
@@ -317,8 +357,8 @@ const Settings = () => {
                 <Icons name="unlock-alt" size={16} color={colors.textOnPrimary} />
               </View>
               <View style={styles.menuItemContent}>
-                <Text style={styles.menuItemText}>PIN Recovery</Text>
-                <Text style={styles.menuItemSubtext}>Reset your PIN if forgotten</Text>
+                <Text style={styles.menuItemText}>{t('settings.pinRecovery')}</Text>
+                <Text style={styles.menuItemSubtext}>{t('settings.resetForgottenPin')}</Text>
               </View>
               <Icons name="chevron-right" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -335,14 +375,67 @@ const Settings = () => {
               <Icons name="sign-out-alt" size={16} color={colors.textOnPrimary} />
             </View>
             <View style={styles.menuItemContent}>
-              <Text style={[styles.menuItemText, styles.logoutText]}>Sign Out</Text>
+              <Text style={[styles.menuItemText, styles.logoutText]}>{t('settings.signOut')}</Text>
               <Text style={[styles.menuItemSubtext, styles.logoutSubtext]}>
-                Sign out of your account
+                {t('settings.signOutAccount')}
               </Text>
             </View>
         </TouchableOpacity>
         </View>
       </View>
+
+      {/* Language Selector Modal */}
+      <Modal
+        visible={showLanguageSelector}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLanguageSelector(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('settings.selectLanguage')}</Text>
+              <TouchableOpacity 
+                style={styles.modalCloseButton}
+                onPress={() => setShowLanguageSelector(false)}
+              >
+                <Icons name="times" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.languageList}>
+              {availableLanguages.map((language) => (
+                <TouchableOpacity
+                  key={language.code}
+                  style={[
+                    styles.languageItem,
+                    locale === language.code && styles.selectedLanguageItem
+                  ]}
+                  onPress={() => handleLanguageChange(language.code)}
+                >
+                  <View style={styles.languageInfo}>
+                    <Text style={[
+                      styles.languageName,
+                      locale === language.code && styles.selectedLanguageText
+                    ]}>
+                      {language.nativeName}
+                    </Text>
+                    <Text style={[
+                      styles.languageCode,
+                      locale === language.code && styles.selectedLanguageText
+                    ]}>
+                      {language.name}
+                    </Text>
+                  </View>
+                  {locale === language.code && (
+                    <Icons name="check" size={16} color={colors.textOnPrimary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -496,6 +589,67 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 0,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  modalCloseButton: {
+    padding: 8,
+  },
+  languageList: {
+    maxHeight: 300,
+  },
+  languageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+   
+  },
+  selectedLanguageItem: {
+    backgroundColor: colors.primaryLight,
+  },
+  languageInfo: {
+    flex: 1,
+  },
+  languageName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  languageCode: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  selectedLanguageText: {
+    color: colors.textOnPrimary,
   },
   cancelButton: {
     backgroundColor: '#ffffff15',

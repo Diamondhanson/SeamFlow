@@ -127,7 +127,7 @@ const AddOrderImagesModal: React.FC<AddOrderImagesModalProps> = ({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       onRequestClose={handleClose}
     >

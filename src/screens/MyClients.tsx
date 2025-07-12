@@ -9,6 +9,7 @@ import ClientDetails from '../components/clientDetails';
 import Icons from "react-native-vector-icons/FontAwesome5";
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import Header from '../components/Header';
+import { useTranslation } from '../hooks/useTranslation';
 
 const MONTHS = [
   { name: 'JAN', value: '01' },
@@ -31,6 +32,7 @@ const isTablet = SCREEN_WIDTH >= 768;
 const MyClients = () => {
   const navigation = useNavigation();
   const { clients } = useClients();
+  const { t } = useTranslation();
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -119,7 +121,7 @@ const MyClients = () => {
           {item.orders.length}
         </Text>
         <Text style={styles.orderLabel}>
-          {item.orders.length === 1 ? 'order' : 'orders'}
+          {item.orders.length === 1 ? t('myClients.order') : t('myClients.orders')}
         </Text>
       </View>
     </TouchableOpacity>
@@ -150,7 +152,7 @@ const MyClients = () => {
     <SafeAreaWrapper>
       <View style={styles.container}>
         <Header 
-          title="My Clients" 
+          title={t('navigation.myClients')} 
           onBack={() => navigation.goBack()} 
         />
         
@@ -165,7 +167,7 @@ const MyClients = () => {
               <Icons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search clients by name..."
+                placeholder={t('myClients.searchClients')}
                 placeholderTextColor={colors.textSecondary}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -184,7 +186,7 @@ const MyClients = () => {
           
           {/* Month Filter Section */}
           <View style={styles.monthFilterSection}>
-            <Text style={styles.sectionLabel}>Filter by delivery month</Text>
+            <Text style={styles.sectionLabel}>{t('myClients.filterByMonth')}</Text>
             <View style={styles.monthFilterContainer}>
               <ScrollView 
                 ref={monthScrollRef}
@@ -201,7 +203,7 @@ const MyClients = () => {
                   activeOpacity={0.7}
                 >
                   <Icons name="times" size={12} color={colors.textSecondary} />
-                  <Text style={styles.clearMonthText}>Clear</Text>
+                  <Text style={styles.clearMonthText}>{t('common.clear')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -220,11 +222,11 @@ const MyClients = () => {
             ) : (
               <View style={styles.emptyState}>
                 <Icons name="users" size={48} color={colors.textTertiary} />
-                <Text style={styles.emptyStateTitle}>No clients found</Text>
+                <Text style={styles.emptyStateTitle}>{t('myClients.noClientsFound')}</Text>
                 <Text style={styles.emptyStateSubtitle}>
                   {searchQuery || selectedMonth 
-                    ? 'Try adjusting your search or filters' 
-                    : 'Create your first order to add clients'
+                    ? t('myClients.adjustFilters') 
+                    : t('myClients.createFirstOrder')
                   }
                 </Text>
               </View>

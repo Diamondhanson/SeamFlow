@@ -152,10 +152,7 @@ const OrderImagePicker: React.FC<OrderImagePickerProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Order Images (Optional)</Text>
-      <Text style={styles.sectionSubtitle}>
-        Add up to 2 images to help visualize this order
-      </Text>
+
       
       <View style={styles.imagesRow}>
         {renderImageSlot(1, image1Uri)}

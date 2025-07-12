@@ -14,12 +14,14 @@ import { themeUtils } from '../theme';
 import Icons from 'react-native-vector-icons/FontAwesome5';
 import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 const PinEntry: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { mode } = (route.params as { mode?: string }) || {};
   const isChangingPin = mode === 'change';
+  const { t } = useTranslation();
   
   const { 
     validatePinWithTracking, 
@@ -105,12 +107,12 @@ const PinEntry: React.FC = () => {
           setIsLocked(true);
           setLockTimeRemaining(3600); // 1 hour in seconds
           Alert.alert(
-            'Account Locked',
-            'Too many failed PIN attempts. Your account has been locked for 1 hour for security.'
+            t('pin.appLocked'),
+            t('pin.tooManyAttempts', { seconds: 3600 })
           );
         } else {
           Alert.alert(
-            'Incorrect PIN',
+            t('pin.incorrectPin'),
             `${result.attemptsRemaining} attempts remaining.`
           );
         }
@@ -118,7 +120,7 @@ const PinEntry: React.FC = () => {
       }
     } catch (error) {
       console.error('Error validating PIN:', error);
-      Alert.alert('Error', 'Failed to validate PIN. Please try again.');
+      Alert.alert(t('common.error'), t('pin.incorrectPin'));
       setPin('');
     } finally {
       setIsLoading(false);
@@ -170,7 +172,7 @@ const PinEntry: React.FC = () => {
         onPress={handleForgotPin}
         disabled={isLocked}
       >
-        <Text style={styles.forgotButtonText}>Forgot?</Text>
+        <Text style={styles.forgotButtonText}>{t('pin.forgotPin')}</Text>
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -204,7 +206,7 @@ const PinEntry: React.FC = () => {
           <View style={styles.headerSection}>
             <View style={styles.companySection}>
               <Text style={styles.companyName}>{companyInfo.name}</Text>
-              <Text style={styles.welcomeText}>Welcome back</Text>
+              <Text style={styles.welcomeText}>{t('pin.welcomeBack')}</Text>
             </View>
           </View>
 
@@ -216,16 +218,15 @@ const PinEntry: React.FC = () => {
               style={styles.lockIcon}
             />
             <Text style={styles.title}>
-              {isLocked ? 'App Locked' : (isChangingPin ? 'Enter Current PIN' : 'Enter Your PIN')}
+              {isLocked ? t('pin.appLocked') : (isChangingPin ? t('pin.enterCurrentPin') : t('pin.enterPin'))}
             </Text>
             {isLocked ? (
               <Text style={styles.lockMessage}>
-                Too many failed attempts.{'\n'}
-                Try again in {lockTimeRemaining} seconds.
+                {t('pin.tooManyAttempts', { seconds: lockTimeRemaining })}
               </Text>
             ) : (
               <Text style={styles.subtitle}>
-                {isChangingPin ? 'Enter your current PIN to change it' : 'Enter your 4-digit PIN to continue'}
+                {isChangingPin ? t('pin.enterPinToChange') : t('pin.enterPinToContinue')}
               </Text>
             )}
           </View>

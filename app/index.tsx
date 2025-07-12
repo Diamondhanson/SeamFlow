@@ -28,6 +28,7 @@ import AddBulkOrder from '@/src/screens/BulkOrderModule/AddBulkOrder';
 import SafeAreaWrapper from '@/src/components/SafeAreaWrapper';
 import { StatusBar } from 'react-native';
 import { colors } from '@/src/theme/colors';
+import { initializeLanguage } from '../src/i18n';
 const Stack = createStackNavigator();
 
 function NavigationStack() {
@@ -90,6 +91,11 @@ function NavigationStack() {
 }
 
 export default function Page() {
+  // Initialize i18n system when app loads
+  useEffect(() => {
+    initializeLanguage();
+  }, []);
+
   return (
     <>
       {/* <StatusBar 

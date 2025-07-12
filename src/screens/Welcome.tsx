@@ -5,6 +5,7 @@ import { textVariants } from '../theme/textVariants';
 import { spacing } from '../theme/spacing';
 import { useNavigation } from "@react-navigation/native";
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../hooks/useTranslation';
 // LinearGradient removed for now - can be added later if needed
 
 const { width, height } = Dimensions.get('window');
@@ -12,6 +13,7 @@ const { width, height } = Dimensions.get('window');
 const Welcome = () => {
   const navigation = useNavigation();
   const { session } = useApp();
+  const { t } = useTranslation();
   
   // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -67,9 +69,9 @@ const Welcome = () => {
 
           {/* Welcome Text */}
           <View style={styles.textContainer}>
-            <Text style={styles.welcomeText}>WELCOME TO</Text>
-            <Text style={styles.appName}>SEAMFLOW</Text>
-            <Text style={styles.tagline}>Professional Tailoring Management</Text>
+            <Text style={styles.welcomeText}>{t('welcome.title')}</Text>
+            <Text style={styles.appName}>{t('welcome.appName')}</Text>
+            <Text style={styles.tagline}>{t('welcome.tagline')}</Text>
           </View>
 
           {/* Decorative Elements */}

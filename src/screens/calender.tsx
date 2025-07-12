@@ -9,6 +9,7 @@ import SafeAreaWrapper from '../components/SafeAreaWrapper';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
 import Icons from "react-native-vector-icons/FontAwesome5";
+import { useTranslation } from '../hooks/useTranslation';
 
 // Define MarkedDates type locally since it's not exported from the library
 type MarkedDates = {
@@ -26,6 +27,7 @@ const isTablet = SCREEN_WIDTH >= 768;
 const CalendarScreen = () => {
   const navigation = useNavigation();
   const { clients } = useClients();
+  const { t } = useTranslation();
 
   // Process all due dates and create marked dates object
   const markedDates: MarkedDates = useMemo(() => {
@@ -110,7 +112,7 @@ const CalendarScreen = () => {
     <SafeAreaWrapper>
       <View style={styles.container}>
         <Header 
-          title="Calendar" 
+          title={t('navigation.calendar')} 
           onBack={() => navigation.goBack()} 
         />
 
@@ -155,7 +157,7 @@ const CalendarScreen = () => {
             <View style={styles.ordersTitleContainer}>
               <Icons name="clipboard-list" size={isTablet ? 22 : 20} color={colors.primary} />
               <Text style={styles.ordersTitle}>
-                Orders Due
+                {t('calendar.ordersDue')}
               </Text>
             </View>
             <Text style={styles.ordersDate}>
@@ -199,7 +201,7 @@ const CalendarScreen = () => {
                     
                     {order.notes && (
                       <View style={styles.notesContainer}>
-                        <Text style={styles.notesLabel}>Notes:</Text>
+                        <Text style={styles.notesLabel}>{t('calendar.notes')}:</Text>
                         <Text style={styles.notes}>{order.notes}</Text>
                       </View>
                     )}
@@ -207,7 +209,7 @@ const CalendarScreen = () => {
                     <View style={styles.orderFooter}>
                       <View style={styles.dueDateContainer}>
                         <Icons name="clock" size={12} color={colors.primary} />
-                        <Text style={styles.dueDateText}>Due Today</Text>
+                        <Text style={styles.dueDateText}>{t('calendar.dueToday')}</Text>
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -216,9 +218,9 @@ const CalendarScreen = () => {
             ) : (
               <View style={styles.emptyState}>
                 <Icons name="calendar-check" size={48} color={colors.textTertiary} />
-                <Text style={styles.emptyStateTitle}>No Orders Due</Text>
+                <Text style={styles.emptyStateTitle}>{t('calendar.noOrdersDue')}</Text>
                 <Text style={styles.emptyStateSubtitle}>
-                  No orders are scheduled for delivery on this date
+                  {t('calendar.noOrdersScheduled')}
                 </Text>
               </View>
             )}

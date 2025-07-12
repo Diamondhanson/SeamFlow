@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -22,6 +22,7 @@ import Icons from "react-native-vector-icons/MaterialIcons";
 import Header from './Header';
 import SafeAreaWrapper from './SafeAreaWrapper';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ClientDetailsProps {
   client: Client;
@@ -31,6 +32,8 @@ interface ClientDetailsProps {
 const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) => {
   const { updateClientMeasurements, clients } = useClients();
   const { measurementAttributes } = useApp();
+  const { t } = useTranslation();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [showAddOrder, setShowAddOrder] = useState(false);
   const [editingMeasurement, setEditingMeasurement] = useState<{
@@ -54,7 +57,27 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
   }, [clients, initialClient]);
 
   const toggleOrderExpansion = (orderId: string) => {
+    const isExpanding = expandedOrderId !== orderId;
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
+    
+    // Auto-scroll to the expanded order
+    if (isExpanding && scrollViewRef.current) {
+      // Calculate approximate scroll position
+      // Personal Info section: ~150px
+      // Measurements section: ~200px (depends on number of measurements)
+      // Orders section header: ~80px
+      // Each order item: ~80px collapsed
+      const orderIndex = client?.orders.findIndex(order => order.id === orderId) || 0;
+      const approximateScrollY = 150 + 200 + 80 + (orderIndex * 200);
+      
+      // Scroll with a small delay to ensure state is updated
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          y: approximateScrollY,
+          animated: true
+        });
+      }, 100);
+    }
   };
 
   const handleUpdateMeasurement = (newValue: number) => {
@@ -72,31 +95,35 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
   return (
     <SafeAreaWrapper>
        <Header 
-          title="Client Details" 
+          title={t('clientDetails.title')} 
           onBack={onBack}
         />
       <View style={styles.container}>
        
         
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ScrollView 
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Personal Information */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={[styles.sectionIcon, { backgroundColor: colors.primary }]}>
                 <Text style={styles.sectionIconText}>👤</Text>
               </View>
-              <Text style={styles.sectionTitle}>Personal Information</Text>
+              <Text style={styles.sectionTitle}>{t('clientDetails.personalInformation')}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.label}>Name:</Text>
+              <Text style={styles.label}>{t('clientDetails.name')}:</Text>
               <Text style={styles.value}>{client.fullName}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.label}>Phone:</Text>
+              <Text style={styles.label}>{t('clientDetails.phone')}:</Text>
               <Text style={styles.value}>{client.phoneNumber}</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.label}>Address:</Text>
+              <Text style={styles.label}>{t('clientDetails.address')}:</Text>
               <Text style={styles.value}>{client.address}</Text>
             </View>
           </View>
@@ -107,7 +134,7 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
               <View style={[styles.sectionIcon, { backgroundColor: colors.accent }]}>
                 <Text style={styles.sectionIconText}>📏</Text>
               </View>
-              <Text style={styles.sectionTitle}>Measurements</Text>
+              <Text style={styles.sectionTitle}>{t('clientDetails.measurements')}</Text>
             </View>
             <View style={styles.measurementsGrid}>
               {measurementAttributes.map((attr) => (
@@ -143,114 +170,130 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
               <View style={[styles.sectionIcon, { backgroundColor: colors.secondary }]}>
                 <Text style={styles.sectionIconText}>📦</Text>
               </View>
-              <Text style={styles.sectionTitle}>Orders History</Text>
+              <Text style={styles.sectionTitle}>{t('clientDetails.ordersHistory')}</Text>
             </View>
-            {client.orders.map((order) => (
-              <TouchableOpacity 
-                key={order.id} 
-                style={[
-                  styles.orderItem,
-                  expandedOrderId === order.id && styles.orderItemExpanded
-                ]}
-                onPress={() => toggleOrderExpansion(order.id)}
-              >
-                <View style={styles.orderHeader}>
-                  <Text style={styles.orderName}>{order.orderName}</Text>
-                  <View style={styles.orderDueDate}>
-                    <Text style={styles.dateLabel}>Due:</Text>
-                    <Text style={styles.dateValue}>
-                      {new Date(order.dateDelivery).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
+            {client.orders.map((order, index) => (
+              <React.Fragment key={order.id}>
+                <TouchableOpacity 
+                  style={[
+                    styles.orderItem,
+                    expandedOrderId === order.id && styles.orderItemExpanded
+                  ]}
+                  onPress={() => toggleOrderExpansion(order.id)}
+                >
+                  <View style={styles.orderHeader}>
+                    <View style={styles.orderHeaderLeft}>
+                      <Text style={styles.orderName}>{order.orderName}</Text>
+                      <View style={styles.orderDueDate}>
+                        <Text style={styles.dateLabel}>{t('clientDetails.due')}:</Text>
+                        <Text style={styles.dateValue}>
+                          {new Date(order.dateDelivery).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.orderHeaderRight}>
+                      <Icons 
+                        name={expandedOrderId === order.id ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                        size={35} 
+                        color={colors.primary}
+                        style={styles.expandIcon}
+                      />
+                    </View>
+                                      </View>
 
-                {expandedOrderId === order.id && (
-                  <View style={styles.orderExpandedContent}>
-                    {order.notes && (
-                      <Text style={styles.orderNote}>{order.notes}</Text>
-                    )}
-                    
-                    {/* Order Images Section */}
-                    {(order.image1Url || order.image2Url) && (
-                      <View style={styles.orderImagesSection}>
-                        <Text style={styles.orderImagesTitle}>Order Images</Text>
-                        <View style={styles.orderImagesContainer}>
-                          {order.image1Url && (
-                            <Image 
-                              source={{ uri: order.image1Url }} 
-                              style={styles.orderImage} 
-                              resizeMode="cover"
-                            />
-                          )}
-                          {order.image2Url && (
-                            <Image 
-                              source={{ uri: order.image2Url }} 
-                              style={styles.orderImage} 
-                              resizeMode="cover"
-                            />
-                          )}
+                    {expandedOrderId === order.id && (
+                      <View style={styles.orderExpandedContent}>
+                        {order.notes && (
+                          <Text style={styles.orderNote}>{order.notes}</Text>
+                        )}
+                        
+                        {/* Order Images Section */}
+                        {(order.image1Url || order.image2Url) && (
+                          <View style={styles.orderImagesSection}>
+                            <Text style={styles.orderImagesTitle}>{t('clientDetails.orderImages')}</Text>
+                            <View style={styles.orderImagesContainer}>
+                              {order.image1Url && (
+                                <Image 
+                                  source={{ uri: order.image1Url }} 
+                                  style={styles.orderImage} 
+                                  resizeMode="cover"
+                                />
+                              )}
+                              {order.image2Url && (
+                                <Image 
+                                  source={{ uri: order.image2Url }} 
+                                  style={styles.orderImage} 
+                                  resizeMode="cover"
+                                />
+                              )}
+                            </View>
+                          </View>
+                        )}
+
+                        {/* Add Images Button for orders without images */}
+                        {!order.image1Url && !order.image2Url && (
+                          <TouchableOpacity
+                            style={styles.addImagesButton}
+                            onPress={() => setAddImagesModal({
+                              visible: true,
+                              orderId: order.id,
+                              orderName: order.orderName,
+                            })}
+                          >
+                            <Icons name="add-a-photo" size={20} color={colors.primary} />
+                            <Text style={styles.addImagesButtonText}>{t('clientDetails.addImages')}</Text>
+                          </TouchableOpacity>
+                        )}
+                        
+                        {/* Payment Details Section */}
+                        <View style={styles.paymentDetails}>
+                          <View style={styles.paymentRow}>
+                            <Text style={styles.paymentLabel}>{t('clientDetails.totalPrice')}:</Text>
+                            <Text style={styles.paymentValue}>
+                              ${order.price?.toFixed(2) || '0.00'}
+                            </Text>
+                          </View>
+                          <View style={styles.paymentRow}>
+                            <Text style={styles.paymentLabel}>{t('clientDetails.advancePaid')}:</Text>
+                            <Text style={styles.paymentValue}>
+                              ${order.advancePayment?.toFixed(2) || '0.00'}
+                            </Text>
+                          </View>
+                          <View style={styles.paymentRow}>
+                            <Text style={styles.paymentLabel}>{t('clientDetails.balance')}:</Text>
+                            <Text style={[
+                              styles.paymentValue,
+                              { color: ((order.price || 0) - (order.advancePayment || 0)) > 0 ? colors.error : colors.success }
+                            ]}>
+                              ${((order.price || 0) - (order.advancePayment || 0)).toFixed(2)}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.orderFooter}>
+                          <View style={styles.dateGroup}>
+                            <Text style={styles.dateLabel}>{t('clientDetails.ordered')}:</Text>
+                            <Text style={styles.dateValue}>
+                              {new Date(order.dateOrdered).toLocaleDateString()}
+                            </Text>
+                          </View>
+                          <View style={styles.statusContainer}>
+                            <Text style={styles.statusLabel}>{t('clientDetails.status')}:</Text>
+                            <Text style={[styles.statusValue, styles[order.status]]}>
+                              {order.status}
+                            </Text>
+                          </View>
                         </View>
                       </View>
                     )}
-
-                    {/* Add Images Button for orders without images */}
-                    {!order.image1Url && !order.image2Url && (
-                      <TouchableOpacity
-                        style={styles.addImagesButton}
-                        onPress={() => setAddImagesModal({
-                          visible: true,
-                          orderId: order.id,
-                          orderName: order.orderName,
-                        })}
-                      >
-                        <Icons name="add-a-photo" size={20} color={colors.primary} />
-                        <Text style={styles.addImagesButtonText}>Add Images</Text>
-                      </TouchableOpacity>
-                    )}
-                    
-                    {/* Payment Details Section */}
-                    <View style={styles.paymentDetails}>
-                      <View style={styles.paymentRow}>
-                        <Text style={styles.paymentLabel}>Total Price:</Text>
-                        <Text style={styles.paymentValue}>
-                          ${order.price?.toFixed(2) || '0.00'}
-                        </Text>
-                      </View>
-                      <View style={styles.paymentRow}>
-                        <Text style={styles.paymentLabel}>Advance Paid:</Text>
-                        <Text style={styles.paymentValue}>
-                          ${order.advancePayment?.toFixed(2) || '0.00'}
-                        </Text>
-                      </View>
-                      <View style={styles.paymentRow}>
-                        <Text style={styles.paymentLabel}>Balance:</Text>
-                        <Text style={[
-                          styles.paymentValue,
-                          { color: ((order.price || 0) - (order.advancePayment || 0)) > 0 ? colors.error : colors.success }
-                        ]}>
-                          ${((order.price || 0) - (order.advancePayment || 0)).toFixed(2)}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.orderFooter}>
-                      <View style={styles.dateGroup}>
-                        <Text style={styles.dateLabel}>Ordered:</Text>
-                        <Text style={styles.dateValue}>
-                          {new Date(order.dateOrdered).toLocaleDateString()}
-                        </Text>
-                      </View>
-                      <View style={styles.statusContainer}>
-                        <Text style={styles.statusLabel}>Status:</Text>
-                        <Text style={[styles.statusValue, styles[order.status]]}>
-                          {order.status}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
+                  </TouchableOpacity>
+                  
+                  {/* Order separator line - not for the last order */}
+                  {index < client.orders.length - 1 && (
+                    <View style={styles.orderSeparator} />
+                  )}
+                </React.Fragment>
+              ))}
           </View>
         </ScrollView>
 
@@ -259,7 +302,7 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
           style={styles.addButton}
           onPress={() => setShowAddOrder(true)}
         >
-          <Text style={styles.addButtonText}>Add New Order</Text>
+          <Text style={styles.addButtonText}>{t('clientDetails.addNewOrder')}</Text>
         </TouchableOpacity>
 
         {/* Keep the modals for editing and adding orders */}
@@ -371,7 +414,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff15',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 8,
   },
   orderItemExpanded: {
     backgroundColor: '#ffffff20',
@@ -381,11 +423,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  orderHeaderLeft: {
+    flex: 1,
+  },
+  orderHeaderRight: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: spacing.m,
+  },
+  expandIcon: {
+    opacity: 0.8,
+  },
   orderName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.mainText,
-    flex: 1,
+    marginBottom: spacing.xs,
   },
   orderDueDate: {
     flexDirection: 'row',
@@ -429,7 +482,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   addButtonText: {
-    color: colors.mainText,
+    color: colors.textOnPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -528,6 +581,12 @@ const styles = StyleSheet.create({
     fontSize: textVariants.body1.fontSize,
     color: colors.primary,
     fontWeight: '500',
+  },
+  orderSeparator: {
+    height: 1,
+    backgroundColor: colors.borderHeavy,
+    marginVertical: spacing.m,
+    opacity: 0.5,
   },
 });
 

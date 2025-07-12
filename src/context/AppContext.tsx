@@ -10,6 +10,7 @@ import {
   checkPinLockout
 } from '../utils/recoveryUtils';
 import { notificationService, NotificationData } from '../utils/notificationService';
+import { translate } from '../i18n';
 
 // Types
 interface DesignItem {
@@ -73,7 +74,21 @@ interface AppContextType {
   getNotificationPermissionStatus: () => Promise<string>;
 }
 
-const DEFAULT_MEASUREMENT_ATTRIBUTES = [
+// Default measurement attributes - these will be translated
+const getDefaultMeasurementAttributes = (): string[] => [
+  translate('defaultMeasurements.shoulder'),
+  translate('defaultMeasurements.chest'),
+  translate('defaultMeasurements.waist'),
+  translate('defaultMeasurements.hips'),
+  translate('defaultMeasurements.topLength'),
+  translate('defaultMeasurements.trouserLength'),
+  translate('defaultMeasurements.legRound'),
+  translate('defaultMeasurements.armRound'),
+  translate('defaultMeasurements.wrist')
+];
+
+// Keep original keys for backward compatibility and user preference storage
+const DEFAULT_MEASUREMENT_KEYS = [
   'shoulder',
   'chest',
   'waist',
@@ -93,7 +108,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({ name: 'LYZMA CREATIONS' });
   const [designs, setDesigns] = useState<DesignItem[]>([]);
   const [inspirations, setInspirations] = useState<DesignItem[]>([]);
-  const [measurementAttributes, setMeasurementAttributes] = useState<string[]>(DEFAULT_MEASUREMENT_ATTRIBUTES);
+  const [measurementAttributes, setMeasurementAttributes] = useState<string[]>(getDefaultMeasurementAttributes());
   const [isLoading, setIsLoading] = useState(true);
   const [hasPinSet, setHasPinSet] = useState(false);
   const [hasSecurityQuestions, setHasSecurityQuestions] = useState(false);
@@ -138,7 +153,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setCompanyInfo({ name: 'LYZMA CREATIONS' });
       setDesigns([]);
       setInspirations([]);
-      setMeasurementAttributes(DEFAULT_MEASUREMENT_ATTRIBUTES);
+      setMeasurementAttributes(getDefaultMeasurementAttributes());
       setIsLoading(false);
       setPushToken(null);
       setNotificationPermissionStatus('unknown');
@@ -162,7 +177,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           name: profile.company_name || 'LYZMA CREATIONS',
           logo: profile.company_logo,
         });
-        setMeasurementAttributes(profile.measurement_attributes || DEFAULT_MEASUREMENT_ATTRIBUTES);
+        setMeasurementAttributes(profile.measurement_attributes || getDefaultMeasurementAttributes());
         setHasPinSet(!!profile.pin_hash); // Check if PIN is set
         setHasSecurityQuestions(!!(profile.security_question_1 && profile.security_answer_1_hash && 
                                    profile.security_question_2 && profile.security_answer_2_hash)); // Check if security questions are set

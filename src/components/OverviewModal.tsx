@@ -15,6 +15,7 @@ import { spacing } from '../theme/spacing';
 import { themeUtils } from '../theme';
 import { supabase } from '@/supabaseConfig';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface Order {
   id: string;
@@ -39,6 +40,7 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
   initialTab = 'active'
 }) => {
   const { user } = useApp();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'active' | 'week' | 'today'>(initialTab);
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState<{
@@ -107,7 +109,7 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
         // Simple orders (with client join)
         ...(simpleOrders || []).map(order => ({
           id: order.id,
-          client_name: order.clients?.full_name || 'Unknown Client',
+          client_name: (order.clients as any)?.full_name || t('overviewModal.unknownClient'),
           order_name: order.order_name,
           date_delivery: order.date_delivery,
           total_cost: order.price,
@@ -118,7 +120,7 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
         // Bulk orders (use order_name as display name)
         ...(bulkOrders || []).map(order => ({
           id: order.id,
-          client_name: order.order_name || 'Bulk Order',
+          client_name: order.order_name || t('overviewModal.bulkOrder'),
           order_name: order.order_name,
           date_delivery: order.date_delivery,
           total_cost: order.price,
@@ -179,7 +181,7 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
           <View style={styles.orderMeta}>
             <View style={[styles.typeTag, item.type === 'bulk' ? styles.bulkTag : styles.simpleTag]}>
               <Text style={styles.typeText}>
-                {item.type === 'bulk' ? 'Bulk' : 'Order'}
+                {item.type === 'bulk' ? t('overviewModal.bulk') : t('overviewModal.order')}
               </Text>
             </View>
             <Text style={styles.orderId}>#{item.id.slice(-6)}</Text>
@@ -196,7 +198,7 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
   const renderEmptyState = (message: string) => (
     <View style={styles.emptyState}>
       <Icons name="calendar-times" size={48} color={colors.textSecondary} />
-      <Text style={styles.emptyTitle}>No Orders Found</Text>
+      <Text style={styles.emptyTitle}>{t('overviewModal.noOrdersFound')}</Text>
       <Text style={styles.emptyMessage}>{message}</Text>
     </View>
   );
@@ -206,7 +208,7 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading orders...</Text>
+          <Text style={styles.loadingText}>{t('overviewModal.loading')}</Text>
         </View>
       );
     }
@@ -215,9 +217,9 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
     
     if (currentOrders.length === 0) {
       const messages = {
-        active: 'You have no active orders at the moment.',
-        week: 'No orders are due this week.',
-        today: 'No orders are due today.'
+        active: t('overviewModal.noActiveOrders'),
+        week: t('overviewModal.noWeekOrders'),
+        today: t('overviewModal.noTodayOrders')
       };
       return renderEmptyState(messages[activeTab]);
     }
@@ -234,9 +236,9 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
   };
 
   const tabs = [
-    { key: 'active', label: 'Active Orders', count: orders.active.length },
-    { key: 'week', label: 'This Week', count: orders.week.length },
-    { key: 'today', label: 'Today', count: orders.today.length },
+    { key: 'active', label: t('overviewModal.activeOrders'), count: orders.active.length },
+    { key: 'week', label: t('overviewModal.thisWeek'), count: orders.week.length },
+    { key: 'today', label: t('overviewModal.today'), count: orders.today.length },
   ];
 
   return (
@@ -249,7 +251,7 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Order Overview</Text>
+          <Text style={styles.title}>{t('overviewModal.title')}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icons name="times" size={20} color={colors.textSecondary} />
           </TouchableOpacity>

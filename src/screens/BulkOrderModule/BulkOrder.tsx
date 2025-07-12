@@ -9,6 +9,7 @@ import Header from '@/src/components/Header';
 import { colors } from '@/src/theme/colors';
 import BulkOrderDetails from './BulkOrderDetails';
 import Icons from "react-native-vector-icons/FontAwesome5";
+import { useTranslation } from '../../hooks/useTranslation';
 
 
 // Helper function to get status color
@@ -23,11 +24,12 @@ const getStatusColor = (status: OrderStatus) => {
   return colors[status] || '#95a5a6';  // Default gray
 };
 
-const BulkOrderList = ({ onSelectOrder }) => {
+const BulkOrderList = ({ onSelectOrder }: { onSelectOrder: (order: BulkOrderType) => void }) => {
   const navigation = useNavigation();
   const { bulkOrders } = useClients();
+  const { t } = useTranslation();
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: BulkOrderType }) => (
     <TouchableOpacity
       style={styles.orderCard}
       onPress={() => onSelectOrder(item)}
@@ -42,13 +44,13 @@ const BulkOrderList = ({ onSelectOrder }) => {
       <View style={styles.orderInfo}>
         <View style={styles.infoRow}>
           <MaterialIcons name="event" size={16} color="#666" />
-          <Text style={styles.dateText}>Delivery: {item.dateDelivery}</Text>
+          <Text style={styles.dateText}>{t('bulkOrders.delivery')}: {item.dateDelivery}</Text>
         </View>
 
         <View style={styles.infoRow}>
           <MaterialIcons name="group" size={16} color="#666" />
           <Text style={styles.memberCount}>
-            {item.members.length} {item.members.length === 1 ? 'Member' : 'Members'}
+            {item.members.length} {item.members.length === 1 ? t('bulkOrders.member') : t('bulkOrders.members')}
           </Text>
         </View>
 
@@ -63,16 +65,16 @@ const BulkOrderList = ({ onSelectOrder }) => {
   const EmptyState = () => (
     <View style={styles.emptyState}>
       <MaterialIcons name="group-add" size={64} color="#ccc" />
-      <Text style={styles.emptyStateText}>No bulk orders yet</Text>
+      <Text style={styles.emptyStateText}>{t('bulkOrders.noBulkOrders')}</Text>
       <Text style={styles.emptyStateSubText}>
-        Tap the + button to create your first bulk order
+        {t('bulkOrders.tapToCreateFirst')}
       </Text>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Header title="Bulk Orders" onBack={() => navigation.goBack()} />
+      <Header title={t('navigation.bulkOrders')} onBack={() => navigation.goBack()} />
       <FlatList
         data={bulkOrders}
         renderItem={renderItem}
@@ -82,7 +84,7 @@ const BulkOrderList = ({ onSelectOrder }) => {
       />
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate('AddBulkOrder')}
+        onPress={() => (navigation as any).navigate('AddBulkOrder')}
       >
         <Icons name="plus" size={24} color="white" />
       </TouchableOpacity>

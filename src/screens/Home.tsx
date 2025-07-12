@@ -22,6 +22,7 @@ import OverviewModal from '../components/OverviewModal';
 import { useApp } from '../context/AppContext';
 import { supabase } from "@/supabaseConfig";
 import * as Device from 'expo-device';
+import { useTranslation } from '../hooks/useTranslation';
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH >= 768;
@@ -37,67 +38,68 @@ interface TileData {
   gradient: string[];
 }
 
-// Define the tiles data with craft aesthetic
-const TILES_DATA: TileData[] = [
-  {
-    id: '1',
-    title: 'New Order',
-    description: 'Create custom orders',
-    icon: 'plus-circle',
-    route: 'NewOrder',
-    color: colors.primary,
-    gradient: [colors.primary, colors.primaryDark],
-  },
-  {
-    id: '2',
-    title: 'My Clients',
-    description: 'Manage client profiles',
-    icon: 'users',
-    route: 'MyClients',
-    color: colors.secondary,
-    gradient: [colors.secondary, colors.secondaryDark],
-  },
-  {
-    id: '3',
-    title: 'My Designs',
-    description: 'Design gallery',
-    icon: 'palette',
-    route: 'MyDesigns',
-    color: colors.accent,
-    gradient: [colors.accent, colors.accentDark],
-  },
-  {
-    id: '4',
-    title: 'Calendar',
-    description: 'Delivery schedule',
-    icon: 'calendar-alt',
-    route: 'Calendar',
-    color: colors.info,
-    gradient: [colors.info, '#2563eb'],
-  },
-  {
-    id: '5',
-    title: 'Inspirations',
-    description: 'Creative references',
-    icon: 'lightbulb',
-    route: 'MyInspirations',
-    color: colors.warning,
-    gradient: [colors.warning, '#d97706'],
-  },
-  {
-    id: '6',
-    title: 'Bulk Orders',
-    description: 'Large volume orders',
-    icon: 'boxes',
-    route: 'BulkOrder',
-    color: colors.success,
-    gradient: [colors.success, '#059669'],
-  }
-];
-
 const Home = () => {
   const navigation = useNavigation();
   const { companyInfo, user, sendTestNotification, notificationPermissionStatus, hasPinSet } = useApp();
+  const { t } = useTranslation();
+
+  // Define the tiles data with craft aesthetic - moved inside component to use translations
+  const TILES_DATA: TileData[] = [
+    {
+      id: '1',
+      title: t('navigation.newOrder'),
+      description: 'Create custom orders',
+      icon: 'plus-circle',
+      route: 'NewOrder',
+      color: colors.primary,
+      gradient: [colors.primary, colors.primaryDark],
+    },
+    {
+      id: '2',
+      title: t('navigation.myClients'),
+      description: 'Manage client profiles',
+      icon: 'users',
+      route: 'MyClients',
+      color: colors.secondary,
+      gradient: [colors.secondary, colors.secondaryDark],
+    },
+    {
+      id: '3',
+      title: t('navigation.myDesigns'),
+      description: 'Design gallery',
+      icon: 'palette',
+      route: 'MyDesigns',
+      color: colors.accent,
+      gradient: [colors.accent, colors.accentDark],
+    },
+    {
+      id: '4',
+      title: t('navigation.calendar'),
+      description: 'Delivery schedule',
+      icon: 'calendar-alt',
+      route: 'Calendar',
+      color: colors.info,
+      gradient: [colors.info, '#2563eb'],
+    },
+    {
+      id: '5',
+      title: t('navigation.myInspirations'),
+      description: 'Creative references',
+      icon: 'lightbulb',
+      route: 'MyInspirations',
+      color: colors.warning,
+      gradient: [colors.warning, '#d97706'],
+    },
+    {
+      id: '6',
+      title: t('navigation.bulkOrder'),
+      description: 'Large volume orders',
+      icon: 'boxes',
+      route: 'BulkOrder',
+      color: colors.success,
+      gradient: [colors.success, '#059669'],
+    }
+  ];
   const [dimensions, setDimensions] = useState({ 
     window: Dimensions.get('window') 
   });
@@ -379,7 +381,7 @@ const Home = () => {
                 {companyInfo.name}
               </Text>
               <Text style={styles.welcomeSubtext}>
-                Welcome back to your workspace
+                {t('pin.welcomeBack')}
               </Text>
             </View>
           </View>
@@ -397,7 +399,7 @@ const Home = () => {
           styles.statsSection,
           { paddingHorizontal: containerPadding }
         ]}>
-          <Text style={styles.sectionTitle}>Quick Overview</Text>
+          <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
           <View style={styles.statsRow}>
             <TouchableOpacity 
               style={[styles.statCard, styles.activeOrdersCard]}
@@ -409,7 +411,7 @@ const Home = () => {
               ) : (
                 <Text style={[styles.statNumber, styles.activeOrdersNumber]}>{overview.activeOrders}</Text>
               )}
-              <Text style={[styles.statLabel, styles.activeOrdersLabel]}>Active Orders</Text>
+              <Text style={[styles.statLabel, styles.activeOrdersLabel]}>{t('home.activeOrders')}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.statCard, styles.dueWeekCard]}
@@ -421,7 +423,7 @@ const Home = () => {
               ) : (
                 <Text style={[styles.statNumber, styles.dueWeekNumber]}>{overview.dueThisWeek}</Text>
               )}
-              <Text style={[styles.statLabel, styles.dueWeekLabel]}>Due This Week</Text>
+              <Text style={[styles.statLabel, styles.dueWeekLabel]}>{t('home.dueThisWeek')}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.statCard, styles.dueTodayCard]}
@@ -433,7 +435,7 @@ const Home = () => {
               ) : (
                 <Text style={[styles.statNumber, styles.dueTodayNumber]}>{overview.dueToday}</Text>
               )}
-              <Text style={[styles.statLabel, styles.dueTodayLabel]}>Due Today</Text>
+              <Text style={[styles.statLabel, styles.dueTodayLabel]}>{t('home.dueToday')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -443,7 +445,7 @@ const Home = () => {
           styles.actionsSection,
           { paddingHorizontal: containerPadding }
         ]}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
           <View style={styles.tilesContainer}>
             {TILES_DATA.map(renderTile)}
           </View>
@@ -454,7 +456,7 @@ const Home = () => {
           styles.testSection,
           { paddingHorizontal: containerPadding }
         ]}>
-          <Text style={styles.sectionTitle}>🧪 Developer Testing</Text>
+          <Text style={styles.sectionTitle}>{t('home.developerTesting')}</Text>
           <TouchableOpacity
             style={[
               styles.testButton,
@@ -470,18 +472,18 @@ const Home = () => {
               <Icons name="bell" size={20} color={colors.textOnPrimary} />
             )}
             <Text style={styles.testButtonText}>
-              {testingNotification ? 'Sending...' : 'Send Test Notification'}
+              {testingNotification ? t('home.sending') : t('home.sendTestNotification')}
             </Text>
           </TouchableOpacity>
           
           <View style={styles.notificationStatus}>
             <Text style={styles.statusText}>
-              📱 Notification Status: {notificationPermissionStatus}
+              {t('home.notificationStatus', { status: notificationPermissionStatus })}
             </Text>
             {notificationPermissionStatus !== 'granted' && (
-              <Text style={styles.statusHint}>
-                ⚠️ Please enable notifications in app settings to receive push notifications
-              </Text>
+                              <Text style={styles.statusHint}>
+                  {t('home.enableNotifications')}
+                </Text>
             )}
             
             {/* Add simulator-specific message */}
