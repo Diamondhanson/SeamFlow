@@ -258,6 +258,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.m,
     paddingVertical: spacing.s,
     height: 60,
+    paddingTop: 50
   },
   headerLeft: {
     flex: 1,

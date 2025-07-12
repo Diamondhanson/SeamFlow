@@ -28,7 +28,36 @@ import { useTranslation } from '../hooks/useTranslation';
 import ImageViewer from '../components/ImageViewer';
 
 const { width } = Dimensions.get('window');
-const TILE_SIZE = (width - 48) / 2; // 2 columns with 16px padding on sides and between
+
+// Responsive grid system for different screen sizes
+const getGridConfig = () => {
+  const screenWidth = width;
+  
+  if (screenWidth < 768) {
+    // Mobile: 2 columns
+    const columns = 2;
+    const padding = 16;
+    const gap = 16;
+    const tileSize = (screenWidth - (padding * 2) - gap) / columns;
+    return { columns, tileSize, padding };
+  } else if (screenWidth < 1024) {
+    // Small tablet: 3 columns
+    const columns = 3;
+    const padding = 24;
+    const gap = 16;
+    const tileSize = (screenWidth - (padding * 2) - (gap * (columns - 1))) / columns;
+    return { columns, tileSize, padding };
+  } else {
+    // Large tablet: 4 columns
+    const columns = 4;
+    const padding = 32;
+    const gap = 20;
+    const tileSize = (screenWidth - (padding * 2) - (gap * (columns - 1))) / columns;
+    return { columns, tileSize, padding };
+  }
+};
+
+const { columns: GRID_COLUMNS, tileSize: TILE_SIZE, padding: GRID_PADDING } = getGridConfig();
 
 // Image compression utility
 const compressImage = async (imageUri: string): Promise<{ compressed: string; thumbnail: string }> => {
@@ -339,8 +368,8 @@ const MyDesigns = () => {
             data={filteredDesigns}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={styles.columnWrapper}
+            numColumns={GRID_COLUMNS}
+            columnWrapperStyle={GRID_COLUMNS > 1 ? styles.columnWrapper : undefined}
             contentContainerStyle={styles.gridContainer}
             ListEmptyComponent={() => (
               <View style={styles.emptyState}>
@@ -409,7 +438,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   contentContainer: {
-    paddingHorizontal: Dimensions.get('window').width >= 768 ? spacing.pageTablet : spacing.page,
+    paddingHorizontal: GRID_PADDING,
     flex: 1,
   },
   welcomeSection: {
@@ -438,6 +467,7 @@ const styles = StyleSheet.create({
   columnWrapper: {
     justifyContent: 'space-between',
     marginBottom: spacing.m,
+    paddingHorizontal: GRID_COLUMNS > 2 ? spacing.xs : 0,
   },
   
   designTile: {
