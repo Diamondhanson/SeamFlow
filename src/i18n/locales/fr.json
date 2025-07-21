@@ -22,6 +22,18 @@
     "clear": "Effacer",
     "saving": "Enregistrement..."
   },
+  "addMeasurementAttribute": {
+    "title": "Ajouter un attribut de mesure",
+    "description": "Ajouter un nouvel attribut de mesure qui sera disponible pour tous les clients et commandes.",
+    "attributeName": "Nom de l'attribut",
+    "attributeNamePlaceholder": "ex., Cou, Longueur de manche, etc.",
+    "initialValue": "Valeur initiale",
+    "initialValuePlaceholder": "0.00",
+    "add": "Ajouter l'attribut",
+    "enterAttributeName": "Veuillez entrer un nom d'attribut",
+    "attributeExists": "Cet attribut de mesure existe déjà",
+    "saveError": "Échec de l'enregistrement du nouvel attribut. Veuillez réessayer."
+  },
   "welcome": {
     "title": "BIENVENUE DANS",
     "appName": "SEAMFLOW",

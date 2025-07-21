@@ -90,7 +90,7 @@ function NavigationStack() {
   );
 }
 
-export default function Page() {
+function Page() {
   // Initialize i18n system when app loads
   useEffect(() => {
     initializeLanguage();
@@ -113,5 +113,7 @@ export default function Page() {
     </>
   );
 }
+
+export default Page;
 
 

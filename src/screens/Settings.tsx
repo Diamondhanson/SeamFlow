@@ -21,7 +21,19 @@ import Header from '../components/Header';
 import { useTranslation } from '../hooks/useTranslation';
 
 const Settings = () => {
-  const { logout, user, companyInfo, updateCompanyInfo, hasPinSet, removePin, hasSecurityQuestions } = useApp();
+  const { 
+    logout, 
+    user, 
+    companyInfo, 
+    updateCompanyInfo, 
+    hasPinSet, 
+    removePin, 
+    hasSecurityQuestions,
+    sendTestNotification,
+    checkPushTokensInDatabase,
+    pushToken,
+    notificationPermissionStatus
+  } = useApp();
   const navigation = useNavigation();
   const { t, changeLanguage, availableLanguages, locale } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -363,6 +375,82 @@ const Settings = () => {
               <Icons name="chevron-right" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
+        </View>
+
+        {/* Notification Testing Section */}
+        <View style={[styles.section, styles.customizationSection]}>
+          <View style={styles.sectionHeaderWithIcon}>
+            <View style={[styles.sectionIconContainer, { backgroundColor: colors.info }]}>
+              <Icons name="bell" size={20} color={colors.textOnPrimary} />
+            </View>
+            <Text style={styles.sectionTitle}>Notification Testing</Text>
+          </View>
+
+          <View style={styles.menuItem}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.info }]}>
+              <Icons name="info-circle" size={16} color={colors.textOnPrimary} />
+            </View>
+            <View style={styles.menuItemContent}>
+              <Text style={styles.menuItemText}>Push Token Status</Text>
+              <Text style={styles.menuItemSubtext}>
+                {pushToken ? 'Token available' : 'No token found'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.menuItem}>
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.info }]}>
+              <Icons name="shield-alt" size={16} color={colors.textOnPrimary} />
+            </View>
+            <View style={styles.menuItemContent}>
+              <Text style={styles.menuItemText}>Permission Status</Text>
+              <Text style={styles.menuItemSubtext}>
+                {notificationPermissionStatus}
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={async () => {
+              try {
+                await checkPushTokensInDatabase();
+                Alert.alert('Debug Info', 'Check console for push token details');
+              } catch (error) {
+                Alert.alert('Error', 'Failed to check push tokens');
+              }
+            }}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.warning }]}>
+              <Icons name="database" size={16} color={colors.textOnPrimary} />
+            </View>
+            <View style={styles.menuItemContent}>
+              <Text style={styles.menuItemText}>Check Database Tokens</Text>
+              <Text style={styles.menuItemSubtext}>View stored push tokens</Text>
+            </View>
+            <Icons name="chevron-right" size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={async () => {
+              try {
+                await sendTestNotification();
+                Alert.alert('Success', 'Test notification sent!');
+              } catch (error) {
+                Alert.alert('Error', 'Failed to send test notification');
+              }
+            }}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.success }]}>
+              <Icons name="paper-plane" size={16} color={colors.textOnPrimary} />
+            </View>
+            <View style={styles.menuItemContent}>
+              <Text style={styles.menuItemText}>Send Test Notification</Text>
+              <Text style={styles.menuItemSubtext}>Test push notification</Text>
+            </View>
+            <Icons name="chevron-right" size={16} color={colors.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Logout Section */}

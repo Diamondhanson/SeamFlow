@@ -40,7 +40,7 @@ interface TileData {
 
 const Home = () => {
   const navigation = useNavigation();
-  const { companyInfo, user, sendTestNotification, notificationPermissionStatus, hasPinSet } = useApp();
+  const { companyInfo, user, sendTestNotification, notificationPermissionStatus, hasPinSet, manualDeliveryCheck } = useApp();
   const { t } = useTranslation();
 
   // Define the tiles data with craft aesthetic - moved inside component to use translations
@@ -213,6 +213,22 @@ const Home = () => {
       console.log('Test notification sent successfully!');
     } catch (error) {
       console.error('Failed to send test notification:', error);
+      // You could add an error toast here
+    } finally {
+      setTestingNotification(false);
+    }
+  };
+
+  const handleTestDeliveryNotification = async () => {
+    if (!user) return;
+    
+    setTestingNotification(true);
+    try {
+      const result = await manualDeliveryCheck();
+      console.log('Delivery notification test completed:', result);
+      // You could add a success toast here
+    } catch (error) {
+      console.error('Failed to test delivery notification:', error);
       // You could add an error toast here
     } finally {
       setTestingNotification(false);
@@ -473,6 +489,25 @@ const Home = () => {
             )}
             <Text style={styles.testButtonText}>
               {testingNotification ? t('home.sending') : t('home.sendTestNotification')}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.testButton,
+              testingNotification && styles.testButtonLoading
+            ]}
+            onPress={handleTestDeliveryNotification}
+            disabled={testingNotification || !user}
+            activeOpacity={0.8}
+          >
+            {testingNotification ? (
+              <ActivityIndicator size="small" color={colors.textOnPrimary} />
+            ) : (
+              <Icons name="calendar-alt" size={20} color={colors.textOnPrimary} />
+            )}
+            <Text style={styles.testButtonText}>
+              {testingNotification ? t('home.sending') : 'Test Delivery Notifications'}
             </Text>
           </TouchableOpacity>
           

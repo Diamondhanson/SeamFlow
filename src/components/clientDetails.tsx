@@ -17,6 +17,7 @@ import { defaultStyles, themeUtils } from '../theme';
 import AddNewOrder from './addNewOrder';
 import EditMeasurementValue from './editMeasurementValue';
 import AddOrderImagesModal from './AddOrderImagesModal';
+import AddMeasurementAttributeModal from './AddMeasurementAttributeModal';
 import { useClients } from '../context/clientContext';
 import Icons from "react-native-vector-icons/MaterialIcons";
 import Header from './Header';
@@ -49,6 +50,7 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
     orderId: '',
     orderName: '',
   });
+  const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
 
   // Get the latest client data from context
   const client = useMemo(() => {
@@ -85,6 +87,16 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
       const updatedMeasurements = {
         ...client.measurements,
         [editingMeasurement.name]: newValue
+      };
+      updateClientMeasurements(client.id, updatedMeasurements);
+    }
+  };
+
+  const handleAddMeasurementAttribute = (attributeName: string, initialValue: number) => {
+    if (client) {
+      const updatedMeasurements = {
+        ...client.measurements,
+        [attributeName]: initialValue
       };
       updateClientMeasurements(client.id, updatedMeasurements);
     }
@@ -135,6 +147,12 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
                 <Text style={styles.sectionIconText}>📏</Text>
               </View>
               <Text style={styles.sectionTitle}>{t('clientDetails.measurements')}</Text>
+              <TouchableOpacity
+                style={styles.addAttributeButton}
+                onPress={() => setShowAddAttributeModal(true)}
+              >
+                <Icons name="add" size={20} color={colors.primary} />
+              </TouchableOpacity>
             </View>
             <View style={styles.measurementsGrid}>
               {measurementAttributes.map((attr) => (
@@ -330,6 +348,12 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
           clientId={client.id}
           orderId={addImagesModal.orderId}
           orderName={addImagesModal.orderName}
+        />
+
+        <AddMeasurementAttributeModal
+          visible={showAddAttributeModal}
+          onClose={() => setShowAddAttributeModal(false)}
+          onAttributeAdded={handleAddMeasurementAttribute}
         />
       </View>
     </SafeAreaWrapper>
@@ -587,6 +611,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.borderHeavy,
     marginVertical: spacing.m,
     opacity: 0.5,
+  },
+  addAttributeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: spacing.borderRadius.round,
+    backgroundColor: colors.surfaceElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
 });
 

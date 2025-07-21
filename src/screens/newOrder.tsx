@@ -12,6 +12,8 @@ import DatePicker from '../components/DatePicker';
 import Header from '../components/Header';
 import PhoneNumberInput from '../components/PhoneNumberInput';
 import OrderImagePicker from '../components/OrderImagePicker';
+import AddMeasurementAttributeModal from '../components/AddMeasurementAttributeModal';
+import Icons from "react-native-vector-icons/MaterialIcons";
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -73,6 +75,7 @@ const NewOrder = () => {
     image1Uri: undefined as string | undefined,
     image2Uri: undefined as string | undefined,
   });
+  const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
 
   // Initialize form data and measurements for existing client
   useEffect(() => {
@@ -104,6 +107,13 @@ const NewOrder = () => {
     setMeasurements(prev => ({
       ...prev,
       [attr]: text === '' ? 0 : parseFloat(text) || 0
+    }));
+  };
+
+  const handleAddMeasurementAttribute = (attributeName: string, initialValue: number) => {
+    setMeasurements(prev => ({
+      ...prev,
+      [attributeName]: initialValue
     }));
   };
 
@@ -245,6 +255,12 @@ const NewOrder = () => {
                 <Text style={styles.sectionIconText}>📏</Text>
               </View>
               <Text style={styles.sectionTitle}>{t('newOrder.measurements')}</Text>
+              <TouchableOpacity
+                style={styles.addAttributeButton}
+                onPress={() => setShowAddAttributeModal(true)}
+              >
+                <Icons name="add" size={20} color={colors.primary} />
+              </TouchableOpacity>
             </View>
             <View style={styles.measurementsTable}>
               <View style={styles.tableHeader}>
@@ -339,6 +355,12 @@ const NewOrder = () => {
           </View>
         </View>
       </KeyboardAwareScrollView>
+
+      <AddMeasurementAttributeModal
+        visible={showAddAttributeModal}
+        onClose={() => setShowAddAttributeModal(false)}
+        onAttributeAdded={handleAddMeasurementAttribute}
+      />
     </SafeAreaWrapper>
   );
 };
@@ -568,6 +590,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
     fontWeight: '500',
     letterSpacing: 0.1,
+  },
+  addAttributeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: spacing.borderRadius.round,
+    backgroundColor: colors.surfaceElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
 });
 

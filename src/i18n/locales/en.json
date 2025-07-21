@@ -22,6 +22,18 @@
     "clear": "Clear",
     "saving": "Saving..."
   },
+  "addMeasurementAttribute": {
+    "title": "Add Measurement Attribute",
+    "description": "Add a new measurement attribute that will be available for all clients and orders.",
+    "attributeName": "Attribute Name",
+    "attributeNamePlaceholder": "e.g., Neck, Sleeve Length, etc.",
+    "initialValue": "Initial Value",
+    "initialValuePlaceholder": "0.00",
+    "add": "Add Attribute",
+    "enterAttributeName": "Please enter an attribute name",
+    "attributeExists": "This measurement attribute already exists",
+    "saveError": "Failed to save the new attribute. Please try again."
+  },
   "welcome": {
     "title": "WELCOME TO",
     "appName": "SEAMFLOW",

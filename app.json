@@ -40,7 +40,9 @@
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
         "WAKE_LOCK",
-        "com.google.android.c2dm.permission.RECEIVE"
+        "com.google.android.c2dm.permission.RECEIVE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
       ],
       "intentFilters": [
         {
@@ -55,7 +57,8 @@
             "DEFAULT"
           ]
         }
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -76,17 +79,20 @@
       [
         "expo-notifications",
         {
-          "color": "#ffffff",
-          "defaultChannel": "default"
+          "icon": "./assets/images/icon.png",
+          "mode": "production",
+          "androidMode": "default",
+          "androidCollapsedTitle": "New Notification"
         }
       ],
       [
-        "expo-font",
-        {
-          "fonts": [
-            "./node_modules/react-native-international-phone-number/lib/assets/fonts/TwemojiMozilla.woff2"
-          ]
-        }
+        "@react-native-firebase/app"
+      ],
+      [
+        "@react-native-firebase/messaging"
+      ],
+      [
+        "expo-font"
       ]
     ],
     "experiments": {

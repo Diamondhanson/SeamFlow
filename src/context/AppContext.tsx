@@ -10,6 +10,7 @@ import {
   checkPinLockout
 } from '../utils/recoveryUtils';
 import { notificationService, NotificationData } from '../utils/notificationService';
+import { deliveryNotificationService } from '../utils/deliveryNotificationService';
 import { translate } from '../i18n';
 
 // Types
@@ -72,6 +73,11 @@ interface AppContextType {
   sendPushNotification: (userIds: string[], notificationData: NotificationData) => Promise<void>;
   scheduleLocalNotification: (notificationData: NotificationData, trigger: Date | number) => Promise<string>;
   getNotificationPermissionStatus: () => Promise<string>;
+  checkPushTokensInDatabase: () => Promise<any[] | undefined>;
+  // Delivery notification functionality
+  checkDeliveryReminders: () => Promise<void>;
+  getDeliveryNotificationHistory: () => Promise<any[]>;
+  manualDeliveryCheck: () => Promise<{ reminders: any[]; notificationsSent: number }>;
 }
 
 // Default measurement attributes - these will be translated
@@ -834,13 +840,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // Notification functionality
   const registerForNotifications = async () => {
     try {
-      if (!user) return;
+      if (!user) {
+        console.log('No user found, skipping notification registration');
+        return;
+      }
+      
+      console.log('Starting notification registration for user:', user.id);
       
       // Register for push notifications
       const token = await notificationService.registerForPushNotifications();
+      console.log('Push token received:', token ? 'YES' : 'NO', token);
+      
       if (token) {
         setPushToken(token);
+        console.log('Storing push token in database...');
         await notificationService.storePushToken(user.id, token);
+        console.log('Push token stored successfully');
+      } else {
+        console.log('No push token received, skipping storage');
       }
       
       // Setup notification listeners
@@ -852,6 +869,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       // Update permission status
       const status = await notificationService.getPermissionStatus();
       setNotificationPermissionStatus(status);
+      console.log('Notification permission status:', status);
       
     } catch (error) {
       console.error('Error registering for notifications:', error);
@@ -861,6 +879,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const sendTestNotification = async () => {
     try {
       if (!user) throw new Error('User not authenticated');
+      
+      // First, ensure we have a push token
+      console.log('Current push token:', pushToken);
+      if (!pushToken) {
+        console.log('No push token found, registering for notifications first...');
+        await registerForNotifications();
+      }
+      
       await notificationService.sendTestNotification(user.id);
     } catch (error) {
       console.error('Error sending test notification:', error);
@@ -894,6 +920,65 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Error getting notification permission status:', error);
       return 'unknown';
+    }
+  };
+
+  const checkPushTokensInDatabase = async () => {
+    try {
+      if (!user) {
+        console.log('No user found');
+        return;
+      }
+      
+      console.log('Checking push tokens in database for user:', user.id);
+      
+      const { data, error } = await supabase
+        .from('push_tokens')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Error fetching push tokens:', error);
+        return;
+      }
+      
+      console.log('Push tokens in database:', data);
+      return data;
+    } catch (error) {
+      console.error('Error checking push tokens:', error);
+    }
+  };
+
+  // Delivery notification functionality
+  const checkDeliveryReminders = async () => {
+    if (!user) return;
+    
+    try {
+      await deliveryNotificationService.sendDeliveryNotifications(user.id);
+    } catch (error) {
+      console.error('Error checking delivery reminders:', error);
+    }
+  };
+
+  const getDeliveryNotificationHistory = async () => {
+    if (!user) return [];
+    
+    try {
+      return await deliveryNotificationService.getDeliveryNotificationHistory(user.id);
+    } catch (error) {
+      console.error('Error getting delivery notification history:', error);
+      return [];
+    }
+  };
+
+  const manualDeliveryCheck = async () => {
+    if (!user) return { reminders: [], notificationsSent: 0 };
+    
+    try {
+      return await deliveryNotificationService.manualDeliveryCheck(user.id);
+    } catch (error) {
+      console.error('Error in manual delivery check:', error);
+      return { reminders: [], notificationsSent: 0 };
     }
   };
 
@@ -931,10 +1016,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         notificationPermissionStatus,
         pushToken,
         registerForNotifications,
-        sendTestNotification,
-        sendPushNotification,
-        scheduleLocalNotification,
-        getNotificationPermissionStatus,
+            sendTestNotification,
+    sendPushNotification,
+    scheduleLocalNotification,
+    getNotificationPermissionStatus,
+    checkPushTokensInDatabase,
+        checkDeliveryReminders,
+        getDeliveryNotificationHistory,
+        manualDeliveryCheck,
       }}
     >
       {children}
