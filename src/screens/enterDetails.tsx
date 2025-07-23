@@ -48,6 +48,7 @@ const EnterDetails = () => {
   
   // Development helper for manual token entry
   const [showDevHelper, setShowDevHelper] = useState(__DEV__);
+  const [showPassword, setShowPassword] = useState(false);
   const [devToken, setDevToken] = useState('');
 
   // Development helper function to manually test password reset
@@ -443,14 +444,26 @@ const EnterDetails = () => {
             autoCapitalize="none"
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder={t('placeholders.enterPassword')}
-            placeholderTextColor={colors.subText}
-            value={password}
-            secureTextEntry={true}
-            onChangeText={setPassword}
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder={t('placeholders.enterPassword')}
+              placeholderTextColor={colors.subText}
+              value={password}
+              secureTextEntry={!showPassword}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity
+              style={styles.passwordToggle}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Icons 
+                name={showPassword ? "eye-slash" : "eye"} 
+                size={20} 
+                color={colors.subText} 
+              />
+            </TouchableOpacity>
+          </View>
 
           {/* Help text for forgot password */}
           {!isSignUp && !showForgotPassword && (
@@ -629,6 +642,25 @@ const styles = StyleSheet.create({
     padding: 16,
     color: colors.mainText,
     fontSize: 16,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
+    backgroundColor: "#ffffff15",
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  passwordInput: {
+    flex: 1,
+    color: colors.mainText,
+    fontSize: 16,
+    paddingRight: 10, // Add some space between input and toggle
+  },
+  passwordToggle: {
+    padding: 5,
   },
   button: {
     backgroundColor: colors.primary,

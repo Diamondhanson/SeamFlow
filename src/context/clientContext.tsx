@@ -166,7 +166,18 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addClient = async (newClient: Omit<Client, 'id'>) => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ addClient: No user authenticated');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('📝 Adding new client:', {
+      fullName: newClient.fullName,
+      phoneNumber: newClient.phoneNumber,
+      address: newClient.address,
+      measurementsCount: Object.keys(newClient.measurements).length,
+      ordersCount: newClient.orders?.length || 0
+    });
 
     try {
       // Insert client
@@ -182,10 +193,17 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         .select()
         .single();
 
-      if (clientError) throw clientError;
+      if (clientError) {
+        console.error('❌ Client insert error:', clientError);
+        throw clientError;
+      }
+
+      console.log('✅ Client created successfully:', clientData.id);
 
       // Insert orders if any
       if (newClient.orders && newClient.orders.length > 0) {
+        console.log(`📦 Inserting ${newClient.orders.length} orders for client`);
+        
         const ordersToInsert = newClient.orders.map(order => ({
           client_id: clientData.id,
           user_id: user.id,
@@ -200,47 +218,76 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           image_2_url: order.image2Url,
         }));
 
+        console.log('📦 Orders to insert:', ordersToInsert);
+
         const { error: ordersError } = await supabase
           .from('orders')
           .insert(ordersToInsert);
 
-        if (ordersError) throw ordersError;
+        if (ordersError) {
+          console.error('❌ Orders insert error:', ordersError);
+          throw ordersError;
+        }
+
+        console.log('✅ Orders inserted successfully');
       }
 
       // Reload clients data
       await loadClientsData();
+      console.log('✅ Client data reloaded');
     } catch (error) {
-      console.error('Error adding client:', error);
+      console.error('❌ Error adding client:', error);
       throw error;
     }
   };
 
   const addOrderToClient = async (clientId: string, order: Omit<OrderDetails, 'id' | 'status'>) => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ addOrderToClient: No user authenticated');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('📦 Adding order to client:', {
+      clientId,
+      orderName: order.orderName,
+      dateOrdered: order.dateOrdered,
+      dateDelivery: order.dateDelivery,
+      price: order.price
+    });
 
     try {
+      const orderData = {
+        client_id: clientId,
+        user_id: user.id,
+        order_name: order.orderName,
+        date_ordered: order.dateOrdered,
+        date_delivery: order.dateDelivery,
+        notes: order.notes,
+        status: 'registered',
+        price: order.price || 0,
+        advance_payment: order.advancePayment || 0,
+        image_1_url: order.image1Url,
+        image_2_url: order.image2Url,
+      };
+
+      console.log('📦 Order data to insert:', orderData);
+
       const { error } = await supabase
         .from('orders')
-        .insert({
-          client_id: clientId,
-          user_id: user.id,
-          order_name: order.orderName,
-          date_ordered: order.dateOrdered,
-          date_delivery: order.dateDelivery,
-          notes: order.notes,
-          status: 'registered',
-          price: order.price || 0,
-          advance_payment: order.advancePayment || 0,
-          image_1_url: order.image1Url,
-          image_2_url: order.image2Url,
-        });
+        .insert(orderData);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Order insert error:', error);
+        throw error;
+      }
+
+      console.log('✅ Order added successfully');
 
       // Reload clients data
       await loadClientsData();
+      console.log('✅ Client data reloaded');
     } catch (error) {
-      console.error('Error adding order to client:', error);
+      console.error('❌ Error adding order to client:', error);
       throw error;
     }
   };
@@ -329,51 +376,80 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addBulkOrder = async (newOrder: Omit<BulkOrder, 'id' | 'status'>) => {
-    if (!user) return;
+    if (!user) {
+      console.error('❌ addBulkOrder: No user authenticated');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('📦 Adding bulk order:', {
+      orderName: newOrder.orderName,
+      phoneNumber: newOrder.phoneNumber,
+      membersCount: newOrder.members?.length || 0,
+      dateDelivery: newOrder.dateDelivery
+    });
 
     try {
       // Insert bulk order
-      const { data: bulkOrderData, error: bulkOrderError } = await supabase
+      const bulkOrderData = {
+        user_id: user.id,
+        order_name: newOrder.orderName,
+        date_ordered: newOrder.dateOrdered,
+        date_delivery: newOrder.dateDelivery,
+        phone_number: newOrder.phoneNumber,
+        address: newOrder.address,
+        notes: newOrder.notes,
+        status: 'registered',
+        price: newOrder.price || 0,
+        advance_payment: newOrder.advancePayment || 0,
+        image_1_url: newOrder.image1Url,
+        image_2_url: newOrder.image2Url,
+      };
+
+      console.log('📦 Bulk order data to insert:', bulkOrderData);
+
+      const { data: bulkOrderResult, error: bulkOrderError } = await supabase
         .from('bulk_orders')
-        .insert({
-          user_id: user.id,
-          order_name: newOrder.orderName,
-          date_ordered: newOrder.dateOrdered,
-          date_delivery: newOrder.dateDelivery,
-          phone_number: newOrder.phoneNumber,
-          address: newOrder.address,
-          notes: newOrder.notes,
-          status: 'registered',
-          price: newOrder.price || 0,
-          advance_payment: newOrder.advancePayment || 0,
-          image_1_url: newOrder.image1Url,
-          image_2_url: newOrder.image2Url,
-        })
+        .insert(bulkOrderData)
         .select()
         .single();
 
-      if (bulkOrderError) throw bulkOrderError;
+      if (bulkOrderError) {
+        console.error('❌ Bulk order insert error:', bulkOrderError);
+        throw bulkOrderError;
+      }
+
+      console.log('✅ Bulk order created successfully:', bulkOrderResult.id);
 
       // Insert bulk order members
       if (newOrder.members && newOrder.members.length > 0) {
+        console.log(`👥 Inserting ${newOrder.members.length} members for bulk order`);
+        
         const membersToInsert = newOrder.members.map(member => ({
-          bulk_order_id: bulkOrderData.id,
+          bulk_order_id: bulkOrderResult.id,
           name: member.name,
           measurements: member.measurements,
           notes: member.notes || '',
         }));
 
+        console.log('👥 Members to insert:', membersToInsert);
+
         const { error: membersError } = await supabase
           .from('bulk_order_members')
           .insert(membersToInsert);
 
-        if (membersError) throw membersError;
+        if (membersError) {
+          console.error('❌ Members insert error:', membersError);
+          throw membersError;
+        }
+
+        console.log('✅ Members inserted successfully');
       }
 
       // Reload bulk orders data
       await loadClientsData();
+      console.log('✅ Bulk order data reloaded');
     } catch (error) {
-      console.error('Error adding bulk order:', error);
+      console.error('❌ Error adding bulk order:', error);
       throw error;
     }
   };

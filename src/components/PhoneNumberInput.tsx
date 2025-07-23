@@ -173,6 +173,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             },
             divider: {
               backgroundColor: colors.borderLight,
+              height: 0.5,
+              marginHorizontal: spacing.m,
             },
             countriesList: {
               backgroundColor: colors.surface,
@@ -190,12 +192,14 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             },
             countryButton: {
               backgroundColor: colors.surface,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.borderLight,
+              borderWidth: 0,
+              borderBottomWidth: 0,
+              borderBottomColor: 'transparent',
               paddingHorizontal: spacing.m,
-              paddingVertical: spacing.sm,
+              paddingVertical: spacing.m,
               flexDirection: 'row',
               alignItems: 'center',
+              minHeight: 56,
             },
             noCountryText: {
               color: colors.textSecondary,
@@ -229,8 +233,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
               backgroundColor: colors.surfaceElevated,
               paddingHorizontal: spacing.m,
               paddingVertical: spacing.sm,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.borderLight,
+              borderBottomWidth: 0,
+              borderBottomColor: 'transparent',
             },
           }}
           modalSearchInputPlaceholder="Search countries..."
@@ -256,12 +260,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         <Text style={styles.errorText}>{error}</Text>
       )}
       
-      {/* Helper text */}
-      {selectedCountry && inputValue && (
-        <Text style={styles.helperText}>
-          Full number: {selectedCountry.callingCode} {inputValue}
-        </Text>
-      )}
+      
     </View>
   );
 };

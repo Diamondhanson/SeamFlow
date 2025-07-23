@@ -17,6 +17,7 @@ import { defaultStyles, themeUtils } from '../theme';
 import AddNewOrder from './addNewOrder';
 import EditMeasurementValue from './editMeasurementValue';
 import AddOrderImagesModal from './AddOrderImagesModal';
+import AddMeasurementAttributeModal from './AddMeasurementAttributeModal';
 import { useClients } from '../context/clientContext';
 import Icons from "react-native-vector-icons/MaterialIcons";
 import Header from './Header';
@@ -49,13 +50,14 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
     orderId: '',
     orderName: '',
   });
+  const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
 
   // Get the latest client data from context
   const client = useMemo(() => {
     if (!initialClient) return null;
     return clients.find(c => c.id === initialClient.id) || initialClient;
   }, [clients, initialClient]);
-
+  
   const toggleOrderExpansion = (orderId: string) => {
     const isExpanding = expandedOrderId !== orderId;
     setExpandedOrderId(expandedOrderId === orderId ? null : orderId);
@@ -88,6 +90,11 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
       };
       updateClientMeasurements(client.id, updatedMeasurements);
     }
+  };
+
+  const handleAttributeAdded = (newAttributeName: string) => {
+    // No need to add to measurements here since it will be available next time the screen loads
+    // The measurement will be available through the updated measurementAttributes from context
   };
 
   if (!client) return null;
@@ -135,6 +142,13 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
                 <Text style={styles.sectionIconText}>📏</Text>
               </View>
               <Text style={styles.sectionTitle}>{t('clientDetails.measurements')}</Text>
+              <TouchableOpacity
+                style={styles.addAttributeButton}
+                onPress={() => setShowAddAttributeModal(true)}
+              >
+                <Icons name="add" size={20} color={colors.primary} />
+                <Text style={styles.addAttributeButtonText}>Add</Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.measurementsGrid}>
               {measurementAttributes.map((attr) => (
@@ -330,6 +344,12 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
           clientId={client.id}
           orderId={addImagesModal.orderId}
           orderName={addImagesModal.orderName}
+        />
+        
+        <AddMeasurementAttributeModal
+          visible={showAddAttributeModal}
+          onClose={() => setShowAddAttributeModal(false)}
+          onAttributeAdded={handleAttributeAdded}
         />
       </View>
     </SafeAreaWrapper>
@@ -587,6 +607,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.borderHeavy,
     marginVertical: spacing.m,
     opacity: 0.5,
+  },
+  addAttributeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.s,
+    paddingHorizontal: spacing.m,
+    marginLeft: spacing.m,
+    gap: spacing.xs,
+  },
+  addAttributeButtonText: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.primary,
+    fontWeight: '500',
   },
 });
 

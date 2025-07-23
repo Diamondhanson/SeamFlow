@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, TouchableOpacity, Platform, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Pressable, TouchableOpacity, Platform, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import { useClients, Client, Measurements } from '../context/clientContext';
 import { colors } from '../theme/colors';
 import { textVariants } from '../theme/textVariants';
@@ -12,8 +12,10 @@ import DatePicker from '../components/DatePicker';
 import Header from '../components/Header';
 import PhoneNumberInput from '../components/PhoneNumberInput';
 import OrderImagePicker from '../components/OrderImagePicker';
+import AddMeasurementAttributeModal from '../components/AddMeasurementAttributeModal';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../hooks/useTranslation';
+import { MaterialIcons } from '@expo/vector-icons';
 
 type RouteParams = {
   clientId?: string;
@@ -73,6 +75,7 @@ const NewOrder = () => {
     image1Uri: undefined as string | undefined,
     image2Uri: undefined as string | undefined,
   });
+  const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
 
   // Initialize form data and measurements for existing client
   useEffect(() => {
@@ -107,7 +110,44 @@ const NewOrder = () => {
     }));
   };
 
+  const handleAttributeAdded = (newAttributeName: string) => {
+    // Add the new attribute to measurements with default value 0
+    setMeasurements(prev => ({
+      ...prev,
+      [newAttributeName]: 0
+    }));
+  };
+
   const handleSubmit = async () => {
+    // Validation
+    if (!formData.orderName.trim()) {
+      Alert.alert(t('common.error'), 'Please enter an order name');
+      return;
+    }
+
+    if (!existingClient) {
+      if (!formData.fullName.trim()) {
+        Alert.alert(t('common.error'), 'Please enter client full name');
+        return;
+      }
+      if (!formData.phoneNumber.trim()) {
+        Alert.alert(t('common.error'), 'Please enter client phone number');
+        return;
+      }
+      if (!formData.address.trim()) {
+        Alert.alert(t('common.error'), 'Please enter client address');
+        return;
+      }
+    }
+
+    console.log('🚀 Submitting order form:', {
+      isExistingClient: !!existingClient,
+      orderName: formData.orderName,
+      deliveryDate: formData.deliveryDate.toISOString().split('T')[0],
+      measurementsCount: Object.keys(measurements).length,
+      user: user?.id
+    });
+
     const orderDetails = {
       orderName: formData.orderName,
       dateOrdered: new Date().toISOString().split('T')[0],
@@ -119,12 +159,16 @@ const NewOrder = () => {
       image2Url: orderImages.image2Uri,
     };
 
+    console.log('📋 Order details prepared:', orderDetails);
+
     setIsLoading(true);
     try {
       if (existingClient) {
+        console.log('👤 Updating existing client measurements and adding order');
         await updateClientMeasurements(existingClient.id, measurements);
         await addOrderToClient(existingClient.id, orderDetails);
       } else {
+        console.log('👤 Creating new client with order');
         const newClient: Omit<Client, 'id'> = {
           fullName: formData.fullName,
           phoneNumber: formData.phoneNumber,
@@ -136,11 +180,20 @@ const NewOrder = () => {
             status: 'registered'
           }]
         };
+        console.log('👤 New client data:', newClient);
         await addClient(newClient);
       }
-      navigation.goBack();
-    } catch (error) {
-      console.error('Error saving data:', error);
+      console.log('✅ Order submission successful');
+      Alert.alert('Success', 'Order saved successfully!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } catch (error: any) {
+      console.error('❌ Error saving order:', error);
+      Alert.alert(
+        'Error', 
+        `Failed to save order: ${error.message || 'Unknown error'}`,
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsLoading(false);
     }
@@ -245,6 +298,13 @@ const NewOrder = () => {
                 <Text style={styles.sectionIconText}>📏</Text>
               </View>
               <Text style={styles.sectionTitle}>{t('newOrder.measurements')}</Text>
+              <TouchableOpacity
+                style={styles.addAttributeButton}
+                onPress={() => setShowAddAttributeModal(true)}
+              >
+                <MaterialIcons name="add" size={20} color={colors.primary} />
+                <Text style={styles.addAttributeButtonText}>Add Attribute</Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.measurementsTable}>
               <View style={styles.tableHeader}>
@@ -339,6 +399,11 @@ const NewOrder = () => {
           </View>
         </View>
       </KeyboardAwareScrollView>
+      <AddMeasurementAttributeModal
+        visible={showAddAttributeModal}
+        onClose={() => setShowAddAttributeModal(false)}
+        onAttributeAdded={handleAttributeAdded}
+      />
     </SafeAreaWrapper>
   );
 };
@@ -566,6 +631,25 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: textVariants.body2.fontSize,
     marginBottom: spacing.xs,
+    fontWeight: '500',
+    letterSpacing: 0.1,
+  },
+  addAttributeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.s,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: spacing.borderRadius.m,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
+  },
+  addAttributeButtonText: {
+    color: colors.primary,
+    fontSize: textVariants.body2.fontSize,
+    marginLeft: spacing.xs,
     fontWeight: '500',
     letterSpacing: 0.1,
   },

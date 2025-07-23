@@ -408,7 +408,7 @@
     "wrist": "Wrist"
   },
   "overviewModal": {
-    "title": "Order Overview",
+    "title": "Orders Overview",
     "activeOrders": "Active Orders",
     "thisWeek": "This Week",
     "today": "Today",
@@ -417,7 +417,7 @@
     "order": "Order",
     "bulk": "Bulk",
     "loading": "Loading orders...",
-    "noOrdersFound": "No Orders Found",
+    "noOrdersFound": "No orders found",
     "noActiveOrders": "You have no active orders at the moment.",
     "noWeekOrders": "No orders are due this week.",
     "noTodayOrders": "No orders are due today."

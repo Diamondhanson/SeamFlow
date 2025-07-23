@@ -418,19 +418,19 @@
     "loading": "Chargement des commandes...",
     "noOrdersFound": "Aucune commande trouvée",
     "noActiveOrders": "Vous n'avez aucune commande active pour le moment.",
-    "noWeekOrders": "Aucune commande n'est prévue pour cette semaine.",
-    "noTodayOrders": "Aucune commande n'est prévue pour aujourd'hui."
+    "noWeekOrders": "Aucune commande n'est due cette semaine.",
+    "noTodayOrders": "Aucune commande n'est due aujourd'hui."
   },
   "addNewOrder": {
     "title": "Nouvelle Commande",
     "orderNamePlaceholder": "Nom de la Commande",
     "deliveryDate": "Date de Livraison:",
-    "orderNotesPlaceholder": "Notes de Commande",
+    "orderNotesPlaceholder": "Notes de la Commande",
     "paymentDetails": "Détails de Paiement",
     "totalPrice": "Prix Total",
-    "totalPricePlaceholder": "Saisir le prix total",
-    "advanceReceived": "Acompte Reçu",
-    "advancePlaceholder": "Saisir le montant de l'acompte",
-    "addOrder": "Ajouter la Commande"
+    "totalPricePlaceholder": "Entrez le prix total",
+    "advanceReceived": "Avance Reçue",
+    "advancePlaceholder": "Entrez le montant de l'avance",
+    "addOrder": "Ajouter une Commande"
   }
 } 

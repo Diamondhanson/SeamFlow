@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   skipButton: {
     backgroundColor: colors.backgroundSecondary,
     borderRadius: spacing.borderRadius.l,
-    paddingVertical: spacing.m,
+    paddingVertical: spacing.s,
     paddingHorizontal: spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   confirmButton: {
     backgroundColor: colors.success,
     borderRadius: spacing.borderRadius.l,
-    paddingVertical: spacing.l,
+    paddingVertical: spacing.m,
     paddingHorizontal: spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',

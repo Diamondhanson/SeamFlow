@@ -130,10 +130,15 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
         }))
       ];
 
-      const activeOrders = allOrders;
+      // Filter active orders (exclude completed and delivered orders)
+      const activeOrders = allOrders.filter(order => 
+        order.status && !['completed', 'delivered', 'cancelled'].includes(order.status)
+      );
+      
       const weekOrders = allOrders.filter(order => 
         order.date_delivery >= weekStartStr && order.date_delivery <= weekEndStr
       );
+      
       const todayOrders = allOrders.filter(order => 
         order.date_delivery === todayStr
       );
@@ -184,6 +189,13 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
                 {item.type === 'bulk' ? t('overviewModal.bulk') : t('overviewModal.order')}
               </Text>
             </View>
+            {item.status && (
+              <View style={[styles.statusTag, getStatusStyle(item.status)]}>
+                <Text style={[styles.statusText, getStatusTextStyle(item.status)]}>
+                  {item.status.replace('_', ' ').toUpperCase()}
+                </Text>
+              </View>
+            )}
             <Text style={styles.orderId}>#{item.id.slice(-6)}</Text>
           </View>
         </View>
@@ -194,6 +206,48 @@ const OverviewModal: React.FC<OverviewModalProps> = ({
       </View>
     </View>
   );
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'registered':
+        return { backgroundColor: colors.info + '20', borderColor: colors.info };
+      case 'in_progress':
+        return { backgroundColor: colors.warning + '20', borderColor: colors.warning };
+      case 'testing':
+        return { backgroundColor: colors.accent + '20', borderColor: colors.accent };
+      case 'on_pause':
+        return { backgroundColor: colors.textSecondary + '20', borderColor: colors.textSecondary };
+      case 'completed':
+        return { backgroundColor: colors.success + '20', borderColor: colors.success };
+      case 'delivered':
+        return { backgroundColor: colors.primary + '20', borderColor: colors.primary };
+      case 'cancelled':
+        return { backgroundColor: colors.error + '20', borderColor: colors.error };
+      default:
+        return { backgroundColor: colors.surface, borderColor: colors.border };
+    }
+  };
+
+  const getStatusTextStyle = (status: string) => {
+    switch (status) {
+      case 'registered':
+        return { color: colors.info };
+      case 'in_progress':
+        return { color: colors.warning };
+      case 'testing':
+        return { color: colors.accent };
+      case 'on_pause':
+        return { color: colors.textSecondary };
+      case 'completed':
+        return { color: colors.success };
+      case 'delivered':
+        return { color: colors.primary };
+      case 'cancelled':
+        return { color: colors.error };
+      default:
+        return { color: colors.text };
+    }
+  };
 
   const renderEmptyState = (message: string) => (
     <View style={styles.emptyState}>
@@ -428,17 +482,31 @@ const styles = StyleSheet.create({
     borderRadius: spacing.borderRadius.s,
     marginRight: spacing.xs,
   },
+  statusTag: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: spacing.borderRadius.s,
+    marginRight: spacing.xs,
+    borderWidth: 1,
+  },
   simpleTag: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary + '20',
+    borderColor: colors.primary,
+    borderWidth: 1,
   },
   bulkTag: {
-    backgroundColor: colors.warning,
+    backgroundColor: colors.success + '20',
+    borderColor: colors.success,
+    borderWidth: 1,
   },
   typeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: colors.textOnPrimary,
-    textTransform: 'uppercase',
+    color: colors.textSecondary,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '600',
   },
   orderId: {
     fontSize: 12,

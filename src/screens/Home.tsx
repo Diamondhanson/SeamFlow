@@ -241,13 +241,13 @@ const Home = () => {
         // Optimized: Fetch all simple orders data in one query
         const { data: simpleOrders, error: simpleError } = await supabase
           .from('orders')
-          .select('id, date_delivery')
+          .select('id, date_delivery, status')
           .eq('user_id', user.id);
 
         // Optimized: Fetch all bulk orders data in one query  
         const { data: bulkOrders, error: bulkError } = await supabase
           .from('bulk_orders')
-          .select('id, date_delivery')
+          .select('id, date_delivery, status')
           .eq('user_id', user.id);
 
         if (simpleError) {
@@ -262,7 +262,12 @@ const Home = () => {
 
         // Calculate stats from fetched data
         const allOrders = [...(simpleOrders || []), ...(bulkOrders || [])];
-        const activeOrders = allOrders.length;
+        
+        // Filter active orders (exclude completed, delivered, and cancelled orders)
+        const activeOrdersFiltered = allOrders.filter(order => 
+          order.status && !['completed', 'delivered', 'cancelled'].includes(order.status)
+        );
+        const activeOrders = activeOrdersFiltered.length;
         
         const dueThisWeek = allOrders.filter(order => 
           order.date_delivery >= weekStartStr && order.date_delivery <= weekEndStr
@@ -363,35 +368,61 @@ const Home = () => {
           styles.headerSection,
           { paddingHorizontal: containerPadding }
         ]}>
-          <View style={styles.companyInfoSection}>
-            {companyInfo.logo ? (
-              <Image 
-                source={{ uri: companyInfo.logo }} 
-                style={styles.companyLogo} 
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.logoPlaceholder}>
-                <Icons name="store" size={24} color={colors.textSecondary} />
-              </View>
-            )}
-            
-            <View style={styles.companyTextSection}>
-              <Text style={styles.companyName}>
-                {companyInfo.name}
-              </Text>
-              <Text style={styles.welcomeSubtext}>
-                {t('pin.welcomeBack')}
-              </Text>
+          <View style={styles.headerActions}>
+          <TouchableOpacity
+                onPress={() => navigation.navigate('Settings' as never)}
+                style={styles.settingsButton}
+              >
+                <Icons name="cog" size={20} color={colors.textSecondary} />
+                <Text style={styles.settingsButtonText}>Settings</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.notificationButton}
+                onPress={handleTestNotification}
+                disabled={testingNotification}
+              >
+                <Icons name="bell" size={18} color={colors.textSecondary} />
+                {overview.dueToday > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.badgeText}>{overview.dueToday}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              
+             
             </View>
+          <View style={styles.headerContainer}>
+            <View style={styles.companyInfoSection}>
+              <View style={styles.logoContainer}>
+                {companyInfo.logo ? (
+                  <Image 
+                    source={{ uri: companyInfo.logo }} 
+                    style={styles.companyLogo} 
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.logoPlaceholder}>
+                    <Icons name="store" size={28} color={colors.primary} />
+                  </View>
+                )}
+              </View>
+              
+              <View style={styles.companyTextSection}>
+                <Text style={styles.companyName}>
+                  {companyInfo.name}
+                </Text>
+                <View style={styles.welcomeContainer}>
+                  <Icons name="star" size={12} color={colors.warning} style={styles.welcomeIcon} />
+                  <Text style={styles.welcomeSubtext}>
+                    {t('pin.welcomeBack')}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            
+            
           </View>
           
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Settings' as never)}
-            style={styles.settingsButton}
-          >
-            <Icons name="cog" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
         </View>
 
         {/* Quick Stats Section */}
@@ -477,7 +508,7 @@ const Home = () => {
           </TouchableOpacity>
           
           <View style={styles.notificationStatus}>
-            <Text style={styles.statusText}>
+            <Text style={styles.notificationStatusText}>
               {t('home.notificationStatus', { status: notificationPermissionStatus })}
             </Text>
             {notificationPermissionStatus !== 'granted' && (
@@ -522,10 +553,55 @@ const styles = StyleSheet.create({
     paddingTop: spacing.l,
     paddingBottom: spacing.section,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.m,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: spacing.s,
+    justifyContent: 'space-between',
+    marginVertical: spacing.m,
+  },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: spacing.borderRadius.round,
+    backgroundColor: colors.surfaceElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: colors.error,
+    borderRadius: 6,
+    minWidth: 12,
+    height: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.background,
+  },
+  badgeText: {
+    color: colors.textOnPrimary,
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
   companyInfoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.m,
+  },
+  logoContainer: {
+    marginRight: spacing.m,
   },
   companyLogo: {
     width: 48,
@@ -542,35 +618,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.borderLight,
+    ...themeUtils.getElevation('xs'),
   },
   companyTextSection: {
     flex: 1,
     marginLeft: spacing.m,
   },
   companyName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700' as const,
     color: colors.text,
     letterSpacing: 0.3,
-    lineHeight: 28,
+    lineHeight: 30,
+  },
+  welcomeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  welcomeIcon: {
+    marginRight: spacing.xs,
   },
   welcomeSubtext: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginTop: 2,
     letterSpacing: 0.2,
     lineHeight: 18,
   },
   settingsButton: {
-    width: 44,
-    height: 44,
-    borderRadius: spacing.borderRadius.round,
-    backgroundColor: colors.surfaceElevated,
-    justifyContent: 'center',
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 60,
+    height: 44,
+    borderRadius: spacing.borderRadius.m,
+    backgroundColor: colors.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.borderLight,
+    paddingHorizontal: spacing.s,
     ...themeUtils.getElevation('xs'),
+  },
+  settingsButtonText: {
+    marginTop: 2,
+    fontSize: 9,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
 
   // Stats Section
@@ -733,7 +825,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
-  statusText: {
+  notificationStatusText: {
     fontSize: 14,
     color: colors.text,
     fontWeight: '500' as const,

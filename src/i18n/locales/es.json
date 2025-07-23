@@ -407,30 +407,30 @@
     "wrist": "Muñeca"
   },
   "overviewModal": {
-    "title": "Resumen de Pedidos",
-    "activeOrders": "Pedidos Activos",
+    "title": "Resumen de Órdenes",
+    "activeOrders": "Órdenes Activas",
     "thisWeek": "Esta Semana",
     "today": "Hoy",
     "unknownClient": "Cliente Desconocido",
-    "bulkOrder": "Pedido Masivo",
-    "order": "Pedido",
-    "bulk": "Masivo",
-    "loading": "Cargando pedidos...",
-    "noOrdersFound": "No se encontraron pedidos",
-    "noActiveOrders": "No tienes pedidos activos en este momento.",
-    "noWeekOrders": "No hay pedidos programados para esta semana.",
-    "noTodayOrders": "No hay pedidos programados para hoy."
+    "bulkOrder": "Orden Múltiple",
+    "order": "Orden",
+    "bulk": "Múltiple",
+    "loading": "Cargando órdenes...",
+    "noOrdersFound": "No se encontraron órdenes",
+    "noActiveOrders": "No tienes órdenes activas en este momento.",
+    "noWeekOrders": "No hay órdenes que venzan esta semana.",
+    "noTodayOrders": "No hay órdenes que venzan hoy."
   },
   "addNewOrder": {
-    "title": "Nuevo Pedido",
-    "orderNamePlaceholder": "Nombre del Pedido",
+    "title": "Nueva Orden",
+    "orderNamePlaceholder": "Nombre de la Orden",
     "deliveryDate": "Fecha de Entrega:",
-    "orderNotesPlaceholder": "Notas del Pedido",
+    "orderNotesPlaceholder": "Notas de la Orden",
     "paymentDetails": "Detalles de Pago",
     "totalPrice": "Precio Total",
-    "totalPricePlaceholder": "Ingresa el precio total",
+    "totalPricePlaceholder": "Ingresa precio total",
     "advanceReceived": "Anticipo Recibido",
-    "advancePlaceholder": "Ingresa el monto del anticipo",
-    "addOrder": "Agregar Pedido"
+    "advancePlaceholder": "Ingresa cantidad de anticipo",
+    "addOrder": "Agregar Orden"
   }
 } 

@@ -9,6 +9,7 @@ import { BulkOrder, OrderStatus } from '../../context/clientContext';
 import Header from '@/src/components/Header';
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 import AddBulkOrderImagesModal from '../../components/AddBulkOrderImagesModal';
+import AddMeasurementAttributeModal from '../../components/AddMeasurementAttributeModal';
 import { supabase } from '../../../supabaseConfig';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -63,6 +64,7 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
     orderId: '',
     orderName: '',
   });
+  const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
 
   // Fetch members from Supabase
   useEffect(() => {
@@ -161,6 +163,11 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
     setDeleteMemberId(null);
   };
 
+  const handleAttributeAdded = (newAttributeName: string) => {
+    // The new attribute will be available through measurementAttributes from context
+    // We don't need to update existing members here
+  };
+
   return (
     <SafeAreaWrapper>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -248,7 +255,13 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
                 <Text style={styles.sectionIconText}>👥</Text>
               </View>
               <Text style={styles.sectionTitle}>{t('addBulkOrder.membersCount', { count: members.length })}</Text>
-              <TouchableOpacity onPress={() => setShowAddModal(true)} style={{ marginLeft: 12 }}>
+              <TouchableOpacity 
+                onPress={() => setShowAddAttributeModal(true)} 
+                style={{ marginLeft: 8, backgroundColor: colors.surface, borderRadius: 8, padding: 8 }}
+              >
+                <MaterialIcons name="straighten" size={20} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowAddModal(true)} style={{ marginLeft: 8 }}>
                 <MaterialIcons name="person-add" size={24} color={colors.primary} />
               </TouchableOpacity>
             </View>
@@ -397,6 +410,13 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
         onClose={() => setAddImagesModal({ visible: false, orderId: '', orderName: '' })}
         orderId={addImagesModal.orderId}
         orderName={addImagesModal.orderName}
+      />
+      
+      {/* Add Measurement Attribute Modal */}
+      <AddMeasurementAttributeModal
+        visible={showAddAttributeModal}
+        onClose={() => setShowAddAttributeModal(false)}
+        onAttributeAdded={handleAttributeAdded}
       />
     </SafeAreaWrapper>
   );

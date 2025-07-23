@@ -24,6 +24,7 @@ import Header from '../../components/Header';
 import DatePicker from '../../components/DatePicker';
 import PhoneNumberInput from '../../components/PhoneNumberInput';
 import OrderImagePicker from '../../components/OrderImagePicker';
+import AddMeasurementAttributeModal from '../../components/AddMeasurementAttributeModal';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface Member {
@@ -85,6 +86,7 @@ const AddBulkOrder = () => {
     image1Uri: undefined as string | undefined,
     image2Uri: undefined as string | undefined,
   });
+  const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
 
   const handleAddMember = () => {
     if (!currentMember.name.trim()) {
@@ -119,9 +121,31 @@ const AddBulkOrder = () => {
     }));
   };
 
+  const handleAttributeAdded = (newAttributeName: string) => {
+    // Add the new attribute to current member's measurements with default value 0
+    setCurrentMember(prev => ({
+      ...prev,
+      measurements: {
+        ...prev.measurements,
+        [newAttributeName]: 0
+      }
+    }));
+  };
+
   const handleSubmit = async () => {
+    // Enhanced validation
     if (!formData.orderName.trim()) {
       Alert.alert(t('common.error'), t('addBulkOrder.enterOrderName'));
+      return;
+    }
+
+    if (!formData.phoneNumber.trim()) {
+      Alert.alert(t('common.error'), 'Please enter a phone number');
+      return;
+    }
+
+    if (!formData.address.trim()) {
+      Alert.alert(t('common.error'), 'Please enter an address');
       return;
     }
 
@@ -130,9 +154,18 @@ const AddBulkOrder = () => {
       return;
     }
 
+    console.log('🚀 Submitting bulk order:', {
+      orderName: formData.orderName,
+      phoneNumber: formData.phoneNumber,
+      address: formData.address,
+      membersCount: members.length,
+      deliveryDate: formData.deliveryDate.toISOString().split('T')[0],
+      price: formData.price
+    });
+
     setIsLoading(true);
     try {
-      await addBulkOrder({
+      const bulkOrderData = {
         orderName: formData.orderName,
         phoneNumber: formData.phoneNumber,
         address: formData.address,
@@ -144,11 +177,22 @@ const AddBulkOrder = () => {
         advancePayment: parseFloat(formData.advancePayment) || 0,
         image1Url: orderImages.image1Uri,
         image2Url: orderImages.image2Uri,
-      });
-      navigation.goBack();
-    } catch (error) {
-      console.error('Error saving bulk order:', error);
-      Alert.alert(t('common.error'), t('addBulkOrder.orderSaveFailed'));
+      };
+
+      console.log('📦 Bulk order data prepared:', bulkOrderData);
+
+      await addBulkOrder(bulkOrderData);
+      
+      console.log('✅ Bulk order submitted successfully');
+      Alert.alert('Success', 'Bulk order saved successfully!', [
+        { text: 'OK', onPress: () => navigation.goBack() }
+      ]);
+    } catch (error: any) {
+      console.error('❌ Error saving bulk order:', error);
+      Alert.alert(
+        t('common.error'), 
+        `${t('addBulkOrder.orderSaveFailed')}: ${error.message || 'Unknown error'}`
+      );
     } finally {
       setIsLoading(false);
     }
@@ -288,6 +332,13 @@ const AddBulkOrder = () => {
 
                 <View style={styles.measurementsContainer}>
                   <Text style={styles.measurementsTitle}>📏 {t('newOrder.measurements')}</Text>
+                  <TouchableOpacity
+                    style={styles.addAttributeButton}
+                    onPress={() => setShowAddAttributeModal(true)}
+                  >
+                    <MaterialIcons name="add" size={18} color={colors.primary} />
+                    <Text style={styles.addAttributeButtonText}>Add Attribute</Text>
+                  </TouchableOpacity>
                   <View style={styles.measurementsTable}>
                     {measurementAttributes.map((attr) => (
                       <MeasurementInput
@@ -381,6 +432,11 @@ const AddBulkOrder = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
+      <AddMeasurementAttributeModal
+        visible={showAddAttributeModal}
+        onClose={() => setShowAddAttributeModal(false)}
+        onAttributeAdded={handleAttributeAdded}
+      />
     </SafeAreaWrapper>
   );
 };
@@ -643,6 +699,27 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  addAttributeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface + '60',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  addAttributeButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginLeft: 8,
   },
 });
 
