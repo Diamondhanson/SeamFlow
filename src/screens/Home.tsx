@@ -100,8 +100,8 @@ const Home = () => {
       gradient: [colors.success, '#059669'],
     }
   ];
-  const [dimensions, setDimensions] = useState({ 
-    window: Dimensions.get('window') 
+  const [dimensions, setDimensions] = useState({
+    window: Dimensions.get('window')
   });
 
   // Quick Overview State
@@ -115,7 +115,7 @@ const Home = () => {
   // Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [modalInitialTab, setModalInitialTab] = useState<'active' | 'week' | 'today'>('active');
-  
+
   // Test Notification State
   const [testingNotification, setTestingNotification] = useState(false);
 
@@ -123,7 +123,7 @@ const Home = () => {
   const [pinChecked, setPinChecked] = useState(false); // Start as false, set to true only after PIN validation
   const lastActiveTime = useRef(Date.now());
   const PIN_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
-  
+
   // Track if we've had a user before (to detect session expiration)
   const [hadUser, setHadUser] = useState(false);
 
@@ -150,14 +150,14 @@ const Home = () => {
         // App is coming to foreground
         const now = Date.now();
         const timeDiff = now - lastActiveTime.current;
-        
-                 if (timeDiff > PIN_TIMEOUT) {
-           setPinChecked(false);
-           navigation.reset({
-             index: 0,
-             routes: [{ name: 'PinEntry' as never }],
-           });
-         }
+
+        if (timeDiff > PIN_TIMEOUT) {
+          setPinChecked(false);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'PinEntry' as never }],
+          });
+        }
       } else if (nextAppState.match(/inactive|background/)) {
         // App is going to background
         lastActiveTime.current = Date.now();
@@ -205,7 +205,7 @@ const Home = () => {
 
   const handleTestNotification = async () => {
     if (!user) return;
-    
+
     setTestingNotification(true);
     try {
       await sendTestNotification();
@@ -224,7 +224,7 @@ const Home = () => {
       setOverview({ loading: true, activeOrders: 0, dueThisWeek: 0, dueToday: 0 });
       return;
     }
-    
+
     const fetchOverview = async () => {
       setOverview(prev => ({ ...prev, loading: true }));
       try {
@@ -254,7 +254,7 @@ const Home = () => {
           console.error('Simple orders error:', simpleError);
           throw simpleError;
         }
-        
+
         if (bulkError) {
           console.error('Bulk orders error:', bulkError);
           throw bulkError;
@@ -262,18 +262,18 @@ const Home = () => {
 
         // Calculate stats from fetched data
         const allOrders = [...(simpleOrders || []), ...(bulkOrders || [])];
-        
+
         // Filter active orders (exclude completed, delivered, and cancelled orders)
-        const activeOrdersFiltered = allOrders.filter(order => 
+        const activeOrdersFiltered = allOrders.filter(order =>
           order.status && !['completed', 'delivered', 'cancelled'].includes(order.status)
         );
         const activeOrders = activeOrdersFiltered.length;
-        
-        const dueThisWeek = allOrders.filter(order => 
+
+        const dueThisWeek = allOrders.filter(order =>
           order.date_delivery >= weekStartStr && order.date_delivery <= weekEndStr
         ).length;
-        
-        const dueToday = allOrders.filter(order => 
+
+        const dueToday = allOrders.filter(order =>
           order.date_delivery === todayStr
         ).length;
 
@@ -293,7 +293,7 @@ const Home = () => {
         });
       }
     };
-    
+
     fetchOverview();
   }, [user]);
 
@@ -309,19 +309,19 @@ const Home = () => {
 
   const { width } = dimensions.window;
   const isTabletLayout = width >= 768;
-  const tileWidth = isTabletLayout ? 
-    (width - (spacing.pageTablet * 2) - (spacing.cardGap * 2)) / 3 : 
+  const tileWidth = isTabletLayout ?
+    (width - (spacing.pageTablet * 2) - (spacing.cardGap * 2)) / 3 :
     (width - (spacing.page * 2) - spacing.cardGap) / 2;
   const tileHeight = isTabletLayout ? 160 : 140;
   const containerPadding = isTabletLayout ? spacing.pageTablet : spacing.page;
 
   const renderTile = ({ id, title, description, icon, route, color }: TileData) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       key={id}
       style={[
         styles.tile,
-        { 
-          width: tileWidth, 
+        {
+          width: tileWidth,
           height: tileHeight,
           backgroundColor: color,
         }
@@ -331,14 +331,14 @@ const Home = () => {
     >
       <View style={styles.tileContent}>
         <View style={styles.tileHeader}>
-          <Icons 
-            name={icon} 
-            size={isTabletLayout ? 28 : 24} 
+          <Icons
+            name={icon}
+            size={isTabletLayout ? 28 : 24}
             color={colors.textOnPrimary}
             style={styles.tileIcon}
           />
         </View>
-        
+
         <View style={styles.tileFooter}>
           <Text style={[
             styles.tileTitle,
@@ -359,7 +359,7 @@ const Home = () => {
 
   return (
     <SafeAreaWrapper>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
@@ -369,35 +369,35 @@ const Home = () => {
           { paddingHorizontal: containerPadding }
         ]}>
           <View style={styles.headerActions}>
-          <TouchableOpacity
-                onPress={() => navigation.navigate('Settings' as never)}
-                style={styles.settingsButton}
-              >
-                <Icons name="cog" size={20} color={colors.textSecondary} />
-                <Text style={styles.settingsButtonText}>Settings</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.notificationButton}
-                onPress={handleTestNotification}
-                disabled={testingNotification}
-              >
-                <Icons name="bell" size={18} color={colors.textSecondary} />
-                {overview.dueToday > 0 && (
-                  <View style={styles.notificationBadge}>
-                    <Text style={styles.badgeText}>{overview.dueToday}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-              
-             
-            </View>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings' as never)}
+              style={styles.settingsButton}
+            >
+              <Icons name="cog" size={20} color={colors.textSecondary} />
+              <Text style={styles.settingsButtonText}>Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.notificationButton}
+              onPress={handleTestNotification}
+              disabled={testingNotification}
+            >
+              <Icons name="bell" size={18} color={colors.textSecondary} />
+              {overview.dueToday > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.badgeText}>{overview.dueToday}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+
+          </View>
           <View style={styles.headerContainer}>
             <View style={styles.companyInfoSection}>
               <View style={styles.logoContainer}>
                 {companyInfo.logo ? (
-                  <Image 
-                    source={{ uri: companyInfo.logo }} 
-                    style={styles.companyLogo} 
+                  <Image
+                    source={{ uri: companyInfo.logo }}
+                    style={styles.companyLogo}
                     resizeMode="cover"
                   />
                 ) : (
@@ -406,7 +406,7 @@ const Home = () => {
                   </View>
                 )}
               </View>
-              
+
               <View style={styles.companyTextSection}>
                 <Text style={styles.companyName}>
                   {companyInfo.name}
@@ -419,10 +419,10 @@ const Home = () => {
                 </View>
               </View>
             </View>
-            
-            
+
+
           </View>
-          
+
         </View>
 
         {/* Quick Stats Section */}
@@ -432,7 +432,7 @@ const Home = () => {
         ]}>
           <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
           <View style={styles.statsRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.statCard, styles.activeOrdersCard]}
               onPress={() => openModal('active')}
               activeOpacity={0.8}
@@ -444,7 +444,7 @@ const Home = () => {
               )}
               <Text style={[styles.statLabel, styles.activeOrdersLabel]}>{t('home.activeOrders')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.statCard, styles.dueWeekCard]}
               onPress={() => openModal('week')}
               activeOpacity={0.8}
@@ -456,7 +456,7 @@ const Home = () => {
               )}
               <Text style={[styles.statLabel, styles.dueWeekLabel]}>{t('home.dueThisWeek')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.statCard, styles.dueTodayCard]}
               onPress={() => openModal('today')}
               activeOpacity={0.8}
@@ -506,17 +506,17 @@ const Home = () => {
               {testingNotification ? t('home.sending') : t('home.sendTestNotification')}
             </Text>
           </TouchableOpacity>
-          
+
           <View style={styles.notificationStatus}>
             <Text style={styles.notificationStatusText}>
               {t('home.notificationStatus', { status: notificationPermissionStatus })}
             </Text>
             {notificationPermissionStatus !== 'granted' && (
-                              <Text style={styles.statusHint}>
-                  {t('home.enableNotifications')}
-                </Text>
+              <Text style={styles.statusHint}>
+                {t('home.enableNotifications')}
+              </Text>
             )}
-            
+
             {/* Add simulator-specific message */}
             <Text style={styles.deviceInfo}>
               🖥️ Device: {Device.isDevice ? 'Physical Device' : 'Simulator'}
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingBottom: spacing.xl,
   },
-  
+
   // Header Section
   headerSection: {
     paddingTop: spacing.l,
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderLight,
     ...themeUtils.getElevation('xs'),
   },
-  
+
   // Colorful stat card variants
   activeOrdersCard: {
     backgroundColor: colors.primary,
@@ -705,14 +705,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
     borderColor: '#059669',
   },
-  
+
   statNumber: {
     fontSize: 24,
     fontWeight: '700' as const,
     color: colors.primary,
     lineHeight: 28,
   },
-  
+
   // Colorful stat number variants
   activeOrdersNumber: {
     color: colors.textOnPrimary,
@@ -723,7 +723,7 @@ const styles = StyleSheet.create({
   dueTodayNumber: {
     color: colors.textOnPrimary,
   },
-  
+
   statLabel: {
     fontSize: 12,
     color: colors.textSecondary,
@@ -731,7 +731,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
     lineHeight: 16,
   },
-  
+
   // Colorful stat label variants
   activeOrdersLabel: {
     color: colors.textOnPrimary,
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
     gap: spacing.cardGap,
     justifyContent: 'space-between',
   },
-  
+
   // Tile Styles
   tile: {
     borderRadius: spacing.borderRadius.xl,

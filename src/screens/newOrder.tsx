@@ -13,6 +13,9 @@ import Header from '../components/Header';
 import PhoneNumberInput from '../components/PhoneNumberInput';
 import OrderImagePicker from '../components/OrderImagePicker';
 import AddMeasurementAttributeModal from '../components/AddMeasurementAttributeModal';
+import ColorPicker from '../components/ColorPicker';
+import FabricInput from '../components/FabricInput';
+import SuccessModal from '../components/SuccessModal';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../hooks/useTranslation';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -75,7 +78,10 @@ const NewOrder = () => {
     image1Uri: undefined as string | undefined,
     image2Uri: undefined as string | undefined,
   });
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedFabrics, setSelectedFabrics] = useState<string[]>([]);
   const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Initialize form data and measurements for existing client
   useEffect(() => {
@@ -157,6 +163,8 @@ const NewOrder = () => {
       advancePayment: parseFloat(formData.advancePayment) || 0,
       image1Url: orderImages.image1Uri,
       image2Url: orderImages.image2Uri,
+      colors: selectedColors,
+      fabrics: selectedFabrics,
     };
 
     console.log('📋 Order details prepared:', orderDetails);
@@ -184,9 +192,8 @@ const NewOrder = () => {
         await addClient(newClient);
       }
       console.log('✅ Order submission successful');
-      Alert.alert('Success', 'Order saved successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      setIsLoading(false);
+      setShowSuccessModal(true);
     } catch (error: any) {
       console.error('❌ Error saving order:', error);
       Alert.alert(
@@ -235,7 +242,7 @@ const NewOrder = () => {
               value={formData.phoneNumber}
               onChangePhoneNumber={(phone) => setFormData(prev => ({ ...prev, phoneNumber: phone }))}
               placeholder={t('newOrder.phoneNumber')}
-              defaultCountry="US"
+              defaultCountry="CMR"
             />
             <TextInput
               style={styles.input}
@@ -288,6 +295,18 @@ const NewOrder = () => {
                 setOrderImages({ image1Uri, image2Uri });
               }}
               disabled={isLoading}
+            />
+
+            <ColorPicker
+              selectedColors={selectedColors}
+              onColorsChange={setSelectedColors}
+              label="Order Colors"
+            />
+
+            <FabricInput
+              selectedFabrics={selectedFabrics}
+              onFabricsChange={setSelectedFabrics}
+              label="Fabric Types"
             />
           </View>
 
@@ -403,6 +422,18 @@ const NewOrder = () => {
         visible={showAddAttributeModal}
         onClose={() => setShowAddAttributeModal(false)}
         onAttributeAdded={handleAttributeAdded}
+      />
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Order Created!"
+        message={existingClient 
+          ? `Successfully added new order for ${existingClient.fullName}` 
+          : "Successfully created new client and order"}
+        onClose={() => {
+          setShowSuccessModal(false);
+          navigation.goBack();
+        }}
+        autoCloseDelay={2500}
       />
     </SafeAreaWrapper>
   );

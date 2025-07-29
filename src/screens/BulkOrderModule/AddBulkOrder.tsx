@@ -25,6 +25,9 @@ import DatePicker from '../../components/DatePicker';
 import PhoneNumberInput from '../../components/PhoneNumberInput';
 import OrderImagePicker from '../../components/OrderImagePicker';
 import AddMeasurementAttributeModal from '../../components/AddMeasurementAttributeModal';
+import ColorPicker from '../../components/ColorPicker';
+import FabricInput from '../../components/FabricInput';
+import SuccessModal from '../../components/SuccessModal';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface Member {
@@ -86,7 +89,10 @@ const AddBulkOrder = () => {
     image1Uri: undefined as string | undefined,
     image2Uri: undefined as string | undefined,
   });
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedFabrics, setSelectedFabrics] = useState<string[]>([]);
   const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleAddMember = () => {
     if (!currentMember.name.trim()) {
@@ -177,6 +183,8 @@ const AddBulkOrder = () => {
         advancePayment: parseFloat(formData.advancePayment) || 0,
         image1Url: orderImages.image1Uri,
         image2Url: orderImages.image2Uri,
+        colors: selectedColors,
+        fabrics: selectedFabrics,
       };
 
       console.log('📦 Bulk order data prepared:', bulkOrderData);
@@ -184,9 +192,8 @@ const AddBulkOrder = () => {
       await addBulkOrder(bulkOrderData);
       
       console.log('✅ Bulk order submitted successfully');
-      Alert.alert('Success', 'Bulk order saved successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      setIsLoading(false);
+      setShowSuccessModal(true);
     } catch (error: any) {
       console.error('❌ Error saving bulk order:', error);
       Alert.alert(
@@ -286,6 +293,18 @@ const AddBulkOrder = () => {
                   setOrderImages({ image1Uri, image2Uri });
                 }}
                 disabled={isLoading}
+              />
+
+              <ColorPicker
+                selectedColors={selectedColors}
+                onColorsChange={setSelectedColors}
+                label="Bulk Order Colors"
+              />
+
+              <FabricInput
+                selectedFabrics={selectedFabrics}
+                onFabricsChange={setSelectedFabrics}
+                label="Fabric Types"
               />
             </View>
           </View>
@@ -436,6 +455,16 @@ const AddBulkOrder = () => {
         visible={showAddAttributeModal}
         onClose={() => setShowAddAttributeModal(false)}
         onAttributeAdded={handleAttributeAdded}
+      />
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Bulk Order Created!"
+        message={`Successfully created bulk order "${formData.orderName}" with ${members.length} member${members.length !== 1 ? 's' : ''}`}
+        onClose={() => {
+          setShowSuccessModal(false);
+          navigation.goBack();
+        }}
+        autoCloseDelay={3000}
       />
     </SafeAreaWrapper>
   );

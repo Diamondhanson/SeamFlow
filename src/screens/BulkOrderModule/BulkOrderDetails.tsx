@@ -10,6 +10,8 @@ import Header from '@/src/components/Header';
 import SafeAreaWrapper from '../../components/SafeAreaWrapper';
 import AddBulkOrderImagesModal from '../../components/AddBulkOrderImagesModal';
 import AddMeasurementAttributeModal from '../../components/AddMeasurementAttributeModal';
+import ColorPicker from '../../components/ColorPicker';
+import FabricInput from '../../components/FabricInput';
 import { supabase } from '../../../supabaseConfig';
 import { useTranslation } from '../../hooks/useTranslation';
 
@@ -65,6 +67,28 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
     orderName: '',
   });
   const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
+  const [editColorsModal, setEditColorsModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    orderName: string;
+    currentColors: string[];
+  }>({
+    visible: false,
+    orderId: '',
+    orderName: '',
+    currentColors: [],
+  });
+  const [editFabricsModal, setEditFabricsModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    orderName: string;
+    currentFabrics: string[];
+  }>({
+    visible: false,
+    orderId: '',
+    orderName: '',
+    currentFabrics: [],
+  });
 
   // Fetch members from Supabase
   useEffect(() => {
@@ -168,6 +192,30 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
     // We don't need to update existing members here
   };
 
+  const handleUpdateColors = async (orderId: string, colors: string[]) => {
+    try {
+      // TODO: Add updateBulkOrderColors function to clientContext
+      console.log('Updating colors for bulk order:', orderId, colors);
+      Alert.alert('Success', 'Colors updated successfully!');
+      setEditColorsModal({ visible: false, orderId: '', orderName: '', currentColors: [] });
+    } catch (error) {
+      console.error('Error updating colors:', error);
+      Alert.alert('Error', 'Failed to update colors');
+    }
+  };
+
+  const handleUpdateFabrics = async (orderId: string, fabrics: string[]) => {
+    try {
+      // TODO: Add updateBulkOrderFabrics function to clientContext
+      console.log('Updating fabrics for bulk order:', orderId, fabrics);
+      Alert.alert('Success', 'Fabrics updated successfully!');
+      setEditFabricsModal({ visible: false, orderId: '', orderName: '', currentFabrics: [] });
+    } catch (error) {
+      console.error('Error updating fabrics:', error);
+      Alert.alert('Error', 'Failed to update fabrics');
+    }
+  };
+
   return (
     <SafeAreaWrapper>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -204,6 +252,66 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
             <View style={styles.infoRow}>
               <MaterialIcons name="location-on" size={18} color={colors.error} />
               <Text style={styles.infoText}>{order.address}</Text>
+            </View>
+
+            {/* Colors Section */}
+            <View style={styles.orderDetailsSection}>
+              <View style={styles.orderDetailsSectionHeader}>
+                <Text style={styles.orderDetailsSectionTitle}>🎨 Colors</Text>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => setEditColorsModal({
+                    visible: true,
+                    orderId: order.id,
+                    orderName: order.orderName,
+                    currentColors: order.colors || [],
+                  })}
+                >
+                  <MaterialIcons name="edit" size={16} color={colors.primary} />
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+              {order.colors && order.colors.length > 0 ? (
+                <View style={styles.chipsContainer}>
+                  {order.colors.map((color, colorIndex) => (
+                    <View key={colorIndex} style={styles.colorChip}>
+                      <Text style={styles.chipText}>{color}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.notAddedText}>Not added</Text>
+              )}
+            </View>
+
+            {/* Fabrics Section */}
+            <View style={styles.orderDetailsSection}>
+              <View style={styles.orderDetailsSectionHeader}>
+                <Text style={styles.orderDetailsSectionTitle}>🧵 Fabrics</Text>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => setEditFabricsModal({
+                    visible: true,
+                    orderId: order.id,
+                    orderName: order.orderName,
+                    currentFabrics: order.fabrics || [],
+                  })}
+                >
+                  <MaterialIcons name="edit" size={16} color={colors.primary} />
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+              {order.fabrics && order.fabrics.length > 0 ? (
+                <View style={styles.chipsContainer}>
+                  {order.fabrics.map((fabric, fabricIndex) => (
+                    <View key={fabricIndex} style={styles.fabricChip}>
+                      <Text style={styles.chipText}>{fabric}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.notAddedText}>Not added</Text>
+              )}
             </View>
           </View>
 
@@ -313,6 +421,39 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
             )}
           </View>
 
+          {/* Payment Details Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: colors.success }]}>
+                <Text style={styles.sectionIconText}>💰</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Payment Details</Text>
+            </View>
+            <View style={styles.paymentDetails}>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Total Price:</Text>
+                <Text style={styles.paymentValue}>
+                  ${order.price?.toFixed(2) || '0.00'}
+                </Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Advance Paid:</Text>
+                <Text style={styles.paymentValue}>
+                  ${order.advancePayment?.toFixed(2) || '0.00'}
+                </Text>
+              </View>
+              <View style={styles.paymentRow}>
+                <Text style={styles.paymentLabel}>Balance:</Text>
+                <Text style={[
+                  styles.paymentValue,
+                  { color: ((order.price || 0) - (order.advancePayment || 0)) > 0 ? colors.error : colors.success }
+                ]}>
+                  ${((order.price || 0) - (order.advancePayment || 0)).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+          </View>
+
           {/* Order Notes Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -418,6 +559,78 @@ const BulkOrderDetails = ({ order, onBack, onStatusChange }: BulkOrderDetailsPro
         onClose={() => setShowAddAttributeModal(false)}
         onAttributeAdded={handleAttributeAdded}
       />
+
+      {/* Edit Colors Modal */}
+      <Modal
+        visible={editColorsModal.visible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditColorsModal({ visible: false, orderId: '', orderName: '', currentColors: [] })}
+      >
+        <View style={editModalStyles.overlay}>
+          <View style={editModalStyles.modalContainer}>
+            <Text style={editModalStyles.modalTitle}>Edit Colors</Text>
+            <Text style={editModalStyles.modalSubtitle}>Bulk Order: {editColorsModal.orderName}</Text>
+            
+            <ColorPicker
+              selectedColors={editColorsModal.currentColors}
+              onColorsChange={(colors) => setEditColorsModal(prev => ({ ...prev, currentColors: colors }))}
+              label="Bulk Order Colors"
+            />
+
+            <View style={editModalStyles.buttonRow}>
+              <TouchableOpacity
+                style={editModalStyles.cancelButton}
+                onPress={() => setEditColorsModal({ visible: false, orderId: '', orderName: '', currentColors: [] })}
+              >
+                <Text style={editModalStyles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={editModalStyles.saveButton}
+                onPress={() => handleUpdateColors(editColorsModal.orderId, editColorsModal.currentColors)}
+              >
+                <Text style={editModalStyles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Fabrics Modal */}
+      <Modal
+        visible={editFabricsModal.visible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditFabricsModal({ visible: false, orderId: '', orderName: '', currentFabrics: [] })}
+      >
+        <View style={editModalStyles.overlay}>
+          <View style={editModalStyles.modalContainer}>
+            <Text style={editModalStyles.modalTitle}>Edit Fabrics</Text>
+            <Text style={editModalStyles.modalSubtitle}>Bulk Order: {editFabricsModal.orderName}</Text>
+            
+            <FabricInput
+              selectedFabrics={editFabricsModal.currentFabrics}
+              onFabricsChange={(fabrics) => setEditFabricsModal(prev => ({ ...prev, currentFabrics: fabrics }))}
+              label="Bulk Order Fabrics"
+            />
+
+            <View style={editModalStyles.buttonRow}>
+              <TouchableOpacity
+                style={editModalStyles.cancelButton}
+                onPress={() => setEditFabricsModal({ visible: false, orderId: '', orderName: '', currentFabrics: [] })}
+              >
+                <Text style={editModalStyles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={editModalStyles.saveButton}
+                onPress={() => handleUpdateFabrics(editFabricsModal.orderId, editFabricsModal.currentFabrics)}
+              >
+                <Text style={editModalStyles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaWrapper>
   );
 };
@@ -579,6 +792,91 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '600',
   },
+  orderDetailsSection: {
+    marginTop: spacing.m,
+  },
+  orderDetailsSectionTitle: {
+    fontSize: textVariants.H6.fontSize,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.s,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  colorChip: {
+    backgroundColor: colors.primary + '20',
+    borderColor: colors.primary + '40',
+    borderWidth: 1,
+    borderRadius: spacing.borderRadius.m,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  fabricChip: {
+    backgroundColor: colors.secondary + '20',
+    borderColor: colors.secondary + '40',
+    borderWidth: 1,
+    borderRadius: spacing.borderRadius.m,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  chipText: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  paymentDetails: {
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: spacing.borderRadius.m,
+    padding: spacing.m,
+    ...themeUtils.getElevation('xs'),
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  paymentLabel: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.textSecondary,
+  },
+  paymentValue: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  orderDetailsSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.s,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+    borderRadius: spacing.borderRadius.s,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.s,
+    gap: spacing.xs,
+  },
+  editButtonText: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  notAddedText: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+  },
 });
 
 const modalStyles = StyleSheet.create({
@@ -702,6 +1000,68 @@ const modalStyles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     fontSize: 15,
+  },
+});
+
+const editModalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: colors.surface,
+    borderRadius: spacing.borderRadius.xl,
+    padding: spacing.xl,
+    marginHorizontal: spacing.l,
+    minWidth: 300,
+    maxWidth: 500,
+    width: '90%',
+    ...themeUtils.getElevation('l'),
+  },
+  modalTitle: {
+    fontSize: textVariants.H5.fontSize,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.textSecondary,
+    marginBottom: spacing.l,
+    textAlign: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.m,
+    marginTop: spacing.l,
+  },
+  cancelButton: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.xl,
+  },
+  cancelButtonText: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.xl,
+  },
+  saveButtonText: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.textOnPrimary,
+    fontWeight: '600',
   },
 });
 

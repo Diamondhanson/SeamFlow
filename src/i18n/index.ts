@@ -1,6 +1,6 @@
 import { I18n } from 'i18n-js';
-import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform, NativeModules } from 'react-native';
 
 // Import translations
 import en from './locales/en.json';
@@ -23,14 +23,37 @@ i18n.enableFallback = true;
 // Storage key for user's language preference
 const LANGUAGE_KEY = 'user_language';
 
-// Get device locales
+// Get device locales with fallback
 export const getDeviceLanguage = (): string => {
+  try {
+    // Try to import react-native-localize dynamically
+    const RNLocalize = require('react-native-localize');
   const locales = RNLocalize.getLocales();
   const deviceLanguage = locales[0]?.languageCode || 'en';
   
   // Check if we support the device language
   const supportedLanguages = ['en', 'es', 'fr'];
   return supportedLanguages.includes(deviceLanguage) ? deviceLanguage : 'en';
+  } catch (error) {
+    console.log('RNLocalize not available, using platform detection fallback');
+    
+    // Fallback: Use platform-specific locale detection
+    let deviceLanguage = 'en';
+    
+    if (Platform.OS === 'ios') {
+      deviceLanguage = NativeModules.SettingsManager?.settings?.AppleLocale || 
+                     NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] || 'en';
+    } else if (Platform.OS === 'android') {
+      deviceLanguage = NativeModules.I18nManager?.localeIdentifier || 'en';
+    }
+    
+    // Extract language code (e.g., 'en-US' -> 'en')
+    const languageCode = deviceLanguage.split(/[-_]/)[0].toLowerCase();
+    
+    // Check if we support the device language
+    const supportedLanguages = ['en', 'es', 'fr'];
+    return supportedLanguages.includes(languageCode) ? languageCode : 'en';
+  }
 };
 
 // Initialize language
@@ -41,15 +64,17 @@ export const initializeLanguage = async (): Promise<void> => {
     
     if (savedLanguage && ['en', 'es', 'fr'].includes(savedLanguage)) {
       i18n.locale = savedLanguage;
+      console.log('Using saved language:', savedLanguage);
     } else {
       // Use device language
       const deviceLanguage = getDeviceLanguage();
       i18n.locale = deviceLanguage;
+      console.log('Using device language:', deviceLanguage);
       // Save device language as user preference
       await AsyncStorage.setItem(LANGUAGE_KEY, deviceLanguage);
     }
   } catch (error) {
-    console.error('Error initializing language:', error);
+    console.warn('Error initializing language, falling back to English:', error);
     i18n.locale = 'en'; // Fallback to English
   }
 };

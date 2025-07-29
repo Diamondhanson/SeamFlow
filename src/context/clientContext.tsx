@@ -16,6 +16,8 @@ export interface OrderDetails {
   advancePayment?: number;
   image1Url?: string;
   image2Url?: string;
+  colors?: string[];
+  fabrics?: string[];
 }
 
 export interface Measurements {
@@ -53,6 +55,8 @@ export interface BulkOrder {
   advancePayment?: number;
   image1Url?: string;
   image2Url?: string;
+  colors?: string[];
+  fabrics?: string[];
 }
 
 interface ClientContextType {
@@ -120,6 +124,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
             advancePayment: order.advance_payment || 0,
             image1Url: order.image_1_url,
             image2Url: order.image_2_url,
+            colors: order.colors || [],
+            fabrics: order.fabrics || [],
           })),
         }));
         setClients(formattedClients);
@@ -151,6 +157,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           advancePayment: bulkOrder.advance_payment || 0,
           image1Url: bulkOrder.image_1_url,
           image2Url: bulkOrder.image_2_url,
+          colors: bulkOrder.colors || [],
+          fabrics: bulkOrder.fabrics || [],
           members: (bulkOrder.bulk_order_members || []).map((member: any) => ({
             id: member.id,
             name: member.name,
@@ -216,6 +224,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           advance_payment: order.advancePayment || 0,
           image_1_url: order.image1Url,
           image_2_url: order.image2Url,
+          colors: order.colors || [],
+          fabrics: order.fabrics || [],
         }));
 
         console.log('📦 Orders to insert:', ordersToInsert);
@@ -268,6 +278,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         advance_payment: order.advancePayment || 0,
         image_1_url: order.image1Url,
         image_2_url: order.image2Url,
+        colors: order.colors || [],
+        fabrics: order.fabrics || [],
       };
 
       console.log('📦 Order data to insert:', orderData);
@@ -403,6 +415,8 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         advance_payment: newOrder.advancePayment || 0,
         image_1_url: newOrder.image1Url,
         image_2_url: newOrder.image2Url,
+        colors: newOrder.colors || [],
+        fabrics: newOrder.fabrics || [],
       };
 
       console.log('📦 Bulk order data to insert:', bulkOrderData);

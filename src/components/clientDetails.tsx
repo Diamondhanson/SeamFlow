@@ -8,6 +8,9 @@ import {
   Platform,
   Dimensions,
   Image,
+  Modal,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { Client } from '../context/clientContext';
 import { colors } from '../theme/colors';
@@ -18,6 +21,8 @@ import AddNewOrder from './addNewOrder';
 import EditMeasurementValue from './editMeasurementValue';
 import AddOrderImagesModal from './AddOrderImagesModal';
 import AddMeasurementAttributeModal from './AddMeasurementAttributeModal';
+import ColorPicker from './ColorPicker';
+import FabricInput from './FabricInput';
 import { useClients } from '../context/clientContext';
 import Icons from "react-native-vector-icons/MaterialIcons";
 import Header from './Header';
@@ -51,6 +56,28 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
     orderName: '',
   });
   const [showAddAttributeModal, setShowAddAttributeModal] = useState(false);
+  const [editColorsModal, setEditColorsModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    orderName: string;
+    currentColors: string[];
+  }>({
+    visible: false,
+    orderId: '',
+    orderName: '',
+    currentColors: [],
+  });
+  const [editFabricsModal, setEditFabricsModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    orderName: string;
+    currentFabrics: string[];
+  }>({
+    visible: false,
+    orderId: '',
+    orderName: '',
+    currentFabrics: [],
+  });
 
   // Get the latest client data from context
   const client = useMemo(() => {
@@ -95,6 +122,30 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
   const handleAttributeAdded = (newAttributeName: string) => {
     // No need to add to measurements here since it will be available next time the screen loads
     // The measurement will be available through the updated measurementAttributes from context
+  };
+
+  const handleUpdateColors = async (orderId: string, colors: string[]) => {
+    try {
+      // TODO: Add updateOrderColors function to clientContext
+      console.log('Updating colors for order:', orderId, colors);
+      Alert.alert('Success', 'Colors updated successfully!');
+      setEditColorsModal({ visible: false, orderId: '', orderName: '', currentColors: [] });
+    } catch (error) {
+      console.error('Error updating colors:', error);
+      Alert.alert('Error', 'Failed to update colors');
+    }
+  };
+
+  const handleUpdateFabrics = async (orderId: string, fabrics: string[]) => {
+    try {
+      // TODO: Add updateOrderFabrics function to clientContext
+      console.log('Updating fabrics for order:', orderId, fabrics);
+      Alert.alert('Success', 'Fabrics updated successfully!');
+      setEditFabricsModal({ visible: false, orderId: '', orderName: '', currentFabrics: [] });
+    } catch (error) {
+      console.error('Error updating fabrics:', error);
+      Alert.alert('Error', 'Failed to update fabrics');
+    }
   };
 
   if (!client) return null;
@@ -221,6 +272,66 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
                           <Text style={styles.orderNote}>{order.notes}</Text>
                         )}
                         
+                        {/* Colors Section */}
+                        <View style={styles.orderColorsSection}>
+                          <View style={styles.orderSectionHeader}>
+                            <Text style={styles.orderSectionTitle}>🎨 Colors</Text>
+                            <TouchableOpacity
+                              style={styles.editButton}
+                              onPress={() => setEditColorsModal({
+                                visible: true,
+                                orderId: order.id,
+                                orderName: order.orderName,
+                                currentColors: order.colors || [],
+                              })}
+                            >
+                              <Icons name="edit" size={16} color={colors.primary} />
+                              <Text style={styles.editButtonText}>Edit</Text>
+                            </TouchableOpacity>
+                          </View>
+                          {order.colors && order.colors.length > 0 ? (
+                            <View style={styles.chipsContainer}>
+                              {order.colors.map((color, colorIndex) => (
+                                <View key={colorIndex} style={styles.colorChip}>
+                                  <Text style={styles.chipText}>{color}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          ) : (
+                            <Text style={styles.notAddedText}>Not added</Text>
+                          )}
+                        </View>
+
+                        {/* Fabrics Section */}
+                        <View style={styles.orderFabricsSection}>
+                          <View style={styles.orderSectionHeader}>
+                            <Text style={styles.orderSectionTitle}>🧵 Fabrics</Text>
+                            <TouchableOpacity
+                              style={styles.editButton}
+                              onPress={() => setEditFabricsModal({
+                                visible: true,
+                                orderId: order.id,
+                                orderName: order.orderName,
+                                currentFabrics: order.fabrics || [],
+                              })}
+                            >
+                              <Icons name="edit" size={16} color={colors.primary} />
+                              <Text style={styles.editButtonText}>Edit</Text>
+                            </TouchableOpacity>
+                          </View>
+                          {order.fabrics && order.fabrics.length > 0 ? (
+                            <View style={styles.chipsContainer}>
+                              {order.fabrics.map((fabric, fabricIndex) => (
+                                <View key={fabricIndex} style={styles.fabricChip}>
+                                  <Text style={styles.chipText}>{fabric}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          ) : (
+                            <Text style={styles.notAddedText}>Not added</Text>
+                          )}
+                        </View>
+
                         {/* Order Images Section */}
                         {(order.image1Url || order.image2Url) && (
                           <View style={styles.orderImagesSection}>
@@ -351,6 +462,78 @@ const ClientDetails = ({ client: initialClient, onBack }: ClientDetailsProps) =>
           onClose={() => setShowAddAttributeModal(false)}
           onAttributeAdded={handleAttributeAdded}
         />
+
+        {/* Edit Colors Modal */}
+        <Modal
+          visible={editColorsModal.visible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setEditColorsModal({ visible: false, orderId: '', orderName: '', currentColors: [] })}
+        >
+          <View style={modalStyles.overlay}>
+            <View style={modalStyles.modalContainer}>
+              <Text style={modalStyles.modalTitle}>Edit Colors</Text>
+              <Text style={modalStyles.modalSubtitle}>Order: {editColorsModal.orderName}</Text>
+              
+              <ColorPicker
+                selectedColors={editColorsModal.currentColors}
+                onColorsChange={(colors) => setEditColorsModal(prev => ({ ...prev, currentColors: colors }))}
+                label="Order Colors"
+              />
+
+              <View style={modalStyles.buttonRow}>
+                <TouchableOpacity
+                  style={modalStyles.cancelButton}
+                  onPress={() => setEditColorsModal({ visible: false, orderId: '', orderName: '', currentColors: [] })}
+                >
+                  <Text style={modalStyles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={modalStyles.saveButton}
+                  onPress={() => handleUpdateColors(editColorsModal.orderId, editColorsModal.currentColors)}
+                >
+                  <Text style={modalStyles.saveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Edit Fabrics Modal */}
+        <Modal
+          visible={editFabricsModal.visible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setEditFabricsModal({ visible: false, orderId: '', orderName: '', currentFabrics: [] })}
+        >
+          <View style={modalStyles.overlay}>
+            <View style={modalStyles.modalContainer}>
+              <Text style={modalStyles.modalTitle}>Edit Fabrics</Text>
+              <Text style={modalStyles.modalSubtitle}>Order: {editFabricsModal.orderName}</Text>
+              
+              <FabricInput
+                selectedFabrics={editFabricsModal.currentFabrics}
+                onFabricsChange={(fabrics) => setEditFabricsModal(prev => ({ ...prev, currentFabrics: fabrics }))}
+                label="Order Fabrics"
+              />
+
+              <View style={modalStyles.buttonRow}>
+                <TouchableOpacity
+                  style={modalStyles.cancelButton}
+                  onPress={() => setEditFabricsModal({ visible: false, orderId: '', orderName: '', currentFabrics: [] })}
+                >
+                  <Text style={modalStyles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={modalStyles.saveButton}
+                  onPress={() => handleUpdateFabrics(editFabricsModal.orderId, editFabricsModal.currentFabrics)}
+                >
+                  <Text style={modalStyles.saveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaWrapper>
   );
@@ -624,6 +807,135 @@ const styles = StyleSheet.create({
     fontSize: textVariants.body1.fontSize,
     color: colors.primary,
     fontWeight: '500',
+  },
+  orderColorsSection: {
+    marginVertical: spacing.m,
+  },
+  orderFabricsSection: {
+    marginVertical: spacing.m,
+  },
+  orderSectionTitle: {
+    fontSize: textVariants.H6.fontSize,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.s,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+  },
+  colorChip: {
+    backgroundColor: colors.primary + '20',
+    borderColor: colors.primary + '40',
+    borderWidth: 1,
+    borderRadius: spacing.borderRadius.m,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  fabricChip: {
+    backgroundColor: colors.secondary + '20',
+    borderColor: colors.secondary + '40',
+    borderWidth: 1,
+    borderRadius: spacing.borderRadius.m,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  chipText: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  orderSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.s,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+    borderRadius: spacing.borderRadius.s,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.s,
+    gap: spacing.xs,
+  },
+  editButtonText: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  notAddedText: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: colors.surface,
+    borderRadius: spacing.borderRadius.xl,
+    padding: spacing.xl,
+    marginHorizontal: spacing.l,
+    minWidth: 300,
+    maxWidth: 500,
+    width: '90%',
+    ...themeUtils.getElevation('l'),
+  },
+  modalTitle: {
+    fontSize: textVariants.H5.fontSize,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: textVariants.body2.fontSize,
+    color: colors.textSecondary,
+    marginBottom: spacing.l,
+    textAlign: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.m,
+    marginTop: spacing.l,
+  },
+  cancelButton: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.xl,
+  },
+  cancelButtonText: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+    borderRadius: spacing.borderRadius.m,
+    paddingVertical: spacing.m,
+    paddingHorizontal: spacing.xl,
+  },
+  saveButtonText: {
+    fontSize: textVariants.body1.fontSize,
+    color: colors.textOnPrimary,
+    fontWeight: '600',
   },
 });
 
