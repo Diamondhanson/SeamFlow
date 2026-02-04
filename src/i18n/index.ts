@@ -1,6 +1,7 @@
 import { I18n } from 'i18n-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform, NativeModules } from 'react-native';
+import { getLocales } from 'expo-localization';
 
 // Import translations
 import en from './locales/en.json';
@@ -23,36 +24,27 @@ i18n.enableFallback = true;
 // Storage key for user's language preference
 const LANGUAGE_KEY = 'user_language';
 
-// Get device locales with fallback
+const SUPPORTED_LANGUAGES = ['en', 'es', 'fr'];
+
+// Get device locales with fallback (uses expo-localization, compatible with Expo Go)
 export const getDeviceLanguage = (): string => {
   try {
-    // Try to import react-native-localize dynamically
-    const RNLocalize = require('react-native-localize');
-  const locales = RNLocalize.getLocales();
-  const deviceLanguage = locales[0]?.languageCode || 'en';
-  
-  // Check if we support the device language
-  const supportedLanguages = ['en', 'es', 'fr'];
-  return supportedLanguages.includes(deviceLanguage) ? deviceLanguage : 'en';
-  } catch (error) {
-    console.log('RNLocalize not available, using platform detection fallback');
-    
+    const locales = getLocales();
+    const deviceLanguage = locales[0]?.languageCode || 'en';
+    return SUPPORTED_LANGUAGES.includes(deviceLanguage) ? deviceLanguage : 'en';
+  } catch {
     // Fallback: Use platform-specific locale detection
     let deviceLanguage = 'en';
-    
     if (Platform.OS === 'ios') {
-      deviceLanguage = NativeModules.SettingsManager?.settings?.AppleLocale || 
-                     NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] || 'en';
+      deviceLanguage =
+        NativeModules.SettingsManager?.settings?.AppleLocale ||
+        NativeModules.SettingsManager?.settings?.AppleLanguages?.[0] ||
+        'en';
     } else if (Platform.OS === 'android') {
       deviceLanguage = NativeModules.I18nManager?.localeIdentifier || 'en';
     }
-    
-    // Extract language code (e.g., 'en-US' -> 'en')
     const languageCode = deviceLanguage.split(/[-_]/)[0].toLowerCase();
-    
-    // Check if we support the device language
-    const supportedLanguages = ['en', 'es', 'fr'];
-    return supportedLanguages.includes(languageCode) ? languageCode : 'en';
+    return SUPPORTED_LANGUAGES.includes(languageCode) ? languageCode : 'en';
   }
 };
 

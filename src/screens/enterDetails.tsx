@@ -405,7 +405,10 @@ const EnterDetails = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <Text style={styles.title}>{t('auth.welcomeToSeamFlow')}</Text>
 
@@ -437,21 +440,31 @@ const EnterDetails = () => {
           <TextInput
             style={styles.input}
             placeholder={t('placeholders.enterEmail')}
-            placeholderTextColor={colors.subText}
+            placeholderTextColor={colors.textSecondary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
+            selectionColor={colors.primary}
+            cursorColor={colors.primary}
+            editable={true}
           />
 
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.passwordInput}
               placeholder={t('placeholders.enterPassword')}
-              placeholderTextColor={colors.subText}
+              placeholderTextColor={colors.textSecondary}
               value={password}
               secureTextEntry={!showPassword}
               onChangeText={setPassword}
+              autoCorrect={false}
+              spellCheck={false}
+              selectionColor={colors.primary}
+              cursorColor={colors.primary}
+              editable={true}
             />
             <TouchableOpacity
               style={styles.passwordToggle}
@@ -637,17 +650,19 @@ const styles = StyleSheet.create({
   },
   input: {
     width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
-    backgroundColor: "#ffffff15",
+    backgroundColor: colors.surfaceElevated,
     borderRadius: 8,
     padding: 16,
-    color: colors.mainText,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    color: colors.text,
     fontSize: 16,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     width: Platform.OS === "android" && Dimensions.get("window").width >= 768 ? "75%" : "100%",
-    backgroundColor: "#ffffff15",
+    backgroundColor: colors.surfaceElevated,
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
@@ -655,9 +670,9 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1,
-    color: colors.mainText,
+    color: colors.text,
     fontSize: 16,
-    paddingRight: 10, // Add some space between input and toggle
+    paddingRight: 10,
   },
   passwordToggle: {
     padding: 5,
@@ -763,10 +778,10 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   devTokenInput: {
-    backgroundColor: "#ffffff15",
+    backgroundColor: colors.surfaceElevated,
     borderRadius: 8,
     padding: 12,
-    color: colors.mainText,
+    color: colors.text,
     fontSize: 14,
     minHeight: 80,
     textAlignVertical: 'top',

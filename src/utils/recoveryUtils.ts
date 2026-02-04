@@ -62,12 +62,15 @@ export const trackPinAttempt = async (userId: string, success: boolean) => {
       // Reset failed attempts on success
       const { error } = await supabase
         .from('pin_attempt_tracking')
-        .upsert({
-          user_id: userId,
-          failed_attempts: 0,
-          locked_until: null,
-          last_attempt: new Date().toISOString()
-        });
+        .upsert(
+          {
+            user_id: userId,
+            failed_attempts: 0,
+            locked_until: null,
+            last_attempt: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        );
       
       if (error) throw error;
       return { locked: false, attemptsRemaining: 5 };
@@ -92,12 +95,15 @@ export const trackPinAttempt = async (userId: string, success: boolean) => {
 
       const { error } = await supabase
         .from('pin_attempt_tracking')
-        .upsert({
-          user_id: userId,
-          failed_attempts: newAttempts,
-          locked_until: lockedUntil,
-          last_attempt: new Date().toISOString()
-        });
+        .upsert(
+          {
+            user_id: userId,
+            failed_attempts: newAttempts,
+            locked_until: lockedUntil,
+            last_attempt: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        );
 
       if (error) throw error;
 
