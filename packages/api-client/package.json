@@ -1,0 +1,8 @@
+{
+  "name": "@seamflow/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed API client SDK consumed by seamflow-app, seamflow-web, and seamflow-admin.",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}

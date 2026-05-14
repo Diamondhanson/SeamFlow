@@ -1,0 +1,13 @@
+{
+  "name": "seamflow-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Consumer-facing mobile app for clients of SeamFlow tailors — measurement locker, lookbook, moodboards, tailor discovery.",
+  "scripts": {
+    "start": "echo \"Not implemented yet\" && exit 0",
+    "android": "echo \"Not implemented yet\" && exit 0",
+    "ios": "echo \"Not implemented yet\" && exit 0",
+    "lint": "echo \"Not implemented yet\" && exit 0",
+    "test": "echo \"Not implemented yet\" && exit 0"
+  }
+}

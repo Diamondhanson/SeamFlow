@@ -1,50 +1,59 @@
-# Welcome to your Expo app 👋
+# SeamFlow
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+SeamFlow is a workflow platform for tailors and seamstresses — client management, body measurements, orders, fittings, designs, and payments. This repository is the SeamFlow monorepo, containing every app, package, and service that makes up the product.
 
-## Get started
+## Repository layout
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+.
+├── apps/
+│   ├── seamflow-app/      # Expo / React Native tailor mobile app
+│   ├── seamflow-client/   # Expo / React Native consumer mobile app (Phase 3)
+│   ├── seamflow-web/      # Next.js client-facing web (magic-link order views, lookbook)
+│   ├── seamflow-admin/    # Next.js internal admin dashboard
+│   └── seamflow-api/      # NestJS backend API
+├── packages/
+│   ├── types/            # Shared TypeScript types
+│   ├── schemas/          # Shared Zod validation schemas
+│   ├── api-client/       # Typed API client SDK
+│   ├── ui/               # Shared web UI components
+│   ├── utils/            # Shared pure utilities
+│   └── config/           # Shared eslint / prettier / tsconfig
+├── services/
+│   └── ai/               # Python (FastAPI) AI microservice — placeholder
+├── infra/                # Infrastructure as code — placeholder
+├── docs/                 # Architecture docs, API reference, runbooks
+└── .github/workflows/    # CI / CD pipelines
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Tooling
 
-## Learn more
+- **Package manager:** [pnpm](https://pnpm.io) (workspaces)
+- **Task runner:** [Turborepo](https://turbo.build/repo)
+- **Language:** TypeScript across all Node-based apps and packages
+- **Node version:** see `.nvmrc`
 
-To learn more about developing your project with Expo, look at the following resources:
+## Common commands
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Run from the repo root:
 
-## Join the community
+```bash
+pnpm install          # install all workspace dependencies
+pnpm dev              # run dev servers across all apps
+pnpm build            # build everything
+pnpm lint             # lint everything
+pnpm test             # run tests
+```
 
-Join our community of developers creating universal apps.
+To work in a single app:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+pnpm --filter seamflow-app dev
+pnpm --filter seamflow-api dev
+```
+
+## Status
+
+This is the initial scaffold. Only `apps/seamflow-app` contains source code today; every other directory is an empty workspace placeholder pending implementation.
+
+See [`docs/ROADMAP.md`](./docs/ROADMAP.md) for the phased plan of what gets built when.

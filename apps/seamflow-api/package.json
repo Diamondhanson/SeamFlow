@@ -1,0 +1,13 @@
+{
+  "name": "seamflow-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend API (NestJS) serving the mobile app, client web, and admin dashboard.",
+  "scripts": {
+    "dev": "echo \"Not implemented yet\" && exit 0",
+    "build": "echo \"Not implemented yet\" && exit 0",
+    "start": "echo \"Not implemented yet\" && exit 0",
+    "lint": "echo \"Not implemented yet\" && exit 0",
+    "test": "echo \"Not implemented yet\" && exit 0"
+  }
+}

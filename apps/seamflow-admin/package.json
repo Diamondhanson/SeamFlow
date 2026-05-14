@@ -1,0 +1,11 @@
+{
+  "name": "seamflow-admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Internal admin dashboard for support, ops, payments, and content moderation.",
+  "scripts": {
+    "dev": "echo \"Not implemented yet\" && exit 0",
+    "build": "echo \"Not implemented yet\" && exit 0",
+    "lint": "echo \"Not implemented yet\" && exit 0"
+  }
+}

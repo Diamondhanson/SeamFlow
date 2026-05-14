@@ -1,0 +1,11 @@
+{
+  "name": "seamflow-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Client-facing web app (magic-link order views, lookbook, public site).",
+  "scripts": {
+    "dev": "echo \"Not implemented yet\" && exit 0",
+    "build": "echo \"Not implemented yet\" && exit 0",
+    "lint": "echo \"Not implemented yet\" && exit 0"
+  }
+}
