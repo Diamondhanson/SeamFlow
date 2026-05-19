@@ -54,3 +54,7 @@ ios/Pods/
 android/.gradle/
 android/app/build/
 android/build/
+
+# Supabase CLI
+supabase/.temp/
+supabase/.branches/

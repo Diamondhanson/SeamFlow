@@ -38,3 +38,9 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Legacy code preserved during the mobile reset (Phase 0.4 → Phase 1).
+# Live in the working tree for reference but should not be committed; the
+# previous version of this app lives in git history at commit a4a0cdd.
+app-legacy/
+src-legacy/

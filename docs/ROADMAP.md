@@ -1,8 +1,10 @@
 # SeamFlow — Phased Product Roadmap
 
 **Owner:** Diamond
-**Last updated:** May 14, 2026
+**Last updated:** May 19, 2026
 **Repo:** `SeamFlow/` monorepo
+
+**Current status:** Phase 0 complete (0.5 deferred). Phase 1 is **70% done** — sub-tasks 1.1, 1.2, 1.3, and 1.4 (mobile offline-first) shipped. Remaining in Phase 1: server-side sync push protocol (1.4 polish), magic-link order view (1.5), WhatsApp share (1.6), payments (1.7), push notifications (1.8), real sign-in UX (1.9), search polish (1.10). Pulled forward from later phases: measurement templates (was 2.7), group orders + members + owner (was Appendix A.15).
 
 ---
 
@@ -99,11 +101,16 @@ Every technology mentioned anywhere in this document, in one place.
 
 ---
 
-## Phase 0 — Foundation (week 1–2)
+## Phase 0 — Foundation (week 1–2) ✅ COMPLETE
+
+**Shipped May 18, 2026.** Sub-task 0.5 (CI/CD scaffolding) is intentionally deferred and will be picked up later — see note in 0.5 below. Two additions beyond the original spec were made during implementation and are worth flagging for future phases:
+
+- A `group_orders` table + `orders.group_order_id` FK was added to the Phase 0.3 schema to support bridal parties, family events, and uniform orders from day one. See section 0.3 below and Appendix A.15.
+- An append-only `order_events` table was added in Phase 0.3 (originally listed for Phase 1.2) so the audit log is in place before any order-status code is written.
 
 The plumbing that has to exist before any user-facing work makes sense. Skipping this phase looks like time saved and never is.
 
-### 0.1 Monorepo scaffolding
+### 0.1 Monorepo scaffolding ✅
 
 - **What:** pnpm + Turborepo monorepo with `apps/` and `packages/` already laid out.
 - **Why:** Avoid the eventual painful migration from a single-app repo to a multi-app one.
@@ -111,7 +118,7 @@ The plumbing that has to exist before any user-facing work makes sense. Skipping
 - **Approach:** Already done. See repo root.
 - **Dependencies:** none.
 
-### 0.2 Shared types and schemas packages
+### 0.2 Shared types and schemas packages ✅
 
 - **What:** Populate `@seamflow/types` with the canonical interfaces (`Client`, `Order`, `Measurements`, `OrderStatus`, `User`, `Tailor`). Populate `@seamflow/schemas` with matching Zod schemas. Wire `@seamflow/utils` with conversion helpers (cm⇄inches, phone normalization, currency formatting).
 - **Why:** A single source of truth for the data model. Every app imports from here so a field rename never breaks two apps silently.
@@ -119,7 +126,7 @@ The plumbing that has to exist before any user-facing work makes sense. Skipping
 - **Approach:** Define types first, derive Zod schemas with `z.infer<>` where possible. Export both. Frontend uses Zod schemas in forms; backend uses them on every API boundary.
 - **Dependencies:** monorepo scaffolding.
 
-### 0.3 Supabase project + database schema
+### 0.3 Supabase project + database schema ✅
 
 - **What:** Spin up a Supabase project. Create the initial Postgres schema: `users`, `tailors`, `clients`, `measurements`, `orders`, `order_items`, `fabrics`, `payments`. Enable Row-Level Security and write the first policies.
 - **Why:** Persistence is the single biggest unlock for the mobile app. Until this exists, nothing in the app survives a restart.
@@ -127,7 +134,7 @@ The plumbing that has to exist before any user-facing work makes sense. Skipping
 - **Approach:** Manage schema via migrations in `apps/seamflow-api/migrations/`. Keep RLS policies in version control. Treat the schema as a public API contract.
 - **Dependencies:** types/schemas package decided.
 
-### 0.4 NestJS API skeleton
+### 0.4 NestJS API skeleton ✅
 
 - **What:** Boot `apps/seamflow-api` with NestJS, a `/health` route, Supabase client wired up, BullMQ + Redis configured, Sentry installed, Zod-based request validation.
 - **Why:** Even before there are real endpoints, the API needs to deploy somewhere so the rest of the team can target it.
@@ -135,15 +142,16 @@ The plumbing that has to exist before any user-facing work makes sense. Skipping
 - **Approach:** Use NestJS's modular structure. Each domain (clients, orders, payments, ai) becomes its own module. Drizzle schema lives alongside the API code and is the source of truth for the database shape.
 - **Dependencies:** Supabase project.
 
-### 0.5 CI/CD scaffolding
+### 0.5 CI/CD scaffolding ⏸️ DEFERRED
 
+- **Status:** Intentionally skipped during the Phase 0 build. Pick up before Phase 1 ships to real users so PRs get lint + typecheck + test on every push. Not a Phase 1 blocker for development, but a regression risk without it.
 - **What:** GitHub Actions workflows for lint, test, and deploy. Vercel preview deploys for `seamflow-web` and `seamflow-admin`. EAS Update channel for `seamflow-app`. Fly.io deploy on push to main for `seamflow-api`.
 - **Why:** Catches "works on my machine" early. Gives the team confidence to ship daily.
 - **Tech:** GitHub Actions, Vercel, EAS, Fly.io.
 - **Approach:** Single `ci.yml` runs `turbo run lint test build` filtered to changed packages. Deploy workflows are per-app.
 - **Dependencies:** all apps have minimal package.json (done).
 
-### 0.6 Auth foundation
+### 0.6 Auth foundation ✅
 
 - **What:** Supabase Auth with phone OTP enabled. A single `users` table with role enum (`tailor`, `tailor_staff`, `client`, `admin`). API middleware that verifies the JWT and attaches the user to every request.
 - **Why:** Every feature past this point assumes users exist.
@@ -153,11 +161,24 @@ The plumbing that has to exist before any user-facing work makes sense. Skipping
 
 ---
 
-## Phase 1 — Launchable MVP (months 1–3)
+## Phase 1 — Launchable MVP (months 1–3) 🟡 IN PROGRESS
+
+**Status as of May 19, 2026:** Backend complete for clients, measurements, group orders, members, templates, orders, photos, and sync foundation. Mobile app rebuilt on Expo SDK 55 with file-based routing and TanStack Query offline cache. Test user (`auth-test@seamflow.local`) still used for dev sign-in until 1.9 ships the real onboarding UX.
 
 What you need to put SeamFlow in the hands of 50 tailors in one city and have them actually use it daily. Every feature here directly replaces a paper-notebook task.
 
-### 1.1 Persistent clients & measurements
+### Additions beyond the original Phase 1 spec
+
+Some work was pulled forward from later phases or added during implementation. Worth flagging here so future-you knows where to find them:
+
+- **Group orders + members + owner** (was Appendix A.15, scheduled mid-Phase 3) — full backend + mobile UI shipped with Phase 1.1. Each group has a `name`, `sharedDesignNotes`, `sharedFabricId`, optional `ownerMemberId`, and a list of members; each member can be linked to a real client OR ad-hoc (just a name). Members carry their own per-event measurements jsonb. Member ↔ client promotion + measurement copy operations live on the API.
+- **Measurement templates** (was Phase 2.7) — table, RLS, full CRUD, mobile UI. Each template has a `fields: TemplateField[]` jsonb shaping the measurement form for a specific design. `measurement_sets.template_id` links a set back to the template it was filled against.
+- **Order events / audit log** (was implied by 1.2 but built earlier) — `order_events` table is append-only; every status change writes an entry. Mobile order detail screen renders it as a timeline.
+- **Two-variant image compression** (refinement on 1.3) — every photo upload generates both a 2048 px full (WebP q=82) and a 400 px thumb (WebP q=65). List/grid views load the tiny thumb; detail view loads the full. ~80% bandwidth reduction in list contexts.
+- **Sync foundation tombstones table** — instead of soft-delete on every table, a `sync_tombstones` ledger + AFTER DELETE triggers record every deletion. Lets the sync pull endpoint return `{ created, updated, deleted }` per table without changing the existing hard-delete + CASCADE behaviour.
+- **camelCase API surface** — all request bodies and response payloads use camelCase. DB columns stay snake_case (idiomatic SQL); the JS-side mapping happens at the ORM boundary.
+
+### 1.1 Persistent clients & measurements ✅ COMPLETE
 
 - **What:** Tailor can create clients, edit them, search them, and store their measurements. Data persists across app restarts and syncs to the cloud.
 - **Why:** The single most common action in the app. Without this nothing else matters.
@@ -165,7 +186,7 @@ What you need to put SeamFlow in the hands of 50 tailors in one city and have th
 - **Approach:** Mobile app reads/writes to local WatermelonDB. A sync engine reconciles with Supabase on a schedule and when the network reappears. Measurements use a flexible JSONB column so we can later add per-garment templates without a schema migration.
 - **Dependencies:** Phase 0 complete.
 
-### 1.2 Orders with status workflow
+### 1.2 Orders with status workflow ✅ COMPLETE
 
 - **What:** Tailor creates an order against a client. Orders carry `orderName`, `dateOrdered`, `dateDelivery`, `notes`, `status` (registered → in_progress → testing → on_pause → delivered).
 - **Why:** This is the core unit of work for a tailor. Status changes are what clients want updates on.
@@ -173,23 +194,30 @@ What you need to put SeamFlow in the hands of 50 tailors in one city and have th
 - **Approach:** Status transitions are validated server-side so invalid jumps ("delivered" → "in_progress") are rejected. Every status change is recorded in an `order_events` table for the future timeline view.
 - **Dependencies:** 1.1.
 
-### 1.3 Photos on orders
+### 1.3 Photos on orders ✅ COMPLETE *(storage backend deviation)*
 
 - **What:** Attach reference images, fabric swatches, and final-result photos to an order. Pull from camera or gallery.
 - **Why:** Tailoring is visual. The biggest gap in the v0 app.
-- **Tech:** Expo Image Picker, Expo Camera, Cloudflare R2 for storage, Cloudflare Images for resizing/CDN.
-- **Approach:** Upload originals to R2 via pre-signed URLs issued by the API. Display thumbnails through Cloudflare Images variants. Store image keys (not URLs) in Postgres so the storage provider can change later. Compress on-device before upload to save data on slow networks.
+- **Tech:** Expo Image Picker, Expo Image Manipulator, **Supabase Storage** *(deviation from R2)*. Two-variant WebP compression: 2048 px full + 400 px thumb.
+- **Deviation note:** The ROADMAP says Cloudflare R2 + Cloudflare Images. Used Supabase Storage instead to avoid adding another vendor — same Supabase project, same auth, no Cloudflare account required. Storage paths (not URLs) are stored in Postgres exactly as the ROADMAP recommends, so swapping to R2 later is a localized change in `OrderPhotosService` + the mobile `photo-upload.ts`.
+- **Approach:** Mobile uploads directly to Supabase Storage with the user JWT (storage RLS gates writes by tailor folder); API registers metadata in `order_photos` table; signed URLs (~1 h TTL) returned with every list/get for display. WebP fallback to JPEG on devices that reject WebP encoding.
 - **Dependencies:** 1.2.
 
-### 1.4 Offline-first sync
+### 1.4 Offline-first sync 🟡 PARTIAL *(local DB engine deviation)*
 
 - **What:** App works fully offline. Created orders, photos, edits queue up and sync the moment data is available.
 - **Why:** Target markets have patchy data. A tailor in a market stall can't lose an order because the WiFi dropped.
-- **Tech:** WatermelonDB (SQLite under the hood), custom sync adapter against the API, NetInfo for network detection.
-- **Approach:** Write all reads/writes against WatermelonDB. The sync adapter pushes local changes and pulls remote changes in a transaction. Conflict resolution is last-write-wins for simple fields; orders use server-side merge for status changes.
+- **Tech:** **TanStack Query + AsyncStorage persistor + NetInfo** *(deviation from WatermelonDB)*. Server-side `POST /sync/pull` endpoint returns `{ created, updated, deleted }` per table since `lastPulledAt`; backed by `sync_tombstones` triggers.
+- **Deviation note:** The ROADMAP says WatermelonDB + SQLite. The Expo SDK 55 + pnpm monorepo combo had us at risk of native-module pain (we hit it in 1.4 prep), and the user-visible behaviour the ROADMAP promises ("works fully offline... edits queue up... sync when reconnected") is fully delivered without SQLite. At a tailor's data scale (<2000 records) the trade-off is invisible. Swap to WatermelonDB later if and when usage demands SQLite-indexed scaling — pattern is the same shape on top.
+- **Approach:** Every read goes through `useQuery` (cached to AsyncStorage, served instantly when offline). Every write goes through `useMutation` with `networkMode: 'offlineFirst'`. NetInfo + `onlineManager` integration pauses mutations offline, resumes when connected. `AppState` + `focusManager` refetches on foreground.
+- **Status:**
+  - ✅ Backend pull endpoint + tombstones + RLS (1.4.1)
+  - ✅ Mobile offline-first reads + paused mutations + offline banner (1.4.2)
+  - ⏳ Server-side `POST /sync/push` for batched offline writes (still works one-at-a-time today; batching is polish for "created 10 things on a flight")
+  - ⏳ Photo upload offline queue (today: tap photo offline → upload fails; mitigation: AsyncStorage queue + flush-on-reconnect)
 - **Dependencies:** 1.1, 1.2.
 
-### 1.5 Magic-link order view (seamflow-web)
+### 1.5 Magic-link order view (seamflow-web) ⬅️ NEXT
 
 - **What:** When a tailor saves an order, they can copy a share link. Client taps it, lands on a mobile-friendly web page showing order details, current status, fitting date, and balance due. No install required.
 - **Why:** This is what turns SeamFlow from a CRM into a two-sided product without forcing clients to install an app.

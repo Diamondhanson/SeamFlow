@@ -2,7 +2,20 @@
   "name": "@seamflow/types",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared TypeScript types for SeamFlow (Client, Order, Measurements, etc.).",
-  "main": "src/index.ts",
-  "types": "src/index.ts"
+  "description": "Shared TypeScript types for SeamFlow (Client, Order, Measurements, etc.). Re-exports z.infer types from @seamflow/schemas — schemas are the source of truth.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit",
+    "test": "echo 'no tests for @seamflow/types' && exit 0",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@seamflow/schemas": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
 }
