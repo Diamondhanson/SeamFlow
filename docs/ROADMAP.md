@@ -1,10 +1,25 @@
 # SeamFlow — Phased Product Roadmap
 
 **Owner:** Diamond
-**Last updated:** May 19, 2026
+**Last updated:** May 20, 2026
 **Repo:** `SeamFlow/` monorepo
 
-**Current status:** Phase 0 complete (0.5 deferred). Phase 1 is **100% shippable** — only 1.7 (payments) is paused, with all scope decisions parked, and Apple Sign-In (1.9.3) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program for now). Everything else has shipped end-to-end: 1.1 (clients/measurements/templates/groups), 1.2 (orders + state machine), 1.3 (photos), 1.4 (offline-first incl. persisted mutation queue), 1.5 (magic-link order view + seamflow-web), 1.6 (WhatsApp deep-link share), 1.8 (Expo push notifications), 1.9 (email-OTP + Google OAuth), 1.10 (fuzzy client search + orders filter chips). Pulled forward from later phases: measurement templates (was 2.7), group orders + members + owner (was Appendix A.15).
+**Current status:** Phase 0 complete (0.5 deferred). **Phase 1 is feature-complete and shippable.** Only 1.7 (payments) is paused with all scope decisions parked, and 1.9.3 (Apple Sign-In) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program yet). Everything else end-to-end:
+
+- 1.1 clients · measurements · templates · group orders + members + owner
+- 1.2 orders · state machine · audit timeline
+- 1.3 photos with two-variant WebP compression
+- 1.4 offline-first incl. persisted mutation queue
+- 1.5 magic-link order view (`seamflow-web` Next.js scaffold shipped with this)
+- 1.6 WhatsApp deep-link share + OS share-sheet fallback
+- 1.8 Expo push notifications (token register + order-transition triggers + test endpoint)
+- 1.9 sign-in UX — email + OTP, Google OAuth (Apple deferred)
+- 1.10 fuzzy client search + orders filter chips
+- 1.11 PIN lock — 4-digit, hashed in `expo-secure-store`, 5-attempt force-signout, 5-min-background re-lock
+
+**Pulled forward from later phases:** measurement templates (was 2.7), group orders + members + owner (was Appendix A.15). **Pre-1.10 architectural cleanup:** `clients.address` and `group_orders.owner_client_id` added; new atomic `POST /group-orders/with-members` creates owner-as-client (if new) + group + members in one transaction.
+
+**Atelier design system (mid-flight):** `@seamflow/ui` foundation shipped — color tokens (Linen + Midnight palettes), Fraunces/Inter/JetBrains Mono typography, spacing/radii/shadows/motion tokens, 3 primitives (Text/Button/Input), `AtelierThemeProvider`, font loading at app root, and a back-compat shim that flips the entire app's palette + typography in one place. Sign-in, home, profile screens fully on direct Atelier primitives. Remaining screens currently render through the legacy wrapper components (which themselves route to Atelier), so the new typography + pill buttons + floating-label inputs appear app-wide. Card, Sheet, Chip, MeasurementInput, ListRow primitives + screen-by-screen direct migration still ahead — see `docs/design-system/CHANGELOG.md`.
 
 ---
 
@@ -161,9 +176,9 @@ The plumbing that has to exist before any user-facing work makes sense. Skipping
 
 ---
 
-## Phase 1 — Launchable MVP (months 1–3) 🟡 IN PROGRESS
+## Phase 1 — Launchable MVP (months 1–3) ✅ FEATURE-COMPLETE (1.7 paused, 1.9.3 deferred)
 
-**Status as of May 19, 2026:** Backend complete for clients, measurements, group orders, members, templates, orders, photos, and sync foundation. Mobile app rebuilt on Expo SDK 55 with file-based routing and TanStack Query offline cache. Test user (`auth-test@seamflow.local`) still used for dev sign-in until 1.9 ships the real onboarding UX.
+**Status as of May 20, 2026:** All sub-tasks shipped except 1.7 (Flutterwave payments — paused with decisions parked) and 1.9.3 (Apple Sign-In — deferred until Apple Dev Program is enrolled). Backend complete for clients, measurements, group orders, members, templates, orders, photos, sync foundation, share links, push notifications, device tokens. Mobile app on Expo SDK 55 with file-based routing, TanStack Query offline cache, persisted mutation queue, real email-OTP + Google OAuth sign-in, PIN lock, fuzzy search + filter chips. `seamflow-web` Next.js app exists for the magic-link order view. 9 smoke tests pass against the linked Supabase + real Expo push API.
 
 What you need to put SeamFlow in the hands of 50 tailors in one city and have them actually use it daily. Every feature here directly replaces a paper-notebook task.
 
@@ -316,6 +331,46 @@ Some work was pulled forward from later phases or added during implementation. W
   - `apps/seamflow-app/app/(app)/pin.tsx` — set / change / remove flow with a small `Stage` state machine (menu → enterCurrent → enterNew → confirmNew).
   - `(app)/_layout.tsx` wraps the Stack in `<LockProvider>` and swaps in `<PinLockScreen>` when `locked && pinSet`. A small `<GatedStack>` waits for the initial pinExists() probe so no first-paint flash of the home screen.
 - **Open follow-ups (later phases):** biometric unlock, per-account "remember this device for N days" toggle, server-side audit of failed-attempt counts.
+
+### 1.12 Atelier design system 🟡 IN PROGRESS
+
+A visual-identity refresh + extraction of design tokens and primitives into `@seamflow/ui` so the tailor app, the magic-link web app, the future client mobile app, and the future admin web app all draw from one source. **This is a refactor, not a rebuild** — same screens, same data flow, same navigation, new skin.
+
+**Brand concept — "Atelier":** seam (stitch, craft) + flow (motion, ease). Workshop-meets-boutique. Warm undertones, Fraunces serif for titles, Inter for UI, JetBrains Mono with tabular figures for measurements. Springs everywhere. Two modes, same DNA — **Linen** (light, customer-facing) and **Midnight** (dark, tailor default).
+
+**Hard rules** (enforced by review, lint later):
+- No pure black, no pure white.
+- No RGB-pure primaries (`#0000ff` is gone forever).
+- No hard-coded color / font / radius / spacing in app screens — tokens only via `@seamflow/ui`.
+- No flat `<TextInput>` slabs — always the `Input` primitive.
+- No linear easing — springs by default.
+
+**Foundation shipped (2026-05-20):**
+
+- **`packages/ui` is now a real package.** 7 token files: `colors` (linen + midnight semantic sets), `typography` (Fraunces / Inter / JetBrains Mono with 9-variant scale), `spacing` (4 px grid), `radii` (none → pill), `shadows` (warm-derived for linen, surface-elevation for midnight), `motion` (3 springs + 3 durations + 1 easing), `theme` (`createTheme()` factory + `linenTheme` + `midnightTheme` + `toCssVariables()` for future web Tailwind preset).
+- **`AtelierThemeProvider`** with `mode` or pre-built `theme` prop. Lightweight, no Restyle context dependency, so the package works without app-side type augmentation.
+- **3 primitives shipped:**
+  - `Text` — `variant` × `tone` × `numeric` props. Single text primitive. No raw `<Text>` in screen code after migration.
+  - `Button` — `primary` / `secondary` / `ghost` / `destructive` × `sm` / `md` / `lg`. Pill radius, scale-to-0.97 spring on press, icon slots, loading state.
+  - `Input` — floating label, hairline border, focus ring, leading/trailing slots, error/helper captions. `placeholder` honored as in-field hint after the label floats.
+- **Tailor app rewired in place** (no parallel `src/`, working inside the existing `app/`, `lib/`, `components/`):
+  - `lib/theme.ts` back-compat shim maps legacy `{ colors, spacing, radii }` onto Atelier midnight tokens — one-file change flipped the entire app's palette without screen churn.
+  - Fonts loaded via `@expo-google-fonts/{fraunces,inter,jetbrains-mono}` at root, gated first paint until ready.
+  - `AtelierThemeProvider mode="midnight"` wraps the auth provider.
+  - Legacy `components/Button.tsx`, `Input.tsx`, `Tile.tsx` rewritten as thin Atelier adapters → Fraunces / Inter / pill buttons / floating-label inputs appear on every screen at once.
+  - Direct primitive migration: `sign-in.tsx`, `(app)/index.tsx` (home), `(app)/me.tsx` (profile) on `@seamflow/ui` Text imports.
+  - Nav-bar titles render in Fraunces.
+
+**Coming next (one screen per pass, with review):**
+
+- Primitives: `Card`, `Sheet` (replaces `<Modal>` for ephemeral UI), `Chip` (status pills), `Avatar`, `EmptyState`, `ListRow`, `MeasurementInput` (signature interaction — horizontal ruler with tick haptics, mono digits), `StitchLine` (signature success microinteraction), `TabBar`, `Stepper`.
+- Icons: `phosphor-react-native` (regular weight, 1.5 px stroke) replaces `@expo/vector-icons` usage; bespoke SVG tailoring icons in `packages/ui/src/icons/` (measuring tape, dress form, scissors, thread spool, swatch, mannequin).
+- Screen migration to direct primitive use: orders list, clients list, client detail (→ `Sheet`), group form / detail, new-order (→ `MeasurementInput`), templates, verify-otp, pin.
+- Web parity: same tokens emit as CSS custom properties + a Tailwind preset; `seamflow-web` adopts them when it grows past the single `/o/[token]` page.
+
+**Docs:** `packages/ui/README.md` (token reference + usage), `docs/design-system.md` (brand concept + hard rules), `docs/design-system/CHANGELOG.md` (entry per migration).
+
+**Dependencies:** All of Phase 1 — the system is being applied as a polish pass over already-shipped functionality.
 
 **Phase 1 exit criteria:** 50 paying tailors, daily active use, < 1% sync error rate, average response time under 300 ms on 3G, monthly recurring revenue covering hosting costs.
 
