@@ -18,7 +18,10 @@ import { GroupOrderMembersModule } from './group-order-members/group-order-membe
 import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
 import { OrderPhotosModule } from './order-photos/order-photos.module';
+import { ShareLinksModule } from './share-links/share-links.module';
+import { PublicModule } from './public/public.module';
 import { SyncModule } from './sync/sync.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -41,7 +44,10 @@ import { SyncModule } from './sync/sync.module';
     OrdersModule,
     OrderItemsModule,
     OrderPhotosModule,
+    ShareLinksModule,
+    PublicModule,
     SyncModule,
+    NotificationsModule,
   ],
   providers: [{ provide: APP_PIPE, useClass: ZodValidationPipe }],
 })

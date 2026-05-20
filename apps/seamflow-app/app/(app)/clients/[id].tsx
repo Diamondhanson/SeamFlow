@@ -84,6 +84,7 @@ export default function ClientDetail() {
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
         <Text style={styles.name}>{client.fullName}</Text>
         <Text style={styles.muted}>{client.phone}</Text>
+        {client.address ? <Text style={styles.muted}>{client.address}</Text> : null}
         {client.email ? <Text style={styles.muted}>{client.email}</Text> : null}
         {client.notes ? (
           <Text style={[styles.muted, { marginTop: spacing.sm }]}>{client.notes}</Text>

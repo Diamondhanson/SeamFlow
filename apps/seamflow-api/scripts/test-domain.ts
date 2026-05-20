@@ -77,6 +77,7 @@ async function main(): Promise<void> {
   r = await api(jwt, 'POST', '/clients', {
     fullName: 'Adaeze Okeke',
     phone: '+2348031234567',
+    address: '12 Acme Rd, Lagos',
     email: 'adaeze@example.com',
     notes: 'Prefers structured shoulders',
   });

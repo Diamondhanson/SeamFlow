@@ -18,12 +18,15 @@ import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import {
   qk,
+  useClient,
   useDeleteOrder,
   useDeleteOrderPhoto,
+  useMe,
   useOrder,
   useOrderPhotos,
   useTransitionOrder,
 } from '../../../lib/queries';
+import { useShareOrder } from '../../../lib/share-order';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
 import { colors, radii, spacing } from '../../../lib/theme';
 
@@ -51,6 +54,11 @@ export default function OrderDetailScreen() {
   const transitionM = useTransitionOrder(id);
   const deletePhotoM = useDeleteOrderPhoto(id);
   const deleteOrderM = useDeleteOrder(id);
+  const shareOrderHook = useShareOrder(id);
+  const meQ = useMe();
+  // Pull client lazily so we have a phone for the WhatsApp deep link.
+  // `enabled` in useClient already short-circuits when the id is empty.
+  const clientQ = useClient(orderQ.data?.clientId ?? '');
   const [uploading, setUploading] = useState(false);
 
   const order = orderQ.data ?? null;
@@ -101,6 +109,20 @@ export default function OrderDetailScreen() {
       },
     ]);
 
+  const shareWithClient = () => {
+    if (!order) return;
+    // We pass client + tailor info so the hook can build a friendly message
+    // and use WhatsApp deep link when the client has a phone number.
+    // The promise is fire-and-forget — every error path is already handled
+    // inside the hook (it never throws).
+    void shareOrderHook.share({
+      orderName: order.orderName,
+      clientName: clientQ.data?.fullName ?? null,
+      clientPhone: clientQ.data?.phone ?? null,
+      tailorBusinessName: meQ.data?.tailor?.businessName ?? null,
+    });
+  };
+
   const deleteOrder = () =>
     Alert.alert('Delete order?', `${order?.orderName} will be permanently deleted.`, [
       { text: 'Cancel', style: 'cancel' },
@@ -148,6 +170,14 @@ export default function OrderDetailScreen() {
         {order.notes ? (
           <Text style={[styles.muted, { marginTop: spacing.sm }]}>{order.notes}</Text>
         ) : null}
+
+        <View style={{ height: spacing.md }} />
+        <Button
+          label={shareOrderHook.isPending ? 'Generating link…' : '🔗 Share with client'}
+          variant="secondary"
+          onPress={shareWithClient}
+          disabled={shareOrderHook.isPending}
+        />
 
         <View style={styles.divider} />
 

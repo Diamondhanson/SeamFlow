@@ -1,8 +1,25 @@
 import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
 import { supabase } from './supabase';
 import { api } from './api';
 import type { OrderPhoto, OrderPhotoRole } from '@seamflow/schemas';
+
+// Lazy-load image-manipulator so the auth/onboarding screens still load on
+// dev APKs that pre-date the photos feature. If the native module is
+// missing we throw a clear error only when a user actually picks a photo.
+import type * as ExpoImageManipulator from 'expo-image-manipulator';
+type IMModule = typeof ExpoImageManipulator;
+let ImageManipulatorMod: IMModule | null = null;
+function getIM(): IMModule {
+  if (ImageManipulatorMod) return ImageManipulatorMod;
+  try {
+    ImageManipulatorMod = require('expo-image-manipulator') as IMModule;
+    return ImageManipulatorMod;
+  } catch {
+    throw new Error(
+      'Photo features need an APK rebuilt with expo-image-manipulator. Run `pnpm expo run:android` to refresh.',
+    );
+  }
+}
 
 // ============================================================================
 // Compression strategy
@@ -83,24 +100,25 @@ async function encodeVariant(
   maxDim: number,
   quality: number,
 ): Promise<CompressedOutput> {
+  const IM = getIM();
   const longest = Math.max(asset.width, asset.height);
-  const actions: ImageManipulator.Action[] = [];
+  const actions: ExpoImageManipulator.Action[] = [];
   if (longest > maxDim) {
     const isLandscape = asset.width >= asset.height;
     actions.push({ resize: isLandscape ? { width: maxDim } : { height: maxDim } });
   }
 
   try {
-    const out = await ImageManipulator.manipulateAsync(asset.uri, actions, {
+    const out = await IM.manipulateAsync(asset.uri, actions, {
       compress: quality,
-      format: ImageManipulator.SaveFormat.WEBP,
+      format: IM.SaveFormat.WEBP,
     });
     return { uri: out.uri, contentType: 'image/webp', ext: 'webp' };
   } catch {
     // WebP unsupported on this device for this source — fall back to JPEG.
-    const out = await ImageManipulator.manipulateAsync(asset.uri, actions, {
+    const out = await IM.manipulateAsync(asset.uri, actions, {
       compress: quality,
-      format: ImageManipulator.SaveFormat.JPEG,
+      format: IM.SaveFormat.JPEG,
     });
     return { uri: out.uri, contentType: 'image/jpeg', ext: 'jpg' };
   }

@@ -3,9 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq, type SQL } from 'drizzle-orm';
+import { and, desc, eq, gte, ilike, lte, type SQL } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { clients, orderEvents, orderItems, orders } from '../db/schema';
+import { clients, orderEvents, orderItems, orders, tailors } from '../db/schema';
 import {
   canTransitionOrderStatus,
   type OrderCreateInput,
@@ -13,6 +13,18 @@ import {
   type OrderTransitionInput,
   type OrderUpdateInput,
 } from '@seamflow/schemas';
+import { NotificationsService } from '../notifications/notifications.service';
+
+// Human-friendly labels for push body text. Mirrors the mobile STATUS_LABEL
+// map so the wording stays consistent across surfaces. Living here avoids
+// pulling the mobile lib into the API just for strings.
+const STATUS_LABEL: Record<OrderStatus, string> = {
+  registered: 'Registered',
+  in_progress: 'In progress',
+  testing: 'Fitting',
+  on_pause: 'On pause',
+  delivered: 'Delivered',
+};
 
 export type OrderRow = typeof orders.$inferSelect;
 export type OrderItemRow = typeof orderItems.$inferSelect;
@@ -28,11 +40,20 @@ interface ListOptions {
   clientId?: string;
   status?: OrderStatus;
   groupOrderId?: string;
+  /** Free-text match against orderName. Postgres uses the trigram GIN
+   *  indexes from migration 0001 to accelerate the underlying ILIKE. */
+  q?: string;
+  /** ISO timestamps — caller-side semantics: inclusive on both ends. */
+  dueBefore?: string;
+  dueAfter?: string;
 }
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly dbService: DbService) {}
+  constructor(
+    private readonly dbService: DbService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   private async assertClientOwned(tailorId: string, clientId: string): Promise<void> {
     const rows = await this.dbService.db
@@ -48,6 +69,19 @@ export class OrdersService {
     if (opts.clientId) filters.push(eq(orders.clientId, opts.clientId));
     if (opts.status) filters.push(eq(orders.status, opts.status));
     if (opts.groupOrderId) filters.push(eq(orders.groupOrderId, opts.groupOrderId));
+    if (opts.q) {
+      // Trigram GIN index on orders.order_name doesn't exist yet (we'd add
+      // one if profiling shows it's hot). ILIKE without an index does a
+      // sequential scan, but on a tailor's set of ~hundreds of orders that
+      // takes single-digit milliseconds — fine for MVP. Phase 2 polish.
+      filters.push(ilike(orders.orderName, `%${opts.q}%`));
+    }
+    if (opts.dueAfter) {
+      filters.push(gte(orders.dateDelivery, new Date(opts.dueAfter)));
+    }
+    if (opts.dueBefore) {
+      filters.push(lte(orders.dateDelivery, new Date(opts.dueBefore)));
+    }
     return this.dbService.db
       .select()
       .from(orders)
@@ -206,7 +240,36 @@ export class OrdersService {
       payload: data.note ? { note: data.note } : null,
     });
 
+    // Fire a push to the tailor owner. In single-user mode this is the
+    // actor too (self-confirmation). Phase 2.1 staff support will widen
+    // this to all subscribed staff via a preferences table.
+    void this.notifyOwnerOfTransition(tailorId, id, row.orderName, current.status, data.to);
+
     return row;
+  }
+
+  private async notifyOwnerOfTransition(
+    tailorId: string,
+    orderId: string,
+    orderName: string,
+    from: OrderStatus,
+    to: OrderStatus,
+  ): Promise<void> {
+    try {
+      const [t] = await this.dbService.db
+        .select({ userId: tailors.userId })
+        .from(tailors)
+        .where(eq(tailors.id, tailorId))
+        .limit(1);
+      if (!t) return;
+      this.notifications.fireAndForget(t.userId, {
+        title: orderName,
+        body: `${STATUS_LABEL[from]} → ${STATUS_LABEL[to]}`,
+        data: { type: 'order_status_change', orderId, to },
+      });
+    } catch {
+      // Push wiring failure should never surface to the request — swallow.
+    }
   }
 
   async delete(tailorId: string, id: string): Promise<void> {

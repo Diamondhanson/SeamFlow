@@ -12,6 +12,9 @@ export const clients = pgTable(
       .references(() => tailors.id, { onDelete: 'cascade' }),
     fullName: text('full_name').notNull(),
     phone: text('phone').notNull(),
+    // Single free-form address string. Captured at create time in the
+    // mobile UI; nullable in the DB so historical rows don't need backfill.
+    address: text('address'),
     email: text('email'),
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

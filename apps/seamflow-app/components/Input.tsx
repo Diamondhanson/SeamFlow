@@ -1,38 +1,16 @@
-import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
-import { colors, radii, spacing } from '../lib/theme';
+// ============================================================================
+// Back-compat wrapper around the Atelier <Input> primitive.
+//
+// Forwards everything to `@seamflow/ui`'s Input — floating label, hairline
+// border, focus ring, Inter font — so every form across the app upgrades
+// at once. New screens should import directly from `@seamflow/ui` and
+// skip this shim.
+// ============================================================================
 
-interface Props extends TextInputProps {
-  label: string;
-  error?: string;
+import { Input as AtelierInput, type InputProps } from '@seamflow/ui';
+
+export type { InputProps };
+
+export function Input(props: InputProps) {
+  return <AtelierInput {...props} />;
 }
-
-export function Input({ label, error, style, ...rest }: Props) {
-  return (
-    <View style={styles.wrap}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        placeholderTextColor={colors.textMuted}
-        {...rest}
-        style={[styles.input, error && styles.inputError, style]}
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  wrap: { marginBottom: spacing.md },
-  label: { color: colors.textMuted, fontSize: 13, marginBottom: 4 },
-  input: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    color: colors.text,
-    fontSize: 16,
-  },
-  inputError: { borderColor: colors.danger },
-  error: { color: colors.danger, marginTop: 4, fontSize: 12 },
-});

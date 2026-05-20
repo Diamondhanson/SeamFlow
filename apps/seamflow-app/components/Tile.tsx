@@ -1,6 +1,16 @@
+// ============================================================================
+// Tile — home-screen card-with-icon, restyled to Atelier.
+//
+// Internal text now uses the Atelier <Text> primitive so labels render in
+// Inter (semibold for the title, regular for the description). Background
+// + border use Atelier semantic tokens via theme.colors so the visual
+// identity matches the rest of the system.
+// ============================================================================
+
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors, radii, spacing } from '../lib/theme';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, useAtelierTheme } from '@seamflow/ui';
+import { radii, spacing } from '../lib/theme';
 
 interface TileProps {
   label: string;
@@ -11,24 +21,50 @@ interface TileProps {
 }
 
 export function Tile({ label, icon, onPress, accent, description }: TileProps) {
+  const theme = useAtelierTheme();
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      style={[styles.tile, accent && styles.accentTile]}
+      style={[
+        styles.tile,
+        {
+          backgroundColor: accent ? theme.colors.primary : theme.colors.surface,
+          borderColor: accent ? theme.colors.primary : theme.colors.hairline,
+        },
+      ]}
     >
       <View
-        style={[styles.iconWrap, accent ? styles.accentIconWrap : styles.iconWrapDefault]}
+        style={[
+          styles.iconWrap,
+          {
+            backgroundColor: accent
+              ? 'rgba(16,16,26,0.18)' // dark wash on the primary fill
+              : theme.colors.surfaceElevated,
+          },
+        ]}
       >
         <Ionicons
           name={icon}
           size={28}
-          color={accent ? colors.accentText : colors.accent}
+          color={accent ? theme.colors.textOnPrimary : theme.colors.primary}
         />
       </View>
-      <Text style={[styles.label, accent && styles.accentLabel]}>{label}</Text>
+      <Text
+        variant="h3"
+        tone={accent ? 'textOnPrimary' : 'text'}
+        style={{ marginTop: spacing.sm }}
+      >
+        {label}
+      </Text>
       {description ? (
-        <Text style={[styles.desc, accent && styles.accentDesc]}>{description}</Text>
+        <Text
+          variant="caption"
+          tone={accent ? 'textOnPrimary' : 'textMuted'}
+          style={{ marginTop: 2 }}
+        >
+          {description}
+        </Text>
       ) : null}
     </TouchableOpacity>
   );
@@ -38,16 +74,10 @@ const styles = StyleSheet.create({
   tile: {
     flex: 1,
     aspectRatio: 1,
-    backgroundColor: colors.card,
     borderRadius: radii.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     justifyContent: 'space-between',
-  },
-  accentTile: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
   },
   iconWrap: {
     width: 52,
@@ -56,19 +86,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconWrapDefault: { backgroundColor: colors.cardElevated },
-  accentIconWrap: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  label: {
-    color: colors.text,
-    fontSize: 17,
-    fontWeight: '600',
-    marginTop: spacing.sm,
-  },
-  accentLabel: { color: colors.accentText },
-  desc: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginTop: 2,
-  },
-  accentDesc: { color: 'rgba(255,255,255,0.85)' },
 });

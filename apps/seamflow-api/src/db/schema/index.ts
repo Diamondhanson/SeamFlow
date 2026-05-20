@@ -7,3 +7,4 @@ export * from './orders';
 export * from './order-photos';
 export * from './payments';
 export * from './sync';
+export * from './device-tokens';

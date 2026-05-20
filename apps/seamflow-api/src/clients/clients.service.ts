@@ -58,6 +58,7 @@ export class ClientsService {
         tailorId,
         fullName: data.fullName,
         phone: data.phone,
+        address: data.address,
         email: data.email ?? null,
         notes: data.notes ?? null,
       })
@@ -77,6 +78,7 @@ export class ClientsService {
     const patch: Partial<typeof clients.$inferInsert> = { updatedAt: new Date() };
     if (data.fullName !== undefined) patch.fullName = data.fullName;
     if (data.phone !== undefined) patch.phone = data.phone;
+    if (data.address !== undefined) patch.address = data.address;
     if (data.email !== undefined) patch.email = data.email;
     if (data.notes !== undefined) patch.notes = data.notes;
 

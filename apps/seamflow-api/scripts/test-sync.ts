@@ -80,6 +80,7 @@ async function main(): Promise<void> {
   r = await api(jwt, 'POST', '/clients', {
     fullName: 'Sync Test Client',
     phone: '+2348039999998',
+    address: '1 Sync St, Lagos',
   });
   assert(r.status === 201, `POST /clients: ${r.status}`);
   const clientId = r.data.id;

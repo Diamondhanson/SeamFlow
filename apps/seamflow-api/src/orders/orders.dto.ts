@@ -17,5 +17,11 @@ export const ListOrdersQuerySchema = z.object({
   clientId: z.string().uuid().optional(),
   status: OrderStatusSchema.optional(),
   groupOrderId: z.string().uuid().optional(),
+  /** Free-text — currently matches orderName via trigram-backed ILIKE. */
+  q: z.string().trim().min(1).optional(),
+  /** ISO timestamp — only orders with dateDelivery on or before this are returned. */
+  dueBefore: z.string().datetime().optional(),
+  /** ISO timestamp — only orders with dateDelivery on or after this are returned. */
+  dueAfter: z.string().datetime().optional(),
 });
 export class ListOrdersQueryDto extends createZodDto(ListOrdersQuerySchema) {}

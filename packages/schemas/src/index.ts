@@ -9,3 +9,5 @@ export * from './group-order';
 export * from './fabric';
 export * from './payment';
 export * from './sync';
+export * from './share-link';
+export * from './device-token';

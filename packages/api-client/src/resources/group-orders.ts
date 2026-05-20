@@ -5,6 +5,7 @@ import type {
   GroupOrderStatus,
   GroupOrderUpdateInput,
   GroupOrderWithMembers,
+  GroupOrderWithMembersCreateInput,
 } from '@seamflow/schemas';
 
 export interface ListGroupOrdersQuery {
@@ -29,6 +30,16 @@ export function makeGroupOrdersResource(http: HttpClient) {
     },
     create(input: GroupOrderCreateInput): Promise<GroupOrder> {
       return http.post<GroupOrder>('/group-orders', input);
+    },
+    /**
+     * Atomic create — server resolves owner (existing or new contact) and
+     * inserts members in a single transaction. Returns the full group +
+     * members payload.
+     */
+    createWithMembers(
+      input: GroupOrderWithMembersCreateInput,
+    ): Promise<GroupOrderWithMembers> {
+      return http.post<GroupOrderWithMembers>('/group-orders/with-members', input);
     },
     /** GET /group-orders/:id — includes embedded members. */
     get(id: string): Promise<GroupOrderWithMembers> {

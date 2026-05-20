@@ -14,6 +14,12 @@ export interface ListOrdersQuery {
   clientId?: string;
   status?: OrderStatus;
   groupOrderId?: string;
+  /** Free-text — matches order name. */
+  q?: string;
+  /** ISO timestamp. */
+  dueBefore?: string;
+  /** ISO timestamp. */
+  dueAfter?: string;
 }
 
 export interface ListOrdersResponse {

@@ -37,6 +37,7 @@ export default function NewOrderWizard() {
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
+  const [newClientAddress, setNewClientAddress] = useState('');
 
   // Step 2: measurements
   const [templates, setTemplates] = useState<MeasurementTemplate[]>([]);
@@ -77,11 +78,12 @@ export default function NewOrderWizard() {
 
   // -------- Step 1: pick or create client --------
   const createClientInline = async () => {
-    if (!newClientName || !newClientPhone) return;
+    if (!newClientName || !newClientPhone || !newClientAddress) return;
     try {
       const c = await api.clients.create({
-        fullName: newClientName,
-        phone: newClientPhone,
+        fullName: newClientName.trim(),
+        phone: newClientPhone.trim(),
+        address: newClientAddress.trim(),
       });
       setPickedClient(c);
       setShowNewClientForm(false);
@@ -213,10 +215,17 @@ export default function NewOrderWizard() {
                 keyboardType="phone-pad"
                 autoCapitalize="none"
               />
+              <Input
+                label="Address *"
+                value={newClientAddress}
+                onChangeText={setNewClientAddress}
+                placeholder="Bonanjo, Douala"
+                multiline
+              />
               <Button
                 label="Create + continue"
                 onPress={createClientInline}
-                disabled={!newClientName || !newClientPhone}
+                disabled={!newClientName || !newClientPhone || !newClientAddress}
               />
               <View style={{ height: spacing.sm }} />
               <Button

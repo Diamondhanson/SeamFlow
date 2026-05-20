@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
 import { router } from 'expo-router';
+import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { useAuth } from '../../lib/auth-context';
 import { useMe, useUpsertMyTailor } from '../../lib/queries';
 import { clearCache } from '../../lib/query-client';
-import { colors, spacing } from '../../lib/theme';
+import { ensurePushRegistered, sendPushTest } from '../../lib/notifications';
+import { spacing } from '../../lib/theme';
 
 export default function Me() {
   const { signOut } = useAuth();
@@ -54,10 +56,36 @@ export default function Me() {
     await signOut();
   };
 
+  const onTestNotification = async () => {
+    try {
+      // Make sure we have a token registered before firing — without this
+      // the server has nothing to push to.
+      const token = await ensurePushRegistered();
+      if (!token) {
+        Alert.alert(
+          'Push not available',
+          'Push notifications are only available on physical devices with permission granted.',
+        );
+        return;
+      }
+      const count = await sendPushTest();
+      Alert.alert(
+        'Test sent',
+        count === 0
+          ? 'No registered devices found on the server. Try signing out and back in.'
+          : `Sent to ${count} device${count === 1 ? '' : 's'}. Check your notification tray.`,
+      );
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : String(err));
+    }
+  };
+
   if (isLoading) {
     return (
       <Screen>
-        <Text style={styles.label}>Loading...</Text>
+        <Text variant="body" tone="textMuted">
+          Loading…
+        </Text>
       </Screen>
     );
   }
@@ -65,8 +93,20 @@ export default function Me() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <Text style={styles.heading}>Business profile</Text>
-        {me?.email ? <Text style={styles.email}>Signed in as {me.email}</Text> : null}
+        <Text variant="h1" tone="text">
+          Business profile
+        </Text>
+        {me?.email ? (
+          <Text
+            variant="bodySm"
+            tone="textMuted"
+            style={{ marginTop: 4, marginBottom: spacing.lg }}
+          >
+            Signed in as {me.email}
+          </Text>
+        ) : (
+          <View style={{ height: spacing.lg }} />
+        )}
 
         <Input
           label="Business name"
@@ -103,19 +143,24 @@ export default function Me() {
         />
 
         <View style={{ height: spacing.xl }} />
+        <Button
+          label="🔐 PIN lock"
+          variant="secondary"
+          onPress={() => router.push('/(app)/pin')}
+        />
+
+        <View style={{ height: spacing.md }} />
+        <Button
+          label="🔔 Send test notification"
+          variant="secondary"
+          onPress={onTestNotification}
+        />
+
+        <View style={{ height: spacing.md }} />
         <Button label="Sign out" variant="danger" onPress={onSignOut} />
       </ScrollView>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  heading: {
-    color: colors.text,
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  email: { color: colors.textMuted, marginBottom: spacing.lg },
-  label: { color: colors.textMuted },
-});
+// styles removed — all text now flows through the Atelier <Text> primitive

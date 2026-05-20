@@ -16,6 +16,7 @@ import { TailorsService } from '../tailors/tailors.service';
 import { GroupOrdersService } from './group-orders.service';
 import {
   CreateGroupOrderDto,
+  CreateGroupOrderWithMembersDto,
   ListGroupOrdersQueryDto,
   UpdateGroupOrderDto,
 } from './group-orders.dto';
@@ -44,6 +45,20 @@ export class GroupOrdersController {
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
     return this.groups.create(tailorId, body);
+  }
+
+  /**
+   * Atomic create — single transaction that resolves the owner (existing
+   * client or new contact) and bulk-inserts inline members. Returns the
+   * group + members payload in the same shape as GET /group-orders/:id.
+   */
+  @Post('with-members')
+  async createWithMembers(
+    @CurrentUser() user: AuthedUser,
+    @Body() body: CreateGroupOrderWithMembersDto,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.groups.createWithMembers(tailorId, body);
   }
 
   @Get(':id')

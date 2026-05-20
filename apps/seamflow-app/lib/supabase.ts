@@ -25,5 +25,11 @@ export const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // PKCE is the correct OAuth flow for native apps — Supabase generates a
+    // code verifier stored in `storage`, the OAuth provider returns a code
+    // via the deep link, and `exchangeCodeForSession` swaps it for a real
+    // session. Without this, the implicit flow tries to write tokens into
+    // the URL fragment and won't survive the mobile redirect handoff.
+    flowType: 'pkce',
   },
 });

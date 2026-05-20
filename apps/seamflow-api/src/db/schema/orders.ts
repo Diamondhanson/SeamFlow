@@ -29,10 +29,18 @@ export const groupOrders = pgTable(
     sharedFabricId: uuid('shared_fabric_id').references(() => fabrics.id, {
       onDelete: 'set null',
     }),
+    // Legacy owner pointer — kept for backward compat and for the
+    // "owner as a participating member" case (measurements alongside others).
     ownerMemberId: uuid('owner_member_id').references(
       (): any => groupOrderMembers.id,
       { onDelete: 'set null' },
     ),
+    // Canonical owner pointer introduced in the 1.x cleanup. The mobile
+    // create-group-order flow captures owner contact info upfront and writes
+    // it here (creating a new client row if the user entered details inline).
+    ownerClientId: uuid('owner_client_id').references(() => clients.id, {
+      onDelete: 'set null',
+    }),
     eventDate: timestamp('event_date', { withTimezone: true }),
     dateDelivery: timestamp('date_delivery', { withTimezone: true }),
     status: groupOrderStatusEnum('status').notNull().default('planning'),
@@ -45,6 +53,7 @@ export const groupOrders = pgTable(
     tailorIdIdx: index('group_orders_tailor_id_idx').on(t.tailorId),
     statusIdx: index('group_orders_status_idx').on(t.status),
     ownerMemberIdx: index('group_orders_owner_member_id_idx').on(t.ownerMemberId),
+    ownerClientIdx: index('group_orders_owner_client_id_idx').on(t.ownerClientId),
   }),
 );
 

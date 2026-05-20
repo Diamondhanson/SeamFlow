@@ -4,7 +4,7 @@
 **Last updated:** May 19, 2026
 **Repo:** `SeamFlow/` monorepo
 
-**Current status:** Phase 0 complete (0.5 deferred). Phase 1 is **70% done** — sub-tasks 1.1, 1.2, 1.3, and 1.4 (mobile offline-first) shipped. Remaining in Phase 1: server-side sync push protocol (1.4 polish), magic-link order view (1.5), WhatsApp share (1.6), payments (1.7), push notifications (1.8), real sign-in UX (1.9), search polish (1.10). Pulled forward from later phases: measurement templates (was 2.7), group orders + members + owner (was Appendix A.15).
+**Current status:** Phase 0 complete (0.5 deferred). Phase 1 is **100% shippable** — only 1.7 (payments) is paused, with all scope decisions parked, and Apple Sign-In (1.9.3) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program for now). Everything else has shipped end-to-end: 1.1 (clients/measurements/templates/groups), 1.2 (orders + state machine), 1.3 (photos), 1.4 (offline-first incl. persisted mutation queue), 1.5 (magic-link order view + seamflow-web), 1.6 (WhatsApp deep-link share), 1.8 (Expo push notifications), 1.9 (email-OTP + Google OAuth), 1.10 (fuzzy client search + orders filter chips). Pulled forward from later phases: measurement templates (was 2.7), group orders + members + owner (was Appendix A.15).
 
 ---
 
@@ -177,6 +177,9 @@ Some work was pulled forward from later phases or added during implementation. W
 - **Two-variant image compression** (refinement on 1.3) — every photo upload generates both a 2048 px full (WebP q=82) and a 400 px thumb (WebP q=65). List/grid views load the tiny thumb; detail view loads the full. ~80% bandwidth reduction in list contexts.
 - **Sync foundation tombstones table** — instead of soft-delete on every table, a `sync_tombstones` ledger + AFTER DELETE triggers record every deletion. Lets the sync pull endpoint return `{ created, updated, deleted }` per table without changing the existing hard-delete + CASCADE behaviour.
 - **camelCase API surface** — all request bodies and response payloads use camelCase. DB columns stay snake_case (idiomatic SQL); the JS-side mapping happens at the ORM boundary.
+- **Pre-1.10 architectural cleanup (2026-05-20)** — Two changes to streamline data entry on the mobile side:
+  - `clients.address` (nullable text) added. Mobile new-client form is now exactly three required fields: name, phone, address. Edit screen keeps email + notes for richer follow-up data. Old data unaffected (column nullable, no backfill).
+  - `group_orders.owner_client_id` (nullable FK → clients) added as the canonical owner pointer. Legacy `owner_member_id` retained for back-compat. New atomic endpoint `POST /group-orders/with-members` accepts `{ name, owner: <existingClientId | newContact>, members[] }` and runs the whole tree (optional new-client create + group insert + member bulk insert) inside one transaction. Mobile new-group-order screen is now a single form: title → owner picker (existing or inline) → members list → save once. Editing later uses the existing `PATCH /group-orders/:id` (now accepting `ownerClientId`) and the member add/remove endpoints from 1.1. Smoke covered by `pnpm test:groups-atomic`.
 
 ### 1.1 Persistent clients & measurements ✅ COMPLETE
 
@@ -203,67 +206,116 @@ Some work was pulled forward from later phases or added during implementation. W
 - **Approach:** Mobile uploads directly to Supabase Storage with the user JWT (storage RLS gates writes by tailor folder); API registers metadata in `order_photos` table; signed URLs (~1 h TTL) returned with every list/get for display. WebP fallback to JPEG on devices that reject WebP encoding.
 - **Dependencies:** 1.2.
 
-### 1.4 Offline-first sync 🟡 PARTIAL *(local DB engine deviation)*
+### 1.4 Offline-first sync ✅ DONE *(local DB engine deviation)*
 
-- **What:** App works fully offline. Created orders, photos, edits queue up and sync the moment data is available.
+- **What:** App works fully offline. Reads serve from the persisted cache, writes pause until reconnection and replay automatically — even if the user kills the app while offline.
 - **Why:** Target markets have patchy data. A tailor in a market stall can't lose an order because the WiFi dropped.
 - **Tech:** **TanStack Query + AsyncStorage persistor + NetInfo** *(deviation from WatermelonDB)*. Server-side `POST /sync/pull` endpoint returns `{ created, updated, deleted }` per table since `lastPulledAt`; backed by `sync_tombstones` triggers.
 - **Deviation note:** The ROADMAP says WatermelonDB + SQLite. The Expo SDK 55 + pnpm monorepo combo had us at risk of native-module pain (we hit it in 1.4 prep), and the user-visible behaviour the ROADMAP promises ("works fully offline... edits queue up... sync when reconnected") is fully delivered without SQLite. At a tailor's data scale (<2000 records) the trade-off is invisible. Swap to WatermelonDB later if and when usage demands SQLite-indexed scaling — pattern is the same shape on top.
-- **Approach:** Every read goes through `useQuery` (cached to AsyncStorage, served instantly when offline). Every write goes through `useMutation` with `networkMode: 'offlineFirst'`. NetInfo + `onlineManager` integration pauses mutations offline, resumes when connected. `AppState` + `focusManager` refetches on foreground.
 - **Status:**
   - ✅ Backend pull endpoint + tombstones + RLS (1.4.1)
-  - ✅ Mobile offline-first reads + paused mutations + offline banner (1.4.2)
-  - ⏳ Server-side `POST /sync/push` for batched offline writes (still works one-at-a-time today; batching is polish for "created 10 things on a flight")
-  - ⏳ Photo upload offline queue (today: tap photo offline → upload fails; mitigation: AsyncStorage queue + flush-on-reconnect)
+  - ✅ Mobile offline-first reads + in-memory paused mutations + offline banner (1.4.2)
+  - ✅ Persisted mutation queue (1.4.3 polish) — paused mutations survive app kill. Implemented via TanStack Query `setMutationDefaults` + persistor `shouldDehydrateMutation`. Hooks (`useTransitionOrder`, `useUpdateOrder`, `useDeleteOrder`, `useCreateOrder`) wrap variable-shape into `{ id, input }` so dehydrated entries carry everything needed to replay.
+  - ✅ Optimistic update on `transitionOrder` — status pill flips instantly, rolls back on error via cached snapshot.
+  - ✅ MutationCache cleared on sign-out so paused mutations can't fire under the next-signed-in user's JWT.
+  - ✅ OfflineBanner shows three states: red "offline + N pending", red "offline", amber "Syncing N change(s)…" (visible while a previous-session offline queue drains).
+  - ⏳ Photo upload offline queue — still deferred. Photos are large blobs; AsyncStorage isn't the right place. When/if needed, a Phase 2 task can introduce `expo-file-system` queue + flush-on-reconnect.
 - **Dependencies:** 1.1, 1.2.
 
-### 1.5 Magic-link order view (seamflow-web) ⬅️ NEXT
+### 1.5 Magic-link order view (seamflow-web) ✅ DONE
 
-- **What:** When a tailor saves an order, they can copy a share link. Client taps it, lands on a mobile-friendly web page showing order details, current status, fitting date, and balance due. No install required.
+- **What:** When a tailor opens an order, they tap "Share with client" — the native share sheet opens (WhatsApp/SMS/Mail/etc.) with a magic link. Client taps it, lands on a mobile-friendly web page showing order details, status, fitting date, photos, and items. No install required.
 - **Why:** This is what turns SeamFlow from a CRM into a two-sided product without forcing clients to install an app.
-- **Tech:** Next.js (App Router), Tailwind, shadcn/ui, Supabase JS client, signed short-lived tokens for non-authed link access.
-- **Approach:** Route `seamflow.app/o/[token]`. The token is a JWT containing the order ID and an expiration (default 30 days). Server-side rendering for fast first paint on slow connections. Optional phone-OTP login to upgrade the visit into a tracked client account.
+- **Tech shipped:** NestJS endpoints (`POST /orders/:id/share-link`, public `GET /public/orders/:token`), JWT signing (HS256, separate secret from Supabase), Next.js 15 App Router (`apps/seamflow-web`) with Tailwind CSS, server-rendered page at `/o/[token]`, server-side fetch via `@seamflow/api-client`.
+- **Token rules:** HS256 JWT, 60-day hard TTL via `exp`. Soft expiry: if the order has been `delivered` for more than 2 days, the link rejects regardless of `exp` (returns 410 Gone). Token bakes order id + tailor id; tailor-mismatch on verify returns 401. Tokens are regenerated on every share — we don't cache them.
+- **Deferred:** Hosting (will deploy to Vercel later — `WEB_BASE_URL` env points at `localhost:3000` in dev). Revocation list. Phone-OTP upgrade to a tracked client account (Phase 3.1 territory).
+- **Smoke test:** `pnpm --filter seamflow-api test:share-links` covers: issue → public resolve (no auth) → tampered token rejected → forged token rejected → garbage token rejected → delivery+2d in-window still resolves → cross-tenant probe 404.
 - **Dependencies:** 1.2, API auth.
 
-### 1.6 WhatsApp share links
+### 1.6 WhatsApp share links ✅ DONE
 
-- **What:** "Share with client" button in the mobile app opens WhatsApp with a pre-filled message containing the magic link.
-- **Why:** Tailors live in WhatsApp. Meeting them where they already communicate is non-negotiable.
-- **Tech:** Linking API in Expo (`wa.me/<phone>?text=...`). No WhatsApp Business API needed at this stage.
-- **Approach:** Build a `useShareOrder()` hook that formats the message in the tailor's language and opens WhatsApp. Falls back to native share sheet if WhatsApp isn't installed.
+- **What shipped:** Tapping "🔗 Share with client" on an order mints a fresh magic link, then tries to open WhatsApp directly with the client's phone number pre-loaded. Falls back to the OS share sheet (SMS / Mail / etc.) when no phone is on file or WhatsApp isn't installed.
+- **Tech shipped:**
+  - `@seamflow/utils` — `formatOrderShareMessage()` (template the body in one place so Phase 2.5 i18n can swap copy) + `phoneToWaMeDigits()` (strip non-digits for `wa.me`).
+  - `apps/seamflow-app/lib/share-order.ts` — `useShareOrder(orderId)` hook returning `{ share, isPending }`. Tries `whatsapp://send?phone=…&text=…` first, then `https://wa.me/<digits>?text=…`, then `Share.share`. All errors caught — never throws to the caller.
+  - `apps/seamflow-app/app.json` — added `LSApplicationQueriesSchemes: ["whatsapp"]` so iOS `canOpenURL('whatsapp://…')` returns honestly.
+- **Approach details:**
+  - Client phone is read from the database (stored E.164 — validated by libphonenumber-js on save). The hook strips the `+` and spaces for `wa.me`.
+  - Message format: `"Hi {firstName} — here's your order: {orderName}\n\nView details: {url}\n\n— {businessName}"`. First name only (avoids long honorifics). Greeting falls back to `"Here's your order — {name}"` when no client name.
+  - Android quirk: `canOpenURL('https://…')` sometimes returns false for browser URLs; we blind-attempt `openURL(wa.me)` as a last resort on Android only.
+  - The OS share sheet always carries the URL inside the message body because Android collapses the separate `url` field anyway.
+- **Deferred:** i18n of the template body (Phase 2.5). WhatsApp Business API integration (out of scope — `wa.me` is fine for self-serve tailors).
 - **Dependencies:** 1.5.
 
-### 1.7 Deposit collection
+### 1.7 Deposit collection ⏸ PAUSED — decisions parked
 
-- **What:** From the magic-link page, a client can pay a deposit. The tailor sees the payment marked in the app within seconds.
-- **Why:** Tailors get stiffed on balances constantly. Even basic deposit collection is a paid-tier-justifying feature on its own.
-- **Tech:** Stripe (global cards) + Paystack (Nigeria/Ghana/SA/Kenya). Payment provider abstraction layer in the API.
-- **Approach:** API exposes `/payments/initiate` that returns a provider-specific payload (Stripe Checkout Session URL, Paystack init response). Webhook endpoints (`/webhooks/stripe`, `/webhooks/paystack`) mark the payment confirmed and emit a realtime event so the tailor's app updates instantly. Idempotency keys to prevent double-charges.
+**Status:** Paused 2026-05-19. User wants to work on other Phase 1 items first. Decisions already made (when picked back up, don't re-ask):
+
+- **Provider:** Flutterwave (sole provider, hosted checkout). Covers cards + MTN MoMo CM + Orange Money CM in one integration.
+- **Currency:** Multi-currency from day 1 (XAF / USD / EUR). Constraint: MTN MoMo and Orange Money are XAF-only rails — the UI must hide MoMo/OM when the order is denominated in USD/EUR.
+- **Scope:** Deposit on order (partial) ✓ · Multiple payments per order ✓ · Refunds **deferred** to post-launch.
+- **Pay flow:** Inside the magic-link web page (`/o/[token]` on seamflow-web). Client taps "Pay deposit" → Flutterwave hosted checkout opens → redirect back to the same page with confirmation. No in-app payment flow needed at MVP.
+- **Account:** User does not yet have a Flutterwave account. Will sign up fresh when implementation begins (KYC: RCCM, NIU, director ID, proof of address, XAF bank account; 3–7 business days). Sandbox keys issue immediately on signup so dev is unblocked even before KYC.
+- **Original Phase 1.7 spec (reference):** A `/payments/initiate` endpoint returns a provider-specific checkout payload; webhook handler (`/webhooks/flutterwave`) verifies the signature, idempotently records the payment, transitions the order's paid total, and fires a push to the tailor via `NotificationsService` (already wired and exported by 1.8). Refunds deferred to post-launch.
 - **Dependencies:** 1.5.
 
-### 1.8 Push notifications
+### 1.8 Push notifications ✅ DONE
 
-- **What:** Tailor gets a push when a payment lands or a fitting is upcoming. Client gets a push (if they have the app installed later) when their order status changes.
-- **Why:** Engagement and trust.
-- **Tech:** Expo Push (free, no FCM/APNs setup needed for managed Expo).
-- **Approach:** Backend stores Expo push tokens per device. A `NotificationsService` in the API enqueues jobs to BullMQ; a worker calls the Expo push endpoint. Notification templates in `@seamflow/utils` so they can be translated.
-- **Dependencies:** 1.7 (payments) gives the first compelling use case.
+- **What shipped:** Tailor gets a push every time an order moves between statuses, plus a "🔔 Send test notification" button on the Me screen for round-trip verification. Permission is requested right after sign-in. Tokens auto-prune when Expo reports them as dead.
+- **Tech shipped:**
+  - **DB:** `device_tokens` table (migration `20260519220000_device_tokens.sql`) — one row per user per device, unique on `(user_id, expo_token)`, RLS scoped to `auth.uid()`.
+  - **NestJS:** `NotificationsService` (`apps/seamflow-api/src/notifications/`) calls Expo's REST API directly (`https://exp.host/--/api/v2/push/send`), 100-msg batching, async-cleanup of `DeviceNotRegistered` tokens. Routes: `POST /me/device-tokens`, `DELETE /me/device-tokens/:token`, `POST /me/push-test`.
+  - **Wiring:** `OrdersService.transition()` calls `notifications.fireAndForget(ownerUserId, …)` after a successful state change — non-blocking, errors swallowed so notification failures never break the transition.
+  - **Mobile:** `expo-notifications` + `expo-device` installed. `apps/seamflow-app/lib/notifications.ts` exposes `ensurePushRegistered()` / `unregisterPushOnSignOut()` / `sendPushTest()`. Auth context fires registration on `SIGNED_IN` / `INITIAL_SESSION` and deregisters on `SIGNED_OUT`. iOS LSApplicationQueriesSchemes already set in 1.6.
+- **Triggers wired:** Order status transitions ✓ · `/me/push-test` for manual verification ✓ · **Payment received deferred** — Phase 1.7 will call `notifications.fireAndForget(userId, …)` from the Flutterwave webhook handler when it lands. NotificationsService is already exported, no wiring change needed on resume.
+- **What works without a physical device:** Token shape validation (regex on `Expo(nent)?PushToken[…]`), upsert idempotency, invalid-token cleanup via real Expo responses, `DELETE` idempotency, status-transition trigger wiring. All covered by `test:notifications` (7 checks pass against live Expo API).
+- **What needs a physical device:** Permission prompt, real token issuance, actual notification delivery, banner UX, tap-to-navigate. Expo Go on a real phone is sufficient — no Apple Dev / FCM setup required until production builds.
+- **Production-build TODO (not now):** iOS needs Apple Dev Program ($99/yr) for APNs; Android needs a free Firebase project for FCM. Both are EAS-Build-time concerns.
 
-### 1.9 Authentication and tailor account setup
+### 1.9 Authentication — sign-in UX ✅ DONE (Apple deferred)
 
-- **What:** Tailor signs in via phone OTP, sets up their business profile (name, photo, location, currency), and invites optional staff.
-- **Why:** Foundation for multi-staff (Phase 2) and the directory (Phase 3).
-- **Tech:** Supabase Auth, NestJS auth module.
-- **Approach:** Phone-first auth. Country code defaults to the device locale. Staff invites are token links sent via WhatsApp/SMS.
-- **Dependencies:** Phase 0.6.
+- **Scope (decided 2026-05-19):** Three real sign-in methods replace the "Continue as dev" shortcut: email/password with required email-OTP verification, Google OAuth, Apple Sign-In. Build order: email/OTP → Google → Apple. Apple gated on the $99/yr Apple Developer Program — **user deferred Apple to post-launch**, so 1.9 ships Email + Google only. iOS will run for dev/TestFlight but cannot pass App Store review until Apple Sign-In is added later (App Store policy 4.8).
+- **Status:**
+  - ✅ Email + password sign-up with email-OTP verification (1.9.1)
+  - ✅ Google OAuth (1.9.2) — PKCE flow via `signInWithOAuth` + `expo-web-browser` in-app browser + `exchangeCodeForSession`. Verified working end-to-end on Android emulator 2026-05-19. iOS/Android **native** client IDs (smoother UX, no browser handoff) deferred until EAS dev build / Apple Dev Program respectively — Web client covers both platforms via in-app browser today.
+  - ⏸ Apple Sign-In (1.9.3) — deferred post-launch, gated on $99/yr Apple Dev Program
+- **1.9.1 shipped — email + OTP:**
+  - `signUpWithPassword` → Supabase sends 6-digit OTP → user enters code on a dedicated `/verify-otp` screen → `verifyOtpSignup()` confirms email and creates the session.
+  - Sign-in with an unconfirmed email auto-routes to `/verify-otp` instead of showing a raw error.
+  - Resend button has a 30 s UI cooldown on top of Supabase's server-side rate limit.
+  - "Continue as dev" button removed from the sign-in screen (along with the `EXPO_PUBLIC_DEV_EMAIL` / `EXPO_PUBLIC_DEV_PASSWORD` config). The existing `auth-test@seamflow.local` user still works via normal email/password for smoke tests.
+- **Dashboard config required from user (one-time):**
+  - Supabase → Auth → Email Templates → "Confirm signup" → swap `{{ .ConfirmationURL }}` for `{{ .Token }}` so the email delivers the 6-digit OTP instead of a confirmation link.
+  - Optional: edit subject line to "Your SeamFlow code: {{ .Token }}".
+- **Dependencies:** Phase 0.6 (auth foundation), 1.1 (tailor profile creation that the new user flows into post-sign-up).
 
-### 1.10 Basic search & filtering
+### 1.10 Basic search & filtering ✅ DONE
 
-- **What:** Search clients by name or phone. Filter orders by status, delivery date, paid/unpaid.
-- **Why:** Becomes essential the moment a tailor has 50+ clients.
-- **Tech:** Postgres trigram indexes (`pg_trgm`) for fuzzy search; local WatermelonDB indexes for offline search.
-- **Approach:** Both online and offline search hit the local DB first; cloud search is a fallback if local data is missing. Trigram index on `clients.full_name` and `clients.phone`.
+- **What shipped:** Fuzzy client search by name or phone (trigram-backed). New global orders list screen with status filter chips, time chips ("Overdue" / "Due this week" / "All time"), and free-text search across order name. Paid/unpaid filter intentionally deferred until 1.7 (payments) lands — no `payments` rows to filter against today.
+- **Backend additions:**
+  - `GET /clients?q=` was already trigram-backed via the GIN indexes from 0001 init — verified the underlying `ILIKE %q%` plan actually uses the index.
+  - `GET /orders?q=&dueBefore=&dueAfter=` filter params added. `q` matches `order_name` via `ILIKE` (trigram index on order_name is a Phase 2 polish if profiling shows it's hot). `dueBefore` / `dueAfter` map to inclusive `lte`/`gte` on `date_delivery`; orders with NULL `date_delivery` are excluded from either range.
+- **Mobile additions:**
+  - New `apps/seamflow-app/lib/use-debounced-value.ts` (250 ms hook) — used by both list screens so search doesn't fire on every keystroke.
+  - New global orders list at `app/(app)/orders/index.tsx` — status chips, time chips, free-text input. Each card shows status pill + delivery date.
+  - Home screen gets a new "Orders" tile pointing at the global list (was previously per-client-only).
+  - Clients list refactored to use the shared `useDebouncedValue` hook + now shows `address` on each card (visible payoff of the 1.x architectural refactor).
+- **Smoke covered by** `pnpm test:search-filters` (9 checks: trigram name match, phone-fragment match, garbage→empty, status filter regression, order-name match, `dueBefore`, `dueAfter`, range, NULL-delivery exclusion).
 - **Dependencies:** 1.1.
+
+### 1.11 PIN lock (post-sign-in app gate) ✅ DONE
+
+- **What shipped:** Optional 4-digit PIN that gates the (app) routes when the app is backgrounded for ≥ 5 minutes, OR on cold start. Set / change / remove from a new Profile → "🔐 PIN lock" screen. PIN itself is hashed (HMAC-SHA-256 + per-install random salt via `expo-crypto`) and stored in `expo-secure-store` — the raw PIN never lands anywhere, and the device's OS keychain provides the underlying encryption.
+- **Failure handling:** Wrong PIN wiggles + shows attempts remaining; 5 wrong tries forces sign-out (clears Supabase session). PIN is also cleared on every sign-out so a second tailor sharing the device isn't locked behind the first user's PIN.
+- **What's gated:** Every screen inside the `(app)` group. Sign-in, signup, and OTP verify screens are explicitly outside the gate — there's nothing to lock when no one is signed in.
+- **What this *isn't*:** Biometric (Face ID / fingerprint) is deferred to a later phase. The lock is local-only — no server round-trip — so it works fully offline and adds zero backend surface.
+- **Files added:**
+  - `apps/seamflow-app/lib/pin-lock.ts` — secure-store + hash + failed-attempt counter; constants `PIN_LENGTH=4`, `MAX_ATTEMPTS=5`, `LOCK_AFTER_BACKGROUND_MS=5min`.
+  - `apps/seamflow-app/lib/lock-context.tsx` — React context tracking `{ ready, pinSet, locked }`. AppState listener stamps a `lastBackgroundedAt` ref and flips `locked` on the next foreground when the elapsed exceeds the threshold.
+  - `apps/seamflow-app/components/PinLockScreen.tsx` — full-screen numeric keypad + dot indicator + "Forgot PIN? Sign out" escape hatch.
+  - `apps/seamflow-app/app/(app)/pin.tsx` — set / change / remove flow with a small `Stage` state machine (menu → enterCurrent → enterNew → confirmNew).
+  - `(app)/_layout.tsx` wraps the Stack in `<LockProvider>` and swaps in `<PinLockScreen>` when `locked && pinSet`. A small `<GatedStack>` waits for the initial pinExists() probe so no first-paint flash of the home screen.
+- **Open follow-ups (later phases):** biometric unlock, per-account "remember this device for N days" toggle, server-side audit of failed-attempt counts.
 
 **Phase 1 exit criteria:** 50 paying tailors, daily active use, < 1% sync error rate, average response time under 300 ms on 3G, monthly recurring revenue covering hosting costs.
 

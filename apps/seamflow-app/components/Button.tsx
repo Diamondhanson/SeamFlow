@@ -1,11 +1,38 @@
+// ============================================================================
+// Back-compat wrapper around the Atelier <Button> primitive.
+//
+// Existing screens import `{ Button }` from this path with the legacy prop
+// shape `{ label, onPress, variant?, disabled?, loading? }`. We keep that
+// surface and forward everything to `@seamflow/ui`'s Button, which gives
+// every screen the new font / pill radius / spring-on-press for free.
+//
+// The only prop translation: legacy `variant: 'danger'` → Atelier
+// `variant: 'destructive'`. All other variant names are identical.
+//
+// New screens should import directly from `@seamflow/ui` and skip this
+// shim — it exists to avoid touching 30+ existing call sites in one go.
+// ============================================================================
+
 import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { colors, radii, spacing } from '../lib/theme';
+  Button as AtelierButton,
+  type ButtonVariant as AtelierVariant,
+} from '@seamflow/ui';
+
+type LegacyVariant = 'primary' | 'secondary' | 'danger';
+
+interface Props {
+  label: string;
+  onPress: () => void;
+  variant?: LegacyVariant;
+  disabled?: boolean;
+  loading?: boolean;
+}
+
+const VARIANT_MAP: Record<LegacyVariant, AtelierVariant> = {
+  primary: 'primary',
+  secondary: 'secondary',
+  danger: 'destructive',
+};
 
 export function Button({
   label,
@@ -13,63 +40,14 @@ export function Button({
   variant = 'primary',
   disabled,
   loading,
-}: {
-  label: string;
-  onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger';
-  disabled?: boolean;
-  loading?: boolean;
-}) {
-  const style = [
-    styles.base,
-    variant === 'primary' && styles.primary,
-    variant === 'secondary' && styles.secondary,
-    variant === 'danger' && styles.danger,
-    (disabled || loading) && styles.disabled,
-  ];
-  const textStyle = [
-    styles.text,
-    variant === 'secondary' && styles.secondaryText,
-    variant === 'danger' && styles.dangerText,
-  ];
+}: Props) {
   return (
-    <TouchableOpacity
-      style={style}
+    <AtelierButton
+      label={label}
       onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.7}
-    >
-      <View style={styles.inner}>
-        {loading ? (
-          <ActivityIndicator color={colors.accentText} />
-        ) : (
-          <Text style={textStyle}>{label}</Text>
-        )}
-      </View>
-    </TouchableOpacity>
+      variant={VARIANT_MAP[variant]}
+      disabled={disabled}
+      loading={loading}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: radii.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  primary: { backgroundColor: colors.accent },
-  secondary: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  danger: { backgroundColor: colors.danger },
-  disabled: { opacity: 0.5 },
-  inner: { alignItems: 'center', justifyContent: 'center', minHeight: 22 },
-  text: {
-    color: colors.accentText,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  secondaryText: { color: colors.text },
-  dangerText: { color: colors.accentText },
-});

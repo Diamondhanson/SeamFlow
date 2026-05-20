@@ -18,6 +18,14 @@ export const envSchema = z.object({
 
   // Sentry — optional. Error tracking disabled when empty.
   SENTRY_DSN: z.string().url().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+
+  // Share-link signing — separate from Supabase JWT so rotating it doesn't
+  // invalidate user sessions. 32+ random bytes recommended.
+  SHARE_LINK_JWT_SECRET: z.string().min(32),
+
+  // Base URL of seamflow-web for building share URLs. In dev:
+  // http://localhost:3000. In prod (eventual): https://seamflow.app.
+  WEB_BASE_URL: z.string().url().default('http://localhost:3000'),
 });
 
 export type Env = z.infer<typeof envSchema>;

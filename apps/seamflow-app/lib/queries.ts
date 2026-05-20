@@ -8,6 +8,8 @@ import type {
   GroupOrderMemberCreateInput,
   GroupOrderMemberUpdateInput,
   GroupOrderUpdateInput,
+  GroupOrderWithMembers,
+  GroupOrderWithMembersCreateInput,
   MeasurementSetCreateInput,
   MeasurementSetUpdateInput,
   MeasurementTemplateCreateInput,
@@ -21,32 +23,17 @@ import type {
   TailorUpsertInput,
 } from '@seamflow/schemas';
 import { api } from './api';
+import { qk } from './query-keys';
+import {
+  mk,
+  type DeleteOrderVars,
+  type TransitionOrderVars,
+  type UpdateOrderVars,
+} from './mutation-defaults';
 
-// ============================================================================
-// Query keys
-// Single source of truth so mutations can invalidate the right caches.
-// ============================================================================
-
-export const qk = {
-  health: () => ['health'] as const,
-  me: () => ['me'] as const,
-  myTailor: () => ['me', 'tailor'] as const,
-
-  clients: (q?: string) => ['clients', { q: q ?? '' }] as const,
-  client: (id: string) => ['clients', id] as const,
-  measurementSets: (clientId: string) => ['clients', clientId, 'measurement-sets'] as const,
-
-  templates: () => ['templates'] as const,
-  template: (id: string) => ['templates', id] as const,
-
-  groups: (status?: string) => ['groups', { status: status ?? '' }] as const,
-  group: (id: string) => ['groups', id] as const,
-
-  orders: (filter?: { clientId?: string; status?: OrderStatus }) =>
-    ['orders', filter ?? {}] as const,
-  order: (id: string) => ['orders', id] as const,
-  orderPhotos: (orderId: string) => ['orders', orderId, 'photos'] as const,
-} as const;
+// Re-export qk so existing imports of `qk` from './queries' continue to work
+// without churning every screen.
+export { qk } from './query-keys';
 
 // ============================================================================
 // /me + tailor
@@ -219,6 +206,25 @@ export function useCreateGroupOrder() {
   });
 }
 
+/**
+ * Atomic create — pairs with POST /group-orders/with-members. Resolves the
+ * owner (existing client or new contact) and inserts inline members in a
+ * single server-side transaction. We also invalidate the clients list
+ * because a "new contact" owner just minted a new client row.
+ */
+export function useCreateGroupOrderWithMembers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: GroupOrderWithMembersCreateInput) =>
+      api.groupOrders.createWithMembers(input),
+    onSuccess: (created: GroupOrderWithMembers) => {
+      qc.invalidateQueries({ queryKey: ['groups'] });
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.setQueryData(qk.group(created.id), created);
+    },
+  });
+}
+
 export function useUpdateGroupOrder(id: string) {
   const qc = useQueryClient();
   return useMutation({
@@ -291,7 +297,18 @@ export function useCopyMemberMeasurements(memberId: string, groupId: string) {
 // Orders
 // ============================================================================
 
-export const useOrders = (filter?: { clientId?: string; status?: OrderStatus }) =>
+interface UseOrdersFilter {
+  clientId?: string;
+  status?: OrderStatus;
+  /** Free-text — matches orderName. */
+  q?: string;
+  /** ISO timestamp. */
+  dueBefore?: string;
+  /** ISO timestamp. */
+  dueAfter?: string;
+}
+
+export const useOrders = (filter?: UseOrdersFilter) =>
   useQuery({
     queryKey: qk.orders(filter),
     queryFn: () => api.orders.list({ limit: 100, ...filter }),
@@ -300,49 +317,111 @@ export const useOrders = (filter?: { clientId?: string; status?: OrderStatus }) 
 export const useOrder = (id: string) =>
   useQuery({ queryKey: qk.order(id), queryFn: () => api.orders.get(id), enabled: !!id });
 
+// ============================================================================
+// Order mutations
+//
+// These four use `mutationKey` so the persisted MutationCache (see
+// `mutation-defaults.ts`) can replay them after the app is killed offline.
+// The hook signatures still accept `id` at hook-creation time for caller
+// ergonomics — internally we repack `id` into the mutation variables so the
+// dehydrated form carries everything needed to re-run.
+//
+// Component-level `onSuccess` / `onError` passed to `mutate()` still fire
+// alongside the registered defaults (TanStack runs both), so screens can
+// still show their own toasts/navigation on top of the global cache
+// invalidation.
+// ============================================================================
+
 export function useCreateOrder() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: OrderCreateInput) => api.orders.create(input),
-    onSuccess: (created: Order) => {
-      qc.invalidateQueries({ queryKey: ['orders'] });
-      // Also clear the cached client detail so its orders section refreshes.
-      qc.invalidateQueries({ queryKey: qk.client(created.clientId) });
-    },
+  // No id binding — `mutationKey` matches what registerMutationDefaults wired
+  // up. Variables are the OrderCreateInput as before.
+  return useMutation<Order, Error, OrderCreateInput>({
+    mutationKey: mk.createOrder,
   });
 }
 
 export function useUpdateOrder(id: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: OrderUpdateInput) => api.orders.update(id, input),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: qk.order(id) });
-      qc.invalidateQueries({ queryKey: ['orders'] });
-    },
+  const m = useMutation<Order, Error, UpdateOrderVars>({
+    mutationKey: mk.updateOrder,
   });
+  return wrapWithId<Order, OrderUpdateInput, UpdateOrderVars>(m, (input) => ({
+    id,
+    input,
+  }));
 }
 
 export function useTransitionOrder(id: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: OrderTransitionInput) => api.orders.transition(id, input),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: qk.order(id) });
-      qc.invalidateQueries({ queryKey: ['orders'] });
-    },
+  const m = useMutation<Order, Error, TransitionOrderVars>({
+    mutationKey: mk.transitionOrder,
   });
+  return wrapWithId<Order, OrderTransitionInput, TransitionOrderVars>(m, (input) => ({
+    id,
+    input,
+  }));
 }
 
 export function useDeleteOrder(id: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => api.orders.delete(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['orders'] });
-      qc.removeQueries({ queryKey: qk.order(id) });
-    },
+  const m = useMutation<void, Error, DeleteOrderVars>({
+    mutationKey: mk.deleteOrder,
   });
+  return wrapWithId<void, void, DeleteOrderVars>(m, () => ({ id }));
+}
+
+// ----------------------------------------------------------------------------
+// Helper: re-bind a mutation that takes `{ id, input }` so callers can pass
+// just `input` and we wrap it back to the registered shape. Keeps the hook
+// API identical to the pre-1.4-polish version.
+// ----------------------------------------------------------------------------
+
+interface MutationLike<TData, TVars> {
+  mutate: (vars: TVars, opts?: MutationCallbackOpts<TData, TVars>) => void;
+  mutateAsync: (vars: TVars) => Promise<TData>;
+  isPending: boolean;
+  isError: boolean;
+  isSuccess: boolean;
+  error: Error | null;
+  data: TData | undefined;
+  reset: () => void;
+}
+
+interface MutationCallbackOpts<TData, TVars> {
+  onSuccess?: (data: TData, vars: TVars) => void;
+  onError?: (err: Error, vars: TVars) => void;
+  onSettled?: (data: TData | undefined, err: Error | null, vars: TVars) => void;
+}
+
+function wrapWithId<TData, TPublicInput, TPrivateVars>(
+  m: MutationLike<TData, TPrivateVars>,
+  pack: (input: TPublicInput) => TPrivateVars,
+): MutationLike<TData, TPublicInput> {
+  return {
+    mutate: (input, opts) => {
+      const vars = pack(input);
+      // Translate the inner vars back to the public input shape inside
+      // user-supplied callbacks so the type contract matches at runtime.
+      const innerOpts: MutationCallbackOpts<TData, TPrivateVars> | undefined = opts
+        ? {
+            onSuccess: opts.onSuccess
+              ? (data) => opts.onSuccess?.(data, input)
+              : undefined,
+            onError: opts.onError
+              ? (err) => opts.onError?.(err, input)
+              : undefined,
+            onSettled: opts.onSettled
+              ? (data, err) => opts.onSettled?.(data, err, input)
+              : undefined,
+          }
+        : undefined;
+      m.mutate(vars, innerOpts);
+    },
+    mutateAsync: (input) => m.mutateAsync(pack(input)),
+    isPending: m.isPending,
+    isError: m.isError,
+    isSuccess: m.isSuccess,
+    error: m.error,
+    data: m.data,
+    reset: m.reset,
+  };
 }
 
 // ============================================================================
@@ -361,5 +440,16 @@ export function useDeleteOrderPhoto(orderId: string) {
   return useMutation({
     mutationFn: (photoId: string) => api.orderPhotos.delete(photoId),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.orderPhotos(orderId) }),
+  });
+}
+
+// ============================================================================
+// Share links (Phase 1.5 magic-link order view)
+// Regenerate on every share — we don't cache or stash the token client-side.
+// ============================================================================
+
+export function useIssueShareLink(orderId: string) {
+  return useMutation({
+    mutationFn: () => api.shareLinks.issueForOrder(orderId),
   });
 }

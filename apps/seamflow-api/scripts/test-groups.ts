@@ -66,6 +66,7 @@ async function main(): Promise<void> {
   r = await api(jwt, 'POST', '/clients', {
     fullName: 'Adaeze Okeke',
     phone: '+2348031234567',
+    address: '12 Acme Rd, Lagos',
   });
   assert(r.status === 201, `POST /clients: ${r.status}`);
   const baseClientId = r.data.id;

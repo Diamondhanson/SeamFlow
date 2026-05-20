@@ -1,6 +1,8 @@
 import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '../../lib/auth-context';
+import { LockProvider, useLock } from '../../lib/lock-context';
+import { PinLockScreen } from '../../components/PinLockScreen';
 import { colors } from '../../lib/theme';
 
 export default function AppLayout() {
@@ -18,17 +20,50 @@ export default function AppLayout() {
     return <Redirect href="/sign-in" />;
   }
 
+  // The lock provider has to live INSIDE the auth gate — there's nothing
+  // to lock when no one is signed in, and pin-state should be re-probed
+  // on each sign-in (useful when two tailors share a device and only one
+  // has set a PIN).
+  return (
+    <LockProvider>
+      <GatedStack />
+    </LockProvider>
+  );
+}
+
+function GatedStack() {
+  const { ready, pinSet, locked } = useLock();
+
+  // Block the first paint until we've checked whether a PIN is configured.
+  // Without this we'd flash the home screen for ~50 ms on cold start before
+  // the gate engages, which defeats the whole purpose of the gate.
+  if (!ready) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
+
+  if (pinSet && locked) {
+    return <PinLockScreen />;
+  }
+
   return (
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: colors.bg },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: '600' },
+        // Atelier: nav-bar titles render in Fraunces semibold to match
+        // screen-level h1's. Falls back to system if fonts haven't loaded
+        // (won't happen — RootLayout gates first paint on fontsReady).
+        headerTitleStyle: { fontFamily: 'Fraunces_600SemiBold', fontSize: 18 },
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
       <Stack.Screen name="index" options={{ title: 'SeamFlow' }} />
       <Stack.Screen name="me" options={{ title: 'Profile' }} />
+      <Stack.Screen name="pin" options={{ title: 'PIN lock' }} />
       <Stack.Screen name="new-order" options={{ title: 'New Order' }} />
       <Stack.Screen name="clients/index" options={{ title: 'Clients' }} />
       <Stack.Screen
@@ -48,6 +83,7 @@ export default function AppLayout() {
         options={{ title: 'New Template', presentation: 'modal' }}
       />
       <Stack.Screen name="templates/[id]" options={{ title: 'Template' }} />
+      <Stack.Screen name="orders/index" options={{ title: 'Orders' }} />
       <Stack.Screen name="orders/[id]" options={{ title: 'Order' }} />
     </Stack>
   );

@@ -168,7 +168,11 @@ export class OrderPhotosService {
     await this.dbService.db.delete(orderPhotos).where(eq(orderPhotos.id, id));
   }
 
-  private async attachSignedUrl(row: OrderPhotoRow): Promise<OrderPhotoWithUrl> {
+  /**
+   * Attach signed URLs (full + thumb) to a photo row. Public because the
+   * share-link path needs to call this from a non-authed context.
+   */
+  async attachSignedUrl(row: OrderPhotoRow): Promise<OrderPhotoWithUrl> {
     // Generate both signed URLs in parallel.
     const [fullRes, thumbRes] = await Promise.all([
       this.supabase

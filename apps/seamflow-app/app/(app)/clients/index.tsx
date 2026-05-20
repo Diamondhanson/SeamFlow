@@ -6,18 +6,16 @@ import { Card, CardTitle, CardLine } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { useClients } from '../../../lib/queries';
+import { useDebouncedValue } from '../../../lib/use-debounced-value';
 import { ApiError } from '../../../lib/api';
 import { colors, spacing } from '../../../lib/theme';
 
 export default function ClientsList() {
   const [q, setQ] = useState('');
-  const [debouncedQ, setDebouncedQ] = useState('');
-
-  // Debounce search so we don't refetch on every keystroke.
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQ(q), 300);
-    return () => clearTimeout(t);
-  }, [q]);
+  // Debounce search so we don't refetch on every keystroke. The API uses
+  // trigram-backed ILIKE on full_name + phone (GIN indexes from 0001), so
+  // even fat-fingered partial matches like "ad" return quickly.
+  const debouncedQ = useDebouncedValue(q, 300);
 
   const { data, isLoading, error } = useClients(debouncedQ);
 
@@ -57,7 +55,7 @@ export default function ClientsList() {
             <Card onPress={() => router.push(`/(app)/clients/${item.id}`)}>
               <CardTitle>{item.fullName}</CardTitle>
               <CardLine>{item.phone}</CardLine>
-              {item.email ? <CardLine>{item.email}</CardLine> : null}
+              {item.address ? <CardLine>{item.address}</CardLine> : null}
             </Card>
           )}
         />

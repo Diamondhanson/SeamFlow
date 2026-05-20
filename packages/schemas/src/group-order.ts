@@ -16,7 +16,10 @@ export const GroupOrderSchema = z.object({
   description: z.string().nullable(),
   sharedDesignNotes: z.string().nullable(),
   sharedFabricId: z.string().uuid().nullable(),
+  /** Legacy owner pointer (the member-row id); keep null on new groups. */
   ownerMemberId: z.string().uuid().nullable(),
+  /** Canonical owner pointer — references clients(id). */
+  ownerClientId: z.string().uuid().nullable(),
   eventDate: z.string().datetime().nullable(),
   dateDelivery: z.string().datetime().nullable(),
   status: GroupOrderStatusSchema,
@@ -51,6 +54,7 @@ export const GroupOrderCreateSchema = z.object({
   sharedDesignNotes: z.string().nullable().optional(),
   sharedFabricId: z.string().uuid().nullable().optional(),
   ownerMemberId: z.string().uuid().nullable().optional(),
+  ownerClientId: z.string().uuid().nullable().optional(),
   eventDate: z.string().datetime().nullable().optional(),
   dateDelivery: z.string().datetime().nullable().optional(),
   status: GroupOrderStatusSchema.optional(),
@@ -58,6 +62,52 @@ export const GroupOrderCreateSchema = z.object({
   currency: z.string().length(3).nullable().optional(),
 });
 export type GroupOrderCreateInput = z.infer<typeof GroupOrderCreateSchema>;
+
+// ============================================================================
+// Atomic create-with-members: title + owner + members in one POST.
+//
+// The owner is one of two shapes:
+//   { existingClientId: uuid }     — pick from the existing client list
+//   { fullName, phone, address }   — create a new client inline
+//
+// The server runs all of (optional new-client create + group_order insert
+// + member bulk insert) inside one transaction so the caller sees either
+// the whole tree or nothing.
+// ============================================================================
+
+export const NewOwnerContactSchema = z.object({
+  fullName: z.string().min(1),
+  phone: z.string().min(1),
+  address: z.string().min(1),
+});
+
+export const GroupOrderOwnerInputSchema = z.union([
+  z.object({ existingClientId: z.string().uuid() }),
+  z.object({ newContact: NewOwnerContactSchema }),
+]);
+export type GroupOrderOwnerInput = z.infer<typeof GroupOrderOwnerInputSchema>;
+
+export const GroupOrderMemberInlineSchema = z.object({
+  fullName: z.string().min(1),
+  roleLabel: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  /** Position is auto-assigned by the server if omitted. */
+  position: z.number().int().nonnegative().optional(),
+});
+export type GroupOrderMemberInlineInput = z.infer<typeof GroupOrderMemberInlineSchema>;
+
+export const GroupOrderWithMembersCreateSchema = z.object({
+  name: z.string().min(1),
+  owner: GroupOrderOwnerInputSchema,
+  members: z.array(GroupOrderMemberInlineSchema).default([]),
+  description: z.string().nullable().optional(),
+  sharedDesignNotes: z.string().nullable().optional(),
+  eventDate: z.string().datetime().nullable().optional(),
+  dateDelivery: z.string().datetime().nullable().optional(),
+});
+export type GroupOrderWithMembersCreateInput = z.infer<
+  typeof GroupOrderWithMembersCreateSchema
+>;
 
 /** Body schema for PATCH /group-orders/:id. All fields optional. */
 export const GroupOrderUpdateSchema = GroupOrderCreateSchema.partial();

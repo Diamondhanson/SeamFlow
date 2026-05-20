@@ -12,8 +12,4 @@ export const config = {
     'EXPO_PUBLIC_SUPABASE_ANON_KEY',
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
   ),
-  devEmail: process.env.EXPO_PUBLIC_DEV_EMAIL ?? null,
-  devPassword: process.env.EXPO_PUBLIC_DEV_PASSWORD ?? null,
 };
-
-export const devLoginEnabled = !!(config.devEmail && config.devPassword);

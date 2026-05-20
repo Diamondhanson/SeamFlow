@@ -29,6 +29,14 @@ import {
   type OrderPhotosResource,
 } from './resources/order-photos';
 import { makeSyncResource, type SyncResource } from './resources/sync';
+import {
+  makeShareLinksResource,
+  type ShareLinksResource,
+} from './resources/share-links';
+import {
+  makeNotificationsResource,
+  type NotificationsResource,
+} from './resources/notifications';
 
 export interface ApiClient {
   health: HealthResource;
@@ -43,6 +51,8 @@ export interface ApiClient {
   orderItems: OrderItemsResource;
   orderPhotos: OrderPhotosResource;
   sync: SyncResource;
+  shareLinks: ShareLinksResource;
+  notifications: NotificationsResource;
 }
 
 export type ApiClientConfig = HttpConfig;
@@ -73,5 +83,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     orderItems: makeOrderItemsResource(http),
     orderPhotos: makeOrderPhotosResource(http),
     sync: makeSyncResource(http),
+    shareLinks: makeShareLinksResource(http),
+    notifications: makeNotificationsResource(http),
   };
 }

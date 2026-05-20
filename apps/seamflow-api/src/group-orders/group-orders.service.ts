@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { groupOrderMembers, groupOrders } from '../db/schema';
+import { clients, groupOrderMembers, groupOrders } from '../db/schema';
 import type {
   GroupOrderCreateInput,
   GroupOrderStatus,
   GroupOrderUpdateInput,
+  GroupOrderWithMembersCreateInput,
 } from '@seamflow/schemas';
 
 export type GroupOrderRow = typeof groupOrders.$inferSelect;
@@ -65,6 +66,7 @@ export class GroupOrdersService {
         sharedDesignNotes: data.sharedDesignNotes ?? null,
         sharedFabricId: data.sharedFabricId ?? null,
         ownerMemberId: data.ownerMemberId ?? null,
+        ownerClientId: data.ownerClientId ?? null,
         eventDate: data.eventDate ? new Date(data.eventDate) : null,
         dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
         status: data.status ?? 'planning',
@@ -75,6 +77,97 @@ export class GroupOrdersService {
     const row = rows[0];
     if (!row) throw new NotFoundException('Group order insert returned no row');
     return row;
+  }
+
+  /**
+   * Atomic create — captures owner + members in a single transaction.
+   *
+   * Three things happen inside one DB transaction so the caller never sees a
+   * partial tree:
+   *   1. If `owner.newContact` was provided, create a new client row owned by
+   *      this tailor and use its id as the group's ownerClientId.
+   *      If `owner.existingClientId` was provided, verify it belongs to this
+   *      tailor and use it directly.
+   *   2. Insert the group order with the resolved ownerClientId.
+   *   3. Bulk-insert any inline members, auto-assigning `position` if missing.
+   *
+   * Returns the full group + members payload (same shape as getWithMembers).
+   */
+  async createWithMembers(
+    tailorId: string,
+    data: GroupOrderWithMembersCreateInput,
+  ): Promise<GroupOrderWithMembers> {
+    return this.dbService.db.transaction(async (tx) => {
+      // -------- 1. Resolve owner --------
+      let ownerClientId: string;
+      if ('existingClientId' in data.owner) {
+        const [existing] = await tx
+          .select({ id: clients.id })
+          .from(clients)
+          .where(
+            and(
+              eq(clients.id, data.owner.existingClientId),
+              eq(clients.tailorId, tailorId),
+            ),
+          )
+          .limit(1);
+        if (!existing) {
+          throw new NotFoundException(
+            `Owner client ${data.owner.existingClientId} not found for this tailor`,
+          );
+        }
+        ownerClientId = existing.id;
+      } else {
+        const [newClient] = await tx
+          .insert(clients)
+          .values({
+            tailorId,
+            fullName: data.owner.newContact.fullName,
+            phone: data.owner.newContact.phone,
+            address: data.owner.newContact.address,
+          })
+          .returning({ id: clients.id });
+        if (!newClient) {
+          throw new NotFoundException('Owner client insert returned no row');
+        }
+        ownerClientId = newClient.id;
+      }
+
+      // -------- 2. Insert group --------
+      const [group] = await tx
+        .insert(groupOrders)
+        .values({
+          tailorId,
+          name: data.name,
+          description: data.description ?? null,
+          sharedDesignNotes: data.sharedDesignNotes ?? null,
+          ownerClientId,
+          eventDate: data.eventDate ? new Date(data.eventDate) : null,
+          dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
+          status: 'planning',
+        })
+        .returning();
+      if (!group) {
+        throw new NotFoundException('Group order insert returned no row');
+      }
+
+      // -------- 3. Insert members (if any) --------
+      let members: GroupOrderMemberRow[] = [];
+      if (data.members.length > 0) {
+        const values = data.members.map((m, i) => ({
+          groupOrderId: group.id,
+          fullName: m.fullName,
+          roleLabel: m.roleLabel ?? null,
+          notes: m.notes ?? null,
+          // Caller-provided position wins; otherwise we use array order so the
+          // displayed list matches the order they were typed.
+          position: m.position ?? i,
+        }));
+        members = await tx.insert(groupOrderMembers).values(values).returning();
+      }
+
+      return { ...group, members };
+    });
   }
 
   async update(
@@ -90,6 +183,7 @@ export class GroupOrdersService {
     if (data.sharedDesignNotes !== undefined) patch.sharedDesignNotes = data.sharedDesignNotes;
     if (data.sharedFabricId !== undefined) patch.sharedFabricId = data.sharedFabricId;
     if (data.ownerMemberId !== undefined) patch.ownerMemberId = data.ownerMemberId;
+    if (data.ownerClientId !== undefined) patch.ownerClientId = data.ownerClientId;
     if (data.eventDate !== undefined) {
       patch.eventDate = data.eventDate ? new Date(data.eventDate) : null;
     }

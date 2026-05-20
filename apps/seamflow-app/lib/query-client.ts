@@ -3,6 +3,7 @@ import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persi
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState, type AppStateStatus } from 'react-native';
+import { registerMutationDefaults } from './mutation-defaults';
 
 // ============================================================================
 // Offline-first wiring
@@ -57,6 +58,12 @@ export const queryClient = new QueryClient({
   },
 });
 
+// Wire up the canonical mutationFn for every persistable mutation. Must
+// happen BEFORE any component renders (i.e. at module load) so that when
+// the persistor restores paused mutations, their mutationFn is already
+// registered against the same QueryClient instance.
+registerMutationDefaults(queryClient);
+
 export const queryPersister = createAsyncStoragePersister({
   storage: AsyncStorage,
   key: PERSIST_KEY,
@@ -100,8 +107,15 @@ export function invalidateAll(): Promise<void> {
   return queryClient.invalidateQueries();
 }
 
-/** Clear the in-memory + persisted cache entirely. */
+/**
+ * Clear the in-memory + persisted cache entirely. Critically also drops
+ * the MutationCache — without that, a paused offline mutation queued by
+ * one tailor could fire under the next-signed-in tailor's JWT and write
+ * to the wrong account. `queryClient.clear()` clears queries but NOT
+ * mutations, so we wipe both explicitly.
+ */
 export async function clearCache(): Promise<void> {
   queryClient.clear();
+  queryClient.getMutationCache().clear();
   await AsyncStorage.removeItem(PERSIST_KEY);
 }
