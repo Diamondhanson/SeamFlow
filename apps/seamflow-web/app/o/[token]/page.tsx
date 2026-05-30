@@ -11,20 +11,15 @@ interface PageProps {
 // expiry, the URLs would 403 — so don't cache the page for longer than that.
 export const revalidate = 1800; // 30 minutes
 
-const STATUS_LABEL: Record<string, string> = {
-  registered: 'Registered',
-  in_progress: 'In progress',
-  testing: 'Fitting',
-  on_pause: 'On pause',
-  delivered: 'Delivered',
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  registered: 'bg-gray-500',
-  in_progress: 'bg-accent',
-  testing: 'bg-amber-500',
-  on_pause: 'bg-rose-500',
-  delivered: 'bg-emerald-600',
+// Each status carries a label and an Atelier hue. The chip renders as a soft
+// tinted pill (low-alpha fill + a solid dot) rather than a loud solid badge —
+// it reads as a status, not an alert.
+const STATUS: Record<string, { label: string; color: string }> = {
+  registered: { label: 'Registered', color: '#5B554F' }, // inkMuted
+  in_progress: { label: 'In progress', color: '#2E3A8C' }, // indigo
+  testing: { label: 'Fitting', color: '#D89F4A' }, // amber
+  on_pause: { label: 'On pause', color: '#B4564B' }, // rose
+  delivered: { label: 'Delivered', color: '#8FA68E' }, // sage
 };
 
 async function loadPayload(token: string): Promise<PublicOrderResponse> {
@@ -49,52 +44,65 @@ export default async function PublicOrderPage({ params }: PageProps) {
   }
 
   const { order, items, photos, tailor, effectiveExpiresAt } = payload;
+  const status = STATUS[order.status] ?? {
+    label: order.status,
+    color: '#5B554F',
+  };
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-10">
-      <header className="mb-8">
-        <p className="text-sm uppercase tracking-wider text-muted">
+    <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-12 sm:pt-16">
+      {/* Masthead — the tailor's name in the brand serif, with a slim
+          copper rule above it as a signature mark. */}
+      <header className="mb-10 text-center">
+        <div className="mx-auto mb-5 h-px w-12 bg-accent/70" />
+        <h2 className="font-display text-xl font-semibold tracking-tight text-ink">
           {tailor.businessName}
-        </p>
+        </h2>
         {tailor.location ? (
-          <p className="text-xs text-muted">{tailor.location}</p>
+          <p className="mt-1 text-sm text-muted">{tailor.location}</p>
         ) : null}
       </header>
 
-      <section className="rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-border">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+      {/* Order card */}
+      <section className="rounded-4xl border border-border/70 bg-surface/80 p-6 shadow-card backdrop-blur-sm sm:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+              Your order
+            </p>
+            <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-4xl">
               {order.orderName}
             </h1>
-            <p className="mt-1 text-sm text-muted">
-              Ordered {formatDate(order.dateOrdered)}
-              {order.dateDelivery
-                ? ` · Delivery ${formatDate(order.dateDelivery)}`
-                : ''}
+          </div>
+          <StatusPill label={status.label} color={status.color} />
+        </div>
+
+        <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline">
+          <DateCell label="Ordered" value={formatDate(order.dateOrdered)} />
+          <DateCell
+            label="Delivery"
+            value={order.dateDelivery ? formatDate(order.dateDelivery) : '—'}
+            accent
+          />
+        </dl>
+
+        {order.notes ? (
+          <div className="mt-6 rounded-2xl border border-hairline bg-background/60 p-4">
+            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+              Notes
+            </p>
+            <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink/90">
+              {order.notes}
             </p>
           </div>
-          <span
-            className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-medium text-white ${
-              STATUS_COLOR[order.status] ?? 'bg-gray-500'
-            }`}
-          >
-            {STATUS_LABEL[order.status] ?? order.status}
-          </span>
-        </div>
-        {order.notes ? (
-          <p className="mt-4 whitespace-pre-line text-sm text-ink/80">
-            {order.notes}
-          </p>
         ) : null}
       </section>
 
+      {/* Photos */}
       {photos.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-muted">
-            Photos
-          </h2>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <section className="mt-10">
+          <SectionLabel>Photos</SectionLabel>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {photos.map((p) => {
               const src = p.signedUrl ?? p.thumbnailUrl;
               if (!src) return null;
@@ -104,13 +112,13 @@ export default async function PublicOrderPage({ params }: PageProps) {
                   href={p.signedUrl ?? src}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative aspect-square overflow-hidden rounded-xl bg-surface ring-1 ring-border"
+                  className="group relative aspect-square overflow-hidden rounded-2xl border border-border/60 bg-surface shadow-sm"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={p.thumbnailUrl ?? src}
                     alt={p.caption ?? p.role}
-                    className="h-full w-full object-cover transition group-hover:scale-105"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                   />
                 </a>
               );
@@ -119,49 +127,129 @@ export default async function PublicOrderPage({ params }: PageProps) {
         </section>
       ) : null}
 
-      <section className="mt-8">
-        <h2 className="mb-3 text-sm font-medium uppercase tracking-wider text-muted">
-          Items
-        </h2>
-        <ul className="space-y-3">
-          {items.map((it) => (
-            <li
-              key={it.id}
-              className="rounded-xl bg-surface p-4 ring-1 ring-border"
-            >
-              <div className="flex items-baseline justify-between">
-                <span className="font-medium capitalize">{it.garmentType}</span>
-                <span className="text-sm text-muted">×{it.quantity}</span>
-              </div>
-              {it.measurements && Object.keys(it.measurements).length > 0 ? (
-                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                  {Object.entries(it.measurements).map(([k, v]) => (
-                    <div key={k} className="flex justify-between">
-                      <dt className="text-muted">{k}</dt>
-                      <dd>{String(v)} cm</dd>
-                    </div>
-                  ))}
-                </dl>
-              ) : null}
-              {it.notes ? (
-                <p className="mt-2 text-sm text-ink/80">{it.notes}</p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+      {/* Items */}
+      <section className="mt-10">
+        <SectionLabel>
+          Items{items.length > 0 ? ` · ${items.length}` : ''}
+        </SectionLabel>
+        {items.length === 0 ? (
+          <p className="mt-4 rounded-2xl border border-dashed border-border/70 bg-surface/40 px-4 py-6 text-center text-sm text-muted">
+            No items added to this order yet.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {items.map((it) => (
+              <li
+                key={it.id}
+                className="rounded-3xl border border-border/70 bg-surface/80 p-5 shadow-sm"
+              >
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-display text-lg font-semibold capitalize text-ink">
+                    {it.garmentType}
+                  </span>
+                  <span className="rounded-full bg-background px-2.5 py-0.5 font-mono text-xs text-muted tabular">
+                    ×{it.quantity}
+                  </span>
+                </div>
+                {it.measurements &&
+                Object.keys(it.measurements).length > 0 ? (
+                  <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+                    {Object.entries(it.measurements).map(([k, v]) => (
+                      <div
+                        key={k}
+                        className="flex items-baseline justify-between border-b border-hairline pb-1.5"
+                      >
+                        <dt className="capitalize text-muted">{k}</dt>
+                        <dd className="font-mono text-ink tabular">
+                          {String(v)}
+                          <span className="ml-0.5 text-xs text-muted">cm</span>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
+                {it.notes ? (
+                  <p className="mt-3 text-sm leading-relaxed text-ink/80">
+                    {it.notes}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
-      <footer className="mt-12 border-t border-border pt-6 text-center text-xs text-muted">
-        <p>
+      {/* Footer */}
+      <footer className="mt-14 text-center">
+        <div className="mx-auto mb-5 h-px w-16 bg-border" />
+        <p className="text-xs text-muted">
           This link expires{' '}
-          <time dateTime={effectiveExpiresAt}>
+          <time dateTime={effectiveExpiresAt} className="text-ink/70">
             {formatDate(effectiveExpiresAt)}
           </time>
           .
         </p>
-        <p className="mt-1">Sent by {tailor.businessName} via SeamFlow.</p>
+        <p className="mt-2 text-xs text-muted">
+          Sent by {tailor.businessName} via{' '}
+          <span className="font-display font-semibold text-ink/80">
+            SeamFlow
+          </span>
+          .
+        </p>
       </footer>
     </main>
+  );
+}
+
+function StatusPill({ label, color }: { label: string; color: string }) {
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow-pill"
+      style={{
+        color,
+        backgroundColor: `${color}1a`, // ~10% alpha tint
+        boxShadow: `inset 0 0 0 1px ${color}33`,
+      }}
+    >
+      <span
+        className="h-1.5 w-1.5 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      {label}
+    </span>
+  );
+}
+
+function DateCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="bg-surface px-4 py-3.5">
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-[15px] font-medium ${
+          accent ? 'text-primary' : 'text-ink'
+        }`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted">
+      {children}
+    </h2>
   );
 }
 
@@ -174,13 +262,17 @@ function ExpiredOrInvalid({
 }) {
   const isExpired = status === 410;
   return (
-    <main className="mx-auto max-w-md px-5 py-20 text-center">
-      <h1 className="text-2xl font-semibold tracking-tight">
+    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-5 py-20 text-center">
+      <div className="mb-6 h-px w-12 bg-accent/70" />
+      <h1 className="font-display text-3xl font-bold tracking-tight text-ink">
         {isExpired ? 'Link expired' : 'Invalid link'}
       </h1>
-      <p className="mt-3 text-muted">{message}</p>
+      <p className="mt-3 text-[15px] leading-relaxed text-muted">{message}</p>
       <p className="mt-6 text-sm text-muted">
         Ask your tailor for a fresh link.
+      </p>
+      <p className="mt-10 text-xs text-muted">
+        <span className="font-display font-semibold text-ink/70">SeamFlow</span>
       </p>
     </main>
   );
