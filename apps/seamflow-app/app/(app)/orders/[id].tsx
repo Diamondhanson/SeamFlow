@@ -6,13 +6,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { OrderStatus } from '@seamflow/schemas';
 import { nextOrderStatuses } from '@seamflow/schemas';
 import { useQueryClient } from '@tanstack/react-query';
+import { Text, Chip, type ChipTone } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
@@ -28,7 +28,7 @@ import {
 } from '../../../lib/queries';
 import { useShareOrder } from '../../../lib/share-order';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
-import { colors, radii, spacing } from '../../../lib/theme';
+import { radii, spacing, useThemeColors } from '../../../lib/theme';
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   registered: 'Registered',
@@ -38,12 +38,12 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   delivered: 'Delivered',
 };
 
-const STATUS_COLOR: Record<OrderStatus, string> = {
-  registered: colors.textMuted,
-  in_progress: colors.accent,
-  testing: '#f5a524',
-  on_pause: '#e35d6a',
-  delivered: colors.success,
+const STATUS_TONE: Record<OrderStatus, ChipTone> = {
+  registered: 'statusRegistered',
+  in_progress: 'statusInProgress',
+  testing: 'statusTesting',
+  on_pause: 'statusOnPause',
+  delivered: 'statusDelivered',
 };
 
 export default function OrderDetailScreen() {
@@ -60,6 +60,7 @@ export default function OrderDetailScreen() {
   // `enabled` in useClient already short-circuits when the id is empty.
   const clientQ = useClient(orderQ.data?.clientId ?? '');
   const [uploading, setUploading] = useState(false);
+  const colors = useThemeColors();
 
   const order = orderQ.data ?? null;
   const photos = photosQ.data?.items ?? [];
@@ -141,7 +142,9 @@ export default function OrderDetailScreen() {
   if (loading || !order) {
     return (
       <Screen>
-        <Text style={styles.muted}>Loading…</Text>
+        <Text variant="bodySm" tone="textMuted">
+          Loading…
+        </Text>
       </Screen>
     );
   }
@@ -151,24 +154,28 @@ export default function OrderDetailScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <Text style={styles.name}>{order.orderName}</Text>
-        <View
-          style={[styles.statusPill, { backgroundColor: STATUS_COLOR[order.status] }]}
-        >
-          <Text style={styles.statusText}>{STATUS_LABEL[order.status]}</Text>
+        <Text variant="h1">{order.orderName}</Text>
+        <View style={{ marginTop: spacing.sm }}>
+          <Chip
+            variant="status"
+            label={STATUS_LABEL[order.status]}
+            tone={STATUS_TONE[order.status]}
+          />
         </View>
 
         <View style={{ height: spacing.md }} />
-        <Text style={styles.muted}>
+        <Text variant="bodySm" tone="textMuted">
           Ordered: {new Date(order.dateOrdered).toLocaleDateString()}
         </Text>
         {order.dateDelivery ? (
-          <Text style={styles.muted}>
+          <Text variant="bodySm" tone="textMuted">
             Delivery: {new Date(order.dateDelivery).toLocaleDateString()}
           </Text>
         ) : null}
         {order.notes ? (
-          <Text style={[styles.muted, { marginTop: spacing.sm }]}>{order.notes}</Text>
+          <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>
+            {order.notes}
+          </Text>
         ) : null}
 
         <View style={{ height: spacing.md }} />
@@ -179,11 +186,15 @@ export default function OrderDetailScreen() {
           disabled={shareOrderHook.isPending}
         />
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        <Text style={styles.section}>Status</Text>
+        <Text variant="h3" style={styles.section}>
+          Status
+        </Text>
         {nextStatuses.length === 0 ? (
-          <Text style={styles.muted}>No next status available.</Text>
+          <Text variant="bodySm" tone="textMuted">
+            No next status available.
+          </Text>
         ) : (
           nextStatuses.map((s) => (
             <View key={s} style={{ marginBottom: spacing.sm }}>
@@ -196,10 +207,10 @@ export default function OrderDetailScreen() {
           ))
         )}
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
         <View style={styles.row}>
-          <Text style={styles.section}>Photos ({photos.length})</Text>
+          <Text variant="h3">Photos ({photos.length})</Text>
           {uploading ? <ActivityIndicator color={colors.accent} /> : null}
         </View>
         <View style={styles.photoActions}>
@@ -218,7 +229,9 @@ export default function OrderDetailScreen() {
           />
         </View>
         {photos.length === 0 ? (
-          <Text style={styles.muted}>No photos yet.</Text>
+          <Text variant="bodySm" tone="textMuted">
+            No photos yet.
+          </Text>
         ) : (
           <ScrollView
             horizontal
@@ -237,25 +250,41 @@ export default function OrderDetailScreen() {
                   style={styles.photoThumbWrap}
                 >
                   {previewUrl ? (
-                    <Image source={{ uri: previewUrl }} style={styles.photoThumb} />
+                    <Image
+                      source={{ uri: previewUrl }}
+                      style={[styles.photoThumb, { backgroundColor: colors.card }]}
+                    />
                   ) : (
-                    <View style={styles.photoThumbPlaceholder}>
+                    <View
+                      style={[
+                        styles.photoThumbPlaceholder,
+                        { backgroundColor: colors.card },
+                      ]}
+                    >
                       <ActivityIndicator color={colors.textMuted} />
                     </View>
                   )}
-                  <Text style={styles.photoRole}>{p.role}</Text>
+                  <Text variant="caption" tone="textMuted" style={styles.photoRole}>
+                    {p.role}
+                  </Text>
                 </Pressable>
               );
             })}
           </ScrollView>
         )}
-        <Text style={styles.photoHint}>Long-press a photo to delete.</Text>
+        <Text variant="caption" tone="textMuted" style={styles.photoHint}>
+          Long-press a photo to delete.
+        </Text>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        <Text style={styles.section}>Items ({order.items.length})</Text>
+        <Text variant="h3" style={styles.section}>
+          Items ({order.items.length})
+        </Text>
         {order.items.length === 0 ? (
-          <Text style={styles.muted}>No items.</Text>
+          <Text variant="bodySm" tone="textMuted">
+            No items.
+          </Text>
         ) : (
           order.items.map((it) => (
             <Card key={it.id}>
@@ -275,28 +304,36 @@ export default function OrderDetailScreen() {
           ))
         )}
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        <Text style={styles.section}>Timeline ({order.events.length})</Text>
+        <Text variant="h3" style={styles.section}>
+          Timeline ({order.events.length})
+        </Text>
         {order.events.length === 0 ? (
-          <Text style={styles.muted}>No events yet.</Text>
+          <Text variant="bodySm" tone="textMuted">
+            No events yet.
+          </Text>
         ) : (
           order.events.map((e) => (
-            <View key={e.id} style={styles.event}>
-              <Text style={styles.eventTitle}>
+            <View key={e.id} style={[styles.event, { borderLeftColor: colors.accent }]}>
+              <Text variant="bodySm">
                 {e.eventType === 'created'
                   ? 'Order created'
                   : e.fromStatus && e.toStatus
                     ? `${STATUS_LABEL[e.fromStatus]} → ${STATUS_LABEL[e.toStatus]}`
                     : e.eventType}
               </Text>
-              <Text style={styles.eventDate}>
+              <Text variant="caption" tone="textMuted" style={{ marginTop: 2 }}>
                 {new Date(e.createdAt).toLocaleString()}
               </Text>
               {e.payload &&
               typeof e.payload === 'object' &&
               'note' in (e.payload as Record<string, unknown>) ? (
-                <Text style={styles.eventNote}>
+                <Text
+                  variant="caption"
+                  tone="textMuted"
+                  style={styles.eventNote}
+                >
                   {String((e.payload as Record<string, unknown>).note)}
                 </Text>
               ) : null}
@@ -304,7 +341,7 @@ export default function OrderDetailScreen() {
           ))
         )}
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
         <Button label="Delete order" variant="danger" onPress={deleteOrder} />
       </ScrollView>
     </Screen>
@@ -312,37 +349,18 @@ export default function OrderDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  name: { color: colors.text, fontSize: 24, fontWeight: '700' },
-  statusPill: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 4,
-    borderRadius: radii.lg,
-    marginTop: spacing.sm,
-  },
-  statusText: { color: colors.accentText, fontWeight: '600', fontSize: 12 },
-  muted: { color: colors.textMuted, fontSize: 14 },
-  section: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: spacing.md,
-  },
+  section: { marginBottom: spacing.md },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
     marginVertical: spacing.lg,
   },
   event: {
     paddingVertical: spacing.sm,
     borderLeftWidth: 2,
-    borderLeftColor: colors.accent,
     paddingLeft: spacing.md,
     marginBottom: spacing.xs,
   },
-  eventTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  eventDate: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  eventNote: { color: colors.textMuted, fontSize: 13, marginTop: 4, fontStyle: 'italic' },
+  eventNote: { marginTop: 4, fontStyle: 'italic' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -365,25 +383,19 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: radii.md,
-    backgroundColor: colors.card,
   },
   photoThumbPlaceholder: {
     width: 120,
     height: 120,
     borderRadius: radii.md,
-    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   photoRole: {
-    color: colors.textMuted,
-    fontSize: 11,
     marginTop: 4,
     textAlign: 'center',
   },
   photoHint: {
-    color: colors.textMuted,
-    fontSize: 11,
     marginTop: spacing.xs,
     fontStyle: 'italic',
   },

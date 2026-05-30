@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Text } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAuth } from '../lib/auth-context';
-import { colors, spacing } from '../lib/theme';
+import { spacing } from '../lib/theme';
 
 const OTP_LEN = 6;
 const RESEND_COOLDOWN_MS = 30 * 1000;
@@ -80,10 +81,10 @@ export default function VerifyOtp() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text style={styles.brand}>Check your email</Text>
-        <Text style={styles.subtitle}>
+        <Text variant="h1">Check your email</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.subtitle}>
           We sent a 6-digit code to{'\n'}
-          <Text style={styles.email}>{email}</Text>
+          <Text variant="bodySm" tone="text" style={styles.email}>{email}</Text>
         </Text>
       </View>
 
@@ -108,10 +109,9 @@ export default function VerifyOtp() {
       <View style={styles.resendRow}>
         <Pressable onPress={resend} disabled={cooldownLeftMs > 0 || resending}>
           <Text
-            style={[
-              styles.resendText,
-              (cooldownLeftMs > 0 || resending) && styles.resendDisabled,
-            ]}
+            variant="bodySm"
+            tone={cooldownLeftMs > 0 || resending ? 'textMuted' : 'primary'}
+            style={styles.resendText}
           >
             {cooldownLeftMs > 0
               ? `Resend in ${Math.ceil(cooldownLeftMs / 1000)}s`
@@ -124,7 +124,7 @@ export default function VerifyOtp() {
 
       <View style={{ height: spacing.xl }} />
       <Pressable onPress={() => router.replace('/sign-in')}>
-        <Text style={styles.back}>← Use a different email</Text>
+        <Text variant="caption" tone="textMuted" style={styles.back}>← Use a different email</Text>
       </Pressable>
     </Screen>
   );
@@ -132,17 +132,13 @@ export default function VerifyOtp() {
 
 const styles = StyleSheet.create({
   header: { alignItems: 'center', marginTop: spacing.xl, marginBottom: spacing.xl },
-  brand: { color: colors.text, fontSize: 24, fontWeight: '700' },
   subtitle: {
-    color: colors.textMuted,
-    fontSize: 14,
     textAlign: 'center',
     marginTop: spacing.sm,
     lineHeight: 20,
   },
-  email: { color: colors.text, fontWeight: '600' },
+  email: { fontWeight: '600' },
   resendRow: { alignItems: 'center', marginTop: spacing.lg },
-  resendText: { color: colors.accent, fontSize: 14, fontWeight: '600' },
-  resendDisabled: { color: colors.textMuted },
-  back: { color: colors.textMuted, textAlign: 'center', fontSize: 13 },
+  resendText: { fontWeight: '600' },
+  back: { textAlign: 'center' },
 });

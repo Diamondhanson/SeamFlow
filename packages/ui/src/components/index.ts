@@ -6,3 +6,9 @@ export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
 
 export { Input } from './Input';
 export type { InputProps } from './Input';
+
+export { Chip } from './Chip';
+export type { ChipProps, ChipVariant, ChipTone } from './Chip';
+
+export { Card, CardTitle, CardLine } from './Card';
+export type { CardProps, CardVariant } from './Card';

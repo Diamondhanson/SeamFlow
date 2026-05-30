@@ -18,11 +18,11 @@ import {
   Alert,
   Pressable,
   StyleSheet,
-  Text,
   View,
   Vibration,
 } from 'react-native';
 import { router } from 'expo-router';
+import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { Button } from '../../components/Button';
 import { useLock } from '../../lib/lock-context';
@@ -32,7 +32,7 @@ import {
   setPin as savePin,
   verifyPin,
 } from '../../lib/pin-lock';
-import { colors, radii, spacing } from '../../lib/theme';
+import { radii, spacing, useThemeColors } from '../../lib/theme';
 
 type Stage =
   | { kind: 'menu' }
@@ -136,8 +136,8 @@ export default function PinSettings() {
   if (stage.kind === 'menu') {
     return (
       <Screen>
-        <Text style={styles.heading}>App PIN lock</Text>
-        <Text style={styles.muted}>
+        <Text variant="h3">App PIN lock</Text>
+        <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>
           {pinSet
             ? 'A PIN is set. The app will lock after 5 minutes in the background.'
             : 'No PIN set. The app will not lock when you switch away.'}
@@ -178,7 +178,7 @@ export default function PinSettings() {
 
   return (
     <Screen>
-      <Text style={styles.heading}>{prompt}</Text>
+      <Text variant="h3">{prompt}</Text>
       <View style={{ height: spacing.lg }} />
 
       <Keypad
@@ -195,7 +195,7 @@ export default function PinSettings() {
 
       <View style={{ height: spacing.md }} />
       <Pressable onPress={backToMenu} hitSlop={10}>
-        <Text style={styles.cancel}>Cancel</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.cancel}>Cancel</Text>
       </Pressable>
     </Screen>
   );
@@ -217,6 +217,7 @@ const KEYS: Array<string | 'backspace' | null> = [
 ];
 
 function Keypad({ value, onChange, disabled }: KeypadProps) {
+  const colors = useThemeColors();
   const press = (k: string) => {
     if (disabled) return;
     if (k === 'backspace') {
@@ -232,7 +233,11 @@ function Keypad({ value, onChange, disabled }: KeypadProps) {
         {Array.from({ length: PIN_LENGTH }).map((_, i) => (
           <View
             key={i}
-            style={[styles.dot, i < value.length && styles.dotFilled]}
+            style={[
+              styles.dot,
+              { borderColor: colors.border },
+              i < value.length && { backgroundColor: colors.accent, borderColor: colors.accent },
+            ]}
           />
         ))}
       </View>
@@ -243,11 +248,14 @@ function Keypad({ value, onChange, disabled }: KeypadProps) {
           ) : (
             <Pressable
               key={k + i}
-              style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+              style={({ pressed }) => [
+                styles.key,
+                { backgroundColor: pressed ? colors.border : colors.card },
+              ]}
               onPress={() => press(k)}
               disabled={disabled}
             >
-              <Text style={styles.keyText}>
+              <Text variant="h2" numeric style={styles.keyText}>
                 {k === 'backspace' ? '⌫' : k}
               </Text>
             </Pressable>
@@ -259,8 +267,6 @@ function Keypad({ value, onChange, disabled }: KeypadProps) {
 }
 
 const styles = StyleSheet.create({
-  heading: { color: colors.text, fontSize: 20, fontWeight: '600' },
-  muted: { color: colors.textMuted, fontSize: 14, marginTop: spacing.sm },
   dots: {
     flexDirection: 'row',
     gap: spacing.md,
@@ -272,26 +278,20 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
-    borderColor: colors.border,
     backgroundColor: 'transparent',
   },
-  dotFilled: { backgroundColor: colors.accent, borderColor: colors.accent },
   keypad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   key: {
     width: '30%',
     aspectRatio: 1.7,
     margin: '1.5%',
     borderRadius: radii.md,
-    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  keyPressed: { backgroundColor: colors.border },
-  keyText: { color: colors.text, fontSize: 26, fontWeight: '500' },
+  keyText: { fontSize: 26 },
   cancel: {
-    color: colors.textMuted,
     textAlign: 'center',
-    fontSize: 14,
     marginTop: spacing.md,
   },
 });

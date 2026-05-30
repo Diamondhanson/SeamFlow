@@ -1,20 +1,14 @@
 import { useMemo, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import type { OrderStatus } from '@seamflow/schemas';
+import { Text, Chip, type ChipTone } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Input } from '../../../components/Input';
 import { useOrders } from '../../../lib/queries';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
-import { colors, radii, spacing } from '../../../lib/theme';
+import { spacing } from '../../../lib/theme';
 
 // ============================================================================
 // Global orders list with filters — Phase 1.10.
@@ -38,12 +32,15 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   delivered: 'Delivered',
 };
 
-const STATUS_COLOR: Record<OrderStatus, string> = {
-  registered: colors.textMuted,
-  in_progress: colors.accent,
-  testing: '#f5a524',
-  on_pause: '#e35d6a',
-  delivered: colors.success,
+// Each status maps to its semantic color token (defined in @seamflow/ui).
+// The Chip resolves the actual color from the theme, so this stays hex-free
+// and re-skins automatically with the palette.
+const STATUS_TONE: Record<OrderStatus, ChipTone> = {
+  registered: 'statusRegistered',
+  in_progress: 'statusInProgress',
+  testing: 'statusTesting',
+  on_pause: 'statusOnPause',
+  delivered: 'statusDelivered',
 };
 
 const STATUS_ORDER: OrderStatus[] = [
@@ -94,7 +91,9 @@ export default function OrdersList() {
 
   return (
     <Screen>
-      <Text style={styles.title}>Orders</Text>
+      <Text variant="h1" style={styles.title}>
+        Orders
+      </Text>
 
       <Input
         label="Search by order name"
@@ -108,19 +107,20 @@ export default function OrdersList() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.chipScroll}
         contentContainerStyle={styles.chipRow}
       >
         <Chip
           label="All statuses"
-          active={status === null}
+          selected={status === null}
           onPress={() => setStatus(null)}
         />
         {STATUS_ORDER.map((s) => (
           <Chip
             key={s}
             label={STATUS_LABEL[s]}
-            active={status === s}
-            color={STATUS_COLOR[s]}
+            selected={status === s}
+            tone={STATUS_TONE[s]}
             onPress={() => setStatus(s)}
           />
         ))}
@@ -130,23 +130,24 @@ export default function OrdersList() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.chipScroll}
         contentContainerStyle={styles.chipRow}
       >
         <Chip
           label="All time"
-          active={timeFilter === 'all'}
+          selected={timeFilter === 'all'}
           onPress={() => setTimeFilter('all')}
         />
         <Chip
           label="Overdue"
-          active={timeFilter === 'overdue'}
-          color="#e35d6a"
+          selected={timeFilter === 'overdue'}
+          tone="danger"
           onPress={() => setTimeFilter('overdue')}
         />
         <Chip
           label="Due this week"
-          active={timeFilter === 'thisWeek'}
-          color={colors.accent}
+          selected={timeFilter === 'thisWeek'}
+          tone="primary"
           onPress={() => setTimeFilter('thisWeek')}
         />
       </ScrollView>
@@ -154,9 +155,13 @@ export default function OrdersList() {
       <View style={{ height: spacing.md }} />
 
       {isLoading && items.length === 0 ? (
-        <Text style={styles.muted}>Loading…</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
+          Loading…
+        </Text>
       ) : items.length === 0 ? (
-        <Text style={styles.muted}>No orders match those filters.</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
+          No orders match those filters.
+        </Text>
       ) : (
         <FlatList
           data={items}
@@ -165,16 +170,11 @@ export default function OrdersList() {
             <Card onPress={() => router.push(`/(app)/orders/${item.id}`)}>
               <View style={styles.rowBetween}>
                 <CardTitle>{item.orderName}</CardTitle>
-                <View
-                  style={[
-                    styles.statusPill,
-                    { backgroundColor: STATUS_COLOR[item.status] },
-                  ]}
-                >
-                  <Text style={styles.statusText}>
-                    {STATUS_LABEL[item.status]}
-                  </Text>
-                </View>
+                <Chip
+                  variant="status"
+                  label={STATUS_LABEL[item.status]}
+                  tone={STATUS_TONE[item.status]}
+                />
               </View>
               {item.dateDelivery ? (
                 <CardLine>
@@ -189,65 +189,14 @@ export default function OrdersList() {
   );
 }
 
-// Small chip primitive — kept inline rather than as a shared component
-// because no other screen has chip-style filters yet.
-function Chip({
-  label,
-  active,
-  color,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  color?: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        styles.chip,
-        active && {
-          backgroundColor: color ?? colors.accent,
-          borderColor: color ?? colors.accent,
-        },
-      ]}
-    >
-      <Text style={[styles.chipText, active && styles.chipTextActive]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  title: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: spacing.md,
-  },
-  chipRow: { paddingVertical: spacing.xs, gap: spacing.xs },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: spacing.xs,
-  },
-  chipText: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
-  chipTextActive: { color: colors.accentText },
+  title: { marginBottom: spacing.md },
+  chipScroll: { flexGrow: 0 },
+  chipRow: { paddingVertical: spacing.xs, gap: spacing.xs, alignItems: 'center' },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  statusPill: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radii.lg,
-  },
-  statusText: { color: colors.accentText, fontSize: 10, fontWeight: '600' },
-  muted: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },
+  muted: { textAlign: 'center', marginTop: spacing.xl },
 });

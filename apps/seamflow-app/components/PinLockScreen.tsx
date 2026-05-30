@@ -16,14 +16,14 @@ import {
   Alert,
   Pressable,
   StyleSheet,
-  Text,
   View,
   Vibration,
 } from 'react-native';
+import { Text } from '@seamflow/ui';
 import { useLock } from '../lib/lock-context';
 import { useAuth } from '../lib/auth-context';
 import { MAX_ATTEMPTS, PIN_LENGTH, verifyPin } from '../lib/pin-lock';
-import { colors, radii, spacing } from '../lib/theme';
+import { radii, spacing, useThemeColors } from '../lib/theme';
 
 const KEYS: Array<string | 'backspace' | null> = [
   '1', '2', '3',
@@ -47,6 +47,7 @@ export function PinLockScreen({ prompt = 'Enter your PIN' }: Props) {
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [failedCount, setFailedCount] = useState(0);
+  const colors = useThemeColors();
 
   // Auto-verify when 4 digits have been entered.
   useEffect(() => {
@@ -92,23 +93,27 @@ export function PinLockScreen({ prompt = 'Enter your PIN' }: Props) {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
       <View style={styles.center}>
-        <Text style={styles.brand}>SeamFlow</Text>
-        <Text style={styles.prompt}>{prompt}</Text>
+        <Text variant="display" style={styles.brand}>SeamFlow</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.prompt}>{prompt}</Text>
 
         {/* Dots */}
         <View style={styles.dots}>
           {Array.from({ length: PIN_LENGTH }).map((_, i) => (
             <View
               key={i}
-              style={[styles.dot, i < pin.length && styles.dotFilled]}
+              style={[
+                styles.dot,
+                { borderColor: colors.border },
+                i < pin.length && { backgroundColor: colors.accent, borderColor: colors.accent },
+              ]}
             />
           ))}
         </View>
 
         {failedCount > 0 ? (
-          <Text style={styles.error}>
+          <Text variant="caption" tone="danger" style={styles.error}>
             Wrong PIN. {MAX_ATTEMPTS - failedCount} attempt
             {MAX_ATTEMPTS - failedCount === 1 ? '' : 's'} left.
           </Text>
@@ -125,12 +130,12 @@ export function PinLockScreen({ prompt = 'Enter your PIN' }: Props) {
               key={k + i}
               style={({ pressed }) => [
                 styles.key,
-                pressed && styles.keyPressed,
+                { backgroundColor: pressed ? colors.border : colors.card },
               ]}
               onPress={() => press(k)}
               disabled={busy}
             >
-              <Text style={styles.keyText}>
+              <Text variant="h2" numeric style={styles.keyText}>
                 {k === 'backspace' ? '⌫' : k}
               </Text>
             </Pressable>
@@ -139,7 +144,9 @@ export function PinLockScreen({ prompt = 'Enter your PIN' }: Props) {
       </View>
 
       <Pressable onPress={() => void signOut()} hitSlop={12}>
-        <Text style={styles.forgot}>Forgot PIN? Sign out</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.forgot}>
+          Forgot PIN? Sign out
+        </Text>
       </Pressable>
     </View>
   );
@@ -148,7 +155,6 @@ export function PinLockScreen({ prompt = 'Enter your PIN' }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.bg,
     paddingTop: spacing.xl * 2,
     paddingBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
@@ -156,14 +162,9 @@ const styles = StyleSheet.create({
   },
   center: { alignItems: 'center' },
   brand: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '700',
     marginBottom: spacing.xs,
   },
   prompt: {
-    color: colors.textMuted,
-    fontSize: 14,
     marginBottom: spacing.xl,
   },
   dots: {
@@ -176,16 +177,9 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
-    borderColor: colors.border,
     backgroundColor: 'transparent',
   },
-  dotFilled: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
   error: {
-    color: colors.danger,
-    fontSize: 13,
     marginTop: spacing.md,
     fontWeight: '600',
   },
@@ -199,15 +193,11 @@ const styles = StyleSheet.create({
     aspectRatio: 1.7,
     margin: '1.5%',
     borderRadius: radii.md,
-    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  keyPressed: { backgroundColor: colors.border },
-  keyText: { color: colors.text, fontSize: 26, fontWeight: '500' },
+  keyText: { fontSize: 26 },
   forgot: {
-    color: colors.textMuted,
-    fontSize: 13,
     textAlign: 'center',
     marginTop: spacing.lg,
   },

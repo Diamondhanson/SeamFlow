@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -9,7 +9,8 @@ import { useAuth } from '../../lib/auth-context';
 import { useMe, useUpsertMyTailor } from '../../lib/queries';
 import { clearCache } from '../../lib/query-client';
 import { ensurePushRegistered, sendPushTest } from '../../lib/notifications';
-import { spacing } from '../../lib/theme';
+import { radii, spacing, useThemeColors } from '../../lib/theme';
+import { useThemeMode, type ThemePreference } from '../../lib/theme-mode';
 
 export default function Me() {
   const { signOut } = useAuth();
@@ -143,6 +144,12 @@ export default function Me() {
         />
 
         <View style={{ height: spacing.xl }} />
+        <Text variant="h3" tone="text" style={{ marginBottom: spacing.sm }}>
+          Appearance
+        </Text>
+        <AppearancePicker />
+
+        <View style={{ height: spacing.xl }} />
         <Button
           label="🔐 PIN lock"
           variant="secondary"
@@ -163,4 +170,57 @@ export default function Me() {
   );
 }
 
-// styles removed — all text now flows through the Atelier <Text> primitive
+// ----- appearance (light / dark / system) -----
+
+const APPEARANCE_OPTIONS: Array<{ value: ThemePreference; label: string }> = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
+
+function AppearancePicker() {
+  const { preference, setPreference } = useThemeMode();
+  const colors = useThemeColors();
+
+  return (
+    <View style={[styles.segment, { borderColor: colors.border }]}>
+      {APPEARANCE_OPTIONS.map((opt) => {
+        const active = preference === opt.value;
+        return (
+          <Pressable
+            key={opt.value}
+            style={[
+              styles.segmentItem,
+              active && { backgroundColor: colors.accent },
+            ]}
+            onPress={() => setPreference(opt.value)}
+          >
+            <Text
+              variant="bodySm"
+              tone={active ? 'textOnPrimary' : 'textMuted'}
+              style={styles.segmentText}
+            >
+              {opt.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  segment: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderRadius: radii.md,
+    overflow: 'hidden',
+  },
+  segmentItem: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentText: { fontWeight: '600' },
+});

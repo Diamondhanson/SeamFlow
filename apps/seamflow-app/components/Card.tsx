@@ -1,47 +1,18 @@
-import { type ReactNode } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors, radii, spacing } from '../lib/theme';
+// Thin adapter → Atelier `Card`. Screens still importing from here pick up the
+// Atelier surface (Inter typography, soft radius, scale-on-press) with no
+// changes. The only app-side concern this keeps is the list-item bottom margin
+// that callers relied on the old Card to provide.
+import {
+  Card as AtelierCard,
+  CardTitle as AtelierCardTitle,
+  CardLine as AtelierCardLine,
+  type CardProps,
+} from '@seamflow/ui';
+import { spacing } from '../lib/theme';
 
-export function Card({
-  children,
-  onPress,
-}: {
-  children: ReactNode;
-  onPress?: () => void;
-}) {
-  const inner = <View style={styles.card}>{children}</View>;
-  if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-        {inner}
-      </TouchableOpacity>
-    );
-  }
-  return inner;
+export function Card({ style, ...rest }: CardProps) {
+  return <AtelierCard style={[{ marginBottom: spacing.md }, style]} {...rest} />;
 }
 
-export function CardTitle({ children }: { children: ReactNode }) {
-  return <Text style={styles.title}>{children}</Text>;
-}
-
-export function CardLine({ children }: { children: ReactNode }) {
-  return <Text style={styles.line}>{children}</Text>;
-}
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.card,
-    borderRadius: radii.md,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.md,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  line: { color: colors.textMuted, fontSize: 14 },
-});
+export const CardTitle = AtelierCardTitle;
+export const CardLine = AtelierCardLine;

@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { Text } from '@seamflow/ui';
 import type { TemplateField } from '@seamflow/schemas';
 import { Screen } from '../../../components/Screen';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { Card } from '../../../components/Card';
 import { useCreateTemplate } from '../../../lib/queries';
-import { colors, spacing } from '../../../lib/theme';
+import { spacing } from '../../../lib/theme';
 
 const STARTER_FIELDS: TemplateField[] = [
   { key: 'chest', label: 'Chest', required: true, unit: 'cm' },
@@ -80,7 +81,7 @@ export default function NewTemplate() {
           multiline
         />
 
-        <Text style={styles.section}>Measurement fields</Text>
+        <Text variant="h3" style={styles.section}>Measurement fields</Text>
         {fields.map((f, i) => (
           <Card key={i}>
             <Input
@@ -130,9 +131,6 @@ export default function NewTemplate() {
 
 const styles = StyleSheet.create({
   section: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '600',
     marginTop: spacing.md,
     marginBottom: spacing.sm,
   },

@@ -13,13 +13,52 @@
 // read `theme.colors.<semantic-name>` directly.
 // ============================================================================
 
+import { useMemo } from 'react';
 import {
   midnightSemantic,
   spacing as atelierSpacing,
   radii as atelierRadii,
+  useAtelierTheme,
 } from '@seamflow/ui';
 
-/** Legacy `colors` object — each key maps to an Atelier semantic token. */
+/**
+ * Reactive equivalent of the static `colors` export below. Reads the *active*
+ * Atelier theme from context so it flips when the user switches light/dark.
+ *
+ * Use this inside components for any color that lives in a background, border,
+ * divider, or icon tint. (Text colors should prefer `<Text tone=…>`, which is
+ * already theme-reactive.) Keys mirror the legacy `colors` shape so call sites
+ * read identically — `colors.card`, `colors.accent`, … — they just come from a
+ * hook now instead of a frozen module constant.
+ */
+export function useThemeColors() {
+  const { colors: c } = useAtelierTheme();
+  return useMemo(
+    () =>
+      ({
+        bg: c.bg,
+        card: c.surface,
+        cardElevated: c.surfaceElevated,
+        border: c.border,
+        hairline: c.hairline,
+        text: c.text,
+        textMuted: c.textMuted,
+        accentText: c.textOnPrimary,
+        accent: c.primary,
+        danger: c.danger,
+        success: c.success,
+        warning: c.warning,
+      }) as const,
+    [c],
+  );
+}
+
+/**
+ * Static `colors` object — frozen to the midnight palette. ONLY safe for the
+ * pre-provider cold-start splash (before AtelierThemeProvider mounts). Every
+ * in-app surface should use `useThemeColors()` so it reacts to the active
+ * theme. Each key maps to an Atelier semantic token.
+ */
 export const colors = {
   bg: midnightSemantic.bg,
   card: midnightSemantic.surface,

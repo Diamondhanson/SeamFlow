@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@seamflow/ui';
 import { useOnline } from '../lib/use-online';
 import { usePendingMutations } from '../lib/use-pending-mutations';
-import { colors, spacing } from '../lib/theme';
+import { spacing, useThemeColors } from '../lib/theme';
 
 /**
  * Top-of-screen banner that surfaces connectivity + sync state:
@@ -18,6 +19,7 @@ import { colors, spacing } from '../lib/theme';
 export function OfflineBanner() {
   const online = useOnline();
   const pending = usePendingMutations();
+  const colors = useThemeColors();
 
   if (online && pending === 0) return null;
 
@@ -29,8 +31,15 @@ export function OfflineBanner() {
     : `Syncing ${pending} change${pending === 1 ? '' : 's'}…`;
 
   return (
-    <View style={[styles.banner, isSyncing ? styles.bannerSync : styles.bannerOffline]}>
-      <Text style={styles.text}>{text}</Text>
+    <View
+      style={[
+        styles.banner,
+        { backgroundColor: isSyncing ? colors.warning : colors.danger },
+      ]}
+    >
+      <Text variant="caption" tone="textOnPrimary" style={styles.text}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -41,7 +50,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     alignItems: 'center',
   },
-  bannerOffline: { backgroundColor: colors.danger },
-  bannerSync: { backgroundColor: '#f5a524' },
-  text: { color: colors.accentText, fontSize: 12, fontWeight: '600' },
+  text: { fontWeight: '600' },
 });

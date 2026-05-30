@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { Card, CardTitle, CardLine } from '../../../components/Card';
 import { Button } from '../../../components/Button';
@@ -8,7 +9,7 @@ import { Input } from '../../../components/Input';
 import { useClients } from '../../../lib/queries';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
 import { ApiError } from '../../../lib/api';
-import { colors, spacing } from '../../../lib/theme';
+import { spacing } from '../../../lib/theme';
 
 export default function ClientsList() {
   const [q, setQ] = useState('');
@@ -44,9 +45,13 @@ export default function ClientsList() {
       <View style={{ height: spacing.lg }} />
 
       {isLoading && items.length === 0 ? (
-        <Text style={styles.muted}>Loading…</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
+          Loading…
+        </Text>
       ) : items.length === 0 ? (
-        <Text style={styles.muted}>No clients yet. Tap "+ New client" to add one.</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
+          No clients yet. Tap "+ New client" to add one.
+        </Text>
       ) : (
         <FlatList
           data={items}
@@ -65,5 +70,5 @@ export default function ClientsList() {
 }
 
 const styles = StyleSheet.create({
-  muted: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },
+  muted: { textAlign: 'center', marginTop: spacing.xl },
 });

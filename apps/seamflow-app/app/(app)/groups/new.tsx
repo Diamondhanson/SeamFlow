@@ -5,11 +5,11 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { router } from 'expo-router';
 import type { GroupOrderWithMembersCreateInput } from '@seamflow/schemas';
+import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { Input } from '../../../components/Input';
 import { DateField } from '../../../components/DateField';
@@ -19,7 +19,7 @@ import {
   useClients,
   useCreateGroupOrderWithMembers,
 } from '../../../lib/queries';
-import { colors, radii, spacing } from '../../../lib/theme';
+import { radii, spacing, useThemeColors } from '../../../lib/theme';
 
 // ============================================================================
 // New group order — atomic create flow.
@@ -45,6 +45,7 @@ function newLocalId(): string {
 }
 
 export default function NewGroup() {
+  const colors = useThemeColors();
   // ----- form state -----
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -140,7 +141,7 @@ export default function NewGroup() {
     <Screen>
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
         {/* ---------- 1. Title ---------- */}
-        <Text style={styles.section}>1. Title</Text>
+        <Text variant="h3" tone="text" style={styles.section}>1. Title</Text>
         <Input
           label="Group title *"
           value={name}
@@ -148,30 +149,37 @@ export default function NewGroup() {
           placeholder="e.g. Adekunle Wedding"
         />
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
         {/* ---------- 2. Owner ---------- */}
-        <Text style={styles.section}>2. Owner</Text>
-        <View style={styles.tabs}>
+        <Text variant="h3" tone="text" style={styles.section}>2. Owner</Text>
+        <View style={[styles.tabs, { borderBottomColor: colors.border }]}>
           <Pressable
-            style={[styles.tab, ownerMode === 'new' && styles.tabActive]}
+            style={[
+              styles.tab,
+              ownerMode === 'new' && { borderBottomColor: colors.accent },
+            ]}
             onPress={() => setOwnerMode('new')}
           >
             <Text
-              style={[styles.tabText, ownerMode === 'new' && styles.tabTextActive]}
+              variant="bodySm"
+              tone={ownerMode === 'new' ? 'text' : 'textMuted'}
+              style={styles.tabText}
             >
               New contact
             </Text>
           </Pressable>
           <Pressable
-            style={[styles.tab, ownerMode === 'existing' && styles.tabActive]}
+            style={[
+              styles.tab,
+              ownerMode === 'existing' && { borderBottomColor: colors.accent },
+            ]}
             onPress={() => setOwnerMode('existing')}
           >
             <Text
-              style={[
-                styles.tabText,
-                ownerMode === 'existing' && styles.tabTextActive,
-              ]}
+              variant="bodySm"
+              tone={ownerMode === 'existing' ? 'text' : 'textMuted'}
+              style={styles.tabText}
             >
               Pick from clients
             </Text>
@@ -201,7 +209,7 @@ export default function NewGroup() {
               placeholder="Bonanjo, Douala"
               multiline
             />
-            <Text style={styles.hint}>
+            <Text variant="caption" tone="textMuted" style={styles.hint}>
               We'll create a client record so you can find them again.
             </Text>
           </>
@@ -217,12 +225,12 @@ export default function NewGroup() {
             {pickedClient ? (
               <Card>
                 <CardTitle>Selected: {pickedClient.fullName}</CardTitle>
-                <Text style={styles.muted}>{pickedClient.phone}</Text>
+                <Text variant="bodySm" tone="textMuted">{pickedClient.phone}</Text>
                 {pickedClient.address ? (
-                  <Text style={styles.muted}>{pickedClient.address}</Text>
+                  <Text variant="bodySm" tone="textMuted">{pickedClient.address}</Text>
                 ) : null}
                 <Pressable onPress={() => setPickedClientId(null)}>
-                  <Text style={styles.linkDanger}>Clear selection</Text>
+                  <Text variant="bodySm" tone="danger" style={styles.linkDanger}>Clear selection</Text>
                 </Pressable>
               </Card>
             ) : (
@@ -234,15 +242,15 @@ export default function NewGroup() {
                 keyExtractor={(c) => c.id}
                 renderItem={({ item }) => (
                   <Pressable
-                    style={styles.clientRow}
+                    style={[styles.clientRow, { backgroundColor: colors.card }]}
                     onPress={() => setPickedClientId(item.id)}
                   >
-                    <Text style={styles.clientName}>{item.fullName}</Text>
-                    <Text style={styles.muted}>{item.phone}</Text>
+                    <Text variant="bodySm" tone="text" style={styles.clientName}>{item.fullName}</Text>
+                    <Text variant="bodySm" tone="textMuted">{item.phone}</Text>
                   </Pressable>
                 )}
                 ListEmptyComponent={
-                  <Text style={styles.muted}>
+                  <Text variant="bodySm" tone="textMuted">
                     {clientsQ.isLoading ? 'Loading clients…' : 'No clients yet.'}
                   </Text>
                 }
@@ -252,29 +260,29 @@ export default function NewGroup() {
           </>
         )}
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
         {/* ---------- 3. Members ---------- */}
-        <Text style={styles.section}>3. Members ({members.length})</Text>
+        <Text variant="h3" tone="text" style={styles.section}>3. Members ({members.length})</Text>
         {members.length === 0 ? (
-          <Text style={styles.muted}>No members yet. Add them below.</Text>
+          <Text variant="bodySm" tone="textMuted">No members yet. Add them below.</Text>
         ) : (
           members.map((m) => (
-            <View key={m.localId} style={styles.memberRow}>
+            <View key={m.localId} style={[styles.memberRow, { backgroundColor: colors.card }]}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.memberName}>{m.fullName}</Text>
+                <Text variant="bodySm" tone="text" style={styles.memberName}>{m.fullName}</Text>
                 {m.roleLabel ? (
-                  <Text style={styles.muted}>{m.roleLabel}</Text>
+                  <Text variant="bodySm" tone="textMuted">{m.roleLabel}</Text>
                 ) : null}
               </View>
               <Pressable onPress={() => removeMember(m.localId)}>
-                <Text style={styles.linkDanger}>Remove</Text>
+                <Text variant="bodySm" tone="danger" style={styles.linkDanger}>Remove</Text>
               </Pressable>
             </View>
           ))
         )}
 
-        <View style={styles.memberDraft}>
+        <View style={[styles.memberDraft, { backgroundColor: colors.card }]}>
           <Input
             label="Member name"
             value={memberDraftName}
@@ -295,10 +303,10 @@ export default function NewGroup() {
           />
         </View>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
         {/* ---------- 4. Optional details ---------- */}
-        <Text style={styles.section}>4. Details (optional)</Text>
+        <Text variant="h3" tone="text" style={styles.section}>4. Details (optional)</Text>
         <Input
           label="Description / other style specs"
           value={description}
@@ -334,21 +342,16 @@ export default function NewGroup() {
 
 const styles = StyleSheet.create({
   section: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '700',
     marginBottom: spacing.sm,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
     marginVertical: spacing.lg,
   },
   tabs: {
     flexDirection: 'row',
     marginBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   tab: {
     flex: 1,
@@ -358,34 +361,28 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
     marginBottom: -1,
   },
-  tabActive: { borderBottomColor: colors.accent },
-  tabText: { color: colors.textMuted, fontSize: 13, fontWeight: '600' },
-  tabTextActive: { color: colors.text },
-  hint: { color: colors.textMuted, fontSize: 12, marginTop: -spacing.sm },
-  muted: { color: colors.textMuted, fontSize: 13 },
-  linkDanger: { color: colors.danger, fontSize: 13, fontWeight: '600' },
+  tabText: { fontWeight: '600' },
+  hint: { marginTop: -spacing.sm },
+  linkDanger: { fontWeight: '600' },
   clientRow: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
-    backgroundColor: colors.card,
     marginBottom: spacing.xs,
   },
-  clientName: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  clientName: { fontWeight: '600' },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
-    backgroundColor: colors.card,
     marginBottom: spacing.xs,
   },
-  memberName: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  memberName: { fontWeight: '600' },
   memberDraft: {
     marginTop: spacing.md,
     padding: spacing.md,
     borderRadius: radii.md,
-    backgroundColor: colors.card,
   },
 });

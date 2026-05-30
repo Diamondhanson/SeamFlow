@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { useGroupOrders } from '../../../lib/queries';
 import { ApiError } from '../../../lib/api';
-import { colors, spacing } from '../../../lib/theme';
+import { spacing } from '../../../lib/theme';
 
 export default function GroupsList() {
   const { data, isLoading, error } = useGroupOrders();
@@ -28,9 +29,13 @@ export default function GroupsList() {
       <View style={{ height: spacing.lg }} />
 
       {isLoading && items.length === 0 ? (
-        <Text style={styles.muted}>Loading…</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
+          Loading…
+        </Text>
       ) : items.length === 0 ? (
-        <Text style={styles.muted}>No group orders yet.</Text>
+        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
+          No group orders yet.
+        </Text>
       ) : (
         <FlatList
           data={items}
@@ -51,5 +56,5 @@ export default function GroupsList() {
 }
 
 const styles = StyleSheet.create({
-  muted: { color: colors.textMuted, textAlign: 'center', marginTop: spacing.xl },
+  muted: { textAlign: 'center', marginTop: spacing.xl },
 });

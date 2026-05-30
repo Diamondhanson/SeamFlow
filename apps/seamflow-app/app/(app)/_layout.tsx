@@ -3,14 +3,15 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '../../lib/auth-context';
 import { LockProvider, useLock } from '../../lib/lock-context';
 import { PinLockScreen } from '../../components/PinLockScreen';
-import { colors } from '../../lib/theme';
+import { useThemeColors } from '../../lib/theme';
 
 export default function AppLayout() {
   const { session, loading } = useAuth();
+  const colors = useThemeColors();
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
@@ -33,13 +34,14 @@ export default function AppLayout() {
 
 function GatedStack() {
   const { ready, pinSet, locked } = useLock();
+  const colors = useThemeColors();
 
   // Block the first paint until we've checked whether a PIN is configured.
   // Without this we'd flash the home screen for ~50 ms on cold start before
   // the gate engages, which defeats the whole purpose of the gate.
   if (!ready) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
@@ -94,6 +96,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bg,
   },
 });

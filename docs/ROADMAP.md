@@ -1,7 +1,7 @@
 # SeamFlow — Phased Product Roadmap
 
 **Owner:** Diamond
-**Last updated:** May 20, 2026
+**Last updated:** May 30, 2026
 **Repo:** `SeamFlow/` monorepo
 
 **Current status:** Phase 0 complete (0.5 deferred). **Phase 1 is feature-complete and shippable.** Only 1.7 (payments) is paused with all scope decisions parked, and 1.9.3 (Apple Sign-In) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program yet). Everything else end-to-end:
@@ -19,7 +19,7 @@
 
 **Pulled forward from later phases:** measurement templates (was 2.7), group orders + members + owner (was Appendix A.15). **Pre-1.10 architectural cleanup:** `clients.address` and `group_orders.owner_client_id` added; new atomic `POST /group-orders/with-members` creates owner-as-client (if new) + group + members in one transaction.
 
-**Atelier design system (mid-flight):** `@seamflow/ui` foundation shipped — color tokens (Linen + Midnight palettes), Fraunces/Inter/JetBrains Mono typography, spacing/radii/shadows/motion tokens, 3 primitives (Text/Button/Input), `AtelierThemeProvider`, font loading at app root, and a back-compat shim that flips the entire app's palette + typography in one place. Sign-in, home, profile screens fully on direct Atelier primitives. Remaining screens currently render through the legacy wrapper components (which themselves route to Atelier), so the new typography + pill buttons + floating-label inputs appear app-wide. Card, Sheet, Chip, MeasurementInput, ListRow primitives + screen-by-screen direct migration still ahead — see `docs/design-system/CHANGELOG.md`.
+**Atelier design system (1.12):** `@seamflow/ui` foundation shipped — color tokens (Linen + Midnight palettes), Fraunces/Inter/JetBrains Mono typography, spacing/radii/shadows/motion tokens, primitives (Text/Button/Input/**Card**/**Chip**), `AtelierThemeProvider`, font loading at app root. **Typography sweep complete:** every tailor-app screen now renders through the Atelier `<Text>` primitive — zero raw React Native `<Text>` and zero `#rrggbb` literals remain under `app/`. **Runtime light/dark mode shipped (2026-05-30):** a `ThemeModeProvider` + Profile → Appearance toggle (System / Light / Dark) flips the whole app between Linen and Midnight live, persisted to AsyncStorage. Sheet, MeasurementInput, ListRow, Avatar, EmptyState primitives + bespoke icons still ahead — see `docs/design-system/CHANGELOG.md`.
 
 ---
 
@@ -332,7 +332,7 @@ Some work was pulled forward from later phases or added during implementation. W
   - `(app)/_layout.tsx` wraps the Stack in `<LockProvider>` and swaps in `<PinLockScreen>` when `locked && pinSet`. A small `<GatedStack>` waits for the initial pinExists() probe so no first-paint flash of the home screen.
 - **Open follow-ups (later phases):** biometric unlock, per-account "remember this device for N days" toggle, server-side audit of failed-attempt counts.
 
-### 1.12 Atelier design system 🟡 IN PROGRESS
+### 1.12 Atelier design system 🟡 IN PROGRESS *(tailor app fully migrated; light/dark live)*
 
 A visual-identity refresh + extraction of design tokens and primitives into `@seamflow/ui` so the tailor app, the magic-link web app, the future client mobile app, and the future admin web app all draw from one source. **This is a refactor, not a rebuild** — same screens, same data flow, same navigation, new skin.
 
@@ -361,11 +361,18 @@ A visual-identity refresh + extraction of design tokens and primitives into `@se
   - Direct primitive migration: `sign-in.tsx`, `(app)/index.tsx` (home), `(app)/me.tsx` (profile) on `@seamflow/ui` Text imports.
   - Nav-bar titles render in Fraunces.
 
+**Shipped since foundation (2026-05-29 → 05-30):**
+
+- **`Card` + `Chip` primitives** landed in `packages/ui`. `Chip` carries the status-pill tones (registered / in_progress / testing / on_pause / delivered), deleting the last hard-coded status hexes (`#f5a524`, `#e35d6a`) from the order screens.
+- **Full typography sweep — done.** Every screen migrated off raw React Native `<Text>` onto the Atelier `<Text>` primitive (variants × semantic tones): orders list/detail, clients list/detail, group list/detail/new, templates list/detail/new, new-order wizard, verify-otp, pin, plus shared components (Screen, DateField, OfflineBanner, PinLockScreen). `grep` confirms zero raw-RN `Text` imports and zero `#rrggbb` literals under `app/`.
+- **Runtime light/dark mode — done.** `lib/theme-mode.tsx` (`ThemeModeProvider` + `useThemeMode`) owns a `system | light | dark` preference, persisted to AsyncStorage and resolved against the OS scheme. A reactive `useThemeColors()` hook + the auto-reactive `<Text tone>` make every screen re-render on mode change; `radii`/`spacing` stay static (mode-invariant). Toggle UI is a segmented control on Profile → **Appearance**. Verified live on the Pixel 9 Pro XL: System/Light → Linen, Dark → Midnight, switching instantly with no nav-state reset.
+
 **Coming next (one screen per pass, with review):**
 
-- Primitives: `Card`, `Sheet` (replaces `<Modal>` for ephemeral UI), `Chip` (status pills), `Avatar`, `EmptyState`, `ListRow`, `MeasurementInput` (signature interaction — horizontal ruler with tick haptics, mono digits), `StitchLine` (signature success microinteraction), `TabBar`, `Stepper`.
+- Primitives: `Sheet` (replaces `<Modal>` for ephemeral UI), `Avatar`, `EmptyState`, `ListRow`, `MeasurementInput` (signature interaction — horizontal ruler with tick haptics, mono digits), `StitchLine` (signature success microinteraction), `TabBar`, `Stepper`.
 - Icons: `phosphor-react-native` (regular weight, 1.5 px stroke) replaces `@expo/vector-icons` usage; bespoke SVG tailoring icons in `packages/ui/src/icons/` (measuring tape, dress form, scissors, thread spool, swatch, mannequin).
-- Screen migration to direct primitive use: orders list, clients list, client detail (→ `Sheet`), group form / detail, new-order (→ `MeasurementInput`), templates, verify-otp, pin.
+- Deeper interaction migration: client detail (→ `Sheet`), new-order (→ `MeasurementInput`).
+- Light-mode polish: Linen has now rendered on-device for the first time — sweep for any low-contrast muted text / borders surfaced by real use.
 - Web parity: same tokens emit as CSS custom properties + a Tailwind preset; `seamflow-web` adopts them when it grows past the single `/o/[token]` page.
 
 **Docs:** `packages/ui/README.md` (token reference + usage), `docs/design-system.md` (brand concept + hard rules), `docs/design-system/CHANGELOG.md` (entry per migration).

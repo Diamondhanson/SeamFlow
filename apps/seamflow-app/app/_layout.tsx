@@ -16,7 +16,7 @@ import {
   Inter_600SemiBold,
 } from '@expo-google-fonts/inter';
 import { JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
-import { AtelierThemeProvider } from '@seamflow/ui';
+import { AtelierThemeProvider, semanticForMode } from '@seamflow/ui';
 import { AuthProvider } from '../lib/auth-context';
 import {
   installOfflineListeners,
@@ -24,11 +24,23 @@ import {
   queryPersister,
 } from '../lib/query-client';
 import { OfflineBanner } from '../components/OfflineBanner';
-import { colors } from '../lib/theme';
+import { ThemeModeProvider, useThemeMode } from '../lib/theme-mode';
 
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export default function RootLayout() {
+  return (
+    <ThemeModeProvider>
+      <ThemedRoot />
+    </ThemeModeProvider>
+  );
+}
+
+function ThemedRoot() {
+  const { mode } = useThemeMode();
+  // Resolve the active palette here so the pre-provider splash, the native
+  // nav bar, and the status bar all match the chosen theme.
+  const colors = semanticForMode(mode);
   // Hook NetInfo + AppState into TanStack Query exactly once.
   useEffect(() => {
     installOfflineListeners();
@@ -57,7 +69,7 @@ export default function RootLayout() {
           justifyContent: 'center',
         }}
       >
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -90,9 +102,9 @@ export default function RootLayout() {
             void queryClient.resumePausedMutations();
           }}
         >
-          <AtelierThemeProvider mode="midnight">
+          <AtelierThemeProvider mode={mode}>
             <AuthProvider>
-              <StatusBar style="light" />
+              <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
               <OfflineBanner />
               <Stack
                 screenOptions={{

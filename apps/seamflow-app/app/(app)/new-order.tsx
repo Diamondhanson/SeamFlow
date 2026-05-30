@@ -4,7 +4,6 @@ import {
   FlatList,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -15,17 +14,19 @@ import type {
   MeasurementValues,
   TemplateField,
 } from '@seamflow/schemas';
+import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { Card, CardLine, CardTitle } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { DateField } from '../../components/DateField';
 import { api } from '../../lib/api';
-import { colors, spacing } from '../../lib/theme';
+import { spacing, useThemeColors } from '../../lib/theme';
 
 type Step = 'client' | 'measurements' | 'order';
 
 export default function NewOrderWizard() {
+  const colors = useThemeColors();
   const [step, setStep] = useState<Step>('client');
 
   // Step 1: client
@@ -177,13 +178,13 @@ export default function NewOrderWizard() {
     <Screen>
       <View style={styles.stepRow}>
         <StepDot label="Client" active={step === 'client'} done={step !== 'client'} />
-        <View style={styles.stepBar} />
+        <View style={[styles.stepBar, { backgroundColor: colors.border }]} />
         <StepDot
           label="Measurements"
           active={step === 'measurements'}
           done={step === 'order'}
         />
-        <View style={styles.stepBar} />
+        <View style={[styles.stepBar, { backgroundColor: colors.border }]} />
         <StepDot label="Order" active={step === 'order'} done={false} />
       </View>
 
@@ -237,9 +238,9 @@ export default function NewOrderWizard() {
           ) : null}
 
           <View style={{ height: spacing.md }} />
-          <Text style={styles.section}>Existing clients</Text>
+          <Text variant="h3" tone="text" style={styles.section}>Existing clients</Text>
           {clients.length === 0 ? (
-            <Text style={styles.muted}>No clients yet.</Text>
+            <Text variant="bodySm" tone="textMuted">No clients yet.</Text>
           ) : (
             clients.map((c) => (
               <Card key={c.id} onPress={() => continueWithClient(c)}>
@@ -253,12 +254,12 @@ export default function NewOrderWizard() {
 
       {step === 'measurements' && pickedClient ? (
         <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-          <Text style={styles.context}>
-            Client: <Text style={styles.contextStrong}>{pickedClient.fullName}</Text>
+          <Text variant="body" tone="textMuted" style={styles.context}>
+            Client: <Text variant="body" tone="text" style={styles.contextStrong}>{pickedClient.fullName}</Text>
           </Text>
 
-          <Text style={styles.section}>Pick a template</Text>
-          <Text style={styles.muted}>
+          <Text variant="h3" tone="text" style={styles.section}>Pick a template</Text>
+          <Text variant="bodySm" tone="textMuted">
             Templates define which measurements to ask for. Skip if you want loose
             entries.
           </Text>
@@ -282,7 +283,7 @@ export default function NewOrderWizard() {
 
           {pickedTemplate && pickedTemplate.fields.length > 0 ? (
             <>
-              <Text style={styles.section}>Measurements (cm)</Text>
+              <Text variant="h3" tone="text" style={styles.section}>Measurements (cm)</Text>
               {pickedTemplate.fields.map((f) => (
                 <Input
                   key={f.key}
@@ -309,8 +310,8 @@ export default function NewOrderWizard() {
 
       {step === 'order' && pickedClient ? (
         <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-          <Text style={styles.context}>
-            Client: <Text style={styles.contextStrong}>{pickedClient.fullName}</Text>
+          <Text variant="body" tone="textMuted" style={styles.context}>
+            Client: <Text variant="body" tone="text" style={styles.contextStrong}>{pickedClient.fullName}</Text>
           </Text>
 
           <Input
@@ -359,20 +360,21 @@ function StepDot({
   active: boolean;
   done: boolean;
 }) {
+  const colors = useThemeColors();
   return (
     <View style={dotStyles.wrap}>
       <View
         style={[
           dotStyles.dot,
-          active && dotStyles.dotActive,
-          done && dotStyles.dotDone,
+          { backgroundColor: colors.cardElevated, borderColor: colors.border },
+          active && { backgroundColor: colors.accent, borderColor: colors.accent },
+          done && { backgroundColor: colors.success, borderColor: colors.success },
         ]}
       />
       <Text
-        style={[
-          dotStyles.label,
-          (active || done) && { color: colors.text },
-        ]}
+        variant="caption"
+        tone={active || done ? 'text' : 'textMuted'}
+        style={dotStyles.label}
       >
         {label}
       </Text>
@@ -390,7 +392,7 @@ function FreeMeasurements({
   const [newKey, setNewKey] = useState('');
   return (
     <View>
-      <Text style={styles.section}>Manual measurements (cm)</Text>
+      <Text variant="h3" tone="text" style={styles.section}>Manual measurements (cm)</Text>
       {Object.entries(values).map(([k, v]) => (
         <Input
           key={k}
@@ -425,19 +427,14 @@ const styles = StyleSheet.create({
   stepBar: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.border,
     marginHorizontal: spacing.xs,
   },
-  context: { color: colors.textMuted, marginBottom: spacing.md },
-  contextStrong: { color: colors.text, fontWeight: '600' },
+  context: { marginBottom: spacing.md },
+  contextStrong: { fontWeight: '600' },
   section: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '600',
     marginTop: spacing.md,
     marginBottom: spacing.sm,
   },
-  muted: { color: colors.textMuted, fontSize: 13 },
 });
 
 const dotStyles = StyleSheet.create({
@@ -446,11 +443,7 @@ const dotStyles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: colors.cardElevated,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  dotActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  dotDone: { backgroundColor: colors.success, borderColor: colors.success },
-  label: { color: colors.textMuted, fontSize: 11, marginTop: 4 },
+  label: { marginTop: 4 },
 });
