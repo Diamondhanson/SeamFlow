@@ -1,20 +1,24 @@
 // ============================================================================
-// useShareOrder — Phase 1.6
+// useShareOrder — Phase 1.6 (+ copy-link action menu)
 //
 // Flow when the tailor taps "Share with client":
-//   1. Mint a fresh magic-link via POST /orders/:id/share-link
-//   2. If the client has an E.164 phone:
+//   1. Mint a fresh magic-link via POST /orders/:id/share-link.
+//   2. Present an action menu showing the link, with adaptive options:
+//        • Client has an E.164 phone → "Open WhatsApp" + "Copy link"
+//        • No phone on file          → "Copy link" + "Share via…"
+//      (Android caps Alert at 3 buttons, so we keep it to two actions +
+//      Cancel and let "Copy link" cover every other channel.)
+//   3. "Open WhatsApp":
 //        a. Try the `whatsapp://send?phone=…&text=…` scheme first. Only the
 //           installed WhatsApp app handles it — opens the chat with that
 //           contact pre-loaded. On iOS the URL needs to pass `canOpenURL`,
 //           which requires `LSApplicationQueriesSchemes` to include
 //           `whatsapp` (handled by expo-config, see app.json).
 //        b. If WhatsApp isn't installed (`canOpenURL` false), try the
-//           universal `https://wa.me/<digits>?text=…` URL — that one falls
-//           back to the App/Play Store if WhatsApp isn't there, or opens it
-//           if it is. Either is a reasonable outcome.
-//   3. If no phone OR all WhatsApp attempts fail, drop into the OS share
-//      sheet (`Share.share`) so the tailor can pick SMS / Mail / etc.
+//           universal `https://wa.me/<digits>?text=…` URL.
+//        c. If both fail, drop into the OS share sheet as a last resort.
+//   4. "Copy link" writes the raw URL to the clipboard via expo-clipboard
+//      and confirms with a toast/alert.
 //
 // We never throw out of share() — every error path surfaces an Alert and
 // resolves. Mutation hook exposes `isPending` so the button can disable.
@@ -22,6 +26,7 @@
 
 import { useCallback } from 'react';
 import { Alert, Linking, Platform, Share } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import {
   formatOrderShareMessage,
   phoneToWaMeDigits,
@@ -37,48 +42,105 @@ export interface ShareOrderInput {
   tailorBusinessName?: string | null;
 }
 
-interface ShareResult {
-  /** Where the message actually ended up going (best-effort detection). */
-  channel: 'whatsapp' | 'share-sheet' | 'cancelled' | 'error';
-}
-
 export function useShareOrder(orderId: string) {
   const issue = useIssueShareLink(orderId);
 
   const share = useCallback(
-    async (input: ShareOrderInput): Promise<ShareResult> => {
+    async (input: ShareOrderInput): Promise<void> => {
       try {
         const link = await issue.mutateAsync();
         const message = formatMessage({ ...input, url: link.url });
-
-        const digits = phoneToWaMeDigits(input.clientPhone);
-        if (digits) {
-          const opened = await tryOpenWhatsApp(digits, message);
-          if (opened) return { channel: 'whatsapp' };
-        }
-
-        // No phone, or WhatsApp couldn't open. Fall back to the OS share sheet.
-        const r = await Share.share({
-          message: messageForShareSheet(message, link.url),
-          // iOS uses `url` separately; Android collapses it into the message —
-          // so we keep the URL inside `message` either way to be safe.
-          url: link.url,
-        });
-        // RN's Share returns { action: 'sharedAction' | 'dismissedAction', activityType? }
-        if (r.action === Share.dismissedAction) return { channel: 'cancelled' };
-        return { channel: 'share-sheet' };
+        presentShareMenu({ url: link.url, message, input });
       } catch (err) {
         Alert.alert(
           'Could not share order',
           err instanceof Error ? err.message : String(err),
         );
-        return { channel: 'error' };
       }
     },
     [issue],
   );
 
   return { share, isPending: issue.isPending };
+}
+
+/**
+ * Show the link + the available delivery actions. The link itself is the
+ * Alert body so the tailor can read it before deciding. Adaptive buttons keep
+ * within Android's 3-button limit (two actions + Cancel).
+ */
+function presentShareMenu({
+  url,
+  message,
+  input,
+}: {
+  url: string;
+  message: string;
+  input: ShareOrderInput;
+}): void {
+  const digits = phoneToWaMeDigits(input.clientPhone);
+
+  const actions: Array<{ text: string; onPress: () => void }> = [];
+  if (digits) {
+    actions.push({
+      text: 'Open WhatsApp',
+      onPress: () => {
+        void runWhatsApp(digits, message, url);
+      },
+    });
+    actions.push({ text: 'Copy link', onPress: () => void copyLink(url) });
+  } else {
+    actions.push({ text: 'Copy link', onPress: () => void copyLink(url) });
+    actions.push({
+      text: 'Share via…',
+      onPress: () => void openShareSheet(message, url),
+    });
+  }
+
+  Alert.alert('Share order', url, [
+    ...actions,
+    { text: 'Cancel', style: 'cancel' },
+  ]);
+}
+
+/** Copy the raw magic-link URL to the clipboard and confirm. */
+async function copyLink(url: string): Promise<void> {
+  try {
+    await Clipboard.setStringAsync(url);
+    Alert.alert('Link copied', 'The order link is on your clipboard.');
+  } catch (err) {
+    Alert.alert(
+      'Could not copy',
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+}
+
+/** Try WhatsApp first; fall back to the OS share sheet if it can't open. */
+async function runWhatsApp(
+  digits: string,
+  message: string,
+  url: string,
+): Promise<void> {
+  const opened = await tryOpenWhatsApp(digits, message);
+  if (!opened) await openShareSheet(message, url);
+}
+
+/** Open the native share sheet (SMS / Mail / etc.). Never throws. */
+async function openShareSheet(message: string, url: string): Promise<void> {
+  try {
+    await Share.share({
+      message: messageForShareSheet(message, url),
+      // iOS uses `url` separately; Android collapses it into the message —
+      // so we keep the URL inside `message` either way to be safe.
+      url,
+    });
+  } catch (err) {
+    Alert.alert(
+      'Could not share order',
+      err instanceof Error ? err.message : String(err),
+    );
+  }
 }
 
 function formatMessage(
