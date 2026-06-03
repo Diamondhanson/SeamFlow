@@ -72,7 +72,7 @@ export function Tile({ label, icon, onPress, accent, description }: TileProps) {
 
 const styles = StyleSheet.create({
   tile: {
-    flex: 1,
+    width: '100%',
     aspectRatio: 1,
     borderRadius: radii.lg,
     padding: spacing.lg,

@@ -87,6 +87,7 @@ function GatedStack() {
       <Stack.Screen name="templates/[id]" options={{ title: 'Template' }} />
       <Stack.Screen name="orders/index" options={{ title: 'Orders' }} />
       <Stack.Screen name="orders/[id]" options={{ title: 'Order' }} />
+      <Stack.Screen name="calendar/index" options={{ title: 'Calendar' }} />
     </Stack>
   );
 }

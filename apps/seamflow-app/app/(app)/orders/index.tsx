@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import type { OrderStatus } from '@seamflow/schemas';
 import { Text, Chip, type ChipTone } from '@seamflow/ui';
@@ -103,13 +103,13 @@ export default function OrdersList() {
         returnKeyType="search"
       />
 
-      {/* Status chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.chipScroll}
-        contentContainerStyle={styles.chipRow}
-      >
+      {/* Status chips.
+          A wrapping row (not a horizontal ScrollView): a horizontal scroll's
+          content re-measures to an indefinite width on orientation change and
+          collapses its chips to zero width. Wrapping fills the parent width and
+          reflows, so it survives rotation and shows every filter at once on
+          wide screens. */}
+      <View style={styles.chipRow}>
         <Chip
           label="All statuses"
           selected={status === null}
@@ -124,15 +124,10 @@ export default function OrdersList() {
             onPress={() => setStatus(s)}
           />
         ))}
-      </ScrollView>
+      </View>
 
       {/* Time chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.chipScroll}
-        contentContainerStyle={styles.chipRow}
-      >
+      <View style={styles.chipRow}>
         <Chip
           label="All time"
           selected={timeFilter === 'all'}
@@ -150,7 +145,7 @@ export default function OrdersList() {
           tone="primary"
           onPress={() => setTimeFilter('thisWeek')}
         />
-      </ScrollView>
+      </View>
 
       <View style={{ height: spacing.md }} />
 
@@ -191,8 +186,13 @@ export default function OrdersList() {
 
 const styles = StyleSheet.create({
   title: { marginBottom: spacing.md },
-  chipScroll: { flexGrow: 0 },
-  chipRow: { paddingVertical: spacing.xs, gap: spacing.xs, alignItems: 'center' },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingVertical: spacing.xs,
+    gap: spacing.xs,
+    alignItems: 'center',
+  },
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
