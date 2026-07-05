@@ -20,3 +20,4 @@ export type {
 export type { ListOrdersQuery, ListOrdersResponse } from './resources/orders';
 export type { ListOrderItemsResponse } from './resources/order-items';
 export type { ListOrderPhotosResponse } from './resources/order-photos';
+export type { ListDesignsResponse } from './resources/designs';

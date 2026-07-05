@@ -3,6 +3,9 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '../../lib/auth-context';
 import { LockProvider, useLock } from '../../lib/lock-context';
 import { PinLockScreen } from '../../components/PinLockScreen';
+import { FloatingLogo } from '../../components/FloatingLogo';
+import { FloatingScrollProvider } from '../../lib/floating-scroll';
+import { useNotificationTapHandler } from '../../lib/notifications';
 import { useThemeColors } from '../../lib/theme';
 
 export default function AppLayout() {
@@ -36,6 +39,9 @@ function GatedStack() {
   const { ready, pinSet, locked } = useLock();
   const colors = useThemeColors();
 
+  // Route to the relevant order when a reminder / status push is tapped.
+  useNotificationTapHandler();
+
   // Block the first paint until we've checked whether a PIN is configured.
   // Without this we'd flash the home screen for ~50 ms on cold start before
   // the gate engages, which defeats the whole purpose of the gate.
@@ -51,48 +57,47 @@ function GatedStack() {
     return <PinLockScreen />;
   }
 
+  // Native headers are hidden app-wide — every screen renders its own
+  // <ScreenHeader> (large Fraunces title + back chevron). Transitions slide in
+  // from the right on both platforms; `gestureEnabled` + `fullScreenGesture`
+  // give an iOS full-screen swipe-back, and react-native-screens drives the
+  // Android back gesture / predictive-back for the same feel.
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.bg },
-        headerTintColor: colors.text,
-        // Atelier: nav-bar titles render in Fraunces semibold to match
-        // screen-level h1's. Falls back to system if fonts haven't loaded
-        // (won't happen — RootLayout gates first paint on fontsReady).
-        headerTitleStyle: { fontFamily: 'Fraunces_600SemiBold', fontSize: 18 },
-        contentStyle: { backgroundColor: colors.bg },
-      }}
-    >
-      <Stack.Screen name="index" options={{ title: 'SeamFlow' }} />
-      <Stack.Screen name="me" options={{ title: 'Profile' }} />
-      <Stack.Screen name="pin" options={{ title: 'PIN lock' }} />
-      <Stack.Screen name="new-order" options={{ title: 'New Order' }} />
-      <Stack.Screen name="clients/index" options={{ title: 'Clients' }} />
-      <Stack.Screen
-        name="clients/new"
-        options={{ title: 'New Client', presentation: 'modal' }}
-      />
-      <Stack.Screen name="clients/[id]" options={{ title: 'Client' }} />
-      <Stack.Screen name="groups/index" options={{ title: 'Group Orders' }} />
-      <Stack.Screen
-        name="groups/new"
-        options={{ title: 'New Group Order', presentation: 'modal' }}
-      />
-      <Stack.Screen name="groups/[id]" options={{ title: 'Group' }} />
-      <Stack.Screen name="templates/index" options={{ title: 'Templates' }} />
-      <Stack.Screen
-        name="templates/new"
-        options={{ title: 'New Template', presentation: 'modal' }}
-      />
-      <Stack.Screen name="templates/[id]" options={{ title: 'Template' }} />
-      <Stack.Screen name="orders/index" options={{ title: 'Orders' }} />
-      <Stack.Screen name="orders/[id]" options={{ title: 'Order' }} />
-      <Stack.Screen name="calendar/index" options={{ title: 'Calendar' }} />
-    </Stack>
+    <FloatingScrollProvider>
+      <View style={[styles.flex, { backgroundColor: colors.bg }]}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.bg },
+            animation: 'slide_from_right',
+            animationDuration: 280,
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true,
+          }}
+        >
+          {/* Only the modal routes need explicit options now that headers
+              are off — everything else inherits the slide + swipe defaults. */}
+          <Stack.Screen
+            name="clients/new"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="groups/new"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="templates/new"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
+        </Stack>
+        <FloatingLogo />
+      </View>
+    </FloatingScrollProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   center: {
     flex: 1,
     alignItems: 'center',

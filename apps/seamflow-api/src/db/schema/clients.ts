@@ -22,6 +22,9 @@ export const clients = pgTable(
   },
   (t) => ({
     tailorIdIdx: index('clients_tailor_id_idx').on(t.tailorId),
+    // Supports find-or-create by phone when materializing a client from a
+    // picked contact at order time. See migration 20260703120000.
+    tailorPhoneIdx: index('clients_tailor_phone_idx').on(t.tailorId, t.phone),
   }),
 );
 

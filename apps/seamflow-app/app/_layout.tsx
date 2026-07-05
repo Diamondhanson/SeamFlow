@@ -25,6 +25,8 @@ import {
 } from '../lib/query-client';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { ThemeModeProvider, useThemeMode } from '../lib/theme-mode';
+import { FavoritesProvider } from '../lib/favorites';
+import { LanguageProvider } from '../lib/i18n';
 
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -103,18 +105,19 @@ function ThemedRoot() {
           }}
         >
           <AtelierThemeProvider mode={mode}>
+            <LanguageProvider>
+            <FavoritesProvider>
             <AuthProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
               <OfflineBanner />
               <Stack
                 screenOptions={{
-                  headerStyle: { backgroundColor: colors.bg },
-                  headerTintColor: colors.text,
-                  headerTitleStyle: {
-                    fontFamily: 'Fraunces_600SemiBold',
-                    fontSize: 18,
-                  },
+                  headerShown: false,
                   contentStyle: { backgroundColor: colors.bg },
+                  animation: 'slide_from_right',
+                  animationDuration: 280,
+                  gestureEnabled: true,
+                  fullScreenGestureEnabled: true,
                 }}
               >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -123,6 +126,8 @@ function ThemedRoot() {
                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
               </Stack>
             </AuthProvider>
+            </FavoritesProvider>
+            </LanguageProvider>
           </AtelierThemeProvider>
         </PersistQueryClientProvider>
       </SafeAreaProvider>

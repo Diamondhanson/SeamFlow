@@ -2,86 +2,81 @@
 // PIN entry screen rendered by (app)/_layout when `locked && pinSet`.
 //
 // Full-screen — covers the entire app behind it. Numeric keypad rendered
-// inline so the OS keyboard doesn't show (and so users on Android with
-// random keyboard layouts get the same UX as iOS).
+// inline so the OS keyboard doesn't show. Keypad + dots come from the shared
+// <PinKeypad> so this matches the PIN settings screen exactly.
 //
 // On successful verify: call unlock() from the LockContext.
-// On 5 failed attempts: force sign-out (which dumps the Supabase session
-// — the user has to go back through sign-in. The PIN itself stays stored
-// so once they sign in again, the lock continues to engage.)
+// On MAX_ATTEMPTS failed attempts: force sign-out.
 // ============================================================================
 
-import { useEffect, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  View,
-  Vibration,
-} from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Pressable, StyleSheet, View, Vibration } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@seamflow/ui';
+import { PinDots, Dialpad } from './PinKeypad';
 import { useLock } from '../lib/lock-context';
 import { useAuth } from '../lib/auth-context';
+import { useTranslation } from '../lib/i18n';
 import { MAX_ATTEMPTS, PIN_LENGTH, verifyPin } from '../lib/pin-lock';
-import { radii, spacing, useThemeColors } from '../lib/theme';
-
-const KEYS: Array<string | 'backspace' | null> = [
-  '1', '2', '3',
-  '4', '5', '6',
-  '7', '8', '9',
-  null, '0', 'backspace',
-];
+import { spacing, useThemeColors } from '../lib/theme';
 
 interface Props {
-  /**
-   * Greeting shown above the dots. Default "Enter your PIN".
-   * The PIN setup screen reuses this component with different greetings
-   * when prompting for the current PIN before a change.
-   */
+  /** Greeting shown above the dots. Default "Enter your PIN". */
   prompt?: string;
 }
 
-export function PinLockScreen({ prompt = 'Enter your PIN' }: Props) {
+export function PinLockScreen({ prompt }: Props) {
+  const { t } = useTranslation();
   const { unlock } = useLock();
   const { signOut } = useAuth();
+  const promptText = prompt ?? t('misc.enterYourPin');
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [failedCount, setFailedCount] = useState(0);
   const colors = useThemeColors();
+  const verifyingRef = useRef(false);
 
-  // Auto-verify when 4 digits have been entered.
+  // Verify once the last digit lands.
+  //
+  // IMPORTANT: depend ONLY on `pin`. The previous version listed `busy` in the
+  // deps, so `setBusy(true)` re-ran this effect; its cleanup set the in-flight
+  // flag to cancelled, and when verifyPin resolved it bailed *before* calling
+  // unlock() — the PIN was correct but the app never unlocked (and busy stuck
+  // on). A ref now guards re-entry instead.
   useEffect(() => {
-    if (pin.length !== PIN_LENGTH || busy) return;
-    let cancelled = false;
+    if (pin.length !== PIN_LENGTH || verifyingRef.current) return;
+    verifyingRef.current = true;
+    setBusy(true);
+    let active = true;
     (async () => {
-      setBusy(true);
       try {
         const result = await verifyPin(pin);
-        if (cancelled) return;
+        if (!active) return;
         if (result.ok) {
           unlock();
           return;
         }
-        // Bad PIN — wiggle + clear.
+        // Wrong PIN — wiggle + clear.
         Vibration.vibrate(200);
         setPin('');
         setFailedCount(result.failed);
-
         if (result.shouldSignOut) {
           Alert.alert(
-            'Too many attempts',
-            `${MAX_ATTEMPTS} wrong tries. Signing you out — please sign in again to continue.`,
-            [{ text: 'OK', onPress: () => void signOut() }],
+            t('misc.tooManyAttemptsTitle'),
+            t('misc.tooManyAttemptsBody', { max: MAX_ATTEMPTS }),
+            [{ text: t('common.ok'), onPress: () => void signOut() }],
           );
         }
       } finally {
-        if (!cancelled) setBusy(false);
+        verifyingRef.current = false;
+        if (active) setBusy(false);
       }
     })();
     return () => {
-      cancelled = true;
+      active = false;
     };
-  }, [pin, busy, unlock, signOut]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pin]);
 
   const press = (key: string) => {
     if (busy) return;
@@ -93,112 +88,61 @@ export function PinLockScreen({ prompt = 'Enter your PIN' }: Props) {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <View style={styles.center}>
-        <Text variant="display" style={styles.brand}>SeamFlow</Text>
-        <Text variant="bodySm" tone="textMuted" style={styles.prompt}>{prompt}</Text>
-
-        {/* Dots */}
-        <View style={styles.dots}>
-          {Array.from({ length: PIN_LENGTH }).map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                { borderColor: colors.border },
-                i < pin.length && { backgroundColor: colors.accent, borderColor: colors.accent },
-              ]}
-            />
-          ))}
-        </View>
-
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: colors.bg }]}
+      edges={['top', 'bottom']}
+    >
+      {/* Brand + prompt + dots — upper region */}
+      <View style={styles.top}>
+        <Text variant="display" style={styles.brand}>
+          SeamFlow
+        </Text>
+        <Text variant="bodySm" tone="textMuted">
+          {promptText}
+        </Text>
+        <PinDots value={pin} />
         {failedCount > 0 ? (
           <Text variant="caption" tone="danger" style={styles.error}>
-            Wrong PIN. {MAX_ATTEMPTS - failedCount} attempt
-            {MAX_ATTEMPTS - failedCount === 1 ? '' : 's'} left.
+            {t('misc.wrongPinAttempts', {
+              left: MAX_ATTEMPTS - failedCount,
+              plural: MAX_ATTEMPTS - failedCount === 1 ? '' : 's',
+            })}
           </Text>
         ) : null}
       </View>
 
-      {/* Keypad */}
-      <View style={styles.keypad}>
-        {KEYS.map((k, i) =>
-          k === null ? (
-            <View key={`spacer-${i}`} style={styles.key} />
-          ) : (
-            <Pressable
-              key={k + i}
-              style={({ pressed }) => [
-                styles.key,
-                { backgroundColor: pressed ? colors.border : colors.card },
-              ]}
-              onPress={() => press(k)}
-              disabled={busy}
-            >
-              <Text variant="h2" numeric style={styles.keyText}>
-                {k === 'backspace' ? '⌫' : k}
-              </Text>
-            </Pressable>
-          ),
-        )}
+      {/* Keypad pushed to the lower region for easy thumb reach */}
+      <View style={styles.bottom}>
+        <Dialpad onKey={press} disabled={busy} />
+        <Pressable
+          onPress={() => void signOut()}
+          hitSlop={12}
+          style={styles.forgotBtn}
+        >
+          <Text variant="bodySm" tone="textMuted">
+            {t('misc.forgotPinSignOut')}
+          </Text>
+        </Pressable>
       </View>
-
-      <Pressable onPress={() => void signOut()} hitSlop={12}>
-        <Text variant="bodySm" tone="textMuted" style={styles.forgot}>
-          Forgot PIN? Sign out
-        </Text>
-      </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    paddingTop: spacing.xl * 2,
-    paddingBottom: spacing.xl,
-    paddingHorizontal: spacing.lg,
-    justifyContent: 'space-between',
-  },
-  center: { alignItems: 'center' },
-  brand: {
-    marginBottom: spacing.xs,
-  },
-  prompt: {
-    marginBottom: spacing.xl,
-  },
-  dots: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginVertical: spacing.lg,
-  },
-  dot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    backgroundColor: 'transparent',
-  },
-  error: {
-    marginTop: spacing.md,
-    fontWeight: '600',
-  },
-  keypad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  key: {
-    width: '30%',
-    aspectRatio: 1.7,
-    margin: '1.5%',
-    borderRadius: radii.md,
+  screen: { flex: 1, paddingHorizontal: spacing.lg },
+  top: {
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: spacing.xl * 2,
+    gap: spacing.lg,
   },
-  keyText: { fontSize: 26 },
-  forgot: {
-    textAlign: 'center',
-    marginTop: spacing.lg,
+  brand: { marginBottom: spacing.xs },
+  error: { fontWeight: '600' },
+  // flex:1 + flex-end pushes the keypad down toward the thumb; the small
+  // bottom padding keeps it off the very edge.
+  bottom: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: spacing.md,
   },
+  forgotBtn: { alignItems: 'center', marginTop: spacing.xl },
 });

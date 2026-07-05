@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -9,13 +9,16 @@ import {
   View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import type { OrderStatus } from '@seamflow/schemas';
 import { nextOrderStatuses } from '@seamflow/schemas';
 import { useQueryClient } from '@tanstack/react-query';
-import { Text, Chip, type ChipTone } from '@seamflow/ui';
+import { Text, Chip, type ChipTone, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
+import { useFloatingScroll } from '../../../lib/floating-scroll';
 import {
   qk,
   useClient,
@@ -28,15 +31,9 @@ import {
 } from '../../../lib/queries';
 import { useShareOrder } from '../../../lib/share-order';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
+import { alertIfPermissionDenied } from '../../../lib/permissions';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  registered: 'Registered',
-  in_progress: 'In progress',
-  testing: 'Testing / fitting',
-  on_pause: 'On pause',
-  delivered: 'Delivered',
-};
+import { useTranslation } from '../../../lib/i18n';
 
 const STATUS_TONE: Record<OrderStatus, ChipTone> = {
   registered: 'statusRegistered',
@@ -47,6 +44,8 @@ const STATUS_TONE: Record<OrderStatus, ChipTone> = {
 };
 
 export default function OrderDetailScreen() {
+  const { t } = useTranslation();
+  const statusLabel = (s: OrderStatus) => t(`orders.status_${s}`);
   const { id } = useLocalSearchParams<{ id: string }>();
   const qc = useQueryClient();
   const orderQ = useOrder(id);
@@ -61,6 +60,8 @@ export default function OrderDetailScreen() {
   const clientQ = useClient(orderQ.data?.clientId ?? '');
   const [uploading, setUploading] = useState(false);
   const colors = useThemeColors();
+  const theme = useAtelierTheme();
+  const scroll = useFloatingScroll();
 
   const order = orderQ.data ?? null;
   const photos = photosQ.data?.items ?? [];
@@ -71,7 +72,7 @@ export default function OrderDetailScreen() {
       { to },
       {
         onError: (err) =>
-          Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
       },
     );
 
@@ -90,22 +91,24 @@ export default function OrderDetailScreen() {
       // directly + the api-client raw call), so invalidate manually.
       qc.invalidateQueries({ queryKey: qk.orderPhotos(id) });
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : String(err));
+      if (!alertIfPermissionDenied(err, t)) {
+        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      }
     } finally {
       setUploading(false);
     }
   };
 
   const deletePhoto = (photoId: string) =>
-    Alert.alert('Delete photo?', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('orders.deletePhotoTitle'), t('orders.deletePhotoMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () =>
           deletePhotoM.mutate(photoId, {
             onError: (err) =>
-              Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+              Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
           }),
       },
     ]);
@@ -125,251 +128,408 @@ export default function OrderDetailScreen() {
   };
 
   const deleteOrder = () =>
-    Alert.alert('Delete order?', `${order?.orderName} will be permanently deleted.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(
+      t('orders.deleteOrderTitle'),
+      t('orders.deleteOrderMessage', { name: order?.orderName ?? '' }),
+      [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () =>
           deleteOrderM.mutate(undefined, {
             onSuccess: () => router.back(),
             onError: (err) =>
-              Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+              Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
           }),
       },
-    ]);
+    ],
+    );
 
   if (loading || !order) {
     return (
       <Screen>
+        <ScreenHeader title={t('orders.detailTitle')} />
         <Text variant="bodySm" tone="textMuted">
-          Loading…
+          {t('common.loading')}
         </Text>
       </Screen>
     );
   }
 
   const nextStatuses = nextOrderStatuses(order.status);
+  const s = theme.colors;
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <Text variant="h1">{order.orderName}</Text>
-        <View style={{ marginTop: spacing.sm }}>
+      <ScreenHeader title={order.orderName} />
+      <ScrollView
+        {...scroll}
+        contentContainerStyle={{ paddingBottom: 96 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Summary — the at-a-glance state, lifted off the paper so the eye
+            lands here first before the sections below. */}
+        <Card variant="elevated" style={[styles.hero, theme.shadows.md]}>
           <Chip
             variant="status"
-            label={STATUS_LABEL[order.status]}
+            label={statusLabel(order.status)}
             tone={STATUS_TONE[order.status]}
           />
-        </View>
 
-        <View style={{ height: spacing.md }} />
-        <Text variant="bodySm" tone="textMuted">
-          Ordered: {new Date(order.dateOrdered).toLocaleDateString()}
-        </Text>
-        {order.dateDelivery ? (
-          <Text variant="bodySm" tone="textMuted">
-            Delivery: {new Date(order.dateDelivery).toLocaleDateString()}
-          </Text>
-        ) : null}
-        {order.notes ? (
-          <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>
-            {order.notes}
-          </Text>
-        ) : null}
-
-        <View style={{ height: spacing.md }} />
-        <Button
-          label={shareOrderHook.isPending ? 'Generating link…' : '🔗 Share with client'}
-          variant="secondary"
-          onPress={shareWithClient}
-          disabled={shareOrderHook.isPending}
-        />
-
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-        <Text variant="h3" style={styles.section}>
-          Status
-        </Text>
-        {nextStatuses.length === 0 ? (
-          <Text variant="bodySm" tone="textMuted">
-            No next status available.
-          </Text>
-        ) : (
-          nextStatuses.map((s) => (
-            <View key={s} style={{ marginBottom: spacing.sm }}>
-              <Button
-                label={`→ ${STATUS_LABEL[s]}`}
-                variant="secondary"
-                onPress={() => transition(s)}
-              />
+          <View style={styles.statRow}>
+            <View style={styles.stat}>
+              <Text variant="label" tone="textMuted">
+                {t('orders.ordered')}
+              </Text>
+              <Text variant="body" style={styles.statValue}>
+                {new Date(order.dateOrdered).toLocaleDateString()}
+              </Text>
             </View>
-          ))
-        )}
-
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-        <View style={styles.row}>
-          <Text variant="h3">Photos ({photos.length})</Text>
-          {uploading ? <ActivityIndicator color={colors.accent} /> : null}
-        </View>
-        <View style={styles.photoActions}>
-          <Button
-            label="📷 Camera"
-            variant="secondary"
-            onPress={() => addPhoto('camera')}
-            disabled={uploading}
-          />
-          <View style={{ width: spacing.sm }} />
-          <Button
-            label="🖼  Gallery"
-            variant="secondary"
-            onPress={() => addPhoto('library')}
-            disabled={uploading}
-          />
-        </View>
-        {photos.length === 0 ? (
-          <Text variant="bodySm" tone="textMuted">
-            No photos yet.
-          </Text>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.photoStrip}
-          >
-            {photos.map((p) => {
-              // Prefer the tiny thumbnail for the strip; fall back to full if
-              // somehow missing (legacy rows uploaded before the two-variant
-              // pipeline).
-              const previewUrl = p.thumbnailUrl ?? p.signedUrl;
-              return (
-                <Pressable
-                  key={p.id}
-                  onLongPress={() => deletePhoto(p.id)}
-                  style={styles.photoThumbWrap}
-                >
-                  {previewUrl ? (
-                    <Image
-                      source={{ uri: previewUrl }}
-                      style={[styles.photoThumb, { backgroundColor: colors.card }]}
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.photoThumbPlaceholder,
-                        { backgroundColor: colors.card },
-                      ]}
-                    >
-                      <ActivityIndicator color={colors.textMuted} />
-                    </View>
-                  )}
-                  <Text variant="caption" tone="textMuted" style={styles.photoRole}>
-                    {p.role}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        )}
-        <Text variant="caption" tone="textMuted" style={styles.photoHint}>
-          Long-press a photo to delete.
-        </Text>
-
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-        <Text variant="h3" style={styles.section}>
-          Items ({order.items.length})
-        </Text>
-        {order.items.length === 0 ? (
-          <Text variant="bodySm" tone="textMuted">
-            No items.
-          </Text>
-        ) : (
-          order.items.map((it) => (
-            <Card key={it.id}>
-              <CardTitle>{it.garmentType}</CardTitle>
-              <CardLine>Qty: {it.quantity}</CardLine>
-              {it.measurements && Object.keys(it.measurements).length > 0 ? (
-                <View style={{ marginTop: spacing.xs }}>
-                  {Object.entries(it.measurements).map(([k, v]) => (
-                    <CardLine key={k}>
-                      {k}: {String(v)} cm
-                    </CardLine>
-                  ))}
-                </View>
-              ) : null}
-              {it.notes ? <CardLine>{it.notes}</CardLine> : null}
-            </Card>
-          ))
-        )}
-
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-        <Text variant="h3" style={styles.section}>
-          Timeline ({order.events.length})
-        </Text>
-        {order.events.length === 0 ? (
-          <Text variant="bodySm" tone="textMuted">
-            No events yet.
-          </Text>
-        ) : (
-          order.events.map((e) => (
-            <View key={e.id} style={[styles.event, { borderLeftColor: colors.accent }]}>
-              <Text variant="bodySm">
-                {e.eventType === 'created'
-                  ? 'Order created'
-                  : e.fromStatus && e.toStatus
-                    ? `${STATUS_LABEL[e.fromStatus]} → ${STATUS_LABEL[e.toStatus]}`
-                    : e.eventType}
-              </Text>
-              <Text variant="caption" tone="textMuted" style={{ marginTop: 2 }}>
-                {new Date(e.createdAt).toLocaleString()}
-              </Text>
-              {e.payload &&
-              typeof e.payload === 'object' &&
-              'note' in (e.payload as Record<string, unknown>) ? (
-                <Text
-                  variant="caption"
-                  tone="textMuted"
-                  style={styles.eventNote}
-                >
-                  {String((e.payload as Record<string, unknown>).note)}
+            {order.dateDelivery ? (
+              <View style={styles.stat}>
+                <Text variant="label" tone="textMuted">
+                  {t('orders.delivery')}
                 </Text>
-              ) : null}
-            </View>
-          ))
-        )}
+                <Text variant="body" style={styles.statValue}>
+                  {new Date(order.dateDelivery).toLocaleDateString()}
+                </Text>
+              </View>
+            ) : null}
+          </View>
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <Button label="Delete order" variant="danger" onPress={deleteOrder} />
+          {order.notes ? (
+            <>
+              <View style={[styles.heroRule, { backgroundColor: s.hairline }]} />
+              <Text variant="bodySm" tone="textMuted">
+                {order.notes}
+              </Text>
+            </>
+          ) : null}
+
+          <View style={styles.heroAction}>
+            <Button
+              label={
+                shareOrderHook.isPending
+                  ? t('orders.generatingLink')
+                  : t('orders.shareWithClient')
+              }
+              variant="secondary"
+              iconLeft={
+                shareOrderHook.isPending ? undefined : (
+                  <Ionicons name="share-social-outline" size={18} color={colors.text} />
+                )
+              }
+              onPress={shareWithClient}
+              disabled={shareOrderHook.isPending}
+            />
+          </View>
+        </Card>
+
+        <Section title={t('orders.statusSection')}>
+          {nextStatuses.length === 0 ? (
+            <Text variant="bodySm" tone="textMuted">
+              {t('orders.noNextStatus')}
+            </Text>
+          ) : (
+            nextStatuses.map((st) => (
+              <View key={st} style={{ marginBottom: spacing.sm }}>
+                <Button
+                  label={t('orders.transitionTo', { label: statusLabel(st) })}
+                  variant="secondary"
+                  onPress={() => transition(st)}
+                />
+              </View>
+            ))
+          )}
+        </Section>
+
+        <Section
+          title={t('orders.photosCount', { count: photos.length })}
+          right={uploading ? <ActivityIndicator color={colors.accent} /> : undefined}
+        >
+          <View style={styles.photoActions}>
+            <Button
+              label={t('orders.camera')}
+              variant="secondary"
+              iconLeft={<Ionicons name="camera-outline" size={18} color={colors.text} />}
+              onPress={() => addPhoto('camera')}
+              disabled={uploading}
+            />
+            <View style={{ width: spacing.sm }} />
+            <Button
+              label={t('orders.gallery')}
+              variant="secondary"
+              iconLeft={<Ionicons name="images-outline" size={18} color={colors.text} />}
+              onPress={() => addPhoto('library')}
+              disabled={uploading}
+            />
+          </View>
+          {photos.length === 0 ? (
+            <View
+              style={[styles.photoEmpty, { backgroundColor: withAlpha(s.textMuted, 0.06) }]}
+            >
+              <Ionicons name="images-outline" size={22} color={colors.textMuted} />
+              <Text variant="bodySm" tone="textMuted">
+                {t('orders.noPhotosYet')}
+              </Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.photoStrip}
+            >
+              {photos.map((p) => {
+                // Prefer the tiny thumbnail for the strip; fall back to full if
+                // somehow missing (legacy rows uploaded before the two-variant
+                // pipeline).
+                const previewUrl = p.thumbnailUrl ?? p.signedUrl;
+                return (
+                  <Pressable
+                    key={p.id}
+                    onLongPress={() => deletePhoto(p.id)}
+                    style={styles.photoThumbWrap}
+                  >
+                    {previewUrl ? (
+                      <Image
+                        source={{ uri: previewUrl }}
+                        style={[styles.photoThumb, { backgroundColor: colors.card }]}
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          styles.photoThumbPlaceholder,
+                          { backgroundColor: colors.card },
+                        ]}
+                      >
+                        <ActivityIndicator color={colors.textMuted} />
+                      </View>
+                    )}
+                    <Text variant="caption" tone="textMuted" style={styles.photoRole}>
+                      {p.role}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
+          {photos.length > 0 ? (
+            <Text variant="caption" tone="textMuted" style={styles.photoHint}>
+              {t('orders.longPressToDelete')}
+            </Text>
+          ) : null}
+        </Section>
+
+        <Section title={t('orders.itemsCount', { count: order.items.length })}>
+          {order.items.length === 0 ? (
+            <Text variant="bodySm" tone="textMuted">
+              {t('orders.noItems')}
+            </Text>
+          ) : (
+            order.items.map((it) => (
+              <Card key={it.id} style={theme.shadows.sm}>
+                <View style={styles.itemHead}>
+                  <CardTitle>{it.garmentType}</CardTitle>
+                  <View
+                    style={[styles.qtyPill, { backgroundColor: withAlpha(s.primary, 0.1) }]}
+                  >
+                    <Text variant="label" style={{ color: s.primary }}>
+                      {t('orders.qtyLabel', { count: it.quantity })}
+                    </Text>
+                  </View>
+                </View>
+                {it.measurements && Object.keys(it.measurements).length > 0 ? (
+                  <View style={styles.measWrap}>
+                    {Object.entries(it.measurements).map(([k, v]) => (
+                      <View
+                        key={k}
+                        style={[
+                          styles.measTag,
+                          { backgroundColor: withAlpha(s.primary, 0.06) },
+                        ]}
+                      >
+                        <Text variant="bodySm">
+                          {t('orders.measurementLine', { key: k, value: String(v) })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+                {it.notes ? (
+                  <View style={{ marginTop: spacing.sm }}>
+                    <CardLine>{it.notes}</CardLine>
+                  </View>
+                ) : null}
+              </Card>
+            ))
+          )}
+        </Section>
+
+        <Section title={t('orders.timelineCount', { count: order.events.length })}>
+          {order.events.length === 0 ? (
+            <Text variant="bodySm" tone="textMuted">
+              {t('orders.noEventsYet')}
+            </Text>
+          ) : (
+            order.events.map((e, i) => (
+              <View key={e.id} style={[styles.event, { borderLeftColor: withAlpha(s.primary, 0.22) }]}>
+                {/* Node — the most recent event reads as a filled dot, older
+                    ones as hollow, so the head of the timeline is obvious. */}
+                <View
+                  style={[
+                    styles.eventDot,
+                    {
+                      backgroundColor: i === 0 ? s.primary : s.surface,
+                      borderColor: s.primary,
+                    },
+                  ]}
+                />
+                <Text variant="bodySm">
+                  {e.eventType === 'created'
+                    ? t('orders.orderCreated')
+                    : e.fromStatus && e.toStatus
+                      ? t('orders.statusTransition', {
+                          from: statusLabel(e.fromStatus),
+                          to: statusLabel(e.toStatus),
+                        })
+                      : e.eventType}
+                </Text>
+                <Text variant="caption" tone="textMuted" style={{ marginTop: 2 }}>
+                  {new Date(e.createdAt).toLocaleString()}
+                </Text>
+                {e.payload &&
+                typeof e.payload === 'object' &&
+                'note' in (e.payload as Record<string, unknown>) ? (
+                  <Text variant="caption" tone="textMuted" style={styles.eventNote}>
+                    {String((e.payload as Record<string, unknown>).note)}
+                  </Text>
+                ) : null}
+              </View>
+            ))
+          )}
+        </Section>
+
+        <View style={styles.deleteWrap}>
+          <Button label={t('orders.deleteOrder')} variant="danger" onPress={deleteOrder} />
+        </View>
       </ScrollView>
     </Screen>
   );
 }
 
+/**
+ * Section wrapper — an h3 header (with optional right-aligned slot) plus its
+ * body, separated from the previous block by generous top space rather than a
+ * hairline rule. Grouping + whitespace carries the rhythm so the screen reads
+ * as distinct blocks, not one flat column.
+ */
+function Section({
+  title,
+  right,
+  children,
+}: {
+  title: string;
+  right?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHead}>
+        <Text variant="h3">{title}</Text>
+        {right ?? null}
+      </View>
+      {children}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  section: { marginBottom: spacing.md },
-  divider: {
+  // Summary card
+  hero: {
+    gap: spacing.md,
+  },
+  statRow: {
+    flexDirection: 'row',
+    gap: spacing.xl,
+  },
+  stat: {
+    gap: 2,
+  },
+  statValue: {
+    marginTop: 2,
+  },
+  heroRule: {
     height: 1,
-    marginVertical: spacing.lg,
+    marginTop: spacing.xs,
   },
-  event: {
-    paddingVertical: spacing.sm,
-    borderLeftWidth: 2,
-    paddingLeft: spacing.md,
-    marginBottom: spacing.xs,
+  heroAction: {
+    marginTop: spacing.xs,
   },
-  eventNote: { marginTop: 4, fontStyle: 'italic' },
-  row: {
+  // Sections
+  section: {
+    marginTop: spacing.xl,
+  },
+  sectionHead: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  // Items
+  itemHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  qtyPill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.lg,
+  },
+  measWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  measTag: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.md,
+  },
+  // Timeline
+  event: {
+    position: 'relative',
+    borderLeftWidth: 2,
+    paddingLeft: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
+  eventDot: {
+    position: 'absolute',
+    left: -6,
+    top: 3,
+    width: 11,
+    height: 11,
+    borderRadius: 999,
+    borderWidth: 2,
+  },
+  eventNote: { marginTop: 4, fontStyle: 'italic' },
+  // Photos
+  photoEmpty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xl,
+    borderRadius: radii.md,
+  },
   photoActions: {
     flexDirection: 'row',
     marginBottom: spacing.md,
+  },
+  deleteWrap: {
+    marginTop: spacing.xl,
   },
   photoStrip: {
     flexDirection: 'row',

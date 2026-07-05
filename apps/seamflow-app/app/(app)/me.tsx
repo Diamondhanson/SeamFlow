@@ -1,55 +1,121 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { router } from 'expo-router';
-import { Text } from '@seamflow/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { Text, Avatar, IconButton } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
-import { Input } from '../../components/Input';
+import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
+import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useAuth } from '../../lib/auth-context';
-import { useMe, useUpsertMyTailor } from '../../lib/queries';
+import {
+  useMe,
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+  useUpsertMyTailor,
+} from '../../lib/queries';
 import { clearCache } from '../../lib/query-client';
 import { ensurePushRegistered, sendPushTest } from '../../lib/notifications';
+import { pickPhoto, uploadTailorLogo } from '../../lib/photo-upload';
+import { alertIfPermissionDenied } from '../../lib/permissions';
+import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode, type ThemePreference } from '../../lib/theme-mode';
+import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
+
+// Localized "Month YYYY" for the member-since line. Bundled month names keep
+// this deterministic under Hermes (Intl month formatting is unreliable there).
+const MONTHS: Record<LanguageCode, string[]> = {
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  fr: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+};
+function formatMonthYear(iso: string | undefined, lang: LanguageCode): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${MONTHS[lang][d.getMonth()]} ${d.getFullYear()}`;
+}
 
 export default function Me() {
   const { signOut } = useAuth();
   const { data: me, isLoading } = useMe();
+  const { t, language } = useTranslation();
+  const scroll = useFloatingScroll();
+  const colors = useThemeColors();
   const upsert = useUpsertMyTailor();
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  const [businessName, setBusinessName] = useState('');
-  const [countryCode, setCountryCode] = useState('NG');
-  const [currency, setCurrency] = useState('NGN');
-  const [location, setLocation] = useState('');
-
-  // Initial state hydrates from /me once it lands.
-  useEffect(() => {
-    if (me?.tailor) {
-      setBusinessName(me.tailor.businessName);
-      setCountryCode(me.tailor.countryCode);
-      setCurrency(me.tailor.currency);
-      setLocation(me.tailor.location ?? '');
-    }
-  }, [me?.tailor]);
-
-  const save = () => {
-    upsert.mutate(
-      {
-        businessName,
-        countryCode: countryCode.toUpperCase(),
-        currency: currency.toUpperCase(),
-        location: location || null,
-      },
-      {
-        onSuccess: () => {
-          Alert.alert('Saved', 'Business profile updated');
-          router.back();
-        },
-        onError: (err) =>
-          Alert.alert('Error', err instanceof Error ? err.message : String(err)),
-      },
-    );
+  // Change / remove the profile photo. Upload lands in the public `avatars`
+  // bucket; the returned URL is persisted on the tailor via the profile upsert
+  // (which requires the other fields, so we pass the current values through).
+  const savePhoto = async (photoUrl: string | null) => {
+    if (!me?.tailor) return;
+    await upsert.mutateAsync({
+      businessName: me.tailor.businessName,
+      countryCode: me.tailor.countryCode,
+      currency: me.tailor.currency,
+      location: me.tailor.location,
+      photoUrl,
+    });
   };
+
+  const changePhoto = async (source: 'camera' | 'library') => {
+    if (!me?.tailor) return;
+    setUploadingPhoto(true);
+    try {
+      const asset = await pickPhoto(source);
+      if (!asset) return;
+      const photoUrl = await uploadTailorLogo({ tailorId: me.tailor.id, asset });
+      await savePhoto(photoUrl);
+    } catch (err) {
+      if (!alertIfPermissionDenied(err, t)) {
+        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      }
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const removePhoto = async () => {
+    setUploadingPhoto(true);
+    try {
+      await savePhoto(null);
+    } catch (err) {
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const promptPhoto = () => {
+    const buttons: Parameters<typeof Alert.alert>[2] = [
+      { text: t('settings.takePhoto'), onPress: () => changePhoto('camera') },
+      { text: t('settings.chooseFromGallery'), onPress: () => changePhoto('library') },
+    ];
+    if (me?.tailor?.photoUrl) {
+      buttons.push({ text: t('settings.removePhoto'), style: 'destructive', onPress: removePhoto });
+    }
+    buttons.push({ text: t('common.cancel'), style: 'cancel' });
+    Alert.alert(t('settings.changePhoto'), undefined, buttons);
+  };
+
+  // Keep the server's copy of the UI language in sync so push copy is localized.
+  const prefsQ = useNotificationPreferences();
+  const updatePrefs = useUpdateNotificationPreferences();
+  useEffect(() => {
+    if (prefsQ.data && prefsQ.data.language !== language) {
+      updatePrefs.mutate({ language });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefsQ.data?.language, language]);
 
   const onSignOut = async () => {
     // Clear the cached data for this user before the JWT goes away.
@@ -64,28 +130,29 @@ export default function Me() {
       const token = await ensurePushRegistered();
       if (!token) {
         Alert.alert(
-          'Push not available',
-          'Push notifications are only available on physical devices with permission granted.',
+          t('settings.pushNotAvailableTitle'),
+          t('settings.pushNotAvailableBody'),
         );
         return;
       }
       const count = await sendPushTest();
       Alert.alert(
-        'Test sent',
+        t('settings.testSentTitle'),
         count === 0
-          ? 'No registered devices found on the server. Try signing out and back in.'
-          : `Sent to ${count} device${count === 1 ? '' : 's'}. Check your notification tray.`,
+          ? t('settings.noDevices')
+          : t('settings.sentToDevices', { count }),
       );
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : String(err));
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
     }
   };
 
   if (isLoading) {
     return (
       <Screen>
+        <ScreenHeader title={t('settings.title')} />
         <Text variant="body" tone="textMuted">
-          Loading…
+          {t('settings.loading')}
         </Text>
       </Screen>
     );
@@ -93,93 +160,168 @@ export default function Me() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <Text variant="h1" tone="text">
-          Business profile
+      <ScreenHeader title={t('settings.title')} />
+      <ScrollView
+        {...scroll}
+        contentContainerStyle={{ paddingBottom: 96 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text variant="h3" tone="text" style={{ marginBottom: spacing.md }}>
+          {t('settings.businessProfile')}
         </Text>
-        {me?.email ? (
-          <Text
-            variant="bodySm"
-            tone="textMuted"
-            style={{ marginTop: 4, marginBottom: spacing.lg }}
-          >
-            Signed in as {me.email}
-          </Text>
-        ) : (
-          <View style={{ height: spacing.lg }} />
-        )}
 
-        <Input
-          label="Business name"
-          value={businessName}
-          onChangeText={setBusinessName}
-          placeholder="e.g. SeamFlow Studio"
-        />
-        <Input
-          label="Country code (ISO 2)"
-          value={countryCode}
-          onChangeText={setCountryCode}
-          maxLength={2}
-          autoCapitalize="characters"
-        />
-        <Input
-          label="Currency (ISO 3)"
-          value={currency}
-          onChangeText={setCurrency}
-          maxLength={3}
-          autoCapitalize="characters"
-        />
-        <Input
-          label="Location (optional)"
-          value={location}
-          onChangeText={setLocation}
-          placeholder="Lagos, Nigeria"
-        />
+        {/* Read-only identity card. Edit lives on its own screen (pencil). */}
+        <View
+          style={[
+            styles.profileCard,
+            { backgroundColor: colors.card, borderColor: colors.hairline },
+          ]}
+        >
+          <View style={styles.profileHead}>
+            <Pressable
+              onPress={promptPhoto}
+              disabled={uploadingPhoto}
+              style={styles.logoWrap}
+              accessibilityRole="button"
+              accessibilityLabel={t('settings.changePhoto')}
+            >
+              {me?.tailor?.photoUrl ? (
+                <Image source={{ uri: me.tailor.photoUrl }} style={styles.logo} />
+              ) : (
+                <Avatar name={me?.tailor?.businessName ?? '—'} size="lg" />
+              )}
+              {uploadingPhoto ? (
+                <View style={styles.logoOverlay}>
+                  <ActivityIndicator color="#fff" size="small" />
+                </View>
+              ) : (
+                <View
+                  style={[
+                    styles.cameraBadge,
+                    { backgroundColor: colors.accent, borderColor: colors.card },
+                  ]}
+                >
+                  <Ionicons name="camera" size={12} color={colors.accentText} />
+                </View>
+              )}
+            </Pressable>
+            <View style={styles.profileHeadText}>
+              <Text variant="h3" numberOfLines={1}>
+                {me?.tailor?.businessName ?? '—'}
+              </Text>
+              {me?.email ? (
+                <Text variant="bodySm" tone="textMuted" numberOfLines={1} style={{ marginTop: 2 }}>
+                  {me.email}
+                </Text>
+              ) : null}
+            </View>
+            <IconButton
+              variant="surface"
+              size="md"
+              onPress={() => router.push('/(app)/profile-edit')}
+              accessibilityLabel={t('settings.editProfile')}
+            >
+              <Ionicons name="pencil" size={18} color={colors.text} />
+            </IconButton>
+          </View>
 
-        <Button
-          label="Save"
-          onPress={save}
-          loading={upsert.isPending}
-          disabled={!businessName || countryCode.length !== 2 || currency.length !== 3}
-        />
+          <InfoRow
+            label={t('settings.country')}
+            value={
+              me?.tailor?.countryCode
+                ? `${flagEmoji(me.tailor.countryCode)}  ${countryName(me.tailor.countryCode)}`
+                : '—'
+            }
+          />
+          {me?.tailor?.location ? (
+            <InfoRow label={t('settings.locationLabel')} value={me.tailor.location} />
+          ) : null}
+          <InfoRow
+            label={t('settings.memberSince')}
+            value={formatMonthYear(me?.tailor?.createdAt, language)}
+          />
+        </View>
 
         <View style={{ height: spacing.xl }} />
         <Text variant="h3" tone="text" style={{ marginBottom: spacing.sm }}>
-          Appearance
+          {t('settings.appearance')}
         </Text>
         <AppearancePicker />
 
         <View style={{ height: spacing.xl }} />
+        <Text variant="h3" tone="text" style={{ marginBottom: spacing.sm }}>
+          {t('settings.language')}
+        </Text>
+        <LanguagePicker />
+
+        <View style={{ height: spacing.xl }} />
         <Button
-          label="🔐 PIN lock"
+          label={t('settings.notificationPreferences')}
           variant="secondary"
+          iconLeft={<Ionicons name="notifications-outline" size={18} color={colors.text} />}
+          onPress={() => router.push('/(app)/notification-preferences')}
+        />
+
+        <View style={{ height: spacing.md }} />
+        <Button
+          label={t('settings.pinLock')}
+          variant="secondary"
+          iconLeft={<Ionicons name="lock-closed-outline" size={18} color={colors.text} />}
           onPress={() => router.push('/(app)/pin')}
         />
 
         <View style={{ height: spacing.md }} />
         <Button
-          label="🔔 Send test notification"
+          label={t('settings.sendTestNotification')}
           variant="secondary"
+          iconLeft={<Ionicons name="notifications-outline" size={18} color={colors.text} />}
           onPress={onTestNotification}
         />
 
         <View style={{ height: spacing.md }} />
-        <Button label="Sign out" variant="danger" onPress={onSignOut} />
+        <Button
+          label={t('settings.signOut')}
+          variant="danger"
+          iconLeft={<Ionicons name="log-out-outline" size={18} color={colors.accentText} />}
+          onPress={onSignOut}
+        />
       </ScrollView>
     </Screen>
   );
 }
 
+// ----- read-only info row (label left, value right) -----
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  const colors = useThemeColors();
+  return (
+    <View style={[styles.infoRow, { borderTopColor: colors.hairline }]}>
+      <Text variant="bodySm" tone="textMuted">
+        {label}
+      </Text>
+      <Text
+        variant="body"
+        tone="text"
+        numberOfLines={1}
+        style={styles.infoValue}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 // ----- appearance (light / dark / system) -----
 
-const APPEARANCE_OPTIONS: Array<{ value: ThemePreference; label: string }> = [
-  { value: 'system', label: 'System' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
+const APPEARANCE_OPTIONS: Array<{ value: ThemePreference; labelKey: string }> = [
+  { value: 'system', labelKey: 'settings.system' },
+  { value: 'light', labelKey: 'settings.light' },
+  { value: 'dark', labelKey: 'settings.dark' },
 ];
 
 function AppearancePicker() {
   const { preference, setPreference } = useThemeMode();
+  const { t } = useTranslation();
   const colors = useThemeColors();
 
   return (
@@ -200,6 +342,39 @@ function AppearancePicker() {
               tone={active ? 'textOnPrimary' : 'textMuted'}
               style={styles.segmentText}
             >
+              {t(opt.labelKey)}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+// ----- language (English / Français) -----
+
+function LanguagePicker() {
+  const { language, setLanguage } = useTranslation();
+  const colors = useThemeColors();
+
+  return (
+    <View style={[styles.segment, { borderColor: colors.border }]}>
+      {LANGUAGES.map((opt) => {
+        const active = language === opt.code;
+        return (
+          <Pressable
+            key={opt.code}
+            style={[
+              styles.segmentItem,
+              active && { backgroundColor: colors.accent },
+            ]}
+            onPress={() => setLanguage(opt.code)}
+          >
+            <Text
+              variant="bodySm"
+              tone={active ? 'textOnPrimary' : 'textMuted'}
+              style={styles.segmentText}
+            >
               {opt.label}
             </Text>
           </Pressable>
@@ -210,6 +385,51 @@ function AppearancePicker() {
 }
 
 const styles = StyleSheet.create({
+  profileCard: {
+    borderWidth: 1,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
+  },
+  profileHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  profileHeadText: { flex: 1 },
+  logoWrap: { width: 56, height: 56 },
+  logo: { width: 56, height: 56, borderRadius: 28 },
+  cameraBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+  },
+  infoValue: { flexShrink: 1, textAlign: 'right' },
   segment: {
     flexDirection: 'row',
     borderWidth: 1,

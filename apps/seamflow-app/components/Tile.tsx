@@ -1,89 +1,127 @@
 // ============================================================================
-// Tile — home-screen card-with-icon, restyled to Atelier.
+// <Tile> — home-screen grid card, Atelier redesign.
 //
-// Internal text now uses the Atelier <Text> primitive so labels render in
-// Inter (semibold for the title, regular for the description). Background
-// + border use Atelier semantic tokens via theme.colors so the visual
-// identity matches the rest of the system.
+//   ┌──────────────┐
+//   │ �é (icon sq)   │   tinted rounded icon square, top-left
+//   │              │
+//   │ Orders       │   label — Inter 600 (h3)
+//   │ 6 open       │   subtitle — mono when a count ("6 open")
+//   └──────────────┘
+//
+// `tone` sets the icon color + its square's wash, so each tile carries a
+// distinct accent (all resolved from the theme — no hex). Interactive with the
+// shared scale-to-0.97 press spring.
 // ============================================================================
 
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Text, useAtelierTheme } from '@seamflow/ui';
-import { radii, spacing } from '../lib/theme';
+import { StyleSheet, View } from 'react-native';
+import { Pressable } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+import {
+  Text,
+  useAtelierTheme,
+  withAlpha,
+  spacing,
+  press as motionPress,
+  type SemanticColors,
+} from '@seamflow/ui';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface TileProps {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
+  subtitle?: string;
+  /** Render the subtitle in mono (for counts like "6 open"). */
+  subtitleNumeric?: boolean;
+  /** Semantic token driving the icon color + its square wash. */
+  tone?: keyof SemanticColors;
   onPress: () => void;
-  accent?: boolean;
-  description?: string;
 }
 
-export function Tile({ label, icon, onPress, accent, description }: TileProps) {
+export function Tile({
+  label,
+  icon,
+  subtitle,
+  subtitleNumeric,
+  tone = 'primary',
+  onPress,
+}: TileProps) {
   const theme = useAtelierTheme();
+  const c = theme.colors;
+  const tint = c[tone];
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      style={[
-        styles.tile,
-        {
-          backgroundColor: accent ? theme.colors.primary : theme.colors.surface,
-          borderColor: accent ? theme.colors.primary : theme.colors.hairline,
-        },
-      ]}
-    >
-      <View
+    <Animated.View style={animatedStyle}>
+      <AnimatedPressable
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withSpring(motionPress.scaleTo, motionPress.spring);
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, motionPress.spring);
+        }}
+        accessibilityRole="button"
         style={[
-          styles.iconWrap,
+          styles.tile,
           {
-            backgroundColor: accent
-              ? 'rgba(16,16,26,0.18)' // dark wash on the primary fill
-              : theme.colors.surfaceElevated,
+            backgroundColor: c.surface,
+            borderColor: c.hairline,
+            borderRadius: theme.radii.l,
           },
         ]}
       >
-        <Ionicons
-          name={icon}
-          size={28}
-          color={accent ? theme.colors.textOnPrimary : theme.colors.primary}
-        />
-      </View>
-      <Text
-        variant="h3"
-        tone={accent ? 'textOnPrimary' : 'text'}
-        style={{ marginTop: spacing.sm }}
-      >
-        {label}
-      </Text>
-      {description ? (
-        <Text
-          variant="caption"
-          tone={accent ? 'textOnPrimary' : 'textMuted'}
-          style={{ marginTop: 2 }}
+        <View
+          style={[
+            styles.iconWrap,
+            { backgroundColor: withAlpha(tint, 0.16), borderRadius: theme.radii.s },
+          ]}
         >
-          {description}
-        </Text>
-      ) : null}
-    </TouchableOpacity>
+          <Ionicons name={icon} size={22} color={tint} />
+        </View>
+        <View>
+          <Text variant="h3" numberOfLines={1}>
+            {label}
+          </Text>
+          {subtitle ? (
+            <Text
+              variant={subtitleNumeric ? 'mono' : 'bodySm'}
+              tone="textMuted"
+              numberOfLines={1}
+              style={subtitleNumeric ? styles.count : { marginTop: 2 }}
+            >
+              {subtitle}
+            </Text>
+          ) : null}
+        </View>
+      </AnimatedPressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   tile: {
     width: '100%',
-    aspectRatio: 1,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
+    // Shorter than a square — icon on top, label + count below. Wider aspect
+    // ratio keeps the grid compact so more fits above the fold.
+    aspectRatio: 1.4,
+    padding: spacing.l,
     borderWidth: 1,
     justifyContent: 'space-between',
   },
   iconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: radii.md,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  count: { marginTop: 2, fontSize: 13 },
 });

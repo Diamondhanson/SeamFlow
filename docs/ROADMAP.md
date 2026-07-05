@@ -555,6 +555,30 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **Approach:** Centralized event taxonomy in `@seamflow/utils/analytics`. Every screen view and key action emits an event. Feature flags wrap any new feature for staged rollout.
 - **Dependencies:** none — earlier is better.
 
+### 3.11 Design Studio — AI design generation (text + reference → image)
+
+> Foundation already shipped/scaffolded — see `docs/design-studio-moodboard-plan.md`.
+> **M1 (inspiration library / moodboard)** and **M2 (attach inspiration to an
+> order)** are live. **M3 (AI auto-describe, image→text via Claude vision)** is
+> built end-to-end (NestJS `ai` module + mobile sheet) and only needs a funded
+> `ANTHROPIC_API_KEY` to turn on. This item, **M4**, is the remaining and most
+> ambitious piece: generating *new* design imagery from a prompt plus reference
+> images (e.g. a fabric photo).
+
+- **What:** In the Design Studio "Generate" tab, a tailor types a prompt ("flowing Ankara gown, off-shoulder, mermaid silhouette") and optionally attaches reference images (a fabric swatch, a silhouette they like). The model returns generated inspiration imagery that saves straight into the inspiration library and can be captioned, tagged, and attached to an order like any other design.
+- **Why:** Turns SeamFlow from a record-keeper into a creative partner. A tailor can co-design with a client on the spot ("here's your lace, here are three gown ideas in it") — a strong differentiator and demo moment for fashion-forward users.
+- **Reality check (scope guardrail):** Generation produces *inspiration imagery* — a look, silhouette, fabric-on-garment mockup — NOT sewing patterns or cut-ready specs. A fabric photo is used as a **style/texture reference**, not a literal guarantee. Position it as inspiration in all copy so tailors don't expect production output.
+- **Tech:**
+  - **Model access via an aggregator (fal.ai or Replicate)** — one API + hosting, pay-as-you-go, no GPUs to run, and provider-swappable in one line of the worker. Directly-integrated providers are a later optimization.
+  - **Model:** a *multi-reference* image model so the fabric/silhouette inputs are actually respected. Current strong candidates (re-evaluate at build time — this space moves monthly): **Google Nano Banana 2 (Gemini image)**, **FLUX.2 [pro]**, or **Seedream 4.5** — all accept many reference images at **~$0.03 per 1024px image** (≈10× the auto-describe cost, still cents). Start with Nano Banana 2 or FLUX.2 for reference adherence.
+  - **Async via the existing queue** (BullMQ + Upstash Redis, already in `QueueModule`). Generation takes ~5–30s, far too slow for an inline request.
+  - New env var `FAL_API_KEY` (optional at boot, same pattern as `ANTHROPIC_API_KEY` — endpoint returns 503 when unset).
+- **Data model:** already prepared. The `designs` table has `source` (`'uploaded' | 'generated'`) and a `prompt` column, so generated images land in the same library with their prompt recorded. Reference images are uploaded to the existing private `designs` bucket and passed to the model as signed URLs. May add a small `design_generations` job table if we want per-attempt status/history.
+- **Approach (backend):** `POST /designs/generate { prompt, referenceDesignIds?, aspectRatio? }` validates + enqueues a job and returns a job id immediately. A worker: resolves signed URLs for any reference images → calls the model via fal → downloads the result → runs it through the existing two-variant compress pipeline → stores it in the `designs` bucket as a `source: 'generated'` row with the prompt → marks the job done. Enforce a **per-tailor monthly quota** and cache nothing (each generation is unique) but record cost per job.
+- **Approach (front end):** a **"Generate" tab** in the Design Studio (the tile was built to host it). Prompt box + optional reference-image picker (reuse the existing photo picker) + light controls (aspect ratio, a style hint like "editorial photo" vs "flat sketch"). Because it's async, tapping **Generate** immediately drops a **placeholder card with a spinner** into the grid; the app polls (or receives an `expo-notification`) and swaps in the finished image, so the tailor can keep browsing meanwhile. Results auto-save into the library. Show a small **credits/est-cost** indicator and a clear **retry** on failure.
+- **Cost & safety:** no free tier (funded provider account required); ~$0.03/image means quotas matter before real users can burn credits. Providers apply their own content moderation, which is acceptable for a tailoring context.
+- **Dependencies:** Design Studio M1–M3 (`docs/design-studio-moodboard-plan.md`); `QueueModule`; a funded fal.ai/Replicate account. Pairs naturally with 3.7 (embeddings → "generate variations of a saved design").
+
 **Phase 3 exit criteria:** Multiple cities live, two-sided activity (clients independently inviting other tailors), organic search traffic to directory pages, ARR in low six figures.
 
 ---

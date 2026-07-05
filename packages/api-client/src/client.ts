@@ -28,6 +28,8 @@ import {
   makeOrderPhotosResource,
   type OrderPhotosResource,
 } from './resources/order-photos';
+import { makeDesignsResource, type DesignsResource } from './resources/designs';
+import { makeAiResource, type AiResource } from './resources/ai';
 import { makeSyncResource, type SyncResource } from './resources/sync';
 import {
   makeShareLinksResource,
@@ -37,6 +39,10 @@ import {
   makeNotificationsResource,
   type NotificationsResource,
 } from './resources/notifications';
+import {
+  makeNotificationPreferencesResource,
+  type NotificationPreferencesResource,
+} from './resources/notification-preferences';
 
 export interface ApiClient {
   health: HealthResource;
@@ -50,9 +56,12 @@ export interface ApiClient {
   orders: OrdersResource;
   orderItems: OrderItemsResource;
   orderPhotos: OrderPhotosResource;
+  designs: DesignsResource;
+  ai: AiResource;
   sync: SyncResource;
   shareLinks: ShareLinksResource;
   notifications: NotificationsResource;
+  notificationPreferences: NotificationPreferencesResource;
 }
 
 export type ApiClientConfig = HttpConfig;
@@ -82,8 +91,11 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     orders: makeOrdersResource(http),
     orderItems: makeOrderItemsResource(http),
     orderPhotos: makeOrderPhotosResource(http),
+    designs: makeDesignsResource(http),
+    ai: makeAiResource(http),
     sync: makeSyncResource(http),
     shareLinks: makeShareLinksResource(http),
     notifications: makeNotificationsResource(http),
+    notificationPreferences: makeNotificationPreferencesResource(http),
   };
 }

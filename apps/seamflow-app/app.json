@@ -38,6 +38,14 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos so you can attach reference images and order photos.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to use your camera so you can photograph garments, fittings, and finished orders.",
+          "microphonePermission": false
+        }
+      ],
       "expo-font",
       "expo-web-browser",
       "expo-secure-store",
@@ -46,6 +54,12 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#7c3aed"
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow $(PRODUCT_NAME) to use your contacts so you can add clients and order owners without retyping their details."
         }
       ]
     ],

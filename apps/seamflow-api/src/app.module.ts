@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { envSchema } from './config/env';
@@ -18,10 +19,13 @@ import { GroupOrderMembersModule } from './group-order-members/group-order-membe
 import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
 import { OrderPhotosModule } from './order-photos/order-photos.module';
+import { DesignsModule } from './designs/designs.module';
+import { AiModule } from './ai/ai.module';
 import { ShareLinksModule } from './share-links/share-links.module';
 import { PublicModule } from './public/public.module';
 import { SyncModule } from './sync/sync.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RemindersModule } from './notifications/reminders.module';
 
 @Module({
   imports: [
@@ -29,6 +33,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       isGlobal: true,
       validate: (raw) => envSchema.parse(raw),
     }),
+    ScheduleModule.forRoot(),
     SupabaseModule,
     DbModule,
     QueueModule,
@@ -44,10 +49,13 @@ import { NotificationsModule } from './notifications/notifications.module';
     OrdersModule,
     OrderItemsModule,
     OrderPhotosModule,
+    DesignsModule,
+    AiModule,
     ShareLinksModule,
     PublicModule,
     SyncModule,
     NotificationsModule,
+    RemindersModule,
   ],
   providers: [{ provide: APP_PIPE, useClass: ZodValidationPipe }],
 })

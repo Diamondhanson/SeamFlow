@@ -2,50 +2,40 @@ import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import type { Order, OrderStatus } from '@seamflow/schemas';
-import { Text, Chip, useAtelierTheme, type ChipTone } from '@seamflow/ui';
+import type { Order } from '@seamflow/schemas';
+import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
-import { Card, CardLine, CardTitle } from '../../../components/Card';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { OrderCard } from '../../../components/OrderCard';
 import { useOrders } from '../../../lib/queries';
+import { useTranslation } from '../../../lib/i18n';
 import { radii, spacing } from '../../../lib/theme';
+import { useFloatingScroll } from '../../../lib/floating-scroll';
 
 // ============================================================================
-// Delivery calendar — a month grid that highlights days with a delivery due,
-// and lists the orders for the tapped day below the grid.
-//
-// We fetch one month at a time (dueAfter/dueBefore span the visible month) and
-// re-bucket client-side by local calendar day, so the dots line up with what
-// the user reads on screen regardless of the UTC offset baked into the ISO
-// timestamps.
+// Delivery calendar — a month grid highlighting days with a delivery due, and
+// the orders for the tapped day below. One month fetched at a time; re-bucketed
+// client-side by local calendar day so dots line up with what's on screen.
+// Week starts Monday, matching the redesign.
 // ============================================================================
 
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  registered: 'Registered',
-  in_progress: 'In progress',
-  testing: 'Fitting',
-  on_pause: 'On pause',
-  delivered: 'Delivered',
-};
-
-const STATUS_TONE: Record<OrderStatus, ChipTone> = {
-  registered: 'statusRegistered',
-  in_progress: 'statusInProgress',
-  testing: 'statusTesting',
-  on_pause: 'statusOnPause',
-  delivered: 'statusDelivered',
-};
-
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function startOfDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+/** Monday-first weekday index (0 = Mon … 6 = Sun). */
+function mondayIndex(jsDay: number) {
+  return (jsDay + 6) % 7;
+}
+
 export default function CalendarScreen() {
-  const theme = useAtelierTheme();
+  const { t } = useTranslation();
+  const { colors } = useAtelierTheme();
+  const scroll = useFloatingScroll();
 
   const today = useMemo(() => startOfDay(new Date()), []);
-  // Cursor is always the first of the month currently in view.
   const [cursor, setCursor] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1),
   );
@@ -54,8 +44,6 @@ export default function CalendarScreen() {
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
 
-  // Span the whole visible month. Boundaries are deliberately wide (local
-  // midnight → UTC can drift a few hours); we re-filter by local Y/M below.
   const range = useMemo(() => {
     const monthStart = new Date(year, month, 1, 0, 0, 0, 0);
     const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
@@ -67,7 +55,6 @@ export default function CalendarScreen() {
 
   const { data, isLoading } = useOrders(range);
 
-  // Bucket orders by day-of-month for the month in view.
   const ordersByDay = useMemo(() => {
     const map = new Map<number, Order[]>();
     for (const order of data?.items ?? []) {
@@ -82,9 +69,8 @@ export default function CalendarScreen() {
     return map;
   }, [data, year, month]);
 
-  // Leading blanks (so day 1 lands under its weekday) + the actual days.
   const cells = useMemo<(number | null)[]>(() => {
-    const firstWeekday = new Date(year, month, 1).getDay();
+    const firstWeekday = mondayIndex(new Date(year, month, 1).getDay());
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const out: (number | null)[] = [];
     for (let i = 0; i < firstWeekday; i++) out.push(null);
@@ -100,153 +86,140 @@ export default function CalendarScreen() {
     setSelectedDay(null);
   }
 
-  const monthLabel = cursor.toLocaleDateString(undefined, {
-    month: 'long',
-    year: 'numeric',
-  });
-
   const selectedOrders =
     selectedDay != null ? ordersByDay.get(selectedDay) ?? [] : [];
 
+  const dayHeading =
+    selectedDay != null
+      ? (isCurrentMonth && selectedDay === today.getDate() ? t('misc.today') : '') +
+        new Date(year, month, selectedDay)
+          .toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'short',
+            day: 'numeric',
+          })
+          .toUpperCase()
+      : null;
+
   return (
-    <Screen>
-      <ScrollView contentContainerStyle={styles.body}>
-        {/* Month switcher */}
-        <View style={styles.monthRow}>
-          <TouchableOpacity
-            onPress={() => changeMonth(-1)}
-            hitSlop={12}
-            style={[styles.navBtn, { backgroundColor: theme.colors.surface }]}
-          >
-            <Ionicons name="chevron-back" size={20} color={theme.colors.text} />
-          </TouchableOpacity>
-          <Text variant="h3" tone="text">
-            {monthLabel}
-          </Text>
-          <TouchableOpacity
-            onPress={() => changeMonth(1)}
-            hitSlop={12}
-            style={[styles.navBtn, { backgroundColor: theme.colors.surface }]}
-          >
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.text}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Weekday header */}
-        <View style={styles.weekRow}>
-          {WEEKDAYS.map((w, i) => (
-            <View key={i} style={styles.weekCell}>
-              <Text variant="caption" tone="textMuted">
-                {w}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Day grid */}
-        <View style={styles.grid}>
-          {cells.map((day, idx) => {
-            if (day == null) {
-              return <View key={`blank-${idx}`} style={styles.cell} />;
-            }
-            const hasDeliveries = ordersByDay.has(day);
-            const isSelected = day === selectedDay;
-            const isToday = isCurrentMonth && day === today.getDate();
-            return (
-              <TouchableOpacity
-                key={day}
-                style={styles.cell}
-                activeOpacity={0.7}
-                onPress={() => setSelectedDay(day)}
-              >
-                <View
-                  style={[
-                    styles.dayInner,
-                    hasDeliveries &&
-                      !isSelected && {
-                        backgroundColor: theme.colors.surfaceElevated,
-                      },
-                    isToday &&
-                      !isSelected && {
-                        borderWidth: 1,
-                        borderColor: theme.colors.primary,
-                      },
-                    isSelected && { backgroundColor: theme.colors.primary },
-                  ]}
-                >
-                  <Text
-                    variant="bodySm"
-                    tone={isSelected ? 'textOnPrimary' : 'text'}
-                  >
-                    {day}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    styles.dot,
-                    hasDeliveries && { backgroundColor: theme.colors.primary },
-                  ]}
-                />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <View
-          style={[styles.divider, { backgroundColor: theme.colors.hairline }]}
+    <Screen padded={false}>
+      <ScrollView
+        {...scroll}
+        contentContainerStyle={styles.body}
+        showsVerticalScrollIndicator={false}
+      >
+        <ScreenHeader
+          title={cursor.toLocaleDateString(undefined, { month: 'long' })}
+          subtitle={String(year)}
+          subtitleNumeric
+          right={
+            <>
+              <IconButton onPress={() => changeMonth(-1)} accessibilityLabel={t('misc.previousMonth')}>
+                <Ionicons name="chevron-back" size={20} color={colors.text} />
+              </IconButton>
+              <IconButton onPress={() => changeMonth(1)} accessibilityLabel={t('misc.nextMonth')}>
+                <Ionicons name="chevron-forward" size={20} color={colors.text} />
+              </IconButton>
+            </>
+          }
         />
 
-        {/* Orders for the selected day */}
+        {/* Framed month grid */}
+        <View
+          style={[
+            styles.calCard,
+            { backgroundColor: colors.surface, borderColor: colors.hairline },
+          ]}
+        >
+          <View style={styles.weekRow}>
+            {WEEKDAYS.map((w, i) => (
+              <View key={i} style={styles.weekCell}>
+                <Text variant="label" tone="textMuted">
+                  {w}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.grid}>
+            {cells.map((day, idx) => {
+              if (day == null) {
+                return <View key={`blank-${idx}`} style={styles.cell} />;
+              }
+              const hasDeliveries = ordersByDay.has(day);
+              const isSelected = day === selectedDay;
+              const isToday = isCurrentMonth && day === today.getDate();
+              return (
+                <TouchableOpacity
+                  key={day}
+                  style={styles.cell}
+                  activeOpacity={0.7}
+                  onPress={() => setSelectedDay(day)}
+                >
+                  <View
+                    style={[
+                      styles.dayInner,
+                      isToday &&
+                        !isSelected && {
+                          borderWidth: 1,
+                          borderColor: colors.primary,
+                        },
+                      isSelected && { backgroundColor: colors.primary },
+                    ]}
+                  >
+                    <Text
+                      variant="bodySm"
+                      tone={isSelected ? 'textOnPrimary' : 'text'}
+                    >
+                      {day}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.dot,
+                      hasDeliveries && { backgroundColor: colors.warning },
+                    ]}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Selected-day heading + orders */}
         {selectedDay == null ? (
           <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-            Pick a day to see its deliveries.
+            {t('misc.pickADayToSee')}
           </Text>
         ) : (
           <>
-            <Text variant="h3" tone="text" style={styles.dayHeading}>
-              {new Date(year, month, selectedDay).toLocaleDateString(undefined, {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Text>
+            <View style={styles.dayHeadingRow}>
+              <Text variant="label" tone="warning">
+                {dayHeading}
+              </Text>
+              <Text variant="bodySm" tone="textMuted">
+                {selectedOrders.length}{' '}
+                {selectedOrders.length === 1 ? t('misc.event') : t('misc.events')}
+              </Text>
+            </View>
             {isLoading && selectedOrders.length === 0 ? (
               <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-                Loading…
+                {t('common.loading')}
               </Text>
             ) : selectedOrders.length === 0 ? (
               <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-                No deliveries due this day.
+                {t('misc.noDeliveriesThisDay')}
               </Text>
             ) : (
-              selectedOrders.map((order) => (
-                <Card
-                  key={order.id}
-                  onPress={() => router.push(`/(app)/orders/${order.id}`)}
-                >
-                  <View style={styles.rowBetween}>
-                    <CardTitle>{order.orderName}</CardTitle>
-                    <Chip
-                      variant="status"
-                      label={STATUS_LABEL[order.status]}
-                      tone={STATUS_TONE[order.status]}
-                    />
-                  </View>
-                  {order.dateDelivery ? (
-                    <CardLine>
-                      Delivery{' '}
-                      {new Date(order.dateDelivery).toLocaleTimeString([], {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </CardLine>
-                  ) : null}
-                </Card>
-              ))
+              <View style={styles.dayList}>
+                {selectedOrders.map((order) => (
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    onPress={() => router.push(`/(app)/orders/${order.id}`)}
+                  />
+                ))}
+              </View>
             )}
           </>
         )}
@@ -256,22 +229,22 @@ export default function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  body: { paddingBottom: spacing.xl },
-  monthRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
+  body: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: 96,
   },
-  navBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+  calCard: {
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: spacing.md,
   },
   weekRow: { flexDirection: 'row' },
-  weekCell: { width: `${100 / 7}%`, alignItems: 'center', paddingBottom: spacing.xs },
+  weekCell: {
+    width: `${100 / 7}%`,
+    alignItems: 'center',
+    paddingBottom: spacing.sm,
+  },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: {
     width: `${100 / 7}%`,
@@ -280,9 +253,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dayInner: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -293,12 +266,13 @@ const styles = StyleSheet.create({
     marginTop: 3,
     backgroundColor: 'transparent',
   },
-  divider: { height: 1, marginVertical: spacing.lg },
-  dayHeading: { marginBottom: spacing.md },
-  rowBetween: {
+  dayHeadingRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
   },
+  dayList: { gap: spacing.md },
   muted: { textAlign: 'center', marginTop: spacing.lg },
 });

@@ -9,6 +9,7 @@ import {
   useAuth,
 } from '../lib/auth-context';
 import { spacing } from '../lib/theme';
+import { useTranslation } from '../lib/i18n';
 
 type Mode = 'signIn' | 'signUp';
 
@@ -24,6 +25,7 @@ const MIN_PASSWORD_LEN = 8;
 export default function SignIn() {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle } = useAuth();
   const theme = useAtelierTheme();
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,8 +44,8 @@ export default function SignIn() {
       router.replace('/(app)');
     } catch (err) {
       if (err instanceof GoogleCancelledError) return;
-      const msg = err instanceof Error ? err.message : 'Google sign-in failed';
-      Alert.alert('Google sign-in failed', msg);
+      const msg = err instanceof Error ? err.message : t('auth.googleSignInFailed');
+      Alert.alert(t('auth.googleSignInFailed'), msg);
     } finally {
       setGoogleBusy(false);
     }
@@ -66,8 +68,9 @@ export default function SignIn() {
         router.replace(`/verify-otp?email=${encodeURIComponent(err.email)}`);
         return;
       }
-      const msg = err instanceof Error ? err.message : 'Auth failed';
-      Alert.alert(mode === 'signIn' ? 'Sign in failed' : 'Sign up failed', msg);
+      const title = mode === 'signIn' ? t('auth.signInFailed') : t('auth.signUpFailed');
+      const msg = err instanceof Error ? err.message : title;
+      Alert.alert(title, msg);
     } finally {
       setSubmitting(false);
     }
@@ -80,7 +83,7 @@ export default function SignIn() {
           SeamFlow
         </Text>
         <Text variant="bodySm" tone="textMuted" style={{ marginTop: 4 }}>
-          Tailor CRM
+          {t('auth.tagline')}
         </Text>
       </View>
 
@@ -101,7 +104,7 @@ export default function SignIn() {
             variant="label"
             tone={mode === 'signIn' ? 'text' : 'textMuted'}
           >
-            Sign in
+            {t('auth.signIn')}
           </Text>
         </Pressable>
         <Pressable
@@ -115,13 +118,13 @@ export default function SignIn() {
             variant="label"
             tone={mode === 'signUp' ? 'text' : 'textMuted'}
           >
-            Create account
+            {t('auth.createAccount')}
           </Text>
         </Pressable>
       </View>
 
       <Button
-        label={googleBusy ? 'Opening Google…' : 'Continue with Google'}
+        label={googleBusy ? t('auth.openingGoogle') : t('auth.continueWithGoogle')}
         variant="secondary"
         onPress={onGoogle}
         loading={googleBusy}
@@ -131,13 +134,13 @@ export default function SignIn() {
       <View style={styles.dividerRow}>
         <View style={[styles.dividerLine, { backgroundColor: theme.colors.hairline }]} />
         <Text variant="caption" tone="textMuted" style={styles.dividerText}>
-          or with email
+          {t('auth.orWithEmail')}
         </Text>
         <View style={[styles.dividerLine, { backgroundColor: theme.colors.hairline }]} />
       </View>
 
       <Input
-        label="Email"
+        label={t('auth.email')}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -145,14 +148,14 @@ export default function SignIn() {
         keyboardType="email-address"
       />
       <Input
-        label={mode === 'signUp' ? `Password (min ${MIN_PASSWORD_LEN} chars)` : 'Password'}
+        label={mode === 'signUp' ? t('auth.passwordWithMin', { min: MIN_PASSWORD_LEN }) : t('auth.password')}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
       <Button
-        label={mode === 'signIn' ? 'Sign in' : 'Send verification code'}
+        label={mode === 'signIn' ? t('auth.signIn') : t('auth.sendVerificationCode')}
         onPress={submit}
         loading={submitting}
         disabled={!canSubmit}
@@ -164,7 +167,7 @@ export default function SignIn() {
           tone="textMuted"
           style={{ textAlign: 'center', marginTop: spacing.md }}
         >
-          We'll email you a 6-digit code to verify the address.
+          {t('auth.signUpHint')}
         </Text>
       ) : null}
     </Screen>

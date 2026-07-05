@@ -1,7 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
+import { PermissionDeniedError } from './permissions';
 import { supabase } from './supabase';
 import { api } from './api';
-import type { OrderPhoto, OrderPhotoRole } from '@seamflow/schemas';
+import type { Design, OrderPhoto, OrderPhotoRole } from '@seamflow/schemas';
 
 // Lazy-load image-manipulator so the auth/onboarding screens still load on
 // dev APKs that pre-date the photos feature. If the native module is
@@ -40,6 +41,12 @@ function getIM(): IMModule {
 // ============================================================================
 
 const BUCKET = 'order-photos';
+const DESIGNS_BUCKET = 'designs';
+const AVATARS_BUCKET = 'avatars';
+
+// A profile photo needs just one modest square-ish variant.
+const AVATAR_MAX_DIM = 512;
+const AVATAR_QUALITY = 0.82;
 
 const FULL_MAX_DIM = 2048;
 const FULL_QUALITY = 0.82;
@@ -55,25 +62,36 @@ interface PickedAsset {
 
 interface CompressedOutput {
   uri: string;
+  base64: string;
   contentType: 'image/webp' | 'image/jpeg';
   ext: 'webp' | 'jpg';
 }
 
-async function ensurePermission(source: 'camera' | 'library'): Promise<boolean> {
+/**
+ * Ensure camera / photo-library access. Throws `PermissionDeniedError`
+ * (carrying `canAskAgain`) when the OS denies, so the UI can offer an
+ * "Open Settings" path — critical on iOS, which never re-prompts after the
+ * first denial.
+ */
+async function ensurePermission(source: 'camera' | 'library'): Promise<void> {
   if (source === 'camera') {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    return status === 'granted';
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (perm.status !== 'granted') {
+      throw new PermissionDeniedError('camera', perm.canAskAgain);
+    }
+    return;
   }
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  return status === 'granted';
+  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (perm.status !== 'granted') {
+    throw new PermissionDeniedError('photos', perm.canAskAgain);
+  }
 }
 
 /** Open the camera or photo library and return the picked asset (or null if cancelled). */
 export async function pickPhoto(
   source: 'camera' | 'library',
 ): Promise<PickedAsset | null> {
-  const ok = await ensurePermission(source);
-  if (!ok) throw new Error(`Permission denied for ${source}`);
+  await ensurePermission(source);
 
   const opts: ImagePicker.ImagePickerOptions = {
     mediaTypes: ['images'],
@@ -112,15 +130,17 @@ async function encodeVariant(
     const out = await IM.manipulateAsync(asset.uri, actions, {
       compress: quality,
       format: IM.SaveFormat.WEBP,
+      base64: true,
     });
-    return { uri: out.uri, contentType: 'image/webp', ext: 'webp' };
+    return { uri: out.uri, base64: out.base64 ?? '', contentType: 'image/webp', ext: 'webp' };
   } catch {
     // WebP unsupported on this device for this source — fall back to JPEG.
     const out = await IM.manipulateAsync(asset.uri, actions, {
       compress: quality,
       format: IM.SaveFormat.JPEG,
+      base64: true,
     });
-    return { uri: out.uri, contentType: 'image/jpeg', ext: 'jpg' };
+    return { uri: out.uri, base64: out.base64 ?? '', contentType: 'image/jpeg', ext: 'jpg' };
   }
 }
 
@@ -135,15 +155,31 @@ async function compressBoth(
   return { full, thumb };
 }
 
+/**
+ * Decode a base64 string into raw bytes. React Native's `Blob` (via
+ * `fetch(uri).blob()`) is an opaque handle with no readable body, so passing it
+ * to `storage.upload()` fails the network request. Uploading a `Uint8Array`
+ * built from the image-manipulator's base64 output is the RN-safe path.
+ */
+function base64ToBytes(base64: string): Uint8Array {
+  const binary = globalThis.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
 async function uploadOne(
+  bucket: string,
   storagePath: string,
   variant: CompressedOutput,
 ): Promise<void> {
-  const res = await fetch(variant.uri);
-  const blob = await res.blob();
+  if (!variant.base64) {
+    throw new Error(`Upload failed (${storagePath}): image encoding produced no data`);
+  }
+  const bytes = base64ToBytes(variant.base64);
   const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(storagePath, blob, { contentType: variant.contentType, upsert: false });
+    .from(bucket)
+    .upload(storagePath, bytes, { contentType: variant.contentType, upsert: false });
   if (error) throw new Error(`Upload failed (${storagePath}): ${error.message}`);
 }
 
@@ -166,7 +202,10 @@ export async function uploadAndRegister(args: {
   const fullPath = `${folder}/${id}.${full.ext}`;
   const thumbPath = `${folder}/${id}_thumb.${thumb.ext}`;
 
-  await Promise.all([uploadOne(fullPath, full), uploadOne(thumbPath, thumb)]);
+  await Promise.all([
+    uploadOne(BUCKET, fullPath, full),
+    uploadOne(BUCKET, thumbPath, thumb),
+  ]);
 
   return api.orderPhotos.createForOrder(orderId, {
     storagePath: fullPath,
@@ -175,6 +214,57 @@ export async function uploadAndRegister(args: {
     role,
     caption: caption ?? null,
   });
+}
+
+/**
+ * Same pick → compress → upload flow, but into the tailor-scoped `designs`
+ * bucket for the inspiration library. Path: `<tailorId>/designs/<uuid>.<ext>`.
+ */
+export async function uploadDesign(args: {
+  tailorId: string;
+  asset: PickedAsset;
+  caption?: string | null;
+  tags?: string[];
+}): Promise<Design> {
+  const { tailorId, asset, caption, tags } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const folder = `${tailorId}/designs`;
+  const fullPath = `${folder}/${id}.${full.ext}`;
+  const thumbPath = `${folder}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(DESIGNS_BUCKET, fullPath, full),
+    uploadOne(DESIGNS_BUCKET, thumbPath, thumb),
+  ]);
+
+  return api.designs.create({
+    storagePath: fullPath,
+    thumbnailPath: thumbPath,
+    contentType: full.contentType,
+    caption: caption ?? null,
+    tags: tags ?? [],
+  });
+}
+
+/**
+ * Pick → compress → upload a tailor profile photo into the PUBLIC `avatars`
+ * bucket, and return its stable public URL (to store on tailor.photoUrl).
+ * Path: `<tailorId>/<uuid>.<ext>`.
+ */
+export async function uploadTailorLogo(args: {
+  tailorId: string;
+  asset: PickedAsset;
+}): Promise<string> {
+  const { tailorId, asset } = args;
+  const image = await encodeVariant(asset, AVATAR_MAX_DIM, AVATAR_QUALITY);
+
+  const path = `${tailorId}/${cryptoRandom()}.${image.ext}`;
+  await uploadOne(AVATARS_BUCKET, path, image);
+
+  const { data } = supabase.storage.from(AVATARS_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
 
 function cryptoRandom(): string {

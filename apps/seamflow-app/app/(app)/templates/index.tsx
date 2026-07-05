@@ -1,17 +1,32 @@
 import { useCallback, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import type { MeasurementTemplate } from '@seamflow/schemas';
-import { Text } from '@seamflow/ui';
+import {
+  Text,
+  Chip,
+  ListRow,
+  IconButton,
+  useAtelierTheme,
+} from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
-import { Card, CardLine, CardTitle } from '../../../components/Card';
-import { Button } from '../../../components/Button';
+import { ScreenHeader } from '../../../components/ScreenHeader';
 import { api, ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
+import { useFloatingScroll } from '../../../lib/floating-scroll';
+import { useTranslation } from '../../../lib/i18n';
+
+// Quick-start garments. Each opens the new-template form (passing the garment
+// so the form can pre-fill it once it reads the param).
+const STARTERS = ['Agbada', 'Suit', 'Lehenga', 'Abaya', 'Kaftan', 'Gown'];
 
 export default function TemplatesList() {
   const [items, setItems] = useState<MeasurementTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const { colors } = useAtelierTheme();
+  const scroll = useFloatingScroll();
+  const { t } = useTranslation();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -20,53 +35,95 @@ export default function TemplatesList() {
       setItems(res.items);
     } catch (err) {
       if (err instanceof ApiError && err.isNotFound()) {
-        Alert.alert(
-          'Profile required',
-          'Set up your business profile first.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Profile', onPress: () => router.push('/(app)/me') },
-          ],
-        );
+        Alert.alert(t('templates.profileRequiredTitle'), t('templates.profileRequiredBody'), [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('templates.profileAction'), onPress: () => router.push('/(app)/me') },
+        ]);
       } else {
-        Alert.alert('Error', err instanceof Error ? err.message : String(err));
+        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
       }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  return (
-    <Screen>
-      <Text variant="bodySm" tone="textMuted" style={styles.intro}>
-        Templates define which measurements to collect for a specific design or pattern.
-        Reuse them when creating orders.
+  const starterSection = (
+    <View style={styles.starter}>
+      <Text variant="label" tone="textMuted">
+        {t('templates.starterHeading')}
       </Text>
-      <Button label="+ New template" onPress={() => router.push('/(app)/templates/new')} />
-      <View style={{ height: spacing.lg }} />
+      <Text variant="bodySm" tone="textMuted" style={{ marginTop: 4, marginBottom: spacing.md }}>
+        {t('templates.starterHelp')}
+      </Text>
+      <View style={styles.starterChips}>
+        {STARTERS.map((g) => (
+          <Chip
+            key={g}
+            label={`+ ${g}`}
+            tone="primary"
+            onPress={() =>
+              router.push({
+                pathname: '/(app)/templates/new',
+                params: { garment: g },
+              })
+            }
+          />
+        ))}
+      </View>
+    </View>
+  );
+
+  return (
+    <Screen padded={false}>
+      <View style={styles.padded}>
+        <ScreenHeader
+          title={t('templates.listTitle')}
+          subtitle={t('templates.listSubtitle')}
+          right={
+            <IconButton
+              variant="primary"
+              onPress={() => router.push('/(app)/templates/new')}
+              accessibilityLabel={t('templates.newTemplate')}
+            >
+              <Ionicons name="add" size={24} color={colors.textOnPrimary} />
+            </IconButton>
+          }
+        />
+      </View>
 
       {loading && items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          Loading…
-        </Text>
-      ) : items.length === 0 ? (
-        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          No templates yet. Create one to define measurement fields for a design.
+          {t('templates.loading')}
         </Text>
       ) : (
         <FlatList
+          {...scroll}
           data={items}
           keyExtractor={(t) => t.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+          ListEmptyComponent={
+            <Text variant="bodySm" tone="textMuted" style={styles.muted}>
+              {t('templates.empty')}
+            </Text>
+          }
+          ListFooterComponent={starterSection}
           renderItem={({ item }) => (
-            <Card onPress={() => router.push(`/(app)/templates/${item.id}`)}>
-              <CardTitle>{item.name}</CardTitle>
-              {item.garmentType ? <CardLine>Garment: {item.garmentType}</CardLine> : null}
-              <CardLine>
-                {item.fields.length} field{item.fields.length === 1 ? '' : 's'}
-              </CardLine>
-            </Card>
+            <ListRow
+              title={item.name}
+              subtitle={t(
+                item.fields.length === 1 ? 'templates.fieldCount' : 'templates.fieldCount_plural',
+                { count: item.fields.length },
+              )}
+              subtitleNumeric
+              leading={
+                <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+              }
+              onPress={() => router.push(`/(app)/templates/${item.id}`)}
+            />
           )}
         />
       )}
@@ -75,6 +132,17 @@ export default function TemplatesList() {
 }
 
 const styles = StyleSheet.create({
-  intro: { marginBottom: spacing.md },
-  muted: { textAlign: 'center', marginTop: spacing.xl },
+  padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  list: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: 96,
+  },
+  muted: { textAlign: 'center', marginTop: spacing.xl, paddingHorizontal: spacing.lg },
+  starter: { marginTop: spacing.xl },
+  starterChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
 });

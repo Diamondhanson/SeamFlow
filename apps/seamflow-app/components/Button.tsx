@@ -13,41 +13,61 @@
 // shim — it exists to avoid touching 30+ existing call sites in one go.
 // ============================================================================
 
+import { type ReactNode } from 'react';
 import {
   Button as AtelierButton,
   type ButtonVariant as AtelierVariant,
+  type ButtonSize,
 } from '@seamflow/ui';
 
-type LegacyVariant = 'primary' | 'secondary' | 'danger';
+type LegacyVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
 interface Props {
   label: string;
   onPress: () => void;
   variant?: LegacyVariant;
+  size?: ButtonSize;
+  /** Stretch to fill parent width. Defaults to true (form buttons). Set false
+   *  for inline actions (e.g. a "+ Add" beside a section header) so the button
+   *  sizes to its label instead of spilling across the row. */
+  fullWidth?: boolean;
   disabled?: boolean;
   loading?: boolean;
+  /** Icon node rendered left of the label — Atelier way to replace the old
+   *  emoji-in-label pattern. */
+  iconLeft?: ReactNode;
+  iconRight?: ReactNode;
 }
 
 const VARIANT_MAP: Record<LegacyVariant, AtelierVariant> = {
   primary: 'primary',
   secondary: 'secondary',
   danger: 'destructive',
+  ghost: 'ghost',
 };
 
 export function Button({
   label,
   onPress,
   variant = 'primary',
+  size,
+  fullWidth,
   disabled,
   loading,
+  iconLeft,
+  iconRight,
 }: Props) {
   return (
     <AtelierButton
       label={label}
       onPress={onPress}
       variant={VARIANT_MAP[variant]}
+      size={size}
+      fullWidth={fullWidth}
       disabled={disabled}
       loading={loading}
+      iconLeft={iconLeft}
+      iconRight={iconRight}
     />
   );
 }

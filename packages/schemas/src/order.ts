@@ -101,9 +101,30 @@ export type OrderItemCreateInput = z.infer<typeof OrderItemCreateSchema>;
 export const OrderItemUpdateSchema = OrderItemCreateSchema.partial();
 export type OrderItemUpdateInput = z.infer<typeof OrderItemUpdateSchema>;
 
-/** Body schema for POST /orders. tailorId resolves from auth. */
-export const OrderCreateSchema = z.object({
-  clientId: z.string().uuid(),
+/**
+ * A person captured inline for an order when they aren't a saved client yet —
+ * e.g. picked from the device's phone contacts. Only name + phone are required;
+ * address is optional because contacts rarely carry one. The server lazily
+ * "materializes" this into a client row (find-or-create by phone) so contacts
+ * never need to be saved up front.
+ */
+export const OrderClientContactSchema = z.object({
+  fullName: z.string().min(1),
+  phone: z.string().min(1),
+  address: z.string().nullable().optional(),
+});
+export type OrderClientContactInput = z.infer<typeof OrderClientContactSchema>;
+
+/**
+ * Shared field set for POST /orders. Kept as a plain object (not refined) so
+ * OrderUpdateSchema can `.omit()`/`.partial()` off it; the create schema adds
+ * the "exactly one of clientId | contact" rule on top.
+ */
+const OrderCreateBaseSchema = z.object({
+  /** Reference an existing client… */
+  clientId: z.string().uuid().optional(),
+  /** …or hand over a contact to materialize into a client on the server. */
+  contact: OrderClientContactSchema.optional(),
   groupOrderId: z.string().uuid().nullable().optional(),
   groupOrderMemberId: z.string().uuid().nullable().optional(),
   orderName: z.string().min(1),
@@ -114,14 +135,25 @@ export const OrderCreateSchema = z.object({
   currency: z.string().length(3).nullable().optional(),
   items: z.array(OrderItemCreateSchema).optional(),
 });
+
+/** Body schema for POST /orders. tailorId resolves from auth. Provide exactly
+ *  one of `clientId` (existing client) or `contact` (materialize a new one). */
+export const OrderCreateSchema = OrderCreateBaseSchema.refine(
+  (d) => (d.clientId ? 1 : 0) + (d.contact ? 1 : 0) === 1,
+  {
+    message: 'Provide exactly one of clientId or contact.',
+    path: ['clientId'],
+  },
+);
 export type OrderCreateInput = z.infer<typeof OrderCreateSchema>;
 
 /**
  * Body for PATCH /orders/:id. Status is intentionally NOT here — use
  * POST /orders/:id/transition for status changes (logs to order_events).
  */
-export const OrderUpdateSchema = OrderCreateSchema.omit({
+export const OrderUpdateSchema = OrderCreateBaseSchema.omit({
   clientId: true,
+  contact: true,
   items: true,
 }).partial();
 export type OrderUpdateInput = z.infer<typeof OrderUpdateSchema>;

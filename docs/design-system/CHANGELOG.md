@@ -2,6 +2,48 @@
 
 Reverse-chronological. Entries land when a token / primitive / migration ships.
 
+## 2026-07-03 — App-wide redesign (composed dashboard + navigation shell)
+
+A full visual overhaul of the tailor app to the composed Atelier look, plus a
+new navigation shell. Both palettes (linen + midnight) come through unchanged —
+this is composition + primitives, not new tokens.
+
+- **New primitives** (`@seamflow/ui`): `Avatar` / `AvatarStack` (deterministic
+  name → tone via new `avatarToneFor` / `initialsFor` / `withAlpha` helpers in
+  `tokens/colors.ts`), `IconButton` (circular `surface`/`primary`/`ghost`),
+  `ListRow` (icon-square + title + mono subtitle + chevron). All hex-free.
+- **Navigation shell**:
+  - Native headers hidden app-wide; every screen renders a custom
+    `components/ScreenHeader` (large Fraunces title + back chevron + optional
+    right action). Back is present on every screen per requirement, even with
+    the floating logo.
+  - `components/FloatingLogo` — the "S" mark suspended bottom-center, mounted
+    once in `(app)/_layout` above the stack. Taps return home from anywhere.
+    Fades to ~14% while scrolling, full (with lavender glow) when idle, driven
+    by a shared reanimated value in `lib/floating-scroll.tsx` (screens spread
+    `useFloatingScroll()` onto their ScrollView/FlatList).
+  - Transitions: `slide_from_right` + `gestureEnabled` + `fullScreenGesture`
+    (iOS full-screen swipe-back); Android uses RNS 4 gesture / predictive-back.
+- **Screens redesigned**: Home (greeting hero + stats + glowing CTA + live-count
+  tiles + "Due soon" rail), Orders (`components/OrderCard` — status accent bar +
+  avatar + overdue/due-in), Groups (top-accent cards; `AvatarStack` on detail),
+  Templates (`ListRow` + starter-garment chips), Calendar (framed Monday-first
+  grid + event cards). All detail/form screens got the custom header.
+- **Cleanup**: status label/tone + due-date logic centralized in
+  `lib/order-status.ts` (was duplicated inline across orders / calendar / detail).
+- **Consistency sweep** (every remaining screen): emoji-in-button labels
+  (`🔗`/`📷`/`🖼`/`🔐`/`🔔`) replaced with Ionicon `iconLeft` slots (the local
+  `components/Button` adapter now forwards `iconLeft`/`iconRight`); heavy
+  `colors.border` divider rules softened to `colors.hairline` across the detail
+  screens + `DateField`; clients list rows became avatar-led; group cards are
+  now fully tappable (press spring) instead of a "View group" chip. Sign-in,
+  verify-otp, the splash, PIN lock, and the offline banner were already on
+  tokens and needed no change.
+
+Type-checks clean across `@seamflow/ui` and the app. Not yet rendered on-device
+in this pass — first emulator run should sanity-check both modes (esp. linen,
+still never validated on hardware) and the Android swipe-back feel.
+
 ## 2026-05-30 — Runtime light/dark mode (linen ⇄ midnight)
 
 The app can now switch themes at runtime. Atelier already shipped both palettes (`linen` light + `midnight` dark); this wires them to a user-facing toggle and makes every screen re-render reactively when the mode flips. Default behaviour is unchanged — first launch still resolves to midnight (the historical default) unless the OS reports a light scheme.
@@ -25,18 +67,6 @@ Final batch flipping the last screens that still rendered raw React Native `<Tex
 - **PIN settings** (`pin.tsx`): prompts/headings → `h3`, helper copy → `bodySm` muted, keypad digits → `h2` `numeric`, Cancel → `bodySm` muted. Keypad surface/dot/accent colors remain token-based.
 
 StyleSheets across all eight files trimmed to layout-only (margins, dividers, rows, keypad geometry); every `{ color, fontSize, fontWeight }` text block folded into a `<Text variant>` + `tone`. Type-checks clean across `@seamflow/ui` and the app; `grep` confirms zero raw-RN `Text` imports and zero `#rrggbb` literals remain anywhere under `app/`.
-
-## 2026-05-29 — Order detail screen migrated
-
-`app/(app)/orders/[id].tsx` fully migrated to Atelier primitives + tokens — the last screen carrying hardcoded hexes.
-
-- Status pill → `<Chip variant="status" tone={STATUS_TONE[...]}>`. Deleted the `STATUS_COLOR` map that held the raw hexes `#f5a524` (testing) and `#e35d6a` (on_pause); status colors now resolve from the semantic `status*` tokens, same mapping as the orders list.
-- All screen text → the `<Text>` primitive: order name → `h1` (Fraunces editorial heading, was system-sans 24/700); section headers (Status / Photos / Items / Timeline) → `h3`; ordered/delivery/notes + every empty state → `bodySm` muted; photo role/hint, timeline date/note → `caption` muted.
-- Item cards already flipped to the Atelier `Card` via last pass's adapter — no change needed here.
-- Structural colors (divider, timeline left-accent rule, photo thumb bg, upload spinner) stay on the `lib/theme` shim, which already resolves to Atelier midnight tokens — no raw hex remains anywhere on this screen.
-- StyleSheet trimmed: removed `name` / `statusPill` / `statusText` / `muted` / `eventTitle` (folded into `Text` variants); remaining styles hold layout only (margins, the accent rule, photo strip).
-
-Verified on the Pixel 9 Pro XL emulator (midnight theme): header + status chip, status-transition buttons, photos section, item card, and timeline with its accent rule all render correctly; Delete order stays `destructive`. Type-checks clean across `@seamflow/ui` and the app.
 
 ## 2026-05-30 — Order detail screen migrated
 

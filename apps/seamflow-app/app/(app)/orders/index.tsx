@@ -1,74 +1,70 @@
 import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import type { OrderStatus } from '@seamflow/schemas';
-import { Text, Chip, type ChipTone } from '@seamflow/ui';
+import { Text, IconButton, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
-import { Card, CardLine, CardTitle } from '../../../components/Card';
-import { Input } from '../../../components/Input';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { SearchField } from '../../../components/SearchField';
+import { OrderCard } from '../../../components/OrderCard';
+import { OptionSheet, type SheetOption } from '../../../components/OptionSheet';
 import { useOrders } from '../../../lib/queries';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
+import { STATUS_TONE, STATUS_ORDER } from '../../../lib/order-status';
 import { spacing } from '../../../lib/theme';
+import { useFloatingScroll } from '../../../lib/floating-scroll';
+import { useTranslation } from '../../../lib/i18n';
 
 // ============================================================================
-// Global orders list with filters — Phase 1.10.
+// Global orders list with filters — Phase 1.10, restyled to the redesign.
 //
-// Three filter axes available:
-//   - Status chips: one-tap toggle between any single status or "All"
-//   - Time chips: "Due this week" / "Overdue" / "All time"
-//   - Free-text search: matches order name (trigram on the server, debounced
-//     here to 250 ms so we don't fire a request on every keystroke)
-//
-// Multi-select isn't supported on the status row yet — tapping a status
-// replaces the active one (or clears it via "All"). Most tailors filter to
-// one status at a time, so a chip group is the right widget.
+// Three filter axes: status chips, time chips (overdue / this week), and
+// debounced free-text search. Multi-select isn't supported on the status row —
+// tapping a status replaces the active one (or clears via "All").
 // ============================================================================
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  registered: 'Registered',
-  in_progress: 'In progress',
-  testing: 'Fitting',
-  on_pause: 'On pause',
-  delivered: 'Delivered',
-};
-
-// Each status maps to its semantic color token (defined in @seamflow/ui).
-// The Chip resolves the actual color from the theme, so this stays hex-free
-// and re-skins automatically with the palette.
-const STATUS_TONE: Record<OrderStatus, ChipTone> = {
-  registered: 'statusRegistered',
-  in_progress: 'statusInProgress',
-  testing: 'statusTesting',
-  on_pause: 'statusOnPause',
-  delivered: 'statusDelivered',
-};
-
-const STATUS_ORDER: OrderStatus[] = [
-  'registered',
-  'in_progress',
-  'testing',
-  'on_pause',
-  'delivered',
-];
 
 type TimeFilter = 'all' | 'overdue' | 'thisWeek';
 
 export default function OrdersList() {
+  const { t } = useTranslation();
+  const { colors } = useAtelierTheme();
   const [status, setStatus] = useState<OrderStatus | null>(null);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [q, setQ] = useState('');
+  const [sheet, setSheet] = useState<'status' | 'time' | null>(null);
   const debouncedQ = useDebouncedValue(q, 250);
+  const scroll = useFloatingScroll();
 
-  // Convert the friendly time chip into server-side dueBefore/dueAfter.
-  // Server boundaries are inclusive on both ends.
+  // Filter menus — each trigger pill opens a single-select bottom sheet.
+  const statusOptions: SheetOption[] = [
+    { key: 'all', label: t('orders.filterAll') },
+    ...STATUS_ORDER.map((s) => ({
+      key: s,
+      label: t(`orders.status_${s}`),
+      tone: STATUS_TONE[s] as SheetOption['tone'],
+    })),
+  ];
+  const timeOptions: SheetOption[] = [
+    { key: 'all', label: t('orders.filterAllTime') },
+    { key: 'overdue', label: t('orders.filterOverdue'), tone: 'danger' },
+    { key: 'thisWeek', label: t('orders.filterDueThisWeek'), tone: 'primary' },
+  ];
+  const statusLabel = status ? t(`orders.status_${status}`) : t('orders.filterAll');
+  const timeLabel =
+    timeFilter === 'overdue'
+      ? t('orders.filterOverdue')
+      : timeFilter === 'thisWeek'
+        ? t('orders.filterDueThisWeek')
+        : t('orders.filterAllTime');
+
+  // Friendly time chip → server-side dueBefore/dueAfter (inclusive both ends).
   const { dueAfter, dueBefore } = useMemo(() => {
     const now = new Date();
     if (timeFilter === 'overdue') {
-      // Anything still not delivered with a delivery date <= now.
       return { dueAfter: undefined, dueBefore: now.toISOString() };
     }
     if (timeFilter === 'thisWeek') {
-      // Today through Sunday-end. Caps look-ahead at 7 days.
       const end = new Date(now);
       end.setDate(end.getDate() + 7);
       return { dueAfter: now.toISOString(), dueBefore: end.toISOString() };
@@ -90,93 +86,77 @@ export default function OrdersList() {
   const items = data?.items ?? [];
 
   return (
-    <Screen>
-      <Text variant="h1" style={styles.title}>
-        Orders
-      </Text>
-
-      <Input
-        label="Search by order name"
-        value={q}
-        onChangeText={setQ}
-        placeholder="Wedding suit, gown…"
-        returnKeyType="search"
-      />
-
-      {/* Status chips.
-          A wrapping row (not a horizontal ScrollView): a horizontal scroll's
-          content re-measures to an indefinite width on orientation change and
-          collapses its chips to zero width. Wrapping fills the parent width and
-          reflows, so it survives rotation and shows every filter at once on
-          wide screens. */}
-      <View style={styles.chipRow}>
-        <Chip
-          label="All statuses"
-          selected={status === null}
-          onPress={() => setStatus(null)}
+    <Screen padded={false}>
+      <View style={styles.padded}>
+        <ScreenHeader
+          title={t('orders.listTitle')}
+          right={
+            <IconButton
+              variant="primary"
+              onPress={() => router.push('/(app)/new-order')}
+              accessibilityLabel={t('orders.newOrder')}
+            >
+              <Ionicons name="add" size={24} color={colors.textOnPrimary} />
+            </IconButton>
+          }
         />
-        {STATUS_ORDER.map((s) => (
-          <Chip
-            key={s}
-            label={STATUS_LABEL[s]}
-            selected={status === s}
-            tone={STATUS_TONE[s]}
-            onPress={() => setStatus(s)}
+        <SearchField value={q} onChangeText={setQ} placeholder={t('orders.searchPlaceholder')} />
+
+        {/* Two compact filter menus instead of two wrapping chip rows. */}
+        <View style={styles.filterRow}>
+          <FilterPill
+            icon="funnel-outline"
+            label={statusLabel}
+            active={status !== null}
+            onPress={() => setSheet('status')}
           />
-        ))}
+          <FilterPill
+            icon="time-outline"
+            label={timeLabel}
+            active={timeFilter !== 'all'}
+            onPress={() => setSheet('time')}
+          />
+        </View>
       </View>
 
-      {/* Time chips */}
-      <View style={styles.chipRow}>
-        <Chip
-          label="All time"
-          selected={timeFilter === 'all'}
-          onPress={() => setTimeFilter('all')}
-        />
-        <Chip
-          label="Overdue"
-          selected={timeFilter === 'overdue'}
-          tone="danger"
-          onPress={() => setTimeFilter('overdue')}
-        />
-        <Chip
-          label="Due this week"
-          selected={timeFilter === 'thisWeek'}
-          tone="primary"
-          onPress={() => setTimeFilter('thisWeek')}
-        />
-      </View>
-
-      <View style={{ height: spacing.md }} />
+      <OptionSheet
+        visible={sheet === 'status'}
+        title={t('orders.statusSheetTitle')}
+        options={statusOptions}
+        selectedKey={status ?? 'all'}
+        onSelect={(key) => setStatus(key === 'all' ? null : (key as OrderStatus))}
+        onClose={() => setSheet(null)}
+      />
+      <OptionSheet
+        visible={sheet === 'time'}
+        title={t('orders.dueSheetTitle')}
+        options={timeOptions}
+        selectedKey={timeFilter}
+        onSelect={(key) => setTimeFilter(key as TimeFilter)}
+        onClose={() => setSheet(null)}
+      />
 
       {isLoading && items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          Loading…
+          {t('common.loading')}
         </Text>
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          No orders match those filters.
+          {t('orders.emptyNoMatch')}
         </Text>
       ) : (
         <FlatList
+          {...scroll}
           data={items}
           keyExtractor={(o) => o.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
           renderItem={({ item }) => (
-            <Card onPress={() => router.push(`/(app)/orders/${item.id}`)}>
-              <View style={styles.rowBetween}>
-                <CardTitle>{item.orderName}</CardTitle>
-                <Chip
-                  variant="status"
-                  label={STATUS_LABEL[item.status]}
-                  tone={STATUS_TONE[item.status]}
-                />
-              </View>
-              {item.dateDelivery ? (
-                <CardLine>
-                  Delivery {new Date(item.dateDelivery).toLocaleDateString()}
-                </CardLine>
-              ) : null}
-            </Card>
+            <OrderCard
+              order={item}
+              onPress={() => router.push(`/(app)/orders/${item.id}`)}
+            />
           )}
         />
       )}
@@ -184,19 +164,77 @@ export default function OrdersList() {
   );
 }
 
+// Trigger pill that opens a filter menu. Reads the current value + a chevron;
+// tints itself when a non-default filter is active.
+function FilterPill({
+  icon,
+  label,
+  active,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const { colors, radii } = useAtelierTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={[
+        styles.pill,
+        {
+          borderColor: active ? colors.primary : colors.hairline,
+          backgroundColor: active ? withAlpha(colors.primary, 0.14) : colors.surface,
+          borderRadius: radii.pill,
+        },
+      ]}
+    >
+      <Ionicons
+        name={icon}
+        size={15}
+        color={active ? colors.primary : colors.textMuted}
+      />
+      <Text
+        variant="bodySm"
+        tone={active ? 'primary' : 'text'}
+        numberOfLines={1}
+        style={styles.pillLabel}
+      >
+        {label}
+      </Text>
+      <Ionicons
+        name="chevron-down"
+        size={14}
+        color={active ? colors.primary : colors.textMuted}
+      />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  title: { marginBottom: spacing.md },
-  chipRow: {
+  padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  filterRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingVertical: spacing.xs,
-    gap: spacing.xs,
-    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
   },
-  rowBetween: {
+  pill: {
+    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.xs,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  pillLabel: { flex: 1 },
+  list: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: 96,
   },
   muted: { textAlign: 'center', marginTop: spacing.xl },
 });

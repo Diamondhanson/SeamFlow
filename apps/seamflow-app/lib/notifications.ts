@@ -19,7 +19,9 @@
 // installed at the app root so it survives tab switches.
 // ============================================================================
 
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import type * as ExpoNotifications from 'expo-notifications';
 import type { DevicePlatform } from '@seamflow/schemas';
@@ -158,6 +160,39 @@ export async function unregisterPushOnSignOut(): Promise<void> {
 export async function sendPushTest(): Promise<number> {
   const r = await api.notifications.pushTest({});
   return r.sentTo;
+}
+
+/**
+ * Deep-link on notification tap. Order reminders and status-change pushes carry
+ * `data.orderId`; tapping one opens that order. Handles both a warm tap (app
+ * running / backgrounded) and a cold start (app launched by the tap). Mount
+ * once, inside the authed router context.
+ */
+export function useNotificationTapHandler(): void {
+  useEffect(() => {
+    const N = getNotifications();
+    if (!N) return;
+
+    const routeTo = (data: unknown) => {
+      const orderId = (data as { orderId?: unknown } | null | undefined)?.orderId;
+      if (typeof orderId === 'string' && orderId) {
+        router.push(`/(app)/orders/${orderId}`);
+      }
+    };
+
+    // Cold start: app was opened by tapping a notification.
+    N.getLastNotificationResponseAsync()
+      .then((resp) => {
+        if (resp) routeTo(resp.notification.request.content.data);
+      })
+      .catch(() => {});
+
+    // Warm: tapped while the app was running or backgrounded.
+    const sub = N.addNotificationResponseReceivedListener((resp) => {
+      routeTo(resp.notification.request.content.data);
+    });
+    return () => sub.remove();
+  }, []);
 }
 
 function currentPlatform(): DevicePlatform {

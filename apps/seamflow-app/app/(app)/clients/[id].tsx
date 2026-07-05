@@ -3,6 +3,7 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
@@ -15,8 +16,11 @@ import {
   useOrders,
 } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
+import { useFloatingScroll } from '../../../lib/floating-scroll';
+import { useTranslation } from '../../../lib/i18n';
 
 export default function ClientDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const clientQ = useClient(id);
   const setsQ = useMeasurementSets(id);
@@ -24,6 +28,7 @@ export default function ClientDetail() {
   const createSet = useCreateMeasurementSet(id);
   const deleteClient = useDeleteClient(id);
   const colors = useThemeColors();
+  const scroll = useFloatingScroll();
 
   // Inline new-measurement-set form
   const [showForm, setShowForm] = useState(false);
@@ -42,7 +47,7 @@ export default function ClientDetail() {
     try {
       parsed = JSON.parse(valuesJson);
     } catch {
-      Alert.alert('Invalid JSON', 'Measurements must be a JSON object of numbers.');
+      Alert.alert(t('clients.invalidJsonTitle'), t('clients.invalidJsonBody'));
       return;
     }
     createSet.mutate(
@@ -53,38 +58,47 @@ export default function ClientDetail() {
           setLabel('default');
         },
         onError: (err) =>
-          Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
       },
     );
   };
 
   const onDeleteClient = () =>
-    Alert.alert('Delete client?', `${client?.fullName} will be deleted.`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () =>
-          deleteClient.mutate(undefined, {
-            onSuccess: () => router.back(),
-            onError: (err) =>
-              Alert.alert('Error', err instanceof Error ? err.message : String(err)),
-          }),
-      },
-    ]);
+    Alert.alert(
+      t('clients.deleteClientTitle'),
+      t('clients.deleteConfirmBody', { name: client?.fullName ?? '' }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: () =>
+            deleteClient.mutate(undefined, {
+              onSuccess: () => router.back(),
+              onError: (err) =>
+                Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+            }),
+        },
+      ],
+    );
 
   if (loading || !client) {
     return (
       <Screen>
-        <Text variant="bodySm" tone="textMuted">Loading…</Text>
+        <ScreenHeader title={t('clients.clientTitle')} />
+        <Text variant="bodySm" tone="textMuted">{t('common.loading')}</Text>
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <Text variant="h1">{client.fullName}</Text>
+      <ScreenHeader title={client.fullName} />
+      <ScrollView
+        {...scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 96 }}
+      >
         <Text variant="bodySm" tone="textMuted">{client.phone}</Text>
         {client.address ? <Text variant="bodySm" tone="textMuted">{client.address}</Text> : null}
         {client.email ? <Text variant="bodySm" tone="textMuted">{client.email}</Text> : null}
@@ -92,17 +106,23 @@ export default function ClientDetail() {
           <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>{client.notes}</Text>
         ) : null}
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
         <View style={styles.row}>
-          <Text variant="h3">Measurement sets</Text>
+          <Text variant="h3">{t('clients.measurementSets')}</Text>
           {!showForm ? (
-            <Button label="+ Add" variant="secondary" onPress={() => setShowForm(true)} />
+            <Button
+              label={t('clients.addSet')}
+              variant="ghost"
+              size="sm"
+              fullWidth={false}
+              onPress={() => setShowForm(true)}
+            />
           ) : null}
         </View>
 
         {sets.length === 0 && !showForm ? (
-          <Text variant="bodySm" tone="textMuted">No measurement sets yet.</Text>
+          <Text variant="bodySm" tone="textMuted">{t('clients.noMeasurementSets')}</Text>
         ) : null}
 
         {sets.map((s) => (
@@ -111,9 +131,9 @@ export default function ClientDetail() {
 
         {showForm ? (
           <Card>
-            <Input label="Label" value={label} onChangeText={setLabel} />
+            <Input label={t('clients.labelLabel')} value={label} onChangeText={setLabel} />
             <Input
-              label="Values (JSON object, cm)"
+              label={t('clients.valuesLabel')}
               value={valuesJson}
               onChangeText={setValuesJson}
               multiline
@@ -121,37 +141,37 @@ export default function ClientDetail() {
               autoCapitalize="none"
               style={styles.jsonInput}
             />
-            <Button label="Save set" onPress={addSet} loading={createSet.isPending} />
+            <Button label={t('clients.saveSet')} onPress={addSet} loading={createSet.isPending} />
             <View style={{ height: spacing.sm }} />
             <Button
-              label="Cancel"
+              label={t('common.cancel')}
               variant="secondary"
               onPress={() => setShowForm(false)}
             />
           </Card>
         ) : null}
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
-        <Text variant="h3">Orders ({orders.length})</Text>
+        <Text variant="h3">{t('clients.ordersCount', { count: orders.length })}</Text>
         {orders.length === 0 ? (
-          <Text variant="bodySm" tone="textMuted">No orders for this client yet.</Text>
+          <Text variant="bodySm" tone="textMuted">{t('clients.noOrders')}</Text>
         ) : (
           orders.map((o) => (
             <Card key={o.id} onPress={() => router.push(`/(app)/orders/${o.id}`)}>
               <CardTitle>{o.orderName}</CardTitle>
-              <CardLine>Status: {o.status}</CardLine>
+              <CardLine>{t('clients.statusLine', { status: o.status })}</CardLine>
               {o.dateDelivery ? (
                 <CardLine>
-                  Delivery: {new Date(o.dateDelivery).toLocaleDateString()}
+                  {t('clients.deliveryLine', { date: new Date(o.dateDelivery).toLocaleDateString() })}
                 </CardLine>
               ) : null}
             </Card>
           ))
         )}
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <Button label="Delete client" variant="danger" onPress={onDeleteClient} />
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
+        <Button label={t('clients.deleteClient')} variant="danger" onPress={onDeleteClient} />
       </ScrollView>
     </Screen>
   );
@@ -166,6 +186,7 @@ function MeasurementSetCard({
   clientId: string;
   set: { label: string; values: Record<string, number>; unitPreference: string };
 }) {
+  const { t } = useTranslation();
   const del = useDeleteMeasurementSet(setId, clientId);
   return (
     <Card>
@@ -177,13 +198,13 @@ function MeasurementSetCard({
       ))}
       <View style={{ marginTop: spacing.sm }}>
         <Button
-          label="Delete"
+          label={t('common.delete')}
           variant="danger"
           loading={del.isPending}
           onPress={() =>
             del.mutate(undefined, {
               onError: (err) =>
-                Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+                Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
             })
           }
         />

@@ -32,4 +32,9 @@ export const qk = {
     ['orders', filter ?? {}] as const,
   order: (id: string) => ['orders', id] as const,
   orderPhotos: (orderId: string) => ['orders', orderId, 'photos'] as const,
+
+  designs: () => ['designs'] as const,
+  design: (id: string) => ['designs', id] as const,
+
+  notificationPreferences: () => ['notification-preferences'] as const,
 } as const;

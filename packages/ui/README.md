@@ -118,10 +118,15 @@ const vars = toCssVariables(linenTheme);
 - **Text** — `variant` × `tone` × `numeric`. The single text primitive — no raw `<Text>` in screen code.
 - **Button** — `primary` / `secondary` / `ghost` / `destructive`, sizes `sm` / `md` / `lg`. Scale-to-0.97 spring on press.
 - **Input** — floating-label text input, hairline border, focus ring, trailing / leading slots, error caption.
+- **Card** — padded hairline surface (`CardTitle` / `CardLine` slots); interactive with press spring when `onPress` set.
+- **Chip** — pill, `filter` (selectable) / `status` (display badge); `tone` is a semantic token name.
+- **Avatar** / **AvatarStack** — initials badge with a deterministic name-derived tone; stack overlaps for group clusters.
+- **IconButton** — circular tap target (`surface` / `primary` / `ghost`), for `+`, `‹ ›`, back, chat. Icon node supplied by the caller.
+- **ListRow** — tinted icon-square + title + (mono) subtitle + chevron. The list pattern (Templates, etc.).
 
 ### Coming next
 
-Card · Sheet · Stepper · MeasurementInput · Chip · Avatar · EmptyState · StitchLine · ListRow · TabBar.
+Sheet · Stepper · MeasurementInput · EmptyState · StitchLine · TabBar.
 
 ## Adding a new primitive
 

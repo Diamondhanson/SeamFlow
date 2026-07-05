@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import {
   type OrderUpdateInput,
 } from '@seamflow/schemas';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationPreferencesService } from '../notifications/notification-preferences.service';
 
 // Human-friendly labels for push body text. Mirrors the mobile STATUS_LABEL
 // map so the wording stays consistent across surfaces. Living here avoids
@@ -53,6 +55,7 @@ export class OrdersService {
   constructor(
     private readonly dbService: DbService,
     private readonly notifications: NotificationsService,
+    private readonly notificationPrefs: NotificationPreferencesService,
   ) {}
 
   private async assertClientOwned(tailorId: string, clientId: string): Promise<void> {
@@ -62,6 +65,52 @@ export class OrdersService {
       .where(and(eq(clients.tailorId, tailorId), eq(clients.id, clientId)))
       .limit(1);
     if (!rows[0]) throw new NotFoundException(`Client ${clientId} not found`);
+  }
+
+  /**
+   * Resolve the client an order belongs to. Either the caller passed an
+   * existing `clientId` (validated for ownership) or an inline `contact` picked
+   * from their phone book, which we lazily materialize into a client row:
+   * reuse the tailor's existing client with the same phone if present,
+   * otherwise create one. Phones arrive normalized to E.164 from the app, so a
+   * plain equality match is the natural de-dupe key.
+   */
+  private async resolveClientId(
+    tailorId: string,
+    data: OrderCreateInput,
+  ): Promise<string> {
+    if (data.clientId) {
+      await this.assertClientOwned(tailorId, data.clientId);
+      return data.clientId;
+    }
+
+    const contact = data.contact;
+    if (!contact) {
+      throw new BadRequestException(
+        'An order needs either a clientId or a contact.',
+      );
+    }
+
+    const phone = contact.phone.trim();
+    const existing = await this.dbService.db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.tailorId, tailorId), eq(clients.phone, phone)))
+      .limit(1);
+    if (existing[0]) return existing[0].id;
+
+    const inserted = await this.dbService.db
+      .insert(clients)
+      .values({
+        tailorId,
+        fullName: contact.fullName.trim(),
+        phone,
+        address: contact.address ?? null,
+      })
+      .returning({ id: clients.id });
+    const row = inserted[0];
+    if (!row) throw new NotFoundException('Client materialize returned no row');
+    return row.id;
   }
 
   async list(tailorId: string, opts: ListOptions): Promise<OrderRow[]> {
@@ -125,13 +174,13 @@ export class OrdersService {
     actorUserId: string,
     data: OrderCreateInput,
   ): Promise<OrderRow> {
-    await this.assertClientOwned(tailorId, data.clientId);
+    const clientId = await this.resolveClientId(tailorId, data);
 
     const [created] = await this.dbService.db
       .insert(orders)
       .values({
         tailorId,
-        clientId: data.clientId,
+        clientId,
         groupOrderId: data.groupOrderId ?? null,
         groupOrderMemberId: data.groupOrderMemberId ?? null,
         orderName: data.orderName,
@@ -256,6 +305,10 @@ export class OrdersService {
     to: OrderStatus,
   ): Promise<void> {
     try {
+      // Respect the tailor's "order status updates" preference.
+      const prefs = await this.notificationPrefs.getOrCreate(tailorId);
+      if (!prefs.statusChangeEnabled) return;
+
       const [t] = await this.dbService.db
         .select({ userId: tailors.userId })
         .from(tailors)

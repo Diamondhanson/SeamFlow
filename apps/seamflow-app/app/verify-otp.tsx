@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAuth } from '../lib/auth-context';
 import { spacing } from '../lib/theme';
+import { useTranslation } from '../lib/i18n';
 
 const OTP_LEN = 6;
 const RESEND_COOLDOWN_MS = 30 * 1000;
@@ -16,6 +17,7 @@ export default function VerifyOtp() {
   const email = (emailParam ?? '').trim();
 
   const { verifyOtpSignup, resendSignupOtp } = useAuth();
+  const { t } = useTranslation();
   const [code, setCode] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
@@ -55,8 +57,8 @@ export default function VerifyOtp() {
       // up the SIGNED_IN event and the router can land us inside (app).
       router.replace('/(app)');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Could not verify';
-      Alert.alert('Verification failed', msg);
+      const msg = err instanceof Error ? err.message : t('auth.verificationFailed');
+      Alert.alert(t('auth.verificationFailed'), msg);
     } finally {
       setVerifying(false);
     }
@@ -69,10 +71,10 @@ export default function VerifyOtp() {
       await resendSignupOtp(email);
       cooldownStartRef.current = Date.now();
       setCooldownLeftMs(RESEND_COOLDOWN_MS);
-      Alert.alert('Code sent', 'Check your email for a new 6-digit code.');
+      Alert.alert(t('auth.codeSent'), t('auth.codeSentMessage'));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Could not resend';
-      Alert.alert('Resend failed', msg);
+      const msg = err instanceof Error ? err.message : t('auth.resendFailed');
+      Alert.alert(t('auth.resendFailed'), msg);
     } finally {
       setResending(false);
     }
@@ -81,15 +83,15 @@ export default function VerifyOtp() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text variant="h1">Check your email</Text>
+        <Text variant="h1">{t('auth.checkYourEmail')}</Text>
         <Text variant="bodySm" tone="textMuted" style={styles.subtitle}>
-          We sent a 6-digit code to{'\n'}
+          {t('auth.codeSentTo')}{'\n'}
           <Text variant="bodySm" tone="text" style={styles.email}>{email}</Text>
         </Text>
       </View>
 
       <Input
-        label="Verification code"
+        label={t('auth.verificationCode')}
         value={code}
         onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, OTP_LEN))}
         keyboardType="number-pad"
@@ -100,7 +102,7 @@ export default function VerifyOtp() {
       />
 
       <Button
-        label="Verify"
+        label={t('auth.verify')}
         onPress={verify}
         loading={verifying}
         disabled={code.length !== OTP_LEN || verifying}
@@ -114,17 +116,17 @@ export default function VerifyOtp() {
             style={styles.resendText}
           >
             {cooldownLeftMs > 0
-              ? `Resend in ${Math.ceil(cooldownLeftMs / 1000)}s`
+              ? t('auth.resendIn', { seconds: Math.ceil(cooldownLeftMs / 1000) })
               : resending
-                ? 'Sending…'
-                : "Didn't get the code? Resend"}
+                ? t('auth.sending')
+                : t('auth.resendPrompt')}
           </Text>
         </Pressable>
       </View>
 
       <View style={{ height: spacing.xl }} />
       <Pressable onPress={() => router.replace('/sign-in')}>
-        <Text variant="caption" tone="textMuted" style={styles.back}>← Use a different email</Text>
+        <Text variant="caption" tone="textMuted" style={styles.back}>{t('auth.useDifferentEmail')}</Text>
       </Pressable>
     </Screen>
   );

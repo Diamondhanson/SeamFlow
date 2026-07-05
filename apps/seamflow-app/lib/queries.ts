@@ -3,6 +3,9 @@ import type {
   Client,
   ClientCreateInput,
   ClientUpdateInput,
+  DesignUpdateInput,
+  NotificationPreferences,
+  NotificationPreferencesUpdateInput,
   GroupOrder,
   GroupOrderCreateInput,
   GroupOrderMemberCreateInput,
@@ -24,6 +27,7 @@ import type {
 } from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
+import { defaultNotificationPreferences } from './notification-defaults';
 import {
   mk,
   type DeleteOrderVars,
@@ -440,6 +444,85 @@ export function useDeleteOrderPhoto(orderId: string) {
   return useMutation({
     mutationFn: (photoId: string) => api.orderPhotos.delete(photoId),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.orderPhotos(orderId) }),
+  });
+}
+
+// ============================================================================
+// Designs (inspiration library / moodboard)
+// ============================================================================
+
+export const useDesigns = () =>
+  useQuery({ queryKey: qk.designs(), queryFn: () => api.designs.list() });
+
+export const useDesign = (id: string) =>
+  useQuery({
+    queryKey: qk.design(id),
+    queryFn: () => api.designs.get(id),
+    enabled: !!id,
+  });
+
+export function useUpdateDesign(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: DesignUpdateInput) => api.designs.update(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.designs() });
+      qc.invalidateQueries({ queryKey: qk.design(id) });
+    },
+  });
+}
+
+export function useDeleteDesign() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (designId: string) => api.designs.delete(designId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.designs() }),
+  });
+}
+
+export function useAttachDesignToOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { designId: string; orderId: string }) =>
+      api.designs.attachToOrder(vars.designId, vars.orderId),
+    onSuccess: (_res, vars) =>
+      qc.invalidateQueries({ queryKey: qk.orderPhotos(vars.orderId) }),
+  });
+}
+
+// ============================================================================
+// Notification preferences
+// ============================================================================
+
+export const useNotificationPreferences = () =>
+  useQuery({
+    queryKey: qk.notificationPreferences(),
+    queryFn: () => api.notificationPreferences.get(),
+  });
+
+export function useUpdateNotificationPreferences() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: NotificationPreferencesUpdateInput) =>
+      api.notificationPreferences.update(input),
+    // Optimistic: apply the change to the cache immediately so toggles feel
+    // instant and remain usable offline. If the request genuinely errors we roll
+    // back; if it's merely offline the mutation is paused + replayed by the
+    // global paused-mutation queue when connectivity returns.
+    onMutate: async (patch) => {
+      await qc.cancelQueries({ queryKey: qk.notificationPreferences() });
+      const prev = qc.getQueryData<NotificationPreferences>(
+        qk.notificationPreferences(),
+      );
+      const base = prev ?? defaultNotificationPreferences();
+      qc.setQueryData(qk.notificationPreferences(), { ...base, ...patch });
+      return { prev };
+    },
+    onError: (_err, _patch, ctx) => {
+      if (ctx) qc.setQueryData(qk.notificationPreferences(), ctx.prev);
+    },
+    onSuccess: (updated) =>
+      qc.setQueryData(qk.notificationPreferences(), updated),
   });
 }
 

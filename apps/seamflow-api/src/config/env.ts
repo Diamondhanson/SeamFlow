@@ -19,6 +19,10 @@ export const envSchema = z.object({
   // Sentry — optional. Error tracking disabled when empty.
   SENTRY_DSN: z.string().url().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
 
+  // Anthropic (Claude) — optional. AI auto-describe is disabled (503) when empty
+  // so the API still boots without a key during development.
+  ANTHROPIC_API_KEY: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+
   // Share-link signing — separate from Supabase JWT so rotating it doesn't
   // invalidate user sessions. 32+ random bytes recommended.
   SHARE_LINK_JWT_SECRET: z.string().min(32),

@@ -14,25 +14,22 @@
 // ============================================================================
 
 import { useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  View,
-  Vibration,
-} from 'react-native';
+import { Alert, Pressable, StyleSheet, View, Vibration } from 'react-native';
 import { router } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
+import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
+import { PinDots, Dialpad } from '../../components/PinKeypad';
 import { useLock } from '../../lib/lock-context';
+import { useTranslation } from '../../lib/i18n';
 import {
   PIN_LENGTH,
   clearPin,
   setPin as savePin,
   verifyPin,
 } from '../../lib/pin-lock';
-import { radii, spacing, useThemeColors } from '../../lib/theme';
+import { spacing } from '../../lib/theme';
 
 type Stage =
   | { kind: 'menu' }
@@ -41,6 +38,7 @@ type Stage =
   | { kind: 'confirmNew'; mode: 'new' | 'change'; firstEntry: string };
 
 export default function PinSettings() {
+  const { t } = useTranslation();
   const { pinSet, refreshPinState, lock } = useLock();
   const [stage, setStage] = useState<Stage>({ kind: 'menu' });
   const [entry, setEntry] = useState('');
@@ -71,7 +69,7 @@ export default function PinSettings() {
         const r = await verifyPin(pin);
         if (!r.ok) {
           Vibration.vibrate(200);
-          Alert.alert('Wrong PIN', 'Try again.');
+          Alert.alert(t('misc.wrongPinTitle'), t('misc.tryAgain'));
           setEntry('');
           return;
         }
@@ -81,16 +79,16 @@ export default function PinSettings() {
           return;
         }
         // Remove
-        Alert.alert('Remove PIN?', 'You can re-add it later from this screen.', [
-          { text: 'Cancel', style: 'cancel', onPress: () => backToMenu() },
+        Alert.alert(t('misc.removePinTitle'), t('misc.removePinBody'), [
+          { text: t('common.cancel'), style: 'cancel', onPress: () => backToMenu() },
           {
-            text: 'Remove',
+            text: t('common.remove'),
             style: 'destructive',
             onPress: async () => {
               await clearPin();
               await refreshPinState();
               backToMenu();
-              Alert.alert('PIN removed', 'The app will no longer lock.');
+              Alert.alert(t('misc.pinRemovedTitle'), t('misc.pinRemovedBody'));
             },
           },
         ]);
@@ -107,7 +105,7 @@ export default function PinSettings() {
       if (stage.kind === 'confirmNew') {
         if (pin !== stage.firstEntry) {
           Vibration.vibrate(200);
-          Alert.alert('PINs don\'t match', 'Try again.');
+          Alert.alert(t('misc.pinsDontMatchTitle'), t('misc.tryAgain'));
           setStage({ kind: 'enterNew', mode: stage.mode });
           setEntry('');
           return;
@@ -119,13 +117,13 @@ export default function PinSettings() {
         // the PIN they just set, which is annoying. The AppState listener
         // will kick in next time they background.
         Alert.alert(
-          stage.mode === 'new' ? 'PIN set' : 'PIN changed',
-          'The app will now ask for this PIN if you leave it idle for a few minutes.',
+          stage.mode === 'new' ? t('misc.pinSetTitle') : t('misc.pinChangedTitle'),
+          t('misc.pinSavedBody'),
         );
         backToMenu();
       }
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : String(err));
+      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
       setEntry('');
     } finally {
       setBusy(false);
@@ -136,23 +134,24 @@ export default function PinSettings() {
   if (stage.kind === 'menu') {
     return (
       <Screen>
-        <Text variant="h3">App PIN lock</Text>
+        <ScreenHeader title={t('misc.pinLockTitle')} />
+        <Text variant="h3">{t('misc.appPinLock')}</Text>
         <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>
           {pinSet
-            ? 'A PIN is set. The app will lock after 5 minutes in the background.'
-            : 'No PIN set. The app will not lock when you switch away.'}
+            ? t('misc.pinSetDescription')
+            : t('misc.noPinDescription')}
         </Text>
 
         <View style={{ height: spacing.lg }} />
 
         {pinSet ? (
           <>
-            <Button label="Change PIN" variant="secondary" onPress={() => start('change')} />
+            <Button label={t('misc.changePin')} variant="secondary" onPress={() => start('change')} />
             <View style={{ height: spacing.sm }} />
-            <Button label="Remove PIN" variant="danger" onPress={() => start('remove')} />
+            <Button label={t('misc.removePin')} variant="danger" onPress={() => start('remove')} />
             <View style={{ height: spacing.lg }} />
             <Button
-              label="Lock now"
+              label={t('misc.lockNow')}
               variant="secondary"
               onPress={() => {
                 lock();
@@ -161,7 +160,7 @@ export default function PinSettings() {
             />
           </>
         ) : (
-          <Button label="Set a PIN" onPress={() => start('new')} />
+          <Button label={t('misc.setAPin')} onPress={() => start('new')} />
         )}
       </Screen>
     );
@@ -169,129 +168,74 @@ export default function PinSettings() {
 
   const prompt =
     stage.kind === 'enterCurrent'
-      ? 'Enter your current PIN'
+      ? t('misc.enterCurrentPin')
       : stage.kind === 'enterNew'
         ? stage.mode === 'change'
-          ? 'Enter a new PIN'
-          : 'Choose a 4-digit PIN'
-        : 'Re-enter the PIN to confirm';
+          ? t('misc.enterNewPin')
+          : t('misc.choosePin')
+        : t('misc.reenterPin');
+
+  const handleKey = (k: string) => {
+    if (busy) return;
+    const next =
+      k === 'backspace'
+        ? entry.slice(0, -1)
+        : entry.length < PIN_LENGTH
+          ? entry + k
+          : entry;
+    if (next === entry) return;
+    setEntry(next);
+    if (next.length === PIN_LENGTH) {
+      // Defer one tick so the last dot fills before the dialog appears.
+      setTimeout(() => onComplete(next), 80);
+    }
+  };
 
   return (
     <Screen>
-      <Text variant="h3">{prompt}</Text>
-      <View style={{ height: spacing.lg }} />
+      <ScreenHeader title={t('misc.pinLockTitle')} onBack={backToMenu} />
+      <View style={styles.flow}>
+        {/* Prompt + PIN indicator — centred in the upper region. */}
+        <View style={styles.promptArea}>
+          <Text variant="h3" style={styles.prompt}>
+            {prompt}
+          </Text>
+          <PinDots value={entry} />
+        </View>
 
-      <Keypad
-        value={entry}
-        onChange={(v) => {
-          setEntry(v);
-          if (v.length === PIN_LENGTH) {
-            // Defer one tick so the dot fills before the dialog appears.
-            setTimeout(() => onComplete(v), 80);
-          }
-        }}
-        disabled={busy}
-      />
-
-      <View style={{ height: spacing.md }} />
-      <Pressable onPress={backToMenu} hitSlop={10}>
-        <Text variant="bodySm" tone="textMuted" style={styles.cancel}>Cancel</Text>
-      </Pressable>
+        {/* Dialpad — floats in the lower region, lifted off the very bottom.
+            flex 2 : 3 keeps the split proportional on any device height. */}
+        <View style={styles.dialArea}>
+          <Dialpad onKey={handleKey} disabled={busy} />
+          <Pressable onPress={backToMenu} hitSlop={10} style={styles.cancelBtn}>
+            <Text variant="bodySm" tone="textMuted">
+              {t('common.cancel')}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
     </Screen>
   );
 }
 
-// ----- inline keypad -----
-
-interface KeypadProps {
-  value: string;
-  onChange: (next: string) => void;
-  disabled?: boolean;
-}
-
-const KEYS: Array<string | 'backspace' | null> = [
-  '1', '2', '3',
-  '4', '5', '6',
-  '7', '8', '9',
-  null, '0', 'backspace',
-];
-
-function Keypad({ value, onChange, disabled }: KeypadProps) {
-  const colors = useThemeColors();
-  const press = (k: string) => {
-    if (disabled) return;
-    if (k === 'backspace') {
-      onChange(value.slice(0, -1));
-      return;
-    }
-    if (value.length < PIN_LENGTH) onChange(value + k);
-  };
-
-  return (
-    <View>
-      <View style={styles.dots}>
-        {Array.from({ length: PIN_LENGTH }).map((_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.dot,
-              { borderColor: colors.border },
-              i < value.length && { backgroundColor: colors.accent, borderColor: colors.accent },
-            ]}
-          />
-        ))}
-      </View>
-      <View style={styles.keypad}>
-        {KEYS.map((k, i) =>
-          k === null ? (
-            <View key={`sp-${i}`} style={styles.key} />
-          ) : (
-            <Pressable
-              key={k + i}
-              style={({ pressed }) => [
-                styles.key,
-                { backgroundColor: pressed ? colors.border : colors.card },
-              ]}
-              onPress={() => press(k)}
-              disabled={disabled}
-            >
-              <Text variant="h2" numeric style={styles.keyText}>
-                {k === 'backspace' ? '⌫' : k}
-              </Text>
-            </Pressable>
-          ),
-        )}
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  dots: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    justifyContent: 'center',
-    marginVertical: spacing.lg,
-  },
-  dot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    backgroundColor: 'transparent',
-  },
-  keypad: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
-  key: {
-    width: '30%',
-    aspectRatio: 1.7,
-    margin: '1.5%',
-    borderRadius: radii.md,
+  flow: { flex: 1 },
+  // Upper region: prompt + PIN dots, centred.
+  promptArea: {
+    flex: 2,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.xl,
   },
-  keyText: { fontSize: 26 },
-  cancel: {
-    textAlign: 'center',
-    marginTop: spacing.md,
+  prompt: { textAlign: 'center' },
+  // Lower region: the dialpad floats here, lifted off the very bottom.
+  dialArea: {
+    flex: 3,
+    justifyContent: 'center',
+    paddingBottom: spacing.lg,
+  },
+  cancelBtn: {
+    alignItems: 'center',
+    marginTop: spacing.lg,
   },
 });

@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@seamflow/ui';
 import { useOnline } from '../lib/use-online';
 import { usePendingMutations } from '../lib/use-pending-mutations';
+import { useTranslation } from '../lib/i18n';
 import { spacing, useThemeColors } from '../lib/theme';
 
 /**
@@ -17,6 +18,7 @@ import { spacing, useThemeColors } from '../lib/theme';
  * to see the sync happen rather than wonder where their edits went.
  */
 export function OfflineBanner() {
+  const { t } = useTranslation();
   const online = useOnline();
   const pending = usePendingMutations();
   const colors = useThemeColors();
@@ -26,9 +28,12 @@ export function OfflineBanner() {
   const isSyncing = online && pending > 0;
   const text = !online
     ? pending > 0
-      ? `Offline — ${pending} change${pending === 1 ? '' : 's'} will sync when reconnected`
-      : "You're offline"
-    : `Syncing ${pending} change${pending === 1 ? '' : 's'}…`;
+      ? t('misc.offlineWithPending', {
+          count: pending,
+          plural: pending === 1 ? '' : 's',
+        })
+      : t('misc.youreOffline')
+    : t('misc.syncing', { count: pending, plural: pending === 1 ? '' : 's' });
 
   return (
     <View

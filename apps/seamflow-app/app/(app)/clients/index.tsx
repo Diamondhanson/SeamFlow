@@ -1,68 +1,93 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { Text } from '@seamflow/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
-import { Card, CardTitle, CardLine } from '../../../components/Card';
-import { Button } from '../../../components/Button';
-import { Input } from '../../../components/Input';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { SearchField } from '../../../components/SearchField';
+import { SwipeableClientRow } from '../../../components/SwipeableClientRow';
 import { useClients } from '../../../lib/queries';
+import { useFavorites } from '../../../lib/favorites';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
 import { ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
+import { useFloatingScroll } from '../../../lib/floating-scroll';
+import { useTranslation } from '../../../lib/i18n';
 
 export default function ClientsList() {
+  const { t } = useTranslation();
   const [q, setQ] = useState('');
   // Debounce search so we don't refetch on every keystroke. The API uses
-  // trigram-backed ILIKE on full_name + phone (GIN indexes from 0001), so
-  // even fat-fingered partial matches like "ad" return quickly.
+  // trigram-backed ILIKE on full_name + phone, so partial matches return fast.
   const debouncedQ = useDebouncedValue(q, 300);
+  const { colors } = useAtelierTheme();
+  const scroll = useFloatingScroll();
 
   const { data, isLoading, error } = useClients(debouncedQ);
+  const { favorites } = useFavorites();
 
-  // Surface the "no tailor profile yet" error specifically.
   useEffect(() => {
     if (error instanceof ApiError && error.isNotFound()) {
-      Alert.alert('Profile required', 'Set up your business profile first.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Go to profile', onPress: () => router.push('/(app)/me') },
+      Alert.alert(t('clients.profileRequiredTitle'), t('clients.profileRequiredBody'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('clients.goToProfile'), onPress: () => router.push('/(app)/me') },
       ]);
     }
   }, [error]);
 
-  const items = data?.items ?? [];
+  // Favorites float to the top; everyone is otherwise ordered alphabetically
+  // by name (case-insensitive, locale-aware). Re-sorts when the favorite set
+  // changes so a freshly-starred client jumps up immediately.
+  const items = useMemo(() => {
+    const list = data?.items ?? [];
+    return [...list].sort((a, b) => {
+      const favA = favorites.has(a.id);
+      const favB = favorites.has(b.id);
+      if (favA !== favB) return favA ? -1 : 1;
+      return a.fullName.localeCompare(b.fullName, undefined, { sensitivity: 'base' });
+    });
+  }, [data?.items, favorites]);
 
   return (
-    <Screen>
-      <Input
-        label="Search by name or phone"
-        value={q}
-        onChangeText={setQ}
-        returnKeyType="search"
-        placeholder="Ada, +234..."
-      />
-      <Button label="+ New client" onPress={() => router.push('/(app)/clients/new')} />
-      <View style={{ height: spacing.lg }} />
+    <Screen padded={false}>
+      <View style={styles.padded}>
+        <ScreenHeader
+          title={t('clients.title')}
+          right={
+            <IconButton
+              variant="primary"
+              onPress={() => router.push('/(app)/clients/new')}
+              accessibilityLabel={t('clients.newClientA11y')}
+            >
+              <Ionicons name="add" size={24} color={colors.textOnPrimary} />
+            </IconButton>
+          }
+        />
+        <SearchField
+          value={q}
+          onChangeText={setQ}
+          placeholder={t('clients.searchPlaceholder')}
+        />
+      </View>
 
       {isLoading && items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          Loading…
+          {t('common.loading')}
         </Text>
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          No clients yet. Tap "+ New client" to add one.
+          {t('clients.emptyList')}
         </Text>
       ) : (
         <FlatList
+          {...scroll}
           data={items}
           keyExtractor={(c) => c.id}
-          renderItem={({ item }) => (
-            <Card onPress={() => router.push(`/(app)/clients/${item.id}`)}>
-              <CardTitle>{item.fullName}</CardTitle>
-              <CardLine>{item.phone}</CardLine>
-              {item.address ? <CardLine>{item.address}</CardLine> : null}
-            </Card>
-          )}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+          renderItem={({ item }) => <SwipeableClientRow item={item} />}
         />
       )}
     </Screen>
@@ -70,5 +95,11 @@ export default function ClientsList() {
 }
 
 const styles = StyleSheet.create({
+  padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  list: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: 96,
+  },
   muted: { textAlign: 'center', marginTop: spacing.xl },
 });

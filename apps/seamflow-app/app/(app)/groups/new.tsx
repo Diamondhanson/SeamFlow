@@ -8,18 +8,24 @@ import {
   View,
 } from 'react-native';
 import { router } from 'expo-router';
+import type { CountryCode } from 'libphonenumber-js';
 import type { GroupOrderWithMembersCreateInput } from '@seamflow/schemas';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
+import { PhoneInput } from '../../../components/PhoneInput';
 import { DateField } from '../../../components/DateField';
 import { Button } from '../../../components/Button';
 import { Card, CardTitle } from '../../../components/Card';
+import { ContactPickerModal } from '../../../components/ContactPickerModal';
 import {
   useClients,
   useCreateGroupOrderWithMembers,
+  useMe,
 } from '../../../lib/queries';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
+import { useTranslation } from '../../../lib/i18n';
 
 // ============================================================================
 // New group order — atomic create flow.
@@ -46,6 +52,7 @@ function newLocalId(): string {
 
 export default function NewGroup() {
   const colors = useThemeColors();
+  const { t } = useTranslation();
   // ----- form state -----
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -60,6 +67,10 @@ export default function NewGroup() {
   const [ownerAddress, setOwnerAddress] = useState('');
   const [pickedClientId, setPickedClientId] = useState<string | null>(null);
   const [clientSearch, setClientSearch] = useState('');
+  const [contactsOpen, setContactsOpen] = useState(false);
+
+  const { data: me } = useMe();
+  const defaultCountry = ((me?.tailor?.countryCode as CountryCode) || 'NG');
 
   // ----- members state -----
   const [members, setMembers] = useState<DraftMember[]>([]);
@@ -133,26 +144,30 @@ export default function NewGroup() {
         router.push(`/(app)/groups/${g.id}`);
       },
       onError: (err) =>
-        Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
     });
   };
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
+      <ScreenHeader title={t('groups.newGroupOrder')} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing.xl }}
+      >
         {/* ---------- 1. Title ---------- */}
-        <Text variant="h3" tone="text" style={styles.section}>1. Title</Text>
+        <Text variant="h3" tone="text" style={styles.section}>{t('groups.sectionTitle')}</Text>
         <Input
-          label="Group title *"
+          label={t('groups.groupTitleLabel')}
           value={name}
           onChangeText={setName}
-          placeholder="e.g. Adekunle Wedding"
+          placeholder={t('groups.groupTitlePlaceholder')}
         />
 
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
         {/* ---------- 2. Owner ---------- */}
-        <Text variant="h3" tone="text" style={styles.section}>2. Owner</Text>
+        <Text variant="h3" tone="text" style={styles.section}>{t('groups.sectionOwner')}</Text>
         <View style={[styles.tabs, { borderBottomColor: colors.border }]}>
           <Pressable
             style={[
@@ -166,7 +181,7 @@ export default function NewGroup() {
               tone={ownerMode === 'new' ? 'text' : 'textMuted'}
               style={styles.tabText}
             >
-              New contact
+              {t('groups.ownerModeNew')}
             </Text>
           </Pressable>
           <Pressable
@@ -181,56 +196,59 @@ export default function NewGroup() {
               tone={ownerMode === 'existing' ? 'text' : 'textMuted'}
               style={styles.tabText}
             >
-              Pick from clients
+              {t('groups.ownerModeExisting')}
             </Text>
           </Pressable>
         </View>
 
         {ownerMode === 'new' ? (
           <>
+            <Button
+              label={t('groups.selectFromContacts')}
+              variant="secondary"
+              onPress={() => setContactsOpen(true)}
+            />
+            <View style={{ height: spacing.sm }} />
             <Input
-              label="Owner name *"
+              label={t('groups.ownerNameLabel')}
               value={ownerFullName}
               onChangeText={setOwnerFullName}
-              placeholder="Tunde Adekunle"
+              placeholder={t('groups.ownerNamePlaceholder')}
             />
-            <Input
-              label="Owner phone *"
+            <PhoneInput
+              label={t('groups.ownerPhoneLabel')}
               value={ownerPhone}
               onChangeText={setOwnerPhone}
-              placeholder="+237 6XX XX XX XX"
-              keyboardType="phone-pad"
-              autoCapitalize="none"
             />
             <Input
-              label="Owner address *"
+              label={t('groups.ownerAddressLabel')}
               value={ownerAddress}
               onChangeText={setOwnerAddress}
-              placeholder="Bonanjo, Douala"
+              placeholder={t('groups.ownerAddressPlaceholder')}
               multiline
             />
             <Text variant="caption" tone="textMuted" style={styles.hint}>
-              We'll create a client record so you can find them again.
+              {t('groups.ownerHint')}
             </Text>
           </>
         ) : (
           <>
             <Input
-              label="Search clients"
+              label={t('groups.searchClients')}
               value={clientSearch}
               onChangeText={setClientSearch}
-              placeholder="Name or phone"
+              placeholder={t('groups.searchClientsPlaceholder')}
               autoCapitalize="none"
             />
             {pickedClient ? (
               <Card>
-                <CardTitle>Selected: {pickedClient.fullName}</CardTitle>
+                <CardTitle>{t('groups.selectedClient', { name: pickedClient.fullName })}</CardTitle>
                 <Text variant="bodySm" tone="textMuted">{pickedClient.phone}</Text>
                 {pickedClient.address ? (
                   <Text variant="bodySm" tone="textMuted">{pickedClient.address}</Text>
                 ) : null}
                 <Pressable onPress={() => setPickedClientId(null)}>
-                  <Text variant="bodySm" tone="danger" style={styles.linkDanger}>Clear selection</Text>
+                  <Text variant="bodySm" tone="danger" style={styles.linkDanger}>{t('groups.clearSelection')}</Text>
                 </Pressable>
               </Card>
             ) : (
@@ -251,7 +269,7 @@ export default function NewGroup() {
                 )}
                 ListEmptyComponent={
                   <Text variant="bodySm" tone="textMuted">
-                    {clientsQ.isLoading ? 'Loading clients…' : 'No clients yet.'}
+                    {clientsQ.isLoading ? t('groups.loadingClients') : t('groups.noClientsYet')}
                   </Text>
                 }
                 scrollEnabled={false}
@@ -263,9 +281,9 @@ export default function NewGroup() {
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
         {/* ---------- 3. Members ---------- */}
-        <Text variant="h3" tone="text" style={styles.section}>3. Members ({members.length})</Text>
+        <Text variant="h3" tone="text" style={styles.section}>{t('groups.sectionMembers', { count: members.length })}</Text>
         {members.length === 0 ? (
-          <Text variant="bodySm" tone="textMuted">No members yet. Add them below.</Text>
+          <Text variant="bodySm" tone="textMuted">{t('groups.noMembersYetAdd')}</Text>
         ) : (
           members.map((m) => (
             <View key={m.localId} style={[styles.memberRow, { backgroundColor: colors.card }]}>
@@ -276,7 +294,7 @@ export default function NewGroup() {
                 ) : null}
               </View>
               <Pressable onPress={() => removeMember(m.localId)}>
-                <Text variant="bodySm" tone="danger" style={styles.linkDanger}>Remove</Text>
+                <Text variant="bodySm" tone="danger" style={styles.linkDanger}>{t('common.remove')}</Text>
               </Pressable>
             </View>
           ))
@@ -284,19 +302,19 @@ export default function NewGroup() {
 
         <View style={[styles.memberDraft, { backgroundColor: colors.card }]}>
           <Input
-            label="Member name"
+            label={t('groups.memberNameLabel')}
             value={memberDraftName}
             onChangeText={setMemberDraftName}
-            placeholder="e.g. Bridesmaid 1"
+            placeholder={t('groups.memberNamePlaceholder')}
           />
           <Input
-            label="Role (optional)"
+            label={t('groups.memberRoleLabel')}
             value={memberDraftRole}
             onChangeText={setMemberDraftRole}
-            placeholder="e.g. Maid of honour"
+            placeholder={t('groups.memberRolePlaceholder')}
           />
           <Button
-            label="Add member"
+            label={t('groups.addMember')}
             variant="secondary"
             onPress={addMember}
             disabled={!memberDraftName.trim()}
@@ -306,36 +324,48 @@ export default function NewGroup() {
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
         {/* ---------- 4. Optional details ---------- */}
-        <Text variant="h3" tone="text" style={styles.section}>4. Details (optional)</Text>
+        <Text variant="h3" tone="text" style={styles.section}>{t('groups.sectionDetails')}</Text>
         <Input
-          label="Description / other style specs"
+          label={t('groups.descriptionLabel')}
           value={description}
           onChangeText={setDescription}
-          placeholder="optional"
+          placeholder={t('common.optional')}
           multiline
         />
         <Input
-          label="Shared design / pattern notes"
+          label={t('groups.sharedNotesLabel')}
           value={sharedDesignNotes}
           onChangeText={setSharedDesignNotes}
-          placeholder="The pattern everyone follows"
+          placeholder={t('groups.sharedNotesPlaceholder')}
           multiline
         />
-        <DateField label="Event date" value={eventDate} onChange={setEventDate} />
+        <DateField label={t('groups.eventDateLabel')} value={eventDate} onChange={setEventDate} />
         <DateField
-          label="Delivery date"
+          label={t('groups.deliveryDateLabel')}
           value={dateDelivery}
           onChange={setDateDelivery}
         />
 
         <View style={{ height: spacing.lg }} />
         <Button
-          label="Create group order"
+          label={t('groups.createGroupOrder')}
           onPress={submit}
           loading={create.isPending}
           disabled={!canSubmit}
         />
       </ScrollView>
+
+      <ContactPickerModal
+        visible={contactsOpen}
+        onClose={() => setContactsOpen(false)}
+        onSelect={(contact) => {
+          // Fill the owner form; address stays manual (owner requires one).
+          setOwnerFullName(contact.name);
+          setOwnerPhone(contact.phone);
+          setContactsOpen(false);
+        }}
+        defaultCountry={defaultCountry}
+      />
     </Screen>
   );
 }

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import type { TemplateField } from '@seamflow/schemas';
 import { Screen } from '../../../components/Screen';
+import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { Card } from '../../../components/Card';
 import { useCreateTemplate } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
+import { useTranslation } from '../../../lib/i18n';
 
 const STARTER_FIELDS: TemplateField[] = [
   { key: 'chest', label: 'Chest', required: true, unit: 'cm' },
@@ -17,11 +19,14 @@ const STARTER_FIELDS: TemplateField[] = [
 ];
 
 export default function NewTemplate() {
+  // Starter chips on the templates list pass a `garment` param to pre-fill.
+  const { garment } = useLocalSearchParams<{ garment?: string }>();
   const [name, setName] = useState('');
-  const [garmentType, setGarmentType] = useState('');
+  const [garmentType, setGarmentType] = useState(garment?.toLowerCase() ?? '');
   const [description, setDescription] = useState('');
   const [fields, setFields] = useState<TemplateField[]>(STARTER_FIELDS);
   const create = useCreateTemplate();
+  const { t } = useTranslation();
 
   const addField = () =>
     setFields([
@@ -52,54 +57,58 @@ export default function NewTemplate() {
           router.push(`/(app)/templates/${t.id}`);
         },
         onError: (err) =>
-          Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
       },
     );
   };
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
+      <ScreenHeader title={t('templates.newTitle')} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing.xl }}
+      >
         <Input
-          label="Template name *"
+          label={t('templates.nameLabel')}
           value={name}
           onChangeText={setName}
-          placeholder="Slim-fit suit"
+          placeholder={t('templates.namePlaceholder')}
         />
         <Input
-          label="Garment type"
+          label={t('templates.garmentTypeLabel')}
           value={garmentType}
           onChangeText={setGarmentType}
-          placeholder="suit, gown, kaftan…"
+          placeholder={t('templates.garmentTypePlaceholder')}
           autoCapitalize="none"
         />
         <Input
-          label="Description"
+          label={t('templates.descriptionLabel')}
           value={description}
           onChangeText={setDescription}
-          placeholder="Optional design notes baked into the template"
+          placeholder={t('templates.descriptionPlaceholder')}
           multiline
         />
 
-        <Text variant="h3" style={styles.section}>Measurement fields</Text>
+        <Text variant="h3" style={styles.section}>{t('templates.measurementFields')}</Text>
         {fields.map((f, i) => (
           <Card key={i}>
             <Input
-              label={`Field ${i + 1} key`}
+              label={t('templates.fieldKeyLabel', { number: i + 1 })}
               value={f.key}
               onChangeText={(v) => updateField(i, { key: v })}
               autoCapitalize="none"
-              placeholder="chest"
+              placeholder={t('templates.fieldKeyPlaceholder')}
             />
             <Input
-              label="Label"
+              label={t('templates.fieldLabelLabel')}
               value={f.label}
               onChangeText={(v) => updateField(i, { label: v })}
-              placeholder="Chest"
+              placeholder={t('templates.fieldLabelPlaceholder')}
             />
             <View style={styles.row}>
               <Button
-                label={f.required ? 'Required ✓' : 'Optional'}
+                label={f.required ? t('templates.required') : t('templates.optional')}
                 variant="secondary"
                 onPress={() => updateField(i, { required: !f.required })}
               />
@@ -111,15 +120,15 @@ export default function NewTemplate() {
               />
             </View>
             <View style={{ height: spacing.sm }} />
-            <Button label="Remove field" variant="danger" onPress={() => removeField(i)} />
+            <Button label={t('templates.removeField')} variant="danger" onPress={() => removeField(i)} />
           </Card>
         ))}
 
-        <Button label="+ Add field" variant="secondary" onPress={addField} />
+        <Button label={t('templates.addField')} variant="secondary" onPress={addField} />
         <View style={{ height: spacing.lg }} />
 
         <Button
-          label="Save template"
+          label={t('templates.saveTemplate')}
           onPress={submit}
           loading={create.isPending}
           disabled={!name || fields.length === 0}

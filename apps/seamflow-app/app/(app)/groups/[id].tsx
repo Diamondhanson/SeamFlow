@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Text } from '@seamflow/ui';
+import { Text, AvatarStack } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
@@ -17,8 +18,11 @@ import {
   useUpdateGroupOrder,
 } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
+import { useFloatingScroll } from '../../../lib/floating-scroll';
+import { useTranslation } from '../../../lib/i18n';
 
 export default function GroupDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const groupQ = useGroupOrder(id);
   const clientsQ = useClients();
@@ -26,6 +30,7 @@ export default function GroupDetail() {
   const updateGroup = useUpdateGroupOrder(id);
   const deleteGroup = useDeleteGroupOrder(id);
   const colors = useThemeColors();
+  const scroll = useFloatingScroll();
 
   const [showForm, setShowForm] = useState(false);
   const [memberName, setMemberName] = useState('');
@@ -51,25 +56,25 @@ export default function GroupDetail() {
           setMemberClientId(null);
         },
         onError: (err) =>
-          Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
       },
     );
   };
 
   const onDeleteGroup = () =>
     Alert.alert(
-      'Delete group order?',
-      `${group?.name} and all its members will be deleted.`,
+      t('groups.deleteGroupTitle'),
+      t('groups.deleteGroupMessage', { name: group?.name ?? '' }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () =>
             deleteGroup.mutate(undefined, {
               onSuccess: () => router.back(),
               onError: (err) =>
-                Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+                Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
             }),
         },
       ],
@@ -78,7 +83,8 @@ export default function GroupDetail() {
   if (groupQ.isLoading || !group) {
     return (
       <Screen>
-        <Text variant="bodySm" tone="textMuted">Loading…</Text>
+        <ScreenHeader title={t('groups.groupFallbackTitle')} />
+        <Text variant="bodySm" tone="textMuted">{t('common.loading')}</Text>
       </Screen>
     );
   }
@@ -87,48 +93,57 @@ export default function GroupDetail() {
 
   const setOwner = () => {
     if (group.members.length === 0) {
-      Alert.alert('No members', 'Add a member first, then pick an owner.');
+      Alert.alert(t('groups.noMembersOwnerTitle'), t('groups.noMembersOwnerMessage'));
       return;
     }
     const options = group.members.slice(0, 8).map((m) => ({
       text: m.fullName,
       onPress: () => updateGroup.mutate({ ownerMemberId: m.id }),
     }));
-    Alert.alert('Pick the owner', 'Who is this group for (bride, groom, etc.)?', [
+    Alert.alert(t('groups.pickOwnerTitle'), t('groups.pickOwnerMessage'), [
       {
-        text: 'Clear owner',
+        text: t('groups.clearOwner'),
         onPress: () => updateGroup.mutate({ ownerMemberId: null }),
       },
       ...options,
-      { text: 'Cancel', style: 'cancel' },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   };
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <Text variant="h1">{group.name}</Text>
+      <ScreenHeader title={group.name} />
+      <ScrollView
+        {...scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 96 }}
+      >
+        {group.members.length > 0 ? (
+          <View style={{ marginBottom: spacing.md }}>
+            <AvatarStack names={group.members.map((m) => m.fullName)} max={6} />
+          </View>
+        ) : null}
         {group.description ? (
           <Text variant="bodySm" tone="textMuted">{group.description}</Text>
         ) : null}
         {group.eventDate ? (
           <Text variant="bodySm" tone="textMuted">
-            Event: {new Date(group.eventDate).toLocaleDateString()}
+            {t('groups.eventLabel', { date: new Date(group.eventDate).toLocaleDateString() })}
           </Text>
         ) : null}
-        <Text variant="bodySm" tone="textMuted">Status: {group.status}</Text>
+        <Text variant="bodySm" tone="textMuted">{t('groups.statusLabel', { status: group.status })}</Text>
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <Text variant="h3">Owner</Text>
+            <Text variant="h3">{t('groups.ownerHeading')}</Text>
             <Text variant="bodySm" tone="textMuted">
-              {ownerMember ? ownerMember.fullName : 'Not set'}
+              {ownerMember ? ownerMember.fullName : t('groups.ownerNotSet')}
             </Text>
           </View>
           <Button
-            label={ownerMember ? 'Change' : 'Set owner'}
+            label={ownerMember ? t('groups.changeOwner') : t('groups.setOwner')}
             variant="secondary"
             onPress={setOwner}
           />
@@ -136,18 +151,18 @@ export default function GroupDetail() {
 
         {group.sharedDesignNotes ? (
           <>
-            <Text variant="h3" style={{ marginTop: spacing.lg }}>Design notes</Text>
+            <Text variant="h3" style={{ marginTop: spacing.lg }}>{t('groups.designNotesHeading')}</Text>
             <Text variant="bodySm" tone="textMuted">{group.sharedDesignNotes}</Text>
           </>
         ) : null}
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
         <View style={styles.row}>
-          <Text variant="h3">Members ({group.members.length})</Text>
+          <Text variant="h3">{t('groups.membersCount', { count: group.members.length })}</Text>
           {!showForm ? (
             <Button
-              label="+ Add"
+              label={t('groups.addShort')}
               variant="secondary"
               onPress={() => setShowForm(true)}
             />
@@ -155,7 +170,7 @@ export default function GroupDetail() {
         </View>
 
         {group.members.length === 0 && !showForm ? (
-          <Text variant="bodySm" tone="textMuted">No members yet.</Text>
+          <Text variant="bodySm" tone="textMuted">{t('groups.noMembersYet')}</Text>
         ) : null}
 
         {group.members.map((m) => (
@@ -165,31 +180,31 @@ export default function GroupDetail() {
         {showForm ? (
           <Card>
             <Input
-              label="Member name *"
+              label={t('groups.memberNameRequiredLabel')}
               value={memberName}
               onChangeText={setMemberName}
-              placeholder="Sarah Bridesmaid"
+              placeholder={t('groups.memberNameRequiredPlaceholder')}
             />
             <Input
-              label="Role label"
+              label={t('groups.roleLabelLabel')}
               value={memberRole}
               onChangeText={setMemberRole}
-              placeholder="Maid of Honor"
+              placeholder={t('groups.roleLabelPlaceholder')}
             />
             <Text variant="caption" tone="textMuted" style={{ marginBottom: 4 }}>
-              Link to existing client (optional)
+              {t('groups.linkExistingClient')}
             </Text>
             <View style={{ marginBottom: spacing.md }}>
               <Button
                 label={
                   memberClientId
-                    ? `Linked: ${clients.find((c) => c.id === memberClientId)?.fullName ?? memberClientId}`
-                    : 'None — ad-hoc by name'
+                    ? t('groups.linkedTo', { name: clients.find((c) => c.id === memberClientId)?.fullName ?? memberClientId })
+                    : t('groups.adHocByName')
                 }
                 variant="secondary"
                 onPress={() => {
                   if (clients.length === 0) {
-                    Alert.alert('No clients', 'Create a client first to link.');
+                    Alert.alert(t('groups.noClientsTitle'), t('groups.noClientsMessage'));
                     return;
                   }
                   const options = clients.slice(0, 8).map((c) => ({
@@ -199,23 +214,23 @@ export default function GroupDetail() {
                       if (!memberName) setMemberName(c.fullName);
                     },
                   }));
-                  Alert.alert('Pick a client', undefined, [
-                    { text: 'None', onPress: () => setMemberClientId(null) },
+                  Alert.alert(t('groups.pickClientTitle'), undefined, [
+                    { text: t('groups.noneOption'), onPress: () => setMemberClientId(null) },
                     ...options,
-                    { text: 'Cancel', style: 'cancel' },
+                    { text: t('common.cancel'), style: 'cancel' },
                   ]);
                 }}
               />
             </View>
             <Button
-              label="Add member"
+              label={t('groups.addMember')}
               onPress={onAddMember}
               loading={addMember.isPending}
               disabled={!memberName}
             />
             <View style={{ height: spacing.sm }} />
             <Button
-              label="Cancel"
+              label={t('common.cancel')}
               variant="secondary"
               onPress={() => {
                 setShowForm(false);
@@ -225,8 +240,8 @@ export default function GroupDetail() {
           </Card>
         ) : null}
 
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <Button label="Delete group order" variant="danger" onPress={onDeleteGroup} />
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
+        <Button label={t('groups.deleteGroupOrder')} variant="danger" onPress={onDeleteGroup} />
       </ScrollView>
     </Screen>
   );
@@ -247,25 +262,26 @@ function MemberCard({
     measurements: Record<string, number>;
   };
 }) {
+  const { t } = useTranslation();
   const promote = usePromoteMember(memberId, groupId);
   const copyMeasurements = useCopyMemberMeasurements(memberId, groupId);
   const remove = useDeleteGroupMember(memberId, groupId);
 
   const onPromote = () =>
     Alert.prompt(
-      `Promote ${member.fullName} to client`,
-      'Enter a phone number for the new client:',
+      t('groups.promoteTitle', { name: member.fullName }),
+      t('groups.promoteMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Promote',
+          text: t('groups.promote'),
           onPress: (phone?: string) => {
             if (!phone) return;
             promote.mutate(
               { phone },
               {
                 onError: (err) =>
-                  Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+                  Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
               },
             );
           },
@@ -277,21 +293,21 @@ function MemberCard({
   const onCopy = () =>
     copyMeasurements.mutate(undefined, {
       onSuccess: () =>
-        Alert.alert('Copied', 'Measurements pulled from the linked client.'),
+        Alert.alert(t('groups.copiedTitle'), t('groups.copiedMessage')),
       onError: (err) =>
-        Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
     });
 
   const onRemove = () =>
-    Alert.alert('Remove member?', `Remove ${member.fullName} from this group?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('groups.removeMemberTitle'), t('groups.removeMemberMessage', { name: member.fullName }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Remove',
+        text: t('common.remove'),
         style: 'destructive',
         onPress: () =>
           remove.mutate(undefined, {
             onError: (err) =>
-              Alert.alert('Error', err instanceof Error ? err.message : String(err)),
+              Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
           }),
       },
     ]);
@@ -301,32 +317,32 @@ function MemberCard({
       <CardTitle>{member.fullName}</CardTitle>
       {member.roleLabel ? <CardLine>{member.roleLabel}</CardLine> : null}
       {member.clientId ? (
-        <CardLine>Linked to client</CardLine>
+        <CardLine>{t('groups.linkedToClient')}</CardLine>
       ) : (
-        <CardLine>Ad-hoc member</CardLine>
+        <CardLine>{t('groups.adHocMember')}</CardLine>
       )}
       {Object.keys(member.measurements).length > 0 ? (
         <View style={{ marginTop: spacing.sm }}>
           {Object.entries(member.measurements).map(([k, v]) => (
             <CardLine key={k}>
-              {k}: {String(v)} cm
+              {t('groups.measurementLine', { key: k, value: String(v) })}
             </CardLine>
           ))}
         </View>
       ) : (
-        <CardLine>No measurements yet</CardLine>
+        <CardLine>{t('groups.noMeasurementsYet')}</CardLine>
       )}
       <View style={{ height: spacing.sm }} />
       {member.clientId ? (
         <Button
-          label="Copy measurements from client"
+          label={t('groups.copyMeasurements')}
           variant="secondary"
           onPress={onCopy}
           loading={copyMeasurements.isPending}
         />
       ) : (
         <Button
-          label="Promote to client"
+          label={t('groups.promoteToClient')}
           variant="secondary"
           onPress={onPromote}
           loading={promote.isPending}
@@ -334,7 +350,7 @@ function MemberCard({
       )}
       <View style={{ height: spacing.sm }} />
       <Button
-        label="Remove"
+        label={t('common.remove')}
         variant="danger"
         onPress={onRemove}
         loading={remove.isPending}
