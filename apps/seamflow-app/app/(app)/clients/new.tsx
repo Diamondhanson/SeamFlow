@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
@@ -8,6 +8,7 @@ import { PhoneInput } from '../../../components/PhoneInput';
 import { Button } from '../../../components/Button';
 import { useCreateClient } from '../../../lib/queries';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 // New-client form is intentionally minimal: name, phone, address. The edit
 // screen (`clients/[id].tsx`) is where additional fields like email and
@@ -15,6 +16,7 @@ import { useTranslation } from '../../../lib/i18n';
 // point a tailor is taking a customer's info on a busy day.
 export default function NewClient() {
   const { t } = useTranslation();
+  const dialog = useDialog();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -35,8 +37,7 @@ export default function NewClient() {
           router.dismiss();
           router.push(`/(app)/clients/${c.id}`);
         },
-        onError: (err) =>
-          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+        onError: (err) => void dialog.error(err),
       },
     );
   };

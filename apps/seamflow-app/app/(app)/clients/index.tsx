@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
@@ -14,9 +14,11 @@ import { ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 export default function ClientsList() {
   const { t } = useTranslation();
+  const dialog = useDialog();
   const [q, setQ] = useState('');
   // Debounce search so we don't refetch on every keystroke. The API uses
   // trigram-backed ILIKE on full_name + phone, so partial matches return fast.
@@ -29,10 +31,16 @@ export default function ClientsList() {
 
   useEffect(() => {
     if (error instanceof ApiError && error.isNotFound()) {
-      Alert.alert(t('clients.profileRequiredTitle'), t('clients.profileRequiredBody'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('clients.goToProfile'), onPress: () => router.push('/(app)/me') },
-      ]);
+      void (async () => {
+        if (
+          await dialog.confirm({
+            title: t('clients.profileRequiredTitle'),
+            message: t('clients.profileRequiredBody'),
+            confirmLabel: t('clients.goToProfile'),
+          })
+        )
+          router.push('/(app)/me');
+      })();
     }
   }, [error]);
 

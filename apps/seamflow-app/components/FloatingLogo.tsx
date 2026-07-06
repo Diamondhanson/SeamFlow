@@ -11,7 +11,8 @@
 // tappable — the rest of the bottom strip passes touches through to content.
 // ============================================================================
 
-import { StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { Keyboard, StyleSheet, View } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -19,6 +20,7 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
+  withTiming,
   withSpring,
 } from 'react-native-reanimated';
 import { Pressable } from 'react-native';
@@ -36,24 +38,35 @@ export function FloatingLogo() {
 
   // Press feedback (independent of the scroll fade).
   const scale = useSharedValue(1);
+  // 0 = keyboard hidden, 1 = visible. The logo sits at the bottom-center, which
+  // collides with the keyboard (especially in landscape), so we fold it out
+  // while typing — it's decorative, nothing is lost by hiding it.
+  const kb = useSharedValue(0);
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => {
+      kb.value = withTiming(1, { duration: 150 });
+    });
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      kb.value = withTiming(0, { duration: 200 });
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [kb]);
 
   const fadeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      activity.value,
-      [0, 1],
-      [1, 0.14],
-      Extrapolation.CLAMP,
-    ),
+    opacity:
+      (1 - kb.value) *
+      interpolate(activity.value, [0, 1], [1, 0.14], Extrapolation.CLAMP),
     transform: [
       { scale: scale.value },
-      // Drift down a touch while scrolling so it recedes rather than just fading.
+      // Drift down while scrolling (recede) and further down when the keyboard
+      // pushes it, so it slides out of the way instead of just fading.
       {
-        translateY: interpolate(
-          activity.value,
-          [0, 1],
-          [0, 6],
-          Extrapolation.CLAMP,
-        ),
+        translateY:
+          interpolate(activity.value, [0, 1], [0, 6], Extrapolation.CLAMP) +
+          kb.value * 24,
       },
     ],
   }));
@@ -67,7 +80,10 @@ export function FloatingLogo() {
   return (
     <View
       pointerEvents="box-none"
-      style={[styles.wrap, { bottom: insets.bottom + 6 }]}
+      style={[
+        styles.wrap,
+        { bottom: insets.bottom + 6, left: insets.left, right: insets.right },
+      ]}
     >
       <Animated.View style={fadeStyle}>
         <Pressable

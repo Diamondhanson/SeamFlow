@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -9,6 +9,7 @@ import { useDeleteTemplate, useTemplate } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 export default function TemplateDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,21 +18,21 @@ export default function TemplateDetail() {
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
   const { t } = useTranslation();
+  const dialog = useDialog();
 
-  const onDelete = () =>
-    Alert.alert(t('templates.deleteConfirmTitle'), t('templates.deleteConfirmBody', { name: template?.name ?? '' }), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: () =>
-          del.mutate(undefined, {
-            onSuccess: () => router.back(),
-            onError: (err) =>
-              Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-          }),
-      },
-    ]);
+  const onDelete = async () => {
+    const ok = await dialog.confirm({
+      title: t('templates.deleteConfirmTitle'),
+      message: t('templates.deleteConfirmBody', { name: template?.name ?? '' }),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    del.mutate(undefined, {
+      onSuccess: () => router.back(),
+      onError: (err) => void dialog.error(err),
+    });
+  };
 
   if (isLoading || !template) {
     return (

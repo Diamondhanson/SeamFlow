@@ -15,6 +15,7 @@ import { STATUS_TONE, STATUS_ORDER } from '../../../lib/order-status';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
 
 // ============================================================================
 // Global orders list with filters — Phase 1.10, restyled to the redesign.
@@ -85,8 +86,17 @@ export default function OrdersList() {
   const { data, isLoading } = useOrders(filter);
   const items = data?.items ?? [];
 
+  // Two-up card grid on wider screens; single column on phones. Cell width is
+  // fixed (from the wide content cap) so a lone last card keeps its size.
+  const columns = useResponsiveValue({ compact: 1, medium: 2, expanded: 2 });
+  const contentW = useContentWidth('wide');
+  const cellW =
+    columns > 1
+      ? Math.floor((contentW - spacing.lg * 2 - spacing.md * (columns - 1)) / columns)
+      : undefined;
+
   return (
-    <Screen padded={false}>
+    <Screen padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader
           title={t('orders.listTitle')}
@@ -149,14 +159,18 @@ export default function OrdersList() {
           {...scroll}
           data={items}
           keyExtractor={(o) => o.id}
+          key={`list-${columns}`}
+          numColumns={columns}
+          columnWrapperStyle={columns > 1 ? styles.rowWrap : undefined}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
           renderItem={({ item }) => (
-            <OrderCard
-              order={item}
-              onPress={() => router.push(`/(app)/orders/${item.id}`)}
-            />
+            <View style={cellW ? { width: cellW } : undefined}>
+              <OrderCard
+                order={item}
+                onPress={() => router.push(`/(app)/orders/${item.id}`)}
+              />
+            </View>
           )}
         />
       )}
@@ -235,6 +249,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: 96,
+    rowGap: spacing.md,
   },
+  rowWrap: { gap: spacing.md },
   muted: { textAlign: 'center', marginTop: spacing.xl },
 });

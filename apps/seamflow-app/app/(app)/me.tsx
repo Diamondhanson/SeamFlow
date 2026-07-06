@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -26,6 +25,7 @@ import { clearCache } from '../../lib/query-client';
 import { ensurePushRegistered, sendPushTest } from '../../lib/notifications';
 import { pickPhoto, uploadTailorLogo } from '../../lib/photo-upload';
 import { alertIfPermissionDenied } from '../../lib/permissions';
+import { useDialog } from '../../lib/dialog';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode, type ThemePreference } from '../../lib/theme-mode';
@@ -50,6 +50,7 @@ export default function Me() {
   const { t, language } = useTranslation();
   const scroll = useFloatingScroll();
   const colors = useThemeColors();
+  const dialog = useDialog();
   const upsert = useUpsertMyTailor();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -76,8 +77,8 @@ export default function Me() {
       const photoUrl = await uploadTailorLogo({ tailorId: me.tailor.id, asset });
       await savePhoto(photoUrl);
     } catch (err) {
-      if (!alertIfPermissionDenied(err, t)) {
-        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      if (!(await alertIfPermissionDenied(err, dialog, t))) {
+        await dialog.error(err);
       }
     } finally {
       setUploadingPhoto(false);
@@ -89,22 +90,26 @@ export default function Me() {
     try {
       await savePhoto(null);
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      await dialog.error(err);
     } finally {
       setUploadingPhoto(false);
     }
   };
 
-  const promptPhoto = () => {
-    const buttons: Parameters<typeof Alert.alert>[2] = [
-      { text: t('settings.takePhoto'), onPress: () => changePhoto('camera') },
-      { text: t('settings.chooseFromGallery'), onPress: () => changePhoto('library') },
-    ];
-    if (me?.tailor?.photoUrl) {
-      buttons.push({ text: t('settings.removePhoto'), style: 'destructive', onPress: removePhoto });
-    }
-    buttons.push({ text: t('common.cancel'), style: 'cancel' });
-    Alert.alert(t('settings.changePhoto'), undefined, buttons);
+  const promptPhoto = async () => {
+    const action = await dialog.choose<'camera' | 'library' | 'remove'>({
+      title: t('settings.changePhoto'),
+      actions: [
+        { label: t('settings.takePhoto'), value: 'camera' },
+        { label: t('settings.chooseFromGallery'), value: 'library' },
+        ...(me?.tailor?.photoUrl
+          ? [{ label: t('settings.removePhoto'), value: 'remove' as const, destructive: true }]
+          : []),
+      ],
+    });
+    if (action === 'camera') changePhoto('camera');
+    else if (action === 'library') changePhoto('library');
+    else if (action === 'remove') removePhoto();
   };
 
   // Keep the server's copy of the UI language in sync so push copy is localized.
@@ -129,21 +134,22 @@ export default function Me() {
       // the server has nothing to push to.
       const token = await ensurePushRegistered();
       if (!token) {
-        Alert.alert(
-          t('settings.pushNotAvailableTitle'),
-          t('settings.pushNotAvailableBody'),
-        );
+        await dialog.alert({
+          title: t('settings.pushNotAvailableTitle'),
+          message: t('settings.pushNotAvailableBody'),
+          tone: 'warning',
+        });
         return;
       }
       const count = await sendPushTest();
-      Alert.alert(
-        t('settings.testSentTitle'),
-        count === 0
-          ? t('settings.noDevices')
-          : t('settings.sentToDevices', { count }),
-      );
+      await dialog.alert({
+        title: t('settings.testSentTitle'),
+        message:
+          count === 0 ? t('settings.noDevices') : t('settings.sentToDevices', { count }),
+        tone: 'success',
+      });
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      await dialog.error(err);
     }
   };
 

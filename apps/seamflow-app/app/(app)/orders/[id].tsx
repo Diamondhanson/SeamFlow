@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -32,7 +31,9 @@ import {
 import { useShareOrder } from '../../../lib/share-order';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
 import { alertIfPermissionDenied } from '../../../lib/permissions';
+import { useDialog } from '../../../lib/dialog';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
+import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useTranslation } from '../../../lib/i18n';
 
 const STATUS_TONE: Record<OrderStatus, ChipTone> = {
@@ -61,6 +62,9 @@ export default function OrderDetailScreen() {
   const [uploading, setUploading] = useState(false);
   const colors = useThemeColors();
   const theme = useAtelierTheme();
+  const dialog = useDialog();
+  // Photos fill more of the (reading-width) detail column on larger screens.
+  const thumbSize = useResponsiveValue({ compact: 120, medium: 140, expanded: 160 });
   const scroll = useFloatingScroll();
 
   const order = orderQ.data ?? null;
@@ -70,10 +74,7 @@ export default function OrderDetailScreen() {
   const transition = (to: OrderStatus) =>
     transitionM.mutate(
       { to },
-      {
-        onError: (err) =>
-          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-      },
+      { onError: (err) => void dialog.error(err) },
     );
 
   const addPhoto = async (source: 'camera' | 'library') => {
@@ -91,27 +92,24 @@ export default function OrderDetailScreen() {
       // directly + the api-client raw call), so invalidate manually.
       qc.invalidateQueries({ queryKey: qk.orderPhotos(id) });
     } catch (err) {
-      if (!alertIfPermissionDenied(err, t)) {
-        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      if (!(await alertIfPermissionDenied(err, dialog, t))) {
+        await dialog.error(err);
       }
     } finally {
       setUploading(false);
     }
   };
 
-  const deletePhoto = (photoId: string) =>
-    Alert.alert(t('orders.deletePhotoTitle'), t('orders.deletePhotoMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: () =>
-          deletePhotoM.mutate(photoId, {
-            onError: (err) =>
-              Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-          }),
-      },
-    ]);
+  const deletePhoto = async (photoId: string) => {
+    const ok = await dialog.confirm({
+      title: t('orders.deletePhotoTitle'),
+      message: t('orders.deletePhotoMessage'),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    deletePhotoM.mutate(photoId, { onError: (err) => void dialog.error(err) });
+  };
 
   const shareWithClient = () => {
     if (!order) return;
@@ -127,24 +125,19 @@ export default function OrderDetailScreen() {
     });
   };
 
-  const deleteOrder = () =>
-    Alert.alert(
-      t('orders.deleteOrderTitle'),
-      t('orders.deleteOrderMessage', { name: order?.orderName ?? '' }),
-      [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: () =>
-          deleteOrderM.mutate(undefined, {
-            onSuccess: () => router.back(),
-            onError: (err) =>
-              Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-          }),
-      },
-    ],
-    );
+  const deleteOrder = async () => {
+    const ok = await dialog.confirm({
+      title: t('orders.deleteOrderTitle'),
+      message: t('orders.deleteOrderMessage', { name: order?.orderName ?? '' }),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    deleteOrderM.mutate(undefined, {
+      onSuccess: () => router.back(),
+      onError: (err) => void dialog.error(err),
+    });
+  };
 
   if (loading || !order) {
     return (
@@ -289,18 +282,21 @@ export default function OrderDetailScreen() {
                   <Pressable
                     key={p.id}
                     onLongPress={() => deletePhoto(p.id)}
-                    style={styles.photoThumbWrap}
+                    style={[styles.photoThumbWrap, { width: thumbSize }]}
                   >
                     {previewUrl ? (
                       <Image
                         source={{ uri: previewUrl }}
-                        style={[styles.photoThumb, { backgroundColor: colors.card }]}
+                        style={[
+                          styles.photoThumb,
+                          { width: thumbSize, height: thumbSize, backgroundColor: colors.card },
+                        ]}
                       />
                     ) : (
                       <View
                         style={[
                           styles.photoThumbPlaceholder,
-                          { backgroundColor: colors.card },
+                          { width: thumbSize, height: thumbSize, backgroundColor: colors.card },
                         ]}
                       >
                         <ActivityIndicator color={colors.textMuted} />

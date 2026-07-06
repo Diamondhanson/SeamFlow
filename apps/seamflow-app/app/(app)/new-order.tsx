@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
   FlatList,
   ScrollView,
   StyleSheet,
@@ -29,6 +28,7 @@ import { useMe } from '../../lib/queries';
 import type { DeviceContact } from '../../lib/contacts';
 import { spacing, useThemeColors } from '../../lib/theme';
 import { useFloatingScroll } from '../../lib/floating-scroll';
+import { useDialog } from '../../lib/dialog';
 import { useTranslation } from '../../lib/i18n';
 
 /** A person chosen for the order who isn't a saved client yet (picked from
@@ -41,6 +41,7 @@ export default function NewOrderWizard() {
   const { t } = useTranslation();
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
+  const dialog = useDialog();
   const [step, setStep] = useState<Step>('client');
 
   // Step 1: client
@@ -80,7 +81,7 @@ export default function NewOrderWizard() {
       const res = await api.clients.list({ limit: 50, q: q || undefined });
       setClients(res.items);
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      void dialog.error(err);
     }
   }, []);
 
@@ -89,7 +90,7 @@ export default function NewOrderWizard() {
       const res = await api.measurementTemplates.list();
       setTemplates(res.items);
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      void dialog.error(err);
     }
   }, []);
 
@@ -112,7 +113,7 @@ export default function NewOrderWizard() {
       setShowNewClientForm(false);
       setStep('measurements');
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      void dialog.error(err);
     }
   };
 
@@ -162,12 +163,16 @@ export default function NewOrderWizard() {
   const setFieldValue = (key: string, v: string) =>
     setMeasurementsValues((cur) => ({ ...cur, [key]: v }));
 
-  const goToOrderStep = () => {
+  const goToOrderStep = async () => {
     // Validate at least one numeric value if any field is required
     if (pickedTemplate) {
       for (const f of pickedTemplate.fields) {
         if (f.required && !measurementsValues[f.key]) {
-          Alert.alert(t('orders.requiredFieldTitle'), t('orders.requiredFieldMessage', { label: f.label }));
+          await dialog.alert({
+            title: t('orders.requiredFieldTitle'),
+            message: t('orders.requiredFieldMessage', { label: f.label }),
+            tone: 'warning',
+          });
           return;
         }
       }
@@ -232,7 +237,7 @@ export default function NewOrderWizard() {
 
       router.replace(`/(app)/orders/${created.id}`);
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      void dialog.error(err);
     } finally {
       setSubmitting(false);
     }
@@ -335,16 +340,22 @@ export default function NewOrderWizard() {
           <Button
             label={pickedTemplate ? t('orders.usingTemplate', { name: pickedTemplate.name }) : t('orders.noTemplateSkip')}
             variant="secondary"
-            onPress={() => {
-              const opts = templates.slice(0, 8).map((tpl) => ({
-                text: tpl.name,
-                onPress: () => pickTemplate(tpl),
-              }));
-              Alert.alert(t('orders.pickTemplate'), undefined, [
-                { text: t('orders.noTemplateOption'), onPress: () => pickTemplate(null) },
-                ...opts,
-                { text: t('common.cancel'), style: 'cancel' },
-              ]);
+            onPress={async () => {
+              const key = await dialog.pick({
+                title: t('orders.pickTemplate'),
+                selectedKey: pickedTemplate?.id ?? '__none__',
+                options: [
+                  { key: '__none__', label: t('orders.noTemplateOption') },
+                  ...templates.map((tpl) => ({ key: tpl.id, label: tpl.name })),
+                ],
+              });
+              if (!key) return;
+              if (key === '__none__') {
+                pickTemplate(null);
+              } else {
+                const picked = templates.find((tpl) => tpl.id === key);
+                if (picked) pickTemplate(picked);
+              }
             }}
           />
           <View style={{ height: spacing.lg }} />

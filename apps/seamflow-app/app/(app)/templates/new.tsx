@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import type { TemplateField } from '@seamflow/schemas';
@@ -11,6 +11,7 @@ import { Card } from '../../../components/Card';
 import { useCreateTemplate } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 const STARTER_FIELDS: TemplateField[] = [
   { key: 'chest', label: 'Chest', required: true, unit: 'cm' },
@@ -27,6 +28,7 @@ export default function NewTemplate() {
   const [fields, setFields] = useState<TemplateField[]>(STARTER_FIELDS);
   const create = useCreateTemplate();
   const { t } = useTranslation();
+  const dialog = useDialog();
 
   const addField = () =>
     setFields([
@@ -56,8 +58,7 @@ export default function NewTemplate() {
           router.dismiss();
           router.push(`/(app)/templates/${t.id}`);
         },
-        onError: (err) =>
-          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+        onError: (err) => void dialog.error(err),
       },
     );
   };

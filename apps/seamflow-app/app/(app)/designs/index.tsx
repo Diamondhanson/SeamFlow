@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Pressable,
@@ -16,16 +15,19 @@ import { ScreenHeader } from '../../../components/ScreenHeader';
 import { useDesigns, useMe } from '../../../lib/queries';
 import { pickPhoto, uploadDesign } from '../../../lib/photo-upload';
 import { alertIfPermissionDenied } from '../../../lib/permissions';
+import { useDialog } from '../../../lib/dialog';
 import { qk } from '../../../lib/query-keys';
 import { useQueryClient } from '@tanstack/react-query';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
 
 export default function DesignStudio() {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
   const qc = useQueryClient();
+  const dialog = useDialog();
   const scroll = useFloatingScroll();
   const { data: me } = useMe();
   const designsQ = useDesigns();
@@ -34,9 +36,22 @@ export default function DesignStudio() {
   const items = designsQ.data?.items ?? [];
   const tailorId = me?.tailor?.id;
 
+  // Responsive grid: 2 cols (phone) → 3 (medium) → 4 (expanded). Cell width is
+  // computed from the same wide content width the <Screen> uses, so a short
+  // last row keeps the same tile size instead of stretching (flex:1 would).
+  const columns = useGridColumns();
+  const contentW = useContentWidth('wide');
+  const cellW = Math.floor(
+    (contentW - spacing.lg * 2 - spacing.md * (columns - 1)) / columns,
+  );
+
   const add = async (source: 'camera' | 'library') => {
     if (!tailorId) {
-      Alert.alert(t('designs.finishSetupTitle'), t('designs.finishSetupBody'));
+      await dialog.alert({
+        title: t('designs.finishSetupTitle'),
+        message: t('designs.finishSetupBody'),
+        tone: 'info',
+      });
       return;
     }
     setUploading(true);
@@ -46,23 +61,27 @@ export default function DesignStudio() {
       await uploadDesign({ tailorId, asset });
       qc.invalidateQueries({ queryKey: qk.designs() });
     } catch (err) {
-      if (!alertIfPermissionDenied(err, t)) {
-        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      if (!(await alertIfPermissionDenied(err, dialog, t))) {
+        await dialog.error(err);
       }
     } finally {
       setUploading(false);
     }
   };
 
-  const promptAdd = () =>
-    Alert.alert(t('designs.addSourceTitle'), undefined, [
-      { text: t('designs.takePhoto'), onPress: () => add('camera') },
-      { text: t('designs.chooseFromGallery'), onPress: () => add('library') },
-      { text: t('common.cancel'), style: 'cancel' },
-    ]);
+  const promptAdd = async () => {
+    const action = await dialog.choose<'camera' | 'library'>({
+      title: t('designs.addSourceTitle'),
+      actions: [
+        { label: t('designs.takePhoto'), value: 'camera' },
+        { label: t('designs.chooseFromGallery'), value: 'library' },
+      ],
+    });
+    if (action) add(action);
+  };
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader
           title={t('designs.studioTitle')}
@@ -100,7 +119,9 @@ export default function DesignStudio() {
           {...scroll}
           data={items}
           keyExtractor={(d) => d.id}
-          numColumns={2}
+          // numColumns can't change on the fly without a fresh list identity.
+          key={`grid-${columns}`}
+          numColumns={columns}
           columnWrapperStyle={styles.rowWrap}
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}
@@ -108,7 +129,7 @@ export default function DesignStudio() {
             const url = item.thumbnailUrl ?? item.signedUrl;
             return (
               <Pressable
-                style={styles.cell}
+                style={[styles.cell, { width: cellW }]}
                 onPress={() => router.push(`/(app)/designs/${item.id}`)}
               >
                 {url ? (
@@ -146,7 +167,7 @@ const styles = StyleSheet.create({
   emptyText: { textAlign: 'center' },
   grid: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 96 },
   rowWrap: { gap: spacing.md },
-  cell: { flex: 1, marginBottom: spacing.md },
+  cell: { marginBottom: spacing.md },
   thumb: { width: '100%', aspectRatio: 1 },
   thumbPlaceholder: { alignItems: 'center', justifyContent: 'center' },
   caption: { marginTop: 4 },

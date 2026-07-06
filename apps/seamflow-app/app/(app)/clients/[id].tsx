@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -18,6 +18,7 @@ import {
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 export default function ClientDetail() {
   const { t } = useTranslation();
@@ -28,6 +29,7 @@ export default function ClientDetail() {
   const createSet = useCreateMeasurementSet(id);
   const deleteClient = useDeleteClient(id);
   const colors = useThemeColors();
+  const dialog = useDialog();
   const scroll = useFloatingScroll();
 
   // Inline new-measurement-set form
@@ -42,12 +44,16 @@ export default function ClientDetail() {
   const orders = ordersQ.data?.items ?? [];
   const loading = clientQ.isLoading;
 
-  const addSet = () => {
+  const addSet = async () => {
     let parsed: Record<string, number>;
     try {
       parsed = JSON.parse(valuesJson);
     } catch {
-      Alert.alert(t('clients.invalidJsonTitle'), t('clients.invalidJsonBody'));
+      await dialog.alert({
+        title: t('clients.invalidJsonTitle'),
+        message: t('clients.invalidJsonBody'),
+        tone: 'error',
+      });
       return;
     }
     createSet.mutate(
@@ -57,30 +63,24 @@ export default function ClientDetail() {
           setShowForm(false);
           setLabel('default');
         },
-        onError: (err) =>
-          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+        onError: (err) => void dialog.error(err),
       },
     );
   };
 
-  const onDeleteClient = () =>
-    Alert.alert(
-      t('clients.deleteClientTitle'),
-      t('clients.deleteConfirmBody', { name: client?.fullName ?? '' }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () =>
-            deleteClient.mutate(undefined, {
-              onSuccess: () => router.back(),
-              onError: (err) =>
-                Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-            }),
-        },
-      ],
-    );
+  const onDeleteClient = async () => {
+    const ok = await dialog.confirm({
+      title: t('clients.deleteClientTitle'),
+      message: t('clients.deleteConfirmBody', { name: client?.fullName ?? '' }),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    deleteClient.mutate(undefined, {
+      onSuccess: () => router.back(),
+      onError: (err) => void dialog.error(err),
+    });
+  };
 
   if (loading || !client) {
     return (
@@ -187,6 +187,7 @@ function MeasurementSetCard({
   set: { label: string; values: Record<string, number>; unitPreference: string };
 }) {
   const { t } = useTranslation();
+  const dialog = useDialog();
   const del = useDeleteMeasurementSet(setId, clientId);
   return (
     <Card>
@@ -203,8 +204,7 @@ function MeasurementSetCard({
           loading={del.isPending}
           onPress={() =>
             del.mutate(undefined, {
-              onError: (err) =>
-                Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+              onError: (err) => void dialog.error(err),
             })
           }
         />

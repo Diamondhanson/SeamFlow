@@ -10,15 +10,17 @@
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View, Vibration } from 'react-native';
+import { Pressable, StyleSheet, View, Vibration } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@seamflow/ui';
 import { PinDots, Dialpad } from './PinKeypad';
 import { useLock } from '../lib/lock-context';
 import { useAuth } from '../lib/auth-context';
+import { useDialog } from '../lib/dialog';
 import { useTranslation } from '../lib/i18n';
 import { MAX_ATTEMPTS, PIN_LENGTH, verifyPin } from '../lib/pin-lock';
 import { spacing, useThemeColors } from '../lib/theme';
+import { useBreakpoint } from '../lib/use-breakpoint';
 
 interface Props {
   /** Greeting shown above the dots. Default "Enter your PIN". */
@@ -29,11 +31,13 @@ export function PinLockScreen({ prompt }: Props) {
   const { t } = useTranslation();
   const { unlock } = useLock();
   const { signOut } = useAuth();
+  const dialog = useDialog();
   const promptText = prompt ?? t('misc.enterYourPin');
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [failedCount, setFailedCount] = useState(0);
   const colors = useThemeColors();
+  const { isLandscape } = useBreakpoint();
   const verifyingRef = useRef(false);
 
   // Verify once the last digit lands.
@@ -61,11 +65,12 @@ export function PinLockScreen({ prompt }: Props) {
         setPin('');
         setFailedCount(result.failed);
         if (result.shouldSignOut) {
-          Alert.alert(
-            t('misc.tooManyAttemptsTitle'),
-            t('misc.tooManyAttemptsBody', { max: MAX_ATTEMPTS }),
-            [{ text: t('common.ok'), onPress: () => void signOut() }],
-          );
+          await dialog.alert({
+            title: t('misc.tooManyAttemptsTitle'),
+            message: t('misc.tooManyAttemptsBody', { max: MAX_ATTEMPTS }),
+            tone: 'error',
+          });
+          signOut();
         }
       } finally {
         verifyingRef.current = false;
@@ -90,39 +95,44 @@ export function PinLockScreen({ prompt }: Props) {
   return (
     <SafeAreaView
       style={[styles.screen, { backgroundColor: colors.bg }]}
-      edges={['top', 'bottom']}
+      edges={['top', 'bottom', 'left', 'right']}
     >
-      {/* Brand + prompt + dots — upper region */}
-      <View style={styles.top}>
-        <Text variant="display" style={styles.brand}>
-          SeamFlow
-        </Text>
-        <Text variant="bodySm" tone="textMuted">
-          {promptText}
-        </Text>
-        <PinDots value={pin} />
-        {failedCount > 0 ? (
-          <Text variant="caption" tone="danger" style={styles.error}>
-            {t('misc.wrongPinAttempts', {
-              left: MAX_ATTEMPTS - failedCount,
-              plural: MAX_ATTEMPTS - failedCount === 1 ? '' : 's',
-            })}
+      {/* Portrait: brand/dots stacked above the keypad. Landscape: the short
+          height can't fit them stacked, so they sit side-by-side (brand left,
+          keypad right), each centred in its half. */}
+      <View style={[styles.container, isLandscape && styles.containerLandscape]}>
+        {/* Brand + prompt + dots */}
+        <View style={[styles.top, isLandscape && styles.topLandscape]}>
+          <Text variant="display" style={styles.brand}>
+            SeamFlow
           </Text>
-        ) : null}
-      </View>
-
-      {/* Keypad pushed to the lower region for easy thumb reach */}
-      <View style={styles.bottom}>
-        <Dialpad onKey={press} disabled={busy} />
-        <Pressable
-          onPress={() => void signOut()}
-          hitSlop={12}
-          style={styles.forgotBtn}
-        >
           <Text variant="bodySm" tone="textMuted">
-            {t('misc.forgotPinSignOut')}
+            {promptText}
           </Text>
-        </Pressable>
+          <PinDots value={pin} />
+          {failedCount > 0 ? (
+            <Text variant="caption" tone="danger" style={styles.error}>
+              {t('misc.wrongPinAttempts', {
+                left: MAX_ATTEMPTS - failedCount,
+                plural: MAX_ATTEMPTS - failedCount === 1 ? '' : 's',
+              })}
+            </Text>
+          ) : null}
+        </View>
+
+        {/* Keypad — pushed low in portrait for thumb reach, centred in landscape */}
+        <View style={[styles.bottom, isLandscape && styles.bottomLandscape]}>
+          <Dialpad onKey={press} disabled={busy} />
+          <Pressable
+            onPress={() => void signOut()}
+            hitSlop={12}
+            style={styles.forgotBtn}
+          >
+            <Text variant="bodySm" tone="textMuted">
+              {t('misc.forgotPinSignOut')}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -130,10 +140,20 @@ export function PinLockScreen({ prompt }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, paddingHorizontal: spacing.lg },
+  container: { flex: 1 },
+  containerLandscape: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   top: {
     alignItems: 'center',
     paddingTop: spacing.xl * 2,
     gap: spacing.lg,
+  },
+  topLandscape: {
+    flex: 1,
+    paddingTop: 0,
+    justifyContent: 'center',
   },
   brand: { marginBottom: spacing.xs },
   error: { fontWeight: '600' },
@@ -143,6 +163,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     paddingBottom: spacing.md,
+  },
+  bottomLandscape: {
+    justifyContent: 'center',
+    paddingBottom: 0,
   },
   forgotBtn: { alignItems: 'center', marginTop: spacing.xl },
 });

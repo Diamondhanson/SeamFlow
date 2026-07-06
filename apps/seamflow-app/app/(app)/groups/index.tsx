@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -23,6 +23,8 @@ import { ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
+import { useDialog } from '../../../lib/dialog';
 
 const GROUP_STATUS_LABEL_KEY: Record<GroupOrderStatus, string> = {
   planning: 'groups.statusPlanning',
@@ -106,24 +108,34 @@ export default function GroupsList() {
   const { colors } = useAtelierTheme();
   const { t } = useTranslation();
   const scroll = useFloatingScroll();
+  const dialog = useDialog();
 
   useEffect(() => {
     if (error instanceof ApiError && error.isNotFound()) {
-      Alert.alert(
-        t('groups.profileRequiredTitle'),
-        t('groups.profileRequiredMessage'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          { text: t('groups.goToProfile'), onPress: () => router.push('/(app)/me') },
-        ],
-      );
+      void (async () => {
+        if (
+          await dialog.confirm({
+            title: t('groups.profileRequiredTitle'),
+            message: t('groups.profileRequiredMessage'),
+            confirmLabel: t('groups.goToProfile'),
+          })
+        )
+          router.push('/(app)/me');
+      })();
     }
-  }, [error, t]);
+  }, [error, t, dialog]);
 
   const items = data?.items ?? [];
 
+  const columns = useResponsiveValue({ compact: 1, medium: 2, expanded: 2 });
+  const contentW = useContentWidth('wide');
+  const cellW =
+    columns > 1
+      ? Math.floor((contentW - spacing.lg * 2 - spacing.md * (columns - 1)) / columns)
+      : undefined;
+
   return (
-    <Screen padded={false}>
+    <Screen padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader
           title={t('groups.listTitle')}
@@ -153,14 +165,18 @@ export default function GroupsList() {
           {...scroll}
           data={items}
           keyExtractor={(g) => g.id}
+          key={`list-${columns}`}
+          numColumns={columns}
+          columnWrapperStyle={columns > 1 ? styles.rowWrap : undefined}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
           renderItem={({ item }) => (
-            <GroupCard
-              group={item}
-              onPress={() => router.push(`/(app)/groups/${item.id}`)}
-            />
+            <View style={cellW ? { width: cellW } : undefined}>
+              <GroupCard
+                group={item}
+                onPress={() => router.push(`/(app)/groups/${item.id}`)}
+              />
+            </View>
           )}
         />
       )}
@@ -174,7 +190,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: 96,
+    rowGap: spacing.md,
   },
+  rowWrap: { gap: spacing.md },
   card: { borderWidth: 1, overflow: 'hidden' },
   topBar: { height: 3, width: '100%' },
   cardInner: { padding: spacing.lg },

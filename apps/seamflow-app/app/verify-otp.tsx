@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAuth } from '../lib/auth-context';
 import { spacing } from '../lib/theme';
+import { useDialog } from '../lib/dialog';
 import { useTranslation } from '../lib/i18n';
 
 const OTP_LEN = 6;
@@ -18,6 +19,7 @@ export default function VerifyOtp() {
 
   const { verifyOtpSignup, resendSignupOtp } = useAuth();
   const { t } = useTranslation();
+  const dialog = useDialog();
   const [code, setCode] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
@@ -58,7 +60,7 @@ export default function VerifyOtp() {
       router.replace('/(app)');
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('auth.verificationFailed');
-      Alert.alert(t('auth.verificationFailed'), msg);
+      await dialog.alert({ title: t('auth.verificationFailed'), message: msg, tone: 'error' });
     } finally {
       setVerifying(false);
     }
@@ -71,10 +73,14 @@ export default function VerifyOtp() {
       await resendSignupOtp(email);
       cooldownStartRef.current = Date.now();
       setCooldownLeftMs(RESEND_COOLDOWN_MS);
-      Alert.alert(t('auth.codeSent'), t('auth.codeSentMessage'));
+      await dialog.alert({
+        title: t('auth.codeSent'),
+        message: t('auth.codeSentMessage'),
+        tone: 'success',
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('auth.resendFailed');
-      Alert.alert(t('auth.resendFailed'), msg);
+      await dialog.alert({ title: t('auth.resendFailed'), message: msg, tone: 'error' });
     } finally {
       setResending(false);
     }

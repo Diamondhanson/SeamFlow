@@ -32,6 +32,7 @@ import {
 } from '@seamflow/ui';
 import { STATUS_TONE, dueInfo } from '../lib/order-status';
 import { useTranslation } from '../lib/i18n';
+import { useResponsiveValue } from '../lib/use-breakpoint';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -55,6 +56,8 @@ export function OrderCard({
   const accent = c[STATUS_TONE[order.status]];
   const due = dueInfo(order.dateDelivery, order.status);
   const isRail = variant === 'rail';
+  // Rail cards grow on wider screens so the "Due soon" strip doesn't look tiny.
+  const railW = useResponsiveValue({ compact: 220, medium: 260, expanded: 300 });
 
   const surface = {
     backgroundColor: c.surface,
@@ -74,7 +77,7 @@ export function OrderCard({
   // Home "Due soon" rail — narrow, stacked card (unchanged).
   if (isRail) {
     return (
-      <Animated.View style={[animatedStyle, styles.railWrap]}>
+      <Animated.View style={[animatedStyle, { width: railW }]}>
         <AnimatedPressable
           {...pressHandlers}
           accessibilityRole="button"
@@ -135,7 +138,6 @@ export function OrderCard({
 }
 
 const styles = StyleSheet.create({
-  railWrap: { width: 220 },
   card: {
     borderWidth: 1,
     overflow: 'hidden',

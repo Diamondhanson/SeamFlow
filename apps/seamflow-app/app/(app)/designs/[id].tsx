@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
   FlatList,
   Image,
   Modal,
@@ -26,6 +25,7 @@ import {
 } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
+import { useDialog } from '../../../lib/dialog';
 import { useTranslation } from '../../../lib/i18n';
 
 export default function DesignDetail() {
@@ -33,6 +33,7 @@ export default function DesignDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, radii } = useAtelierTheme();
   const scroll = useFloatingScroll();
+  const dialog = useDialog();
 
   const designQ = useDesign(id);
   const updateM = useUpdateDesign(id);
@@ -59,7 +60,7 @@ export default function DesignDetail() {
   const save = () =>
     updateM.mutate(
       { caption: caption.trim() || null, tags: parseTags(tagsText) },
-      { onError: (e) => Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e)) },
+      { onError: (e) => void dialog.error(e) },
     );
 
   const onAcceptDescription = (res: { text: string; tags?: string[] }) => {
@@ -80,25 +81,30 @@ export default function DesignDetail() {
     attachM.mutate(
       { designId: id, orderId },
       {
-        onSuccess: () => Alert.alert(t('designs.attachedTitle'), t('designs.attachedBody')),
-        onError: (e) => Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e)),
+        onSuccess: () =>
+          void dialog.alert({
+            title: t('designs.attachedTitle'),
+            message: t('designs.attachedBody'),
+            tone: 'success',
+          }),
+        onError: (e) => void dialog.error(e),
       },
     );
   };
 
-  const confirmDelete = () =>
-    Alert.alert(t('designs.deleteConfirmTitle'), t('designs.deleteConfirmBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: () =>
-          deleteM.mutate(id, {
-            onSuccess: () => router.back(),
-            onError: (e) => Alert.alert(t('common.error'), e instanceof Error ? e.message : String(e)),
-          }),
-      },
-    ]);
+  const confirmDelete = async () => {
+    const ok = await dialog.confirm({
+      title: t('designs.deleteConfirmTitle'),
+      message: t('designs.deleteConfirmBody'),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    deleteM.mutate(id, {
+      onSuccess: () => router.back(),
+      onError: (e) => void dialog.error(e),
+    });
+  };
 
   if (!design) {
     return (
@@ -200,7 +206,8 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: {
     width: '95%',
-    height: '70%',
+    maxWidth: 640,
+    maxHeight: '85%',
     borderRadius: 24,
     paddingTop: spacing.lg,
     paddingHorizontal: spacing.lg,

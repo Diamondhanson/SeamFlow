@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -13,11 +13,13 @@ import { useMe, useUpsertMyTailor } from '../../lib/queries';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
+import { useDialog } from '../../lib/dialog';
 
 export default function ProfileEdit() {
   const { data: me } = useMe();
   const upsert = useUpsertMyTailor();
   const { t } = useTranslation();
+  const dialog = useDialog();
   const scroll = useFloatingScroll();
 
   const [businessName, setBusinessName] = useState('');
@@ -47,15 +49,15 @@ export default function ProfileEdit() {
         location: location.trim() || null,
       },
       {
-        onSuccess: () => {
-          Alert.alert(t('settings.saved'), t('settings.savedBody'));
+        onSuccess: async () => {
+          await dialog.alert({
+            title: t('settings.saved'),
+            message: t('settings.savedBody'),
+            tone: 'success',
+          });
           router.back();
         },
-        onError: (err) =>
-          Alert.alert(
-            t('settings.error'),
-            err instanceof Error ? err.message : String(err),
-          ),
+        onError: (err) => void dialog.error(err, { title: t('settings.error') }),
       },
     );
   };

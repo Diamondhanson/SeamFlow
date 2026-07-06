@@ -14,7 +14,7 @@
 // ============================================================================
 
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View, Vibration } from 'react-native';
+import { Pressable, StyleSheet, View, Vibration } from 'react-native';
 import { router } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -22,6 +22,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { PinDots, Dialpad } from '../../components/PinKeypad';
 import { useLock } from '../../lib/lock-context';
+import { useDialog } from '../../lib/dialog';
 import { useTranslation } from '../../lib/i18n';
 import {
   PIN_LENGTH,
@@ -30,6 +31,7 @@ import {
   verifyPin,
 } from '../../lib/pin-lock';
 import { spacing } from '../../lib/theme';
+import { useBreakpoint } from '../../lib/use-breakpoint';
 
 type Stage =
   | { kind: 'menu' }
@@ -40,6 +42,8 @@ type Stage =
 export default function PinSettings() {
   const { t } = useTranslation();
   const { pinSet, refreshPinState, lock } = useLock();
+  const dialog = useDialog();
+  const { isLandscape } = useBreakpoint();
   const [stage, setStage] = useState<Stage>({ kind: 'menu' });
   const [entry, setEntry] = useState('');
   const [busy, setBusy] = useState(false);
@@ -69,7 +73,11 @@ export default function PinSettings() {
         const r = await verifyPin(pin);
         if (!r.ok) {
           Vibration.vibrate(200);
-          Alert.alert(t('misc.wrongPinTitle'), t('misc.tryAgain'));
+          await dialog.alert({
+            title: t('misc.wrongPinTitle'),
+            message: t('misc.tryAgain'),
+            tone: 'error',
+          });
           setEntry('');
           return;
         }
@@ -79,19 +87,24 @@ export default function PinSettings() {
           return;
         }
         // Remove
-        Alert.alert(t('misc.removePinTitle'), t('misc.removePinBody'), [
-          { text: t('common.cancel'), style: 'cancel', onPress: () => backToMenu() },
-          {
-            text: t('common.remove'),
-            style: 'destructive',
-            onPress: async () => {
-              await clearPin();
-              await refreshPinState();
-              backToMenu();
-              Alert.alert(t('misc.pinRemovedTitle'), t('misc.pinRemovedBody'));
-            },
-          },
-        ]);
+        const ok = await dialog.confirm({
+          title: t('misc.removePinTitle'),
+          message: t('misc.removePinBody'),
+          confirmLabel: t('common.remove'),
+          destructive: true,
+        });
+        if (!ok) {
+          backToMenu();
+          return;
+        }
+        await clearPin();
+        await refreshPinState();
+        backToMenu();
+        await dialog.alert({
+          title: t('misc.pinRemovedTitle'),
+          message: t('misc.pinRemovedBody'),
+          tone: 'success',
+        });
         return;
       }
 
@@ -105,7 +118,11 @@ export default function PinSettings() {
       if (stage.kind === 'confirmNew') {
         if (pin !== stage.firstEntry) {
           Vibration.vibrate(200);
-          Alert.alert(t('misc.pinsDontMatchTitle'), t('misc.tryAgain'));
+          await dialog.alert({
+            title: t('misc.pinsDontMatchTitle'),
+            message: t('misc.tryAgain'),
+            tone: 'error',
+          });
           setStage({ kind: 'enterNew', mode: stage.mode });
           setEntry('');
           return;
@@ -116,14 +133,15 @@ export default function PinSettings() {
         // call lock() right now — that would force the user to re-enter
         // the PIN they just set, which is annoying. The AppState listener
         // will kick in next time they background.
-        Alert.alert(
-          stage.mode === 'new' ? t('misc.pinSetTitle') : t('misc.pinChangedTitle'),
-          t('misc.pinSavedBody'),
-        );
+        await dialog.alert({
+          title: stage.mode === 'new' ? t('misc.pinSetTitle') : t('misc.pinChangedTitle'),
+          message: t('misc.pinSavedBody'),
+          tone: 'success',
+        });
         backToMenu();
       }
     } catch (err) {
-      Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+      await dialog.error(err);
       setEntry('');
     } finally {
       setBusy(false);
@@ -194,18 +212,25 @@ export default function PinSettings() {
   return (
     <Screen>
       <ScreenHeader title={t('misc.pinLockTitle')} onBack={backToMenu} />
-      <View style={styles.flow}>
-        {/* Prompt + PIN indicator — centred in the upper region. */}
-        <View style={styles.promptArea}>
+      <View style={[styles.flow, isLandscape && styles.flowLandscape]}>
+        {/* Prompt + PIN indicator. Portrait: upper region. Landscape: left
+            column beside the keypad, since the short height can't stack them. */}
+        <View style={[styles.promptArea, isLandscape && styles.halfCol]}>
           <Text variant="h3" style={styles.prompt}>
             {prompt}
           </Text>
           <PinDots value={entry} />
         </View>
 
-        {/* Dialpad — floats in the lower region, lifted off the very bottom.
+        {/* Dialpad — lower region in portrait, right column in landscape.
             flex 2 : 3 keeps the split proportional on any device height. */}
-        <View style={styles.dialArea}>
+        <View
+          style={[
+            styles.dialArea,
+            isLandscape && styles.halfCol,
+            isLandscape && styles.dialAreaLandscape,
+          ]}
+        >
           <Dialpad onKey={handleKey} disabled={busy} />
           <Pressable onPress={backToMenu} hitSlop={10} style={styles.cancelBtn}>
             <Text variant="bodySm" tone="textMuted">
@@ -220,6 +245,7 @@ export default function PinSettings() {
 
 const styles = StyleSheet.create({
   flow: { flex: 1 },
+  flowLandscape: { flexDirection: 'row', alignItems: 'center' },
   // Upper region: prompt + PIN dots, centred.
   promptArea: {
     flex: 2,
@@ -234,6 +260,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingBottom: spacing.lg,
   },
+  // Landscape: two equal columns instead of a 2:3 vertical split.
+  halfCol: { flex: 1 },
+  dialAreaLandscape: { paddingBottom: 0 },
   cancelBtn: {
     alignItems: 'center',
     marginTop: spacing.lg,

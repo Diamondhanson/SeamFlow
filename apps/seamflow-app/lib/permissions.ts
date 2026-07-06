@@ -10,7 +10,8 @@
 // `Linking.openSettings()` opens the app's settings page on both platforms.
 // ============================================================================
 
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
+import type { DialogApi } from './dialog';
 
 /** What the app was trying to access when permission was denied. */
 export type PermissionKind = 'camera' | 'photos' | 'contacts';
@@ -41,34 +42,42 @@ const MESSAGE_KEY: Record<PermissionKind, string> = {
 };
 
 /**
- * Show a localized "permission needed" alert. When the OS won't let us ask
+ * Show a localized "permission needed" dialog. When the OS won't let us ask
  * again, offer an "Open Settings" action so the user can recover.
  */
-export function alertPermissionDenied(
+export async function alertPermissionDenied(
   kind: PermissionKind,
   canAskAgain: boolean,
+  dialog: DialogApi,
   t: Translate,
-): void {
+): Promise<void> {
   const title = t('misc.permissionNeededTitle');
   const message = t(MESSAGE_KEY[kind]);
   if (canAskAgain) {
-    Alert.alert(title, message, [{ text: t('common.ok') }]);
+    await dialog.alert({ title, message, tone: 'warning' });
     return;
   }
-  Alert.alert(title, message, [
-    { text: t('common.cancel'), style: 'cancel' },
-    { text: t('misc.openSettings'), onPress: () => void Linking.openSettings() },
-  ]);
+  const go = await dialog.confirm({
+    title,
+    message,
+    tone: 'warning',
+    confirmLabel: t('misc.openSettings'),
+  });
+  if (go) void Linking.openSettings();
 }
 
 /**
- * If `err` is a PermissionDeniedError, show the localized alert and return
+ * If `err` is a PermissionDeniedError, show the localized dialog and return
  * `true` (handled). Otherwise return `false` so the caller falls back to its
- * generic error alert.
+ * generic error dialog.
  */
-export function alertIfPermissionDenied(err: unknown, t: Translate): boolean {
+export async function alertIfPermissionDenied(
+  err: unknown,
+  dialog: DialogApi,
+  t: Translate,
+): Promise<boolean> {
   if (err instanceof PermissionDeniedError) {
-    alertPermissionDenied(err.kind, err.canAskAgain, t);
+    await alertPermissionDenied(err.kind, err.canAskAgain, dialog, t);
     return true;
   }
   return false;

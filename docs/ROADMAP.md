@@ -1,10 +1,10 @@
 # SeamFlow — Phased Product Roadmap
 
 **Owner:** Diamond
-**Last updated:** May 30, 2026
+**Last updated:** July 6, 2026
 **Repo:** `SeamFlow/` monorepo
 
-**Current status:** Phase 0 complete (0.5 deferred). **Phase 1 is feature-complete and shippable.** Only 1.7 (payments) is paused with all scope decisions parked, and 1.9.3 (Apple Sign-In) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program yet). Everything else end-to-end:
+**Current status:** Phase 0 complete (0.5 deferred). **Phase 1 is feature-complete and shippable**, and since the May snapshot the product has shipped several **Phase 2 and Phase 3 items early** (see "Shipped early" below). Only 1.7 (payments) is paused with all scope decisions parked, and 1.9.3 (Apple Sign-In) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program yet). Everything else end-to-end:
 
 - 1.1 clients · measurements · templates · group orders + members + owner
 - 1.2 orders · state machine · audit timeline
@@ -19,7 +19,15 @@
 
 **Pulled forward from later phases:** measurement templates (was 2.7), group orders + members + owner (was Appendix A.15). **Pre-1.10 architectural cleanup:** `clients.address` and `group_orders.owner_client_id` added; new atomic `POST /group-orders/with-members` creates owner-as-client (if new) + group + members in one transaction.
 
-**Atelier design system (1.12):** `@seamflow/ui` foundation shipped — color tokens (Linen + Midnight palettes), Fraunces/Inter/JetBrains Mono typography, spacing/radii/shadows/motion tokens, primitives (Text/Button/Input/**Card**/**Chip**), `AtelierThemeProvider`, font loading at app root. **Typography sweep complete:** every tailor-app screen now renders through the Atelier `<Text>` primitive — zero raw React Native `<Text>` and zero `#rrggbb` literals remain under `app/`. **Runtime light/dark mode shipped (2026-05-30):** a `ThemeModeProvider` + Profile → Appearance toggle (System / Light / Dark) flips the whole app between Linen and Midnight live, persisted to AsyncStorage. Sheet, MeasurementInput, ListRow, Avatar, EmptyState primitives + bespoke icons still ahead — see `docs/design-system/CHANGELOG.md`.
+**Shipped early — Phase 2/3 work already live (June–July 2026):** the roadmap phase numbering below is preserved, but these later-phase items are already built and in the app. See each phase section for the detailed status:
+
+- **Design Studio AI (3.11 M1–M3)** — inspiration library, attach-to-order, and AI photo→notes (Claude vision, `POST /ai/describe-image`, Accept/Edit/Discard). Only M4 (text→image generation) remains.
+- **Reminders engine + calendar (2.5, partial)** — hourly cron reminder scan with de-dup log, localized (EN/FR) templates, Expo-push delivery, plus an in-app calendar screen. Device-calendar (`expo-calendar`) integration, automated WhatsApp client messages (2.6), and SMS (2.9) are still ahead.
+- **Notification preferences + timezones** — per-tailor settings screen (due/overdue/status-change toggles, reminder lead days, reminder hour, IANA timezone picker) + API; reminders honor them.
+- **i18n EN/FR (2.8, partial)** — the whole tailor app runs through a custom `t()` layer with a build-time i18n guard (`npm run i18n:check`) enforcing EN/FR parity. Six more languages + RTL + web i18n remain.
+- **Device contacts picker** — unlisted addition: pick a client/owner from the phone address book (expo-contacts, E.164 normalized).
+
+**Atelier design system (1.12):** `@seamflow/ui` foundation shipped — color tokens (Linen + Midnight palettes), Fraunces/Inter/JetBrains Mono typography, spacing/radii/shadows/motion tokens, primitives (Text/Button/Input/**Card**/**Chip**/**Avatar**/**IconButton**/**ListRow**), `AtelierThemeProvider`, font loading at app root. **Typography sweep + runtime light/dark mode complete.** **App-wide redesign shipped (2026-07-03):** composed dashboard, custom navigation shell (`ScreenHeader` + `FloatingLogo`), `OrderCard`, framed calendar grid. **Centered dialog system shipped (2026-07-05):** all 78 native `Alert` calls replaced by a themed `useDialog()` provider (alert/error/confirm/prompt/choose/pick), ESLint-enforced. **iOS readiness pass (2026-07-05, see 1.13):** image-picker Info.plist strings, iOS DateField sheet, permission-denial recovery. Remaining primitives: `Sheet` (in `@seamflow/ui`), `MeasurementInput`, `EmptyState`, `StitchLine`, `TabBar`, `Stepper`; bespoke/phosphor icons; on-device Linen validation — see `docs/design-system/CHANGELOG.md`.
 
 ---
 
@@ -49,28 +57,29 @@ Every technology mentioned anywhere in this document, in one place.
 - TypeScript — every Node app and package
 - Python (3.12) — `services/ai` only, when/if it gets added
 
-**Mobile**
-- Expo SDK 52+ (React Native 0.76+)
+**Mobile** *(as built: Expo SDK 55)*
+- Expo SDK 55 (React Native 0.81) — plan originally said 52+
 - Expo Router (file-based routing)
 - EAS Build & EAS Update (managed builds and OTA updates)
 
-**Web**
-- Next.js 14+ (App Router)
+**Web** *(as built: Next.js 15)*
+- Next.js 15 (App Router) — plan originally said 14+
 - Tailwind CSS
 - shadcn/ui (component primitives)
 
-**Backend**
+**Backend** *(as built: Drizzle chosen)*
 - NestJS (REST + WebSocket)
-- Prisma or Drizzle ORM (pick one early; recommend Drizzle for TypeScript-first ergonomics)
-- BullMQ (background jobs)
+- Drizzle ORM (chosen over Prisma for TypeScript-first ergonomics)
+- BullMQ (background jobs) + `@nestjs/schedule` (cron, used by the reminders engine)
 - Zod (validation, shared via `@seamflow/schemas`)
+- `@anthropic-ai/sdk` (Claude vision, `ai` module — Design Studio 3.11 M3)
 
 **Data**
 - Supabase (Postgres, Auth, Storage, Realtime, Row-Level Security)
 - pgvector extension (for similarity search, Phase 3+)
 - PostGIS extension (for geo discovery, Phase 3+)
 - Upstash Redis (queues, caching, rate limits)
-- WatermelonDB (on-device SQLite for offline sync in mobile apps)
+- ~~WatermelonDB (on-device SQLite)~~ — **not used**; offline-first is delivered via TanStack Query + AsyncStorage persistor + NetInfo (see 1.4 deviation note)
 
 **Messaging**
 - Expo Push (mobile push notifications, free)
@@ -367,9 +376,16 @@ A visual-identity refresh + extraction of design tokens and primitives into `@se
 - **Full typography sweep — done.** Every screen migrated off raw React Native `<Text>` onto the Atelier `<Text>` primitive (variants × semantic tones): orders list/detail, clients list/detail, group list/detail/new, templates list/detail/new, new-order wizard, verify-otp, pin, plus shared components (Screen, DateField, OfflineBanner, PinLockScreen). `grep` confirms zero raw-RN `Text` imports and zero `#rrggbb` literals under `app/`.
 - **Runtime light/dark mode — done.** `lib/theme-mode.tsx` (`ThemeModeProvider` + `useThemeMode`) owns a `system | light | dark` preference, persisted to AsyncStorage and resolved against the OS scheme. A reactive `useThemeColors()` hook + the auto-reactive `<Text tone>` make every screen re-render on mode change; `radii`/`spacing` stay static (mode-invariant). Toggle UI is a segmented control on Profile → **Appearance**. Verified live on the Pixel 9 Pro XL: System/Light → Linen, Dark → Midnight, switching instantly with no nav-state reset.
 
+**Shipped since (2026-06 → 07):**
+
+- **Tablet / landscape responsive support** (2026-06-03) + home calendar tile.
+- **App-wide redesign (2026-07-03).** Composed dashboard (greeting hero + live-count tiles + "Due soon" rail), custom navigation shell (`components/ScreenHeader` + bottom-center `components/FloatingLogo` with scroll-driven fade), `components/OrderCard` (status accent + overdue/due-in), framed Monday-first calendar grid. New `@seamflow/ui` primitives: `Avatar` / `AvatarStack` (deterministic name→tone), `IconButton`, `ListRow`. Status + due-date logic centralized in `lib/order-status.ts`.
+- **Centered dialog system (2026-07-05).** All 78 native `Alert.alert` / `Alert.prompt` calls replaced by a global `DialogProvider` + `useDialog()` (`lib/dialog.tsx`): `alert` / `error` / `confirm` / `prompt` / `choose` (centered stacked menu) / `pick` (bottom sheet, reuses `OptionSheet`). Themed, promise-based, animated (reduced-motion aware). An ESLint rule fails the build if `Alert` is reintroduced.
+- **Order-detail redesign** — elevation-based hierarchy (summary card, item cards, measurement tags, timeline nodes) using the Atelier shadow tokens.
+
 **Coming next (one screen per pass, with review):**
 
-- Primitives: `Sheet` (replaces `<Modal>` for ephemeral UI), `Avatar`, `EmptyState`, `ListRow`, `MeasurementInput` (signature interaction — horizontal ruler with tick haptics, mono digits), `StitchLine` (signature success microinteraction), `TabBar`, `Stepper`.
+- Primitives: `Sheet` (extracted into `@seamflow/ui`, replaces the bespoke `<Modal>` sheets), `EmptyState`, `MeasurementInput` (signature interaction — horizontal ruler with tick haptics, mono digits), `StitchLine` (signature success microinteraction), `TabBar`, `Stepper`.
 - Icons: `phosphor-react-native` (regular weight, 1.5 px stroke) replaces `@expo/vector-icons` usage; bespoke SVG tailoring icons in `packages/ui/src/icons/` (measuring tape, dress form, scissors, thread spool, swatch, mannequin).
 - Deeper interaction migration: client detail (→ `Sheet`), new-order (→ `MeasurementInput`).
 - Light-mode polish: Linen has now rendered on-device for the first time — sweep for any low-contrast muted text / borders surfaced by real use.
@@ -379,6 +395,22 @@ A visual-identity refresh + extraction of design tokens and primitives into `@se
 
 **Dependencies:** All of Phase 1 — the system is being applied as a polish pass over already-shipped functionality.
 
+### 1.13 iOS readiness & platform hardening 🟡 IN PROGRESS *(2026-07-05)*
+
+Development and testing have been **Android-only** through Phase 1. A hardening pass closed the iOS-divergent gaps that would break on a first iPhone run:
+
+- **Camera / photos** — registered the `expo-image-picker` config plugin with iOS usage strings (`NSCameraUsageDescription` / `NSPhotoLibraryUsageDescription`). Without these iOS *hard-crashes* the moment the camera or gallery is opened. **Requires a native rebuild (`expo prebuild` + iOS build / EAS) to take effect — does not hot-reload.**
+- **Date picker** — `components/DateField` now hosts the iOS picker in a dismissible bottom sheet with Cancel / Done (the native inline picker has no dismiss and trapped the user); Android keeps its native dialog.
+- **Permission denial** — `lib/permissions.ts` + the dialog system show a localized "permission needed" prompt with an **Open Settings** path when the OS won't re-ask (iOS never re-prompts after the first denial). Wired into camera/photos/contacts flows.
+
+**Still open for iOS launch:**
+
+- **APNs push credentials** must be configured in EAS — Expo push (1.8) **silently fails on iOS** until then.
+- **Apple Sign-In (1.9.3)** — still gated on the $99/yr Apple Developer Program; blocks App Store review (policy 4.8).
+- On-device iOS QA of every screen (esp. safe-area / notch, keyboard, swipe-back).
+
+**Dependencies:** 1.3 (photos), 1.8 (push), 1.9 (auth).
+
 **Phase 1 exit criteria:** 50 paying tailors, daily active use, < 1% sync error rate, average response time under 300 ms on 3G, monthly recurring revenue covering hosting costs.
 
 ---
@@ -387,7 +419,9 @@ A visual-identity refresh + extraction of design tokens and primitives into `@se
 
 Features that turn a useful tool into a tool tailors won't stop paying for. Most of these are pulled from real complaints during Phase 1.
 
-### 2.1 Multi-staff accounts
+### 2.1 Multi-staff accounts ⬜ NOT STARTED *(schema stub only)*
+
+**Status:** STUB — the `tailor_staff` value exists in the user-role enum, but there is no staff table, invite flow, per-role RLS, or management UI yet.
 
 - **What:** Tailor invites staff with limited permissions (e.g., "can edit orders but not delete clients"). Audit log of who did what.
 - **Why:** Almost every tailor has at least one apprentice or assistant.
@@ -403,7 +437,9 @@ Features that turn a useful tool into a tool tailors won't stop paying for. Most
 - **Approach:** Invoice template in `@seamflow/utils/invoices/`. Job-queued generation (PDFKit on a worker) to keep API latency low. Each invoice gets a public signed URL that expires in 7 days.
 - **Dependencies:** 1.7.
 
-### 2.3 Fabric library
+### 2.3 Fabric library ⬜ NOT STARTED *(schema stub only)*
+
+**Status:** STUB — a `fabrics` table exists in the schema (and `group_orders.shared_fabric_id` references it), but there is no fabric CRUD service/controller or mobile UI yet.
 
 - **What:** Tailor photographs fabrics they have in stock, records supplier, yardage, and cost. Attach fabrics to orders.
 - **Why:** Closes the loop between cost of goods and order pricing.
@@ -411,7 +447,9 @@ Features that turn a useful tool into a tool tailors won't stop paying for. Most
 - **Approach:** Fabric photos use the Cloudflare Images variants for thumbnails. Search by color, supplier, or composition. Later this becomes the basis for the "what have I made with this fabric before" view.
 - **Dependencies:** 1.3.
 
-### 2.4 AI: order-notes summarization
+### 2.4 AI: order-notes summarization ⬜ NOT STARTED *(may be superseded)*
+
+**Status:** NOT STARTED. Note: the Design Studio AI photo→notes (3.11 M3) is already live and shares the exact `ai` module + Accept/Edit/Discard pattern this would need — so an order-notes "Tidy up" is now cheap to add. Decide whether to keep this as a distinct feature or fold it into the existing `ai` module.
 
 - **What:** Tailor scribbles messy notes; a "Tidy up" button produces a clean, structured summary the client can read.
 - **Why:** Lowers friction at the counter. Tailors hate writing detailed notes.
@@ -419,7 +457,9 @@ Features that turn a useful tool into a tool tailors won't stop paying for. Most
 - **Approach:** Free tier gets 10 summaries/month, paid is unlimited. Cache results by note hash to avoid re-billing. Always show the user the original alongside the AI version with an "Accept / Edit / Discard" flow.
 - **Dependencies:** API skeleton; some tailor-facing data.
 
-### 2.5 Calendar with fitting reminders
+### 2.5 Calendar with fitting reminders 🟡 PARTIAL — engine + calendar shipped
+
+**Status (2026-07):** SHIPPED — an hourly cron reminder scan (`@nestjs/schedule`) with a `order_reminder_log` de-dup ledger, localized EN/FR templates, and Expo-push delivery that honors per-tailor **notification preferences** (due / overdue / status-change toggles, reminder lead days, reminder hour, IANA timezone) via `GET`/`PATCH /me/notification-preferences` and the `notification-preferences` mobile screen; plus an in-app calendar screen (`app/(app)/calendar`, month grid + day list). STILL AHEAD: device-calendar (`expo-calendar`) export, **automated WhatsApp** client messages (needs 2.6), local-device reminders, and per-client opt-out.
 
 - **What:** A calendar view of upcoming deliveries, fittings, and pickups. Local-device reminders + automated WhatsApp messages to clients.
 - **Why:** "When is my dress ready?" is the #1 customer question.
@@ -443,7 +483,9 @@ Features that turn a useful tool into a tool tailors won't stop paying for. Most
 - **Approach:** Ship 10 starter templates (suit, shirt, trouser, dress, blouse, kaftan, agbada, sherwani, lehenga, abaya). Tailors can clone and customize. Templates are JSON Schema-shaped so we can validate on save.
 - **Dependencies:** 1.1.
 
-### 2.8 Multi-language i18n
+### 2.8 Multi-language i18n 🟡 PARTIAL — EN/FR shipped
+
+**Status (2026-07):** PARTIAL — the tailor app is fully bilingual **English + French** through a custom lightweight `t()` layer (`lib/i18n/`, locale dicts per area) with a build-time guard (`npm run i18n:check`) that fails the build on a missing key, EN/FR key drift, or a hardcoded user-facing string. STILL AHEAD: Yoruba, Hausa, Hindi, Urdu, Tagalog, Arabic; RTL for Arabic/Urdu; and web (`seamflow-web`) i18n. Note: implemented as a custom dictionary, **not i18next** — revisit that choice if the language count grows.
 
 - **What:** App and web run in English, French, Yoruba, Hausa, Hindi, Urdu, Tagalog, Arabic at minimum.
 - **Why:** Most target users aren't English-native.
@@ -555,7 +597,7 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **Approach:** Centralized event taxonomy in `@seamflow/utils/analytics`. Every screen view and key action emits an event. Feature flags wrap any new feature for staged rollout.
 - **Dependencies:** none — earlier is better.
 
-### 3.11 Design Studio — AI design generation (text + reference → image)
+### 3.11 Design Studio — AI design generation (text + reference → image) 🟡 M1–M3 SHIPPED EARLY (during Phase 1); M4 remaining
 
 > Foundation already shipped/scaffolded — see `docs/design-studio-moodboard-plan.md`.
 > **M1 (inspiration library / moodboard)** and **M2 (attach inspiration to an

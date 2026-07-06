@@ -102,7 +102,7 @@ export default function CalendarScreen() {
       : null;
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} width="wide">
       <ScrollView
         {...scroll}
         contentContainerStyle={styles.body}

@@ -76,16 +76,16 @@ export function Dialpad({
   disabled?: boolean;
 }) {
   const { colors } = useAtelierTheme();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
 
-  // Compute a concrete circular key diameter from the available width. A fixed
-  // size (rather than %-width + aspectRatio, which Yoga won't resolve to a
-  // circle inside a wrap container) guarantees perfectly round keys and scales
-  // across device widths.
-  const diameter = Math.min(
-    104,
-    Math.floor((Math.min(width, 520) - 2 * 24 - 2 * GAP) / 3),
-  );
+  // Compute a concrete circular key diameter. A fixed size (rather than
+  // %-width + aspectRatio, which Yoga won't resolve to a circle inside a wrap
+  // container) guarantees perfectly round keys and scales across devices.
+  // Bound by BOTH width and height: the pad is 4 rows tall, so on a short
+  // landscape screen a width-only size overflows and collides with the header.
+  const byWidth = Math.floor((Math.min(width, 520) - 2 * 24 - 2 * GAP) / 3);
+  const byHeight = Math.floor((height * 0.55 - 3 * GAP) / 4);
+  const diameter = Math.max(48, Math.min(104, byWidth, byHeight));
   const padWidth = diameter * 3 + GAP * 2;
 
   return (

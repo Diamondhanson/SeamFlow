@@ -24,6 +24,15 @@ export const BREAKPOINTS = { medium: 600, expanded: 840 } as const;
  */
 export const CONTENT_MAX_WIDTH = 760;
 
+/**
+ * Wider cap for browse / overview surfaces (dashboard, lists, grids, calendar)
+ * that benefit from filling more of a tablet's width. Reading-width content
+ * (forms, detail screens) stays at `CONTENT_MAX_WIDTH`.
+ */
+export const WIDE_MAX_WIDTH = 1120;
+
+export type ContentWidth = 'reading' | 'wide';
+
 export interface BreakpointInfo {
   width: number;
   height: number;
@@ -57,4 +66,39 @@ export function useBreakpoint(): BreakpointInfo {
 export function useGridColumns(): number {
   const { breakpoint } = useBreakpoint();
   return breakpoint === 'expanded' ? 4 : breakpoint === 'medium' ? 3 : 2;
+}
+
+/**
+ * The concrete pixel width content should occupy, given the window and the
+ * chosen cap. We resolve to a definite width (not `width:'100%' + maxWidth`)
+ * because an indefinite width makes nested horizontal ScrollViews measure their
+ * content as zero and collapse — see the note in `components/Screen.tsx`.
+ * `<Screen>` consumes this; inner grids should read the SAME value so their
+ * column math agrees with the body width.
+ */
+export function useContentWidth(variant: ContentWidth = 'reading'): number {
+  const { width } = useWindowDimensions();
+  const cap = variant === 'wide' ? WIDE_MAX_WIDTH : CONTENT_MAX_WIDTH;
+  return Math.min(width, cap);
+}
+
+/**
+ * Pick a value by breakpoint. `medium` falls back to `compact` when omitted,
+ * `expanded` falls back to `medium` (then `compact`). Keeps per-breakpoint
+ * sizing (thumbnails, rail widths, paddings) in one expression instead of
+ * scattered `isExpanded ? a : b` ternaries.
+ */
+export function useResponsiveValue<T>(values: {
+  compact: T;
+  medium?: T;
+  expanded?: T;
+}): T {
+  const { breakpoint } = useBreakpoint();
+  if (breakpoint === 'expanded') {
+    return values.expanded ?? values.medium ?? values.compact;
+  }
+  if (breakpoint === 'medium') {
+    return values.medium ?? values.compact;
+  }
+  return values.compact;
 }

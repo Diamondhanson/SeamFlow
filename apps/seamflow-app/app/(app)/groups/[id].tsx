@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text, AvatarStack } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -20,6 +20,7 @@ import {
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 export default function GroupDetail() {
   const { t } = useTranslation();
@@ -30,6 +31,7 @@ export default function GroupDetail() {
   const updateGroup = useUpdateGroupOrder(id);
   const deleteGroup = useDeleteGroupOrder(id);
   const colors = useThemeColors();
+  const dialog = useDialog();
   const scroll = useFloatingScroll();
 
   const [showForm, setShowForm] = useState(false);
@@ -55,30 +57,24 @@ export default function GroupDetail() {
           setMemberRole('');
           setMemberClientId(null);
         },
-        onError: (err) =>
-          Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+        onError: (err) => void dialog.error(err),
       },
     );
   };
 
-  const onDeleteGroup = () =>
-    Alert.alert(
-      t('groups.deleteGroupTitle'),
-      t('groups.deleteGroupMessage', { name: group?.name ?? '' }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () =>
-            deleteGroup.mutate(undefined, {
-              onSuccess: () => router.back(),
-              onError: (err) =>
-                Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-            }),
-        },
-      ],
-    );
+  const onDeleteGroup = async () => {
+    const ok = await dialog.confirm({
+      title: t('groups.deleteGroupTitle'),
+      message: t('groups.deleteGroupMessage', { name: group?.name ?? '' }),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    deleteGroup.mutate(undefined, {
+      onSuccess: () => router.back(),
+      onError: (err) => void dialog.error(err),
+    });
+  };
 
   if (groupQ.isLoading || !group) {
     return (
@@ -91,23 +87,25 @@ export default function GroupDetail() {
 
   const ownerMember = group.members.find((m) => m.id === group.ownerMemberId) ?? null;
 
-  const setOwner = () => {
+  const setOwner = async () => {
     if (group.members.length === 0) {
-      Alert.alert(t('groups.noMembersOwnerTitle'), t('groups.noMembersOwnerMessage'));
+      await dialog.alert({
+        title: t('groups.noMembersOwnerTitle'),
+        message: t('groups.noMembersOwnerMessage'),
+        tone: 'info',
+      });
       return;
     }
-    const options = group.members.slice(0, 8).map((m) => ({
-      text: m.fullName,
-      onPress: () => updateGroup.mutate({ ownerMemberId: m.id }),
-    }));
-    Alert.alert(t('groups.pickOwnerTitle'), t('groups.pickOwnerMessage'), [
-      {
-        text: t('groups.clearOwner'),
-        onPress: () => updateGroup.mutate({ ownerMemberId: null }),
-      },
-      ...options,
-      { text: t('common.cancel'), style: 'cancel' },
-    ]);
+    const key = await dialog.pick({
+      title: t('groups.pickOwnerTitle'),
+      selectedKey: group.ownerMemberId ?? '',
+      options: [
+        { key: '__clear__', label: t('groups.clearOwner') },
+        ...group.members.map((m) => ({ key: m.id, label: m.fullName })),
+      ],
+    });
+    if (!key) return;
+    updateGroup.mutate({ ownerMemberId: key === '__clear__' ? null : key });
   };
 
   return (
@@ -202,23 +200,31 @@ export default function GroupDetail() {
                     : t('groups.adHocByName')
                 }
                 variant="secondary"
-                onPress={() => {
+                onPress={async () => {
                   if (clients.length === 0) {
-                    Alert.alert(t('groups.noClientsTitle'), t('groups.noClientsMessage'));
+                    await dialog.alert({
+                      title: t('groups.noClientsTitle'),
+                      message: t('groups.noClientsMessage'),
+                      tone: 'info',
+                    });
                     return;
                   }
-                  const options = clients.slice(0, 8).map((c) => ({
-                    text: c.fullName,
-                    onPress: () => {
-                      setMemberClientId(c.id);
-                      if (!memberName) setMemberName(c.fullName);
-                    },
-                  }));
-                  Alert.alert(t('groups.pickClientTitle'), undefined, [
-                    { text: t('groups.noneOption'), onPress: () => setMemberClientId(null) },
-                    ...options,
-                    { text: t('common.cancel'), style: 'cancel' },
-                  ]);
+                  const key = await dialog.pick({
+                    title: t('groups.pickClientTitle'),
+                    selectedKey: memberClientId ?? '',
+                    options: [
+                      { key: '__none__', label: t('groups.noneOption') },
+                      ...clients.map((c) => ({ key: c.id, label: c.fullName })),
+                    ],
+                  });
+                  if (!key) return;
+                  if (key === '__none__') {
+                    setMemberClientId(null);
+                    return;
+                  }
+                  setMemberClientId(key);
+                  const picked = clients.find((c) => c.id === key);
+                  if (picked && !memberName) setMemberName(picked.fullName);
                 }}
               />
             </View>
@@ -263,54 +269,43 @@ function MemberCard({
   };
 }) {
   const { t } = useTranslation();
+  const dialog = useDialog();
   const promote = usePromoteMember(memberId, groupId);
   const copyMeasurements = useCopyMemberMeasurements(memberId, groupId);
   const remove = useDeleteGroupMember(memberId, groupId);
 
-  const onPromote = () =>
-    Alert.prompt(
-      t('groups.promoteTitle', { name: member.fullName }),
-      t('groups.promoteMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('groups.promote'),
-          onPress: (phone?: string) => {
-            if (!phone) return;
-            promote.mutate(
-              { phone },
-              {
-                onError: (err) =>
-                  Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-              },
-            );
-          },
-        },
-      ],
-      'plain-text',
-    );
+  const onPromote = async () => {
+    const phone = await dialog.prompt({
+      title: t('groups.promoteTitle', { name: member.fullName }),
+      message: t('groups.promoteMessage'),
+      confirmLabel: t('groups.promote'),
+      keyboardType: 'phone-pad',
+    });
+    if (!phone) return;
+    promote.mutate({ phone }, { onError: (err) => void dialog.error(err) });
+  };
 
   const onCopy = () =>
     copyMeasurements.mutate(undefined, {
       onSuccess: () =>
-        Alert.alert(t('groups.copiedTitle'), t('groups.copiedMessage')),
-      onError: (err) =>
-        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+        void dialog.alert({
+          title: t('groups.copiedTitle'),
+          message: t('groups.copiedMessage'),
+          tone: 'success',
+        }),
+      onError: (err) => void dialog.error(err),
     });
 
-  const onRemove = () =>
-    Alert.alert(t('groups.removeMemberTitle'), t('groups.removeMemberMessage', { name: member.fullName }), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.remove'),
-        style: 'destructive',
-        onPress: () =>
-          remove.mutate(undefined, {
-            onError: (err) =>
-              Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
-          }),
-      },
-    ]);
+  const onRemove = async () => {
+    const ok = await dialog.confirm({
+      title: t('groups.removeMemberTitle'),
+      message: t('groups.removeMemberMessage', { name: member.fullName }),
+      confirmLabel: t('common.remove'),
+      destructive: true,
+    });
+    if (!ok) return;
+    remove.mutate(undefined, { onError: (err) => void dialog.error(err) });
+  };
 
   return (
     <Card>

@@ -10,7 +10,7 @@
 // ============================================================================
 
 import { useRef } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import ReanimatedSwipeable, {
   type SwipeableMethods,
@@ -23,37 +23,29 @@ import { useFavorites } from '../lib/favorites';
 import { useDeleteClient } from '../lib/queries';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
+import { useDialog } from '../lib/dialog';
 
 export function SwipeableClientRow({ item }: { item: Client }) {
   const { t } = useTranslation();
+  const dialog = useDialog();
   const { colors, radii } = useAtelierTheme();
   const { isFavorite, toggleFavorite } = useFavorites();
   const del = useDeleteClient(item.id);
   const swipeRef = useRef<SwipeableMethods>(null);
   const fav = isFavorite(item.id);
 
-  const confirmDelete = () => {
-    Alert.alert(
-      t('clients.deleteClientTitle'),
-      t('clients.deleteConfirmBodyPermanent', { name: item.fullName }),
-      [
-        { text: t('common.cancel'), style: 'cancel', onPress: () => swipeRef.current?.close() },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: () =>
-            del.mutate(undefined, {
-              onError: (err) => {
-                swipeRef.current?.close();
-                Alert.alert(
-                  t('clients.couldNotDelete'),
-                  err instanceof Error ? err.message : String(err),
-                );
-              },
-            }),
-        },
-      ],
-    );
+  const confirmDelete = async () => {
+    const ok = await dialog.confirm({
+      title: t('clients.deleteClientTitle'),
+      message: t('clients.deleteConfirmBodyPermanent', { name: item.fullName }),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    swipeRef.current?.close();
+    if (!ok) return;
+    del.mutate(undefined, {
+      onError: (err) => void dialog.error(err, { title: t('clients.couldNotDelete') }),
+    });
   };
 
   const onOpen = (direction: 'left' | 'right') => {
@@ -63,7 +55,7 @@ export function SwipeableClientRow({ item }: { item: Client }) {
       swipeRef.current?.close();
     } else {
       // Left panel opened = user swiped RIGHT → delete.
-      confirmDelete();
+      void confirmDelete();
     }
   };
 

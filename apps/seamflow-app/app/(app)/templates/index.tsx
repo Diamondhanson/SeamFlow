@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { MeasurementTemplate } from '@seamflow/schemas';
@@ -16,6 +16,8 @@ import { api, ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
+import { useDialog } from '../../../lib/dialog';
 
 // Quick-start garments. Each opens the new-template form (passing the garment
 // so the form can pre-fill it once it reads the param).
@@ -27,6 +29,7 @@ export default function TemplatesList() {
   const { colors } = useAtelierTheme();
   const scroll = useFloatingScroll();
   const { t } = useTranslation();
+  const dialog = useDialog();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,17 +38,21 @@ export default function TemplatesList() {
       setItems(res.items);
     } catch (err) {
       if (err instanceof ApiError && err.isNotFound()) {
-        Alert.alert(t('templates.profileRequiredTitle'), t('templates.profileRequiredBody'), [
-          { text: t('common.cancel'), style: 'cancel' },
-          { text: t('templates.profileAction'), onPress: () => router.push('/(app)/me') },
-        ]);
+        if (
+          await dialog.confirm({
+            title: t('templates.profileRequiredTitle'),
+            message: t('templates.profileRequiredBody'),
+            confirmLabel: t('templates.profileAction'),
+          })
+        )
+          router.push('/(app)/me');
       } else {
-        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err));
+        await dialog.error(err);
       }
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, dialog]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
@@ -75,8 +82,15 @@ export default function TemplatesList() {
     </View>
   );
 
+  const columns = useResponsiveValue({ compact: 1, medium: 2, expanded: 2 });
+  const contentW = useContentWidth('wide');
+  const cellW =
+    columns > 1
+      ? Math.floor((contentW - spacing.lg * 2 - spacing.md * (columns - 1)) / columns)
+      : undefined;
+
   return (
-    <Screen padded={false}>
+    <Screen padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader
           title={t('templates.listTitle')}
@@ -102,9 +116,11 @@ export default function TemplatesList() {
           {...scroll}
           data={items}
           keyExtractor={(t) => t.id}
+          key={`list-${columns}`}
+          numColumns={columns}
+          columnWrapperStyle={columns > 1 ? styles.rowWrap : undefined}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
           ListEmptyComponent={
             <Text variant="bodySm" tone="textMuted" style={styles.muted}>
               {t('templates.empty')}
@@ -112,18 +128,20 @@ export default function TemplatesList() {
           }
           ListFooterComponent={starterSection}
           renderItem={({ item }) => (
-            <ListRow
-              title={item.name}
-              subtitle={t(
-                item.fields.length === 1 ? 'templates.fieldCount' : 'templates.fieldCount_plural',
-                { count: item.fields.length },
-              )}
-              subtitleNumeric
-              leading={
-                <Ionicons name="document-text-outline" size={20} color={colors.primary} />
-              }
-              onPress={() => router.push(`/(app)/templates/${item.id}`)}
-            />
+            <View style={cellW ? { width: cellW } : undefined}>
+              <ListRow
+                title={item.name}
+                subtitle={t(
+                  item.fields.length === 1 ? 'templates.fieldCount' : 'templates.fieldCount_plural',
+                  { count: item.fields.length },
+                )}
+                subtitleNumeric
+                leading={
+                  <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+                }
+                onPress={() => router.push(`/(app)/templates/${item.id}`)}
+              />
+            </View>
           )}
         />
       )}
@@ -137,7 +155,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: 96,
+    rowGap: spacing.md,
   },
+  rowWrap: { gap: spacing.md },
   muted: { textAlign: 'center', marginTop: spacing.xl, paddingHorizontal: spacing.lg },
   starter: { marginTop: spacing.xl },
   starterChips: {

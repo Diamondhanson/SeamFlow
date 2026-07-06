@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Alert,
   FlatList,
   Pressable,
   ScrollView,
@@ -26,6 +25,7 @@ import {
 } from '../../../lib/queries';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 // ============================================================================
 // New group order — atomic create flow.
@@ -53,6 +53,7 @@ function newLocalId(): string {
 export default function NewGroup() {
   const colors = useThemeColors();
   const { t } = useTranslation();
+  const dialog = useDialog();
   // ----- form state -----
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -143,8 +144,7 @@ export default function NewGroup() {
         router.dismiss();
         router.push(`/(app)/groups/${g.id}`);
       },
-      onError: (err) =>
-        Alert.alert(t('common.error'), err instanceof Error ? err.message : String(err)),
+      onError: (err) => void dialog.error(err),
     });
   };
 

@@ -25,6 +25,7 @@ import {
 } from '../lib/query-client';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { ThemeModeProvider, useThemeMode } from '../lib/theme-mode';
+import { DialogProvider } from '../lib/dialog';
 import { FavoritesProvider } from '../lib/favorites';
 import { LanguageProvider } from '../lib/i18n';
 
@@ -106,6 +107,7 @@ function ThemedRoot() {
         >
           <AtelierThemeProvider mode={mode}>
             <LanguageProvider>
+            <DialogProvider>
             <FavoritesProvider>
             <AuthProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
@@ -127,6 +129,7 @@ function ThemedRoot() {
               </Stack>
             </AuthProvider>
             </FavoritesProvider>
+            </DialogProvider>
             </LanguageProvider>
           </AtelierThemeProvider>
         </PersistQueryClientProvider>

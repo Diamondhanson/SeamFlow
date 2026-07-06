@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Button, Input, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
@@ -9,6 +9,7 @@ import {
   useAuth,
 } from '../lib/auth-context';
 import { spacing } from '../lib/theme';
+import { useDialog } from '../lib/dialog';
 import { useTranslation } from '../lib/i18n';
 
 type Mode = 'signIn' | 'signUp';
@@ -26,6 +27,7 @@ export default function SignIn() {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle } = useAuth();
   const theme = useAtelierTheme();
   const { t } = useTranslation();
+  const dialog = useDialog();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,7 +47,7 @@ export default function SignIn() {
     } catch (err) {
       if (err instanceof GoogleCancelledError) return;
       const msg = err instanceof Error ? err.message : t('auth.googleSignInFailed');
-      Alert.alert(t('auth.googleSignInFailed'), msg);
+      await dialog.alert({ title: t('auth.googleSignInFailed'), message: msg, tone: 'error' });
     } finally {
       setGoogleBusy(false);
     }
@@ -70,7 +72,7 @@ export default function SignIn() {
       }
       const title = mode === 'signIn' ? t('auth.signInFailed') : t('auth.signUpFailed');
       const msg = err instanceof Error ? err.message : title;
-      Alert.alert(title, msg);
+      await dialog.alert({ title, message: msg, tone: 'error' });
     } finally {
       setSubmitting(false);
     }

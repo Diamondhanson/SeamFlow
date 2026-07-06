@@ -4,7 +4,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -31,7 +30,7 @@ import {
 import { ApiError } from '../../lib/api';
 import { daysUntil } from '../../lib/order-status';
 import { spacing } from '../../lib/theme';
-import { CONTENT_MAX_WIDTH, useGridColumns } from '../../lib/use-breakpoint';
+import { useGridColumns, useContentWidth } from '../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useTranslation } from '../../lib/i18n';
 
@@ -146,16 +145,16 @@ export default function Home() {
     },
   ];
 
-  // Responsive square grid.
+  // Responsive square grid. Width comes from the same wide content cap the
+  // <Screen> uses so the tiles fill a tablet instead of a 760px column.
   const columns = useGridColumns();
-  const { width } = useWindowDimensions();
-  const contentWidth = Math.min(width, CONTENT_MAX_WIDTH) - spacing.lg * 2;
+  const contentWidth = useContentWidth('wide') - spacing.lg * 2;
   const tileWidth = Math.floor(
     (contentWidth - GRID_GAP * (columns - 1)) / columns,
   );
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} width="wide">
       <ScrollView
         {...scroll}
         contentContainerStyle={styles.body}
