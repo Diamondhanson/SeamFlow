@@ -18,6 +18,7 @@ import { DateField } from '../../../components/DateField';
 import { Button } from '../../../components/Button';
 import { Card, CardTitle } from '../../../components/Card';
 import { ContactPickerModal } from '../../../components/ContactPickerModal';
+import { FabricField } from '../../../components/FabricField';
 import {
   useClients,
   useCreateGroupOrderWithMembers,
@@ -58,6 +59,7 @@ export default function NewGroup() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [sharedDesignNotes, setSharedDesignNotes] = useState('');
+  const [sharedFabricId, setSharedFabricId] = useState<string | null>(null);
   const [eventDate, setEventDate] = useState<Date | null>(null);
   const [dateDelivery, setDateDelivery] = useState<Date | null>(null);
 
@@ -121,6 +123,7 @@ export default function NewGroup() {
       name: name.trim(),
       description: description.trim() || null,
       sharedDesignNotes: sharedDesignNotes.trim() || null,
+      sharedFabricId,
       eventDate: eventDate ? eventDate.toISOString() : null,
       dateDelivery: dateDelivery ? dateDelivery.toISOString() : null,
       owner:
@@ -339,6 +342,12 @@ export default function NewGroup() {
           placeholder={t('groups.sharedNotesPlaceholder')}
           multiline
         />
+        <FabricField
+          label={t('fabrics.sharedFabricLabel')}
+          value={sharedFabricId}
+          onChange={setSharedFabricId}
+        />
+        <View style={{ height: spacing.sm }} />
         <DateField label={t('groups.eventDateLabel')} value={eventDate} onChange={setEventDate} />
         <DateField
           label={t('groups.deliveryDateLabel')}

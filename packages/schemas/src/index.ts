@@ -10,6 +10,7 @@ export * from './ai';
 export * from './group-order';
 export * from './fabric';
 export * from './payment';
+export * from './invoice';
 export * from './sync';
 export * from './share-link';
 export * from './device-token';

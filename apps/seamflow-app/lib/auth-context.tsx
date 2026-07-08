@@ -42,6 +42,28 @@ export class GoogleCancelledError extends Error {
   }
 }
 
+/** Thrown when the user cancels the native "Sign in with Apple" sheet. */
+export class AppleCancelledError extends Error {
+  constructor() {
+    super('Apple sign-in cancelled');
+    this.name = 'AppleCancelledError';
+  }
+}
+
+/**
+ * Master switch for Apple Sign-In. Stays `false` until all three are done — see
+ * docs/apple-sign-in.md for the exact steps:
+ *   1. Apple Developer — an App ID with the "Sign in with Apple" capability, a
+ *      Services ID, and a .p8 key (Key ID + Team ID).
+ *   2. Supabase — the Apple provider enabled with those client IDs + secret.
+ *   3. A native rebuild that includes `ios.usesAppleSignIn` (the entitlement).
+ *
+ * While `false`, the sign-in screen shows a "coming soon" dialog and never
+ * invokes signInWithApple(), so the button is safe to ship on the current
+ * dev client without a rebuild.
+ */
+export const APPLE_SIGN_IN_ENABLED = false;
+
 interface AuthState {
   session: Session | null;
   loading: boolean;
@@ -63,6 +85,13 @@ interface AuthState {
    * Throws GoogleCancelledError if the user dismissed the browser.
    */
   signInWithGoogle: () => Promise<void>;
+  /**
+   * Native "Sign in with Apple" → Supabase (signInWithIdToken). Only works once
+   * APPLE_SIGN_IN_ENABLED is true, the Apple provider is configured in Supabase,
+   * and the app has been rebuilt with the `usesAppleSignIn` entitlement. Throws
+   * AppleCancelledError if the user dismisses the native sheet.
+   */
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -188,6 +217,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // and updates `session` — caller doesn't need to do anything else.
   }, []);
 
+  const signInWithApple = useCallback(async () => {
+    // Lazy-require the native modules so they are only resolved when this flow
+    // actually runs (i.e. after APPLE_SIGN_IN_ENABLED is flipped AND the app is
+    // rebuilt with the Apple entitlement). A top-level `import` would call
+    // requireNativeModule() at load time and crash any dev client built before
+    // the entitlement existed — which would break the whole app, not just Apple.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const AppleAuthentication = require('expo-apple-authentication');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Crypto = require('expo-crypto');
+
+    // Supabase checks an anti-replay nonce: we send Apple the SHA-256 of a random
+    // string and hand the raw string to Supabase to match against the hash baked
+    // into the returned identity token.
+    const randomBytes = await Crypto.getRandomBytesAsync(16);
+    const rawNonce = Array.from(randomBytes as Uint8Array)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    const hashedNonce = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      rawNonce,
+    );
+
+    let credential;
+    try {
+      credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: hashedNonce,
+      });
+    } catch (e) {
+      // Apple throws ERR_REQUEST_CANCELED when the user taps Cancel.
+      if ((e as { code?: string })?.code === 'ERR_REQUEST_CANCELED') {
+        throw new AppleCancelledError();
+      }
+      throw e;
+    }
+
+    const idToken = credential.identityToken;
+    if (!idToken) throw new Error('Apple did not return an identity token');
+
+    const { error } = await supabase.auth.signInWithIdToken({
+      provider: 'apple',
+      token: idToken,
+      nonce: rawNonce,
+    });
+    if (error) throw error;
+
+    // Apple only returns the user's name on the VERY FIRST authorization. Stash
+    // it in auth metadata if present so the profile-setup screen can prefill it.
+    // (The identity token itself carries no name, so the profile-provisioning DB
+    // trigger can't see it — this is the only chance to capture it.)
+    const fullName = [credential.fullName?.givenName, credential.fullName?.familyName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    if (fullName) {
+      await supabase.auth.updateUser({ data: { full_name: fullName } });
+    }
+    // The auth-state listener catches SIGNED_IN and updates `session`.
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
@@ -201,6 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       verifyOtpSignup,
       resendSignupOtp,
       signInWithGoogle,
+      signInWithApple,
       signOut,
     }),
     [
@@ -211,6 +305,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       verifyOtpSignup,
       resendSignupOtp,
       signInWithGoogle,
+      signInWithApple,
       signOut,
     ],
   );

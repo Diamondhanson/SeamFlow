@@ -17,6 +17,7 @@ import {
   type ChipTone,
 } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { useGroupOrders } from '../../../lib/queries';
 import { ApiError } from '../../../lib/api';
@@ -153,9 +154,9 @@ export default function GroupsList() {
       </View>
 
       {isLoading && items.length === 0 ? (
-        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          {t('common.loading')}
-        </Text>
+        <View style={styles.skeletonWrap}>
+          <SkeletonList leading="none" chip />
+        </View>
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
           {t('groups.noGroupsYet')}
@@ -204,4 +205,5 @@ const styles = StyleSheet.create({
   },
   cardName: { flex: 1 },
   muted: { textAlign: 'center', marginTop: spacing.xl },
+  skeletonWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
 });

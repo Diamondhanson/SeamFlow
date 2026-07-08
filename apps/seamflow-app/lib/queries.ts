@@ -4,6 +4,10 @@ import type {
   ClientCreateInput,
   ClientUpdateInput,
   DesignUpdateInput,
+  FabricCreateInput,
+  FabricResponse,
+  FabricUpdateInput,
+  InvoiceWithContext,
   NotificationPreferences,
   NotificationPreferencesUpdateInput,
   GroupOrder,
@@ -13,6 +17,7 @@ import type {
   GroupOrderUpdateInput,
   GroupOrderWithMembers,
   GroupOrderWithMembersCreateInput,
+  InvoiceUpdateInput,
   MeasurementSetCreateInput,
   MeasurementSetUpdateInput,
   MeasurementTemplateCreateInput,
@@ -30,8 +35,12 @@ import { qk } from './query-keys';
 import { defaultNotificationPreferences } from './notification-defaults';
 import {
   mk,
+  type ByIdVars,
   type DeleteOrderVars,
   type TransitionOrderVars,
+  type UpdateClientVars,
+  type UpdateFabricVars,
+  type UpdateInvoiceVars,
   type UpdateOrderVars,
 } from './mutation-defaults';
 
@@ -66,37 +75,22 @@ export const useClients = (q?: string) =>
 export const useClient = (id: string) =>
   useQuery({ queryKey: qk.client(id), queryFn: () => api.clients.get(id), enabled: !!id });
 
+// Client / fabric / invoice create-update-delete use `mutationKey` (defaults
+// registered in mutation-defaults.ts) so offline edits survive an app kill,
+// exactly like the order mutations. Cache invalidation lives in the defaults;
+// component-level onSuccess/onError still fire on top.
 export function useCreateClient() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: ClientCreateInput) => api.clients.create(input),
-    onSuccess: (created: Client) => {
-      qc.invalidateQueries({ queryKey: ['clients'] });
-      qc.setQueryData(qk.client(created.id), created);
-    },
-  });
+  return useMutation<Client, Error, ClientCreateInput>({ mutationKey: mk.createClient });
 }
 
 export function useUpdateClient(id: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (input: ClientUpdateInput) => api.clients.update(id, input),
-    onSuccess: (updated: Client) => {
-      qc.setQueryData(qk.client(id), updated);
-      qc.invalidateQueries({ queryKey: ['clients'] });
-    },
-  });
+  const m = useMutation<Client, Error, UpdateClientVars>({ mutationKey: mk.updateClient });
+  return wrapWithId<Client, ClientUpdateInput, UpdateClientVars>(m, (input) => ({ id, input }));
 }
 
 export function useDeleteClient(id: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => api.clients.delete(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['clients'] });
-      qc.removeQueries({ queryKey: qk.client(id) });
-    },
-  });
+  const m = useMutation<void, Error, ByIdVars>({ mutationKey: mk.deleteClient });
+  return wrapWithId<void, void, ByIdVars>(m, () => ({ id }));
 }
 
 // ============================================================================
@@ -180,6 +174,41 @@ export function useDeleteTemplate(id: string) {
       qc.removeQueries({ queryKey: qk.template(id) });
     },
   });
+}
+
+// ============================================================================
+// Fabric library
+// ============================================================================
+
+export const useFabrics = () =>
+  useQuery({ queryKey: qk.fabrics(), queryFn: () => api.fabrics.list() });
+
+export const useFabric = (id: string) =>
+  useQuery({
+    queryKey: qk.fabric(id),
+    queryFn: () => api.fabrics.get(id),
+    enabled: !!id,
+  });
+
+export function useCreateFabric() {
+  return useMutation<FabricResponse, Error, FabricCreateInput>({
+    mutationKey: mk.createFabric,
+  });
+}
+
+export function useUpdateFabric(id: string) {
+  const m = useMutation<FabricResponse, Error, UpdateFabricVars>({
+    mutationKey: mk.updateFabric,
+  });
+  return wrapWithId<FabricResponse, FabricUpdateInput, UpdateFabricVars>(m, (input) => ({
+    id,
+    input,
+  }));
+}
+
+export function useDeleteFabric(id: string) {
+  const m = useMutation<void, Error, ByIdVars>({ mutationKey: mk.deleteFabric });
+  return wrapWithId<void, void, ByIdVars>(m, () => ({ id }));
 }
 
 // ============================================================================
@@ -534,5 +563,53 @@ export function useUpdateNotificationPreferences() {
 export function useIssueShareLink(orderId: string) {
   return useMutation({
     mutationFn: () => api.shareLinks.issueForOrder(orderId),
+  });
+}
+
+// ============================================================================
+// Invoices
+// ============================================================================
+
+export const useInvoices = () =>
+  useQuery({ queryKey: qk.invoices(), queryFn: () => api.invoices.list() });
+
+export const useInvoice = (id: string) =>
+  useQuery({
+    queryKey: qk.invoice(id),
+    queryFn: () => api.invoices.get(id),
+    enabled: !!id,
+  });
+
+/** Create (or open the existing) invoice for an order. */
+export function useCreateInvoiceForOrder() {
+  return useMutation<InvoiceWithContext, Error, string>({
+    mutationKey: mk.createInvoiceForOrder,
+  });
+}
+
+export function useUpdateInvoice(id: string) {
+  const m = useMutation<InvoiceWithContext, Error, UpdateInvoiceVars>({
+    mutationKey: mk.updateInvoice,
+  });
+  return wrapWithId<InvoiceWithContext, InvoiceUpdateInput, UpdateInvoiceVars>(m, (input) => ({
+    id,
+    input,
+  }));
+}
+
+export function useDeleteInvoice(id: string) {
+  const m = useMutation<void, Error, ByIdVars>({ mutationKey: mk.deleteInvoice });
+  return wrapWithId<void, void, ByIdVars>(m, () => ({ id }));
+}
+
+export function useIssueInvoiceLink(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.invoices.issueLink(id),
+    // Issuing flips the invoice to "sent" server-side — refresh so the UI reflects it.
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.invoice(id) });
+      qc.invalidateQueries({ queryKey: qk.invoices() });
+    },
   });
 }

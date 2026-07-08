@@ -15,6 +15,7 @@ export const fabrics = pgTable(
     yardageMeters: numeric('yardage_meters', { precision: 10, scale: 2 }),
     costPerMeter: numeric('cost_per_meter', { precision: 12, scale: 2 }),
     photoKey: text('photo_key'),
+    photoThumbKey: text('photo_thumb_key'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

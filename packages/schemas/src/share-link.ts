@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { OrderSchema, OrderItemSchema } from './order';
 import { OrderPhotoSchema } from './order-photo';
+import { OrderFabricSchema } from './fabric';
 
 /** Response from POST /orders/:id/share-link. */
 export const ShareLinkResponseSchema = z.object({
@@ -28,6 +29,8 @@ export const PublicOrderResponseSchema = z.object({
   order: OrderSchema,
   items: z.array(OrderItemSchema),
   photos: z.array(OrderPhotoSchema),
+  /** The fabric for this order (its own, or its group's shared fabric). */
+  fabric: OrderFabricSchema.nullable(),
   tailor: PublicTailorSchema,
   effectiveExpiresAt: z.string().datetime(),
 });

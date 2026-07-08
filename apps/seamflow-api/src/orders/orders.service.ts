@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { and, desc, eq, gte, ilike, lte, type SQL } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { clients, orderEvents, orderItems, orders, tailors } from '../db/schema';
+import { clients, fabrics, orderEvents, orderItems, orders, tailors } from '../db/schema';
 import {
   canTransitionOrderStatus,
   type OrderCreateInput,
@@ -65,6 +65,15 @@ export class OrdersService {
       .where(and(eq(clients.tailorId, tailorId), eq(clients.id, clientId)))
       .limit(1);
     if (!rows[0]) throw new NotFoundException(`Client ${clientId} not found`);
+  }
+
+  private async assertFabricOwned(tailorId: string, fabricId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: fabrics.id })
+      .from(fabrics)
+      .where(and(eq(fabrics.tailorId, tailorId), eq(fabrics.id, fabricId)))
+      .limit(1);
+    if (!rows[0]) throw new NotFoundException(`Fabric ${fabricId} not found`);
   }
 
   /**
@@ -175,6 +184,7 @@ export class OrdersService {
     data: OrderCreateInput,
   ): Promise<OrderRow> {
     const clientId = await this.resolveClientId(tailorId, data);
+    if (data.fabricId) await this.assertFabricOwned(tailorId, data.fabricId);
 
     const [created] = await this.dbService.db
       .insert(orders)
@@ -183,6 +193,9 @@ export class OrdersService {
         clientId,
         groupOrderId: data.groupOrderId ?? null,
         groupOrderMemberId: data.groupOrderMemberId ?? null,
+        fabricId: data.fabricId ?? null,
+        fabricYardageUsed:
+          data.fabricYardageUsed != null ? String(data.fabricYardageUsed) : null,
         orderName: data.orderName,
         dateOrdered: data.dateOrdered ? new Date(data.dateOrdered) : new Date(),
         dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
@@ -231,6 +244,14 @@ export class OrdersService {
     const patch: Partial<typeof orders.$inferInsert> = { updatedAt: new Date() };
     if (data.groupOrderId !== undefined) patch.groupOrderId = data.groupOrderId;
     if (data.groupOrderMemberId !== undefined) patch.groupOrderMemberId = data.groupOrderMemberId;
+    if (data.fabricId !== undefined) {
+      if (data.fabricId) await this.assertFabricOwned(tailorId, data.fabricId);
+      patch.fabricId = data.fabricId;
+    }
+    if (data.fabricYardageUsed !== undefined) {
+      patch.fabricYardageUsed =
+        data.fabricYardageUsed != null ? String(data.fabricYardageUsed) : null;
+    }
     if (data.orderName !== undefined) patch.orderName = data.orderName;
     if (data.dateOrdered !== undefined) {
       patch.dateOrdered = data.dateOrdered ? new Date(data.dateOrdered) : new Date();

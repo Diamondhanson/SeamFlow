@@ -314,6 +314,12 @@ max_frequency = "5s"
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
+#
+# Sign in with Apple — kept disabled until the Apple Developer account is set up.
+# To activate (full steps in docs/apple-sign-in.md): set enabled = true, put the
+# app's bundle id + Services ID in client_id (comma-separated), and provide
+# SUPABASE_AUTH_EXTERNAL_APPLE_SECRET (the generated client-secret JWT). The
+# hosted project (Authentication → Providers → Apple) must be set the same way.
 [auth.external.apple]
 enabled = false
 client_id = ""

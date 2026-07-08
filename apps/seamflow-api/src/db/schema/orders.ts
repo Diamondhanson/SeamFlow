@@ -99,6 +99,10 @@ export const orders = pgTable(
       () => groupOrderMembers.id,
       { onDelete: 'set null' },
     ),
+    fabricId: uuid('fabric_id').references(() => fabrics.id, {
+      onDelete: 'set null',
+    }),
+    fabricYardageUsed: numeric('fabric_yardage_used', { precision: 10, scale: 2 }),
     orderName: text('order_name').notNull(),
     dateOrdered: timestamp('date_ordered', { withTimezone: true }).notNull().defaultNow(),
     dateDelivery: timestamp('date_delivery', { withTimezone: true }),
@@ -114,6 +118,7 @@ export const orders = pgTable(
     clientIdIdx: index('orders_client_id_idx').on(t.clientId),
     groupOrderIdIdx: index('orders_group_order_id_idx').on(t.groupOrderId),
     groupOrderMemberIdIdx: index('orders_group_order_member_id_idx').on(t.groupOrderMemberId),
+    fabricIdIdx: index('orders_fabric_id_idx').on(t.fabricId),
     statusIdx: index('orders_status_idx').on(t.status),
     dateDeliveryIdx: index('orders_date_delivery_idx').on(t.dateDelivery),
   }),

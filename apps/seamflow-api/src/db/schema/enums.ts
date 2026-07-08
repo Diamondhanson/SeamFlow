@@ -37,3 +37,5 @@ export const paymentProviderEnum = pgEnum('payment_provider', [
   'flutterwave',
   'razorpay',
 ]);
+
+export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'sent']);

@@ -35,6 +35,39 @@ export class PermissionDeniedError extends Error {
   }
 }
 
+/**
+ * Thrown by the photo flows when the device is offline. Photo uploads go
+ * straight to storage (not through the offline mutation queue), so they can't
+ * be deferred — we stop before opening the picker and tell the user to retry
+ * when they're back online, rather than hanging on a failed upload.
+ */
+export class PhotoOfflineError extends Error {
+  constructor() {
+    super('photo-offline');
+    this.name = 'PhotoOfflineError';
+  }
+}
+
+/**
+ * If `err` is a PhotoOfflineError, show a localized "you're offline" dialog and
+ * return `true` (handled). Otherwise return `false`.
+ */
+export async function alertIfOffline(
+  err: unknown,
+  dialog: DialogApi,
+  t: Translate,
+): Promise<boolean> {
+  if (err instanceof PhotoOfflineError) {
+    await dialog.alert({
+      title: t('misc.photosOfflineTitle'),
+      message: t('misc.photosOfflineBody'),
+      tone: 'warning',
+    });
+    return true;
+  }
+  return false;
+}
+
 const MESSAGE_KEY: Record<PermissionKind, string> = {
   camera: 'misc.cameraAccessOff',
   photos: 'misc.photosAccessOff',

@@ -48,6 +48,9 @@ export const misc = {
     photosAccessOff:
       "Photo access is off. Enable it for this app in your phone's Settings to choose a photo.",
     openSettings: 'Open Settings',
+    photosOfflineTitle: "You're offline",
+    photosOfflineBody:
+      'Photos need a connection to upload. Reconnect and add them then.',
     // Phone input
     phoneNumber: 'Phone number',
     selectCountry: 'Select country',
@@ -118,6 +121,9 @@ export const misc = {
     photosAccessOff:
       'L’accès aux photos est désactivé. Activez-le pour cette application dans les réglages de votre téléphone pour choisir une photo.',
     openSettings: 'Ouvrir les réglages',
+    photosOfflineTitle: 'Vous êtes hors ligne',
+    photosOfflineBody:
+      'Les photos nécessitent une connexion pour être envoyées. Reconnectez-vous pour les ajouter.',
     // Phone input
     phoneNumber: 'Numéro de téléphone',
     selectCountry: 'Choisir un pays',

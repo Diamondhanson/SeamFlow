@@ -11,6 +11,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Avatar, IconButton } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
+import { SkeletonForm } from '../../components/Skeleton';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { useFloatingScroll } from '../../lib/floating-scroll';
@@ -24,7 +25,7 @@ import {
 import { clearCache } from '../../lib/query-client';
 import { ensurePushRegistered, sendPushTest } from '../../lib/notifications';
 import { pickPhoto, uploadTailorLogo } from '../../lib/photo-upload';
-import { alertIfPermissionDenied } from '../../lib/permissions';
+import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
 import { useDialog } from '../../lib/dialog';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
@@ -77,7 +78,10 @@ export default function Me() {
       const photoUrl = await uploadTailorLogo({ tailorId: me.tailor.id, asset });
       await savePhoto(photoUrl);
     } catch (err) {
-      if (!(await alertIfPermissionDenied(err, dialog, t))) {
+      if (
+        !(await alertIfOffline(err, dialog, t)) &&
+        !(await alertIfPermissionDenied(err, dialog, t))
+      ) {
         await dialog.error(err);
       }
     } finally {
@@ -157,9 +161,7 @@ export default function Me() {
     return (
       <Screen>
         <ScreenHeader title={t('settings.title')} />
-        <Text variant="body" tone="textMuted">
-          {t('settings.loading')}
-        </Text>
+        <SkeletonForm fields={5} />
       </Screen>
     );
   }

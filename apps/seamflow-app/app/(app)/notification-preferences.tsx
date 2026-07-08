@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
+import { SkeletonForm } from '../../components/Skeleton';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { TimezonePickerModal } from '../../components/TimezonePickerModal';
@@ -53,9 +54,7 @@ export default function NotificationPreferences() {
         showsVerticalScrollIndicator={false}
       >
         {loading ? (
-          <Text variant="bodySm" tone="textMuted">
-            {t('common.loading')}
-          </Text>
+          <SkeletonForm fields={4} />
         ) : (
           <View>
             {offline ? (

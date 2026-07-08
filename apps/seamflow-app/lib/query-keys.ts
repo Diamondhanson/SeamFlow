@@ -19,6 +19,9 @@ export const qk = {
   templates: () => ['templates'] as const,
   template: (id: string) => ['templates', id] as const,
 
+  fabrics: () => ['fabrics'] as const,
+  fabric: (id: string) => ['fabrics', id] as const,
+
   groups: (status?: string) => ['groups', { status: status ?? '' }] as const,
   group: (id: string) => ['groups', id] as const,
 
@@ -35,6 +38,9 @@ export const qk = {
 
   designs: () => ['designs'] as const,
   design: (id: string) => ['designs', id] as const,
+
+  invoices: () => ['invoices'] as const,
+  invoice: (id: string) => ['invoices', id] as const,
 
   notificationPreferences: () => ['notification-preferences'] as const,
 } as const;

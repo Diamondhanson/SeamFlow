@@ -25,7 +25,9 @@ import {
   useOrders,
   useClients,
   useTemplates,
+  useFabrics,
   useGroupOrders,
+  useInvoices,
 } from '../../lib/queries';
 import { ApiError } from '../../lib/api';
 import { daysUntil } from '../../lib/order-status';
@@ -69,10 +71,16 @@ export default function Home() {
   const { data: ordersData } = useOrders({});
   const { data: clientsData } = useClients('');
   const { data: templatesData } = useTemplates();
+  const { data: fabricsData } = useFabrics();
   const { data: groupsData } = useGroupOrders();
+  const { data: invoicesData } = useInvoices();
 
   const orders = ordersData?.items ?? [];
   const openOrders = orders.filter((o) => o.status !== 'delivered');
+  const invoicedOrderIds = new Set(
+    (invoicesData?.items ?? []).map((i) => i.orderId),
+  );
+  const awaitingInvoice = orders.filter((o) => !invoicedOrderIds.has(o.id)).length;
   const dueSoon = useMemo(
     () =>
       openOrders
@@ -137,11 +145,27 @@ export default function Home() {
       onPress: () => router.push('/(app)/templates'),
     },
     {
+      label: t('fabrics.tileLabel'),
+      icon: 'layers',
+      tone: 'success',
+      subtitle: t('fabrics.tileCount', { count: fabricsData?.items.length ?? 0 }),
+      subtitleNumeric: true,
+      onPress: () => router.push('/(app)/fabrics'),
+    },
+    {
       label: t('home.designStudio'),
       icon: 'color-palette',
       tone: 'accent',
       subtitle: t('home.designStudioSubtitle'),
       onPress: () => router.push('/(app)/designs'),
+    },
+    {
+      label: t('invoices.tileLabel'),
+      icon: 'receipt',
+      tone: 'warning',
+      subtitle: t('invoices.tileAwaiting', { count: awaitingInvoice }),
+      subtitleNumeric: true,
+      onPress: () => router.push('/(app)/invoices'),
     },
   ];
 
@@ -160,11 +184,16 @@ export default function Home() {
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
       >
-        {/* Greeting hero */}
-        <View
-          style={[
+        {/* Greeting hero — the whole banner opens Settings; the avatar + gear
+            in the corner signal that affordance. */}
+        <Pressable
+          onPress={() => router.push('/(app)/me')}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.settings')}
+          style={({ pressed }) => [
             styles.hero,
             { backgroundColor: colors.surfaceElevated, borderColor: colors.hairline },
+            pressed && styles.heroPressed,
           ]}
         >
           <View
@@ -174,15 +203,7 @@ export default function Home() {
             ]}
           />
 
-          {/* Profile / settings entry — always visible at the top of home,
-              framed by the hero's glow. Tap to open Settings. */}
-          <Pressable
-            onPress={() => router.push('/(app)/me')}
-            style={styles.avatarBtn}
-            accessibilityRole="button"
-            accessibilityLabel={t('home.settings')}
-            hitSlop={8}
-          >
+          <View style={styles.avatarBtn}>
             {me?.tailor?.photoUrl ? (
               <Image source={{ uri: me.tailor.photoUrl }} style={styles.avatarImg} />
             ) : (
@@ -196,7 +217,7 @@ export default function Home() {
             >
               <Ionicons name="settings-sharp" size={11} color={colors.textMuted} />
             </View>
-          </Pressable>
+          </View>
 
           <Text variant="label" tone="textMuted">
             {greeting.toUpperCase()}
@@ -222,7 +243,7 @@ export default function Home() {
               {t('home.dueSoonStat')}
             </Text>
           </View>
-        </View>
+        </Pressable>
 
         {/* Primary CTA */}
         <View style={styles.cta}>
@@ -303,6 +324,7 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     overflow: 'hidden',
   },
+  heroPressed: { opacity: 0.9 },
   heroCircle: {
     position: 'absolute',
     top: -40,

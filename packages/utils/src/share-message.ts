@@ -57,3 +57,28 @@ export function phoneToWaMeDigits(phoneE164: string | null | undefined): string 
   const digits = phoneE164.replace(/\D/g, '');
   return digits.length >= 7 ? digits : null;
 }
+
+export interface InvoiceShareMessageInput {
+  /** Required — the link the client will tap. */
+  url: string;
+  /** Required — the invoice number (e.g. "INV-0001"). */
+  invoiceNumber: string;
+  /** Optional — if present we greet the client by name. */
+  clientName?: string | null;
+  /** Optional — tailor's business name (signature line). */
+  tailorBusinessName?: string | null;
+}
+
+/** Build the invoice share message body. Plain text, WhatsApp-friendly. */
+export function formatInvoiceShareMessage(input: InvoiceShareMessageInput): string {
+  const { url, invoiceNumber, clientName, tailorBusinessName } = input;
+  const firstName = pickFirstName(clientName);
+
+  const greeting = firstName
+    ? `Hi ${firstName} — here's your invoice ${invoiceNumber}`
+    : `Here's your invoice — ${invoiceNumber}`;
+
+  const signature = tailorBusinessName ? `\n\n— ${tailorBusinessName}` : '';
+
+  return `${greeting}\n\nView it here: ${url}${signature}`;
+}

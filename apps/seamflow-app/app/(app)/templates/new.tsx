@@ -8,7 +8,12 @@ import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { Card } from '../../../components/Card';
-import { useCreateTemplate } from '../../../lib/queries';
+import {
+  TemplateImagesEditor,
+  toTemplateImageInput,
+  type EditableTemplateImage,
+} from '../../../components/TemplateImagesEditor';
+import { useCreateTemplate, useMe } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
@@ -26,7 +31,10 @@ export default function NewTemplate() {
   const [garmentType, setGarmentType] = useState(garment?.toLowerCase() ?? '');
   const [description, setDescription] = useState('');
   const [fields, setFields] = useState<TemplateField[]>(STARTER_FIELDS);
+  const [images, setImages] = useState<EditableTemplateImage[]>([]);
   const create = useCreateTemplate();
+  const { data: me } = useMe();
+  const tailorId = me?.tailor?.id;
   const { t } = useTranslation();
   const dialog = useDialog();
 
@@ -52,6 +60,7 @@ export default function NewTemplate() {
         garmentType: garmentType || null,
         description: description || null,
         fields,
+        images: images.map(toTemplateImageInput),
       },
       {
         onSuccess: (t) => {
@@ -90,6 +99,10 @@ export default function NewTemplate() {
           placeholder={t('templates.descriptionPlaceholder')}
           multiline
         />
+
+        <View style={styles.section}>
+          <TemplateImagesEditor tailorId={tailorId} images={images} onChange={setImages} />
+        </View>
 
         <Text variant="h3" style={styles.section}>{t('templates.measurementFields')}</Text>
         {fields.map((f, i) => (

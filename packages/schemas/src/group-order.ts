@@ -102,6 +102,7 @@ export const GroupOrderWithMembersCreateSchema = z.object({
   members: z.array(GroupOrderMemberInlineSchema).default([]),
   description: z.string().nullable().optional(),
   sharedDesignNotes: z.string().nullable().optional(),
+  sharedFabricId: z.string().uuid().nullable().optional(),
   eventDate: z.string().datetime().nullable().optional(),
   dateDelivery: z.string().datetime().nullable().optional(),
 });

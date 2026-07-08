@@ -89,19 +89,23 @@ function ThemedRoot() {
             // v2 — added paused-mutation dehydration in Phase 1.4 polish.
             buster: 'v2',
             dehydrateOptions: {
-              // Persist queries normally, AND persist any paused mutation
-              // (offline). Successful mutations are skipped (no point
-              // persisting completed work). Errored mutations are persisted
-              // so the user can see / retry from the pending indicator.
-              shouldDehydrateMutation: (m) =>
-                m.state.status === 'pending' || m.state.status === 'error',
+              // Persist queries normally, AND persist only PAUSED mutations —
+              // i.e. edits queued while offline, waiting for a connection.
+              // Successful mutations are done; errored ones can't be replayed
+              // by resumePausedMutations() and would only wedge the "Syncing…"
+              // banner, so we never persist them.
+              shouldDehydrateMutation: (m) => m.state.isPaused,
             },
           }}
           onSuccess={() => {
-            // After the persistor rehydrates, replay any mutations that were
-            // queued offline last session. resumePausedMutations() is a no-op
-            // if we're still offline — onlineManager will fire it again when
-            // connectivity returns.
+            // Defensive: drop any un-resumable error-state mutations restored
+            // from an older cache version so they can't wedge the banner.
+            const mc = queryClient.getMutationCache();
+            mc.getAll()
+              .filter((m) => m.state.status === 'error')
+              .forEach((m) => mc.remove(m));
+            // Replay mutations queued offline last session. A no-op while still
+            // offline — onlineManager fires it again when connectivity returns.
             void queryClient.resumePausedMutations();
           }}
         >

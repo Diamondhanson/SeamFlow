@@ -43,7 +43,7 @@ export default async function PublicOrderPage({ params }: PageProps) {
     throw err;
   }
 
-  const { order, items, photos, tailor, effectiveExpiresAt } = payload;
+  const { order, items, photos, fabric, tailor, effectiveExpiresAt } = payload;
   const status = STATUS[order.status] ?? {
     label: order.status,
     color: '#5B554F',
@@ -123,6 +123,42 @@ export default async function PublicOrderPage({ params }: PageProps) {
                 </a>
               );
             })}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Fabric */}
+      {fabric ? (
+        <section className="mt-10">
+          <SectionLabel>Fabric</SectionLabel>
+          <div className="mt-4 flex items-center gap-4 rounded-3xl border border-border/70 bg-surface/80 p-4 shadow-sm">
+            {fabric.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={fabric.photoUrl}
+                alt={fabric.name}
+                className="h-16 w-16 shrink-0 rounded-2xl border border-border/60 object-cover"
+              />
+            ) : (
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-dashed border-border/70 bg-background/60 text-muted">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M4 7l4-3 4 3 4-3 4 3v13H4V7z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="font-display text-lg font-semibold text-ink">
+                {fabric.name}
+              </p>
+              {fabric.color ? (
+                <p className="mt-0.5 text-sm text-muted">{fabric.color}</p>
+              ) : null}
+            </div>
           </div>
         </section>
       ) : null}

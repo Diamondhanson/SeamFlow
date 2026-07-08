@@ -10,8 +10,12 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.bambothanson.FashionApp",
+      "usesAppleSignIn": true,
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["whatsapp"]
+        "LSApplicationQueriesSchemes": [
+          "whatsapp"
+        ]
       }
     },
     "android": {
@@ -61,7 +65,8 @@
         {
           "contactsPermission": "Allow $(PRODUCT_NAME) to use your contacts so you can add clients and order owners without retyping their details."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

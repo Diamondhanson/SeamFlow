@@ -9,8 +9,10 @@ import { ConfigService } from '@nestjs/config';
 import jwt from 'jsonwebtoken';
 import { and, desc, eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { orderEvents, orderItems, orderPhotos, orders, tailors } from '../db/schema';
+import { groupOrders, orderEvents, orderItems, orderPhotos, orders, tailors } from '../db/schema';
 import { OrderPhotosService } from '../order-photos/order-photos.service';
+import { FabricsService } from '../fabrics/fabrics.service';
+import type { OrderFabric } from '@seamflow/schemas';
 
 // ============================================================================
 // Share-link token rules
@@ -47,6 +49,8 @@ export interface PublicOrderPayload {
   order: typeof orders.$inferSelect;
   items: (typeof orderItems.$inferSelect)[];
   photos: Array<typeof orderPhotos.$inferSelect & { signedUrl?: string; thumbnailUrl?: string }>;
+  /** The order's fabric (its own, or its group's shared fabric) — null if none. */
+  fabric: OrderFabric | null;
   tailor: { businessName: string; location: string | null };
   /** When this link will stop working (whichever is sooner: token exp or delivery+2d). */
   effectiveExpiresAt: string;
@@ -62,6 +66,7 @@ export class ShareLinksService {
     config: ConfigService,
     private readonly dbService: DbService,
     private readonly photosService: OrderPhotosService,
+    private readonly fabricsService: FabricsService,
   ) {
     this.secret = config.getOrThrow<string>('SHARE_LINK_JWT_SECRET');
     this.webBaseUrl = config.get<string>('WEB_BASE_URL') ?? 'http://localhost:3000';
@@ -177,12 +182,33 @@ export class ShareLinksService {
       photoRows.map((p) => this.photosService.attachSignedUrl(p)),
     );
 
+    const fabric = await this.resolveOrderFabric(order);
+
     return {
       order,
       items,
       photos,
+      fabric,
       tailor: tailorRows[0] ?? { businessName: 'Tailor', location: null },
       effectiveExpiresAt: effectiveExpires.toISOString(),
     };
+  }
+
+  /** The order's own fabric, or its group's shared fabric — null if none. */
+  private async resolveOrderFabric(
+    order: typeof orders.$inferSelect,
+  ): Promise<OrderFabric | null> {
+    let fabricId = order.fabricId;
+    if (!fabricId && order.groupOrderId) {
+      const [group] = await this.dbService.db
+        .select({ sharedFabricId: groupOrders.sharedFabricId })
+        .from(groupOrders)
+        .where(eq(groupOrders.id, order.groupOrderId))
+        .limit(1);
+      fabricId = group?.sharedFabricId ?? null;
+    }
+    if (!fabricId) return null;
+    const row = await this.fabricsService.findByIdRaw(fabricId);
+    return row ? this.fabricsService.toOrderFabric(row) : null;
   }
 }

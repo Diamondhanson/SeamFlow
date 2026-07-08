@@ -14,6 +14,7 @@ import { TailorsModule } from './tailors/tailors.module';
 import { ClientsModule } from './clients/clients.module';
 import { MeasurementSetsModule } from './measurement-sets/measurement-sets.module';
 import { MeasurementTemplatesModule } from './measurement-templates/measurement-templates.module';
+import { FabricsModule } from './fabrics/fabrics.module';
 import { GroupOrdersModule } from './group-orders/group-orders.module';
 import { GroupOrderMembersModule } from './group-order-members/group-order-members.module';
 import { OrdersModule } from './orders/orders.module';
@@ -22,6 +23,7 @@ import { OrderPhotosModule } from './order-photos/order-photos.module';
 import { DesignsModule } from './designs/designs.module';
 import { AiModule } from './ai/ai.module';
 import { ShareLinksModule } from './share-links/share-links.module';
+import { InvoicesModule } from './invoices/invoices.module';
 import { PublicModule } from './public/public.module';
 import { SyncModule } from './sync/sync.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -44,6 +46,7 @@ import { RemindersModule } from './notifications/reminders.module';
     ClientsModule,
     MeasurementSetsModule,
     MeasurementTemplatesModule,
+    FabricsModule,
     GroupOrdersModule,
     GroupOrderMembersModule,
     OrdersModule,
@@ -52,6 +55,7 @@ import { RemindersModule } from './notifications/reminders.module';
     DesignsModule,
     AiModule,
     ShareLinksModule,
+    InvoicesModule,
     PublicModule,
     SyncModule,
     NotificationsModule,

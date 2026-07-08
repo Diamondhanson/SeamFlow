@@ -9,6 +9,7 @@ import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SearchField } from '../../../components/SearchField';
 import { OrderCard } from '../../../components/OrderCard';
 import { OptionSheet, type SheetOption } from '../../../components/OptionSheet';
+import { SkeletonList } from '../../../components/Skeleton';
 import { useOrders } from '../../../lib/queries';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
 import { STATUS_TONE, STATUS_ORDER } from '../../../lib/order-status';
@@ -147,9 +148,9 @@ export default function OrdersList() {
       />
 
       {isLoading && items.length === 0 ? (
-        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          {t('common.loading')}
-        </Text>
+        <View style={styles.skeletonWrap}>
+          <SkeletonList leading="circle" chip />
+        </View>
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
           {t('orders.emptyNoMatch')}
@@ -253,4 +254,5 @@ const styles = StyleSheet.create({
   },
   rowWrap: { gap: spacing.md },
   muted: { textAlign: 'center', marginTop: spacing.xl },
+  skeletonWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
 });

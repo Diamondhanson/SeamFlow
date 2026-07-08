@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -17,6 +17,9 @@ import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
+import { Input } from '../../../components/Input';
+import { FabricField } from '../../../components/FabricField';
+import { SkeletonDetail } from '../../../components/Skeleton';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import {
   qk,
@@ -27,10 +30,11 @@ import {
   useOrder,
   useOrderPhotos,
   useTransitionOrder,
+  useUpdateOrder,
 } from '../../../lib/queries';
 import { useShareOrder } from '../../../lib/share-order';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
-import { alertIfPermissionDenied } from '../../../lib/permissions';
+import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useResponsiveValue } from '../../../lib/use-breakpoint';
@@ -54,6 +58,7 @@ export default function OrderDetailScreen() {
   const transitionM = useTransitionOrder(id);
   const deletePhotoM = useDeleteOrderPhoto(id);
   const deleteOrderM = useDeleteOrder(id);
+  const updateOrderM = useUpdateOrder(id);
   const shareOrderHook = useShareOrder(id);
   const meQ = useMe();
   // Pull client lazily so we have a phone for the WhatsApp deep link.
@@ -70,6 +75,24 @@ export default function OrderDetailScreen() {
   const order = orderQ.data ?? null;
   const photos = photosQ.data?.items ?? [];
   const loading = orderQ.isLoading;
+
+  // Local mirror of the meters-used field, re-seeded when the order loads.
+  const [yardage, setYardage] = useState('');
+  useEffect(() => {
+    setYardage(order?.fabricYardageUsed ?? '');
+  }, [order?.fabricYardageUsed]);
+
+  const setFabric = (fabricId: string | null) =>
+    updateOrderM.mutate({ fabricId }, { onError: (err) => void dialog.error(err) });
+
+  const saveYardage = () => {
+    const next = yardage.trim() ? Number(yardage) : null;
+    if ((order?.fabricYardageUsed ?? null) === (next != null ? String(next) : null)) return;
+    updateOrderM.mutate(
+      { fabricYardageUsed: next },
+      { onError: (err) => void dialog.error(err) },
+    );
+  };
 
   const transition = (to: OrderStatus) =>
     transitionM.mutate(
@@ -92,7 +115,10 @@ export default function OrderDetailScreen() {
       // directly + the api-client raw call), so invalidate manually.
       qc.invalidateQueries({ queryKey: qk.orderPhotos(id) });
     } catch (err) {
-      if (!(await alertIfPermissionDenied(err, dialog, t))) {
+      if (
+        !(await alertIfOffline(err, dialog, t)) &&
+        !(await alertIfPermissionDenied(err, dialog, t))
+      ) {
         await dialog.error(err);
       }
     } finally {
@@ -143,9 +169,7 @@ export default function OrderDetailScreen() {
     return (
       <Screen>
         <ScreenHeader title={t('orders.detailTitle')} />
-        <Text variant="bodySm" tone="textMuted">
-          {t('common.loading')}
-        </Text>
+        <SkeletonDetail />
       </Screen>
     );
   }
@@ -235,6 +259,21 @@ export default function OrderDetailScreen() {
               </View>
             ))
           )}
+        </Section>
+
+        <Section title={t('fabrics.fabricLabel')}>
+          <FabricField value={order.fabricId} onChange={setFabric} />
+          {order.fabricId ? (
+            <Input
+              label={t('fabrics.metersUsedLabel')}
+              value={yardage}
+              onChangeText={setYardage}
+              onEndEditing={saveYardage}
+              onBlur={saveYardage}
+              keyboardType="decimal-pad"
+              placeholder={t('fabrics.yardagePlaceholder')}
+            />
+          ) : null}
         </Section>
 
         <Section

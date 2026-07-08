@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { Order } from '@seamflow/schemas';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { OrderCard } from '../../../components/OrderCard';
 import { useOrders } from '../../../lib/queries';
@@ -203,9 +204,7 @@ export default function CalendarScreen() {
               </Text>
             </View>
             {isLoading && selectedOrders.length === 0 ? (
-              <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-                {t('common.loading')}
-              </Text>
+              <SkeletonList count={3} leading="circle" chip />
             ) : selectedOrders.length === 0 ? (
               <Text variant="bodySm" tone="textMuted" style={styles.muted}>
                 {t('misc.noDeliveriesThisDay')}

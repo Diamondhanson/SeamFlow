@@ -4,6 +4,8 @@ import { router } from 'expo-router';
 import { Button, Input, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
 import {
+  APPLE_SIGN_IN_ENABLED,
+  AppleCancelledError,
   EmailNotConfirmedError,
   GoogleCancelledError,
   useAuth,
@@ -24,7 +26,8 @@ const MIN_PASSWORD_LEN = 8;
 // Behavior (signInWithPassword / signUpWithPassword / signInWithGoogle /
 // EmailNotConfirmedError routing) is unchanged.
 export default function SignIn() {
-  const { signInWithPassword, signUpWithPassword, signInWithGoogle } = useAuth();
+  const { signInWithPassword, signUpWithPassword, signInWithGoogle, signInWithApple } =
+    useAuth();
   const theme = useAtelierTheme();
   const { t } = useTranslation();
   const dialog = useDialog();
@@ -33,6 +36,7 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [appleBusy, setAppleBusy] = useState(false);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isValidPassword = password.length >= MIN_PASSWORD_LEN;
@@ -50,6 +54,32 @@ export default function SignIn() {
       await dialog.alert({ title: t('auth.googleSignInFailed'), message: msg, tone: 'error' });
     } finally {
       setGoogleBusy(false);
+    }
+  };
+
+  const onApple = async () => {
+    // Not wired to a real provider yet — show a "coming soon" dialog instead of
+    // invoking the native flow. Flip APPLE_SIGN_IN_ENABLED (see auth-context /
+    // docs/apple-sign-in.md) once Apple + Supabase are configured and the app is
+    // rebuilt; the branch below then runs the real sign-in.
+    if (!APPLE_SIGN_IN_ENABLED) {
+      await dialog.alert({
+        title: t('auth.appleComingSoonTitle'),
+        message: t('auth.appleComingSoonMessage'),
+      });
+      return;
+    }
+    if (appleBusy) return;
+    setAppleBusy(true);
+    try {
+      await signInWithApple();
+      router.replace('/(app)');
+    } catch (err) {
+      if (err instanceof AppleCancelledError) return;
+      const msg = err instanceof Error ? err.message : t('auth.appleSignInFailed');
+      await dialog.alert({ title: t('auth.appleSignInFailed'), message: msg, tone: 'error' });
+    } finally {
+      setAppleBusy(false);
     }
   };
 
@@ -130,8 +160,25 @@ export default function SignIn() {
         variant="secondary"
         onPress={onGoogle}
         loading={googleBusy}
-        disabled={googleBusy || submitting}
+        disabled={googleBusy || appleBusy || submitting}
       />
+
+      {/*
+        Apple Sign-In. Shown on every platform for now so it's visible while we
+        develop; tapping it shows a "coming soon" dialog (APPLE_SIGN_IN_ENABLED
+        is false). At activation, gate this to iOS only — Apple requires it on
+        iOS (App Store 4.8) but it's uncommon on Android:
+            {Platform.OS === 'ios' && ( <Button … /> )}
+      */}
+      <View style={styles.appleButton}>
+        <Button
+          label={appleBusy ? t('auth.openingApple') : t('auth.continueWithApple')}
+          variant="secondary"
+          onPress={onApple}
+          loading={appleBusy}
+          disabled={googleBusy || appleBusy || submitting}
+        />
+      </View>
 
       <View style={styles.dividerRow}>
         <View style={[styles.dividerLine, { backgroundColor: theme.colors.hairline }]} />
@@ -194,6 +241,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
     marginBottom: -1,
+  },
+  appleButton: {
+    marginTop: spacing.sm,
   },
   dividerRow: {
     flexDirection: 'row',

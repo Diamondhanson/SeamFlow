@@ -11,10 +11,11 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonGrid } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { useDesigns, useMe } from '../../../lib/queries';
 import { pickPhoto, uploadDesign } from '../../../lib/photo-upload';
-import { alertIfPermissionDenied } from '../../../lib/permissions';
+import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
 import { qk } from '../../../lib/query-keys';
 import { useQueryClient } from '@tanstack/react-query';
@@ -61,7 +62,10 @@ export default function DesignStudio() {
       await uploadDesign({ tailorId, asset });
       qc.invalidateQueries({ queryKey: qk.designs() });
     } catch (err) {
-      if (!(await alertIfPermissionDenied(err, dialog, t))) {
+      if (
+        !(await alertIfOffline(err, dialog, t)) &&
+        !(await alertIfPermissionDenied(err, dialog, t))
+      ) {
         await dialog.error(err);
       }
     } finally {
@@ -106,7 +110,9 @@ export default function DesignStudio() {
       </View>
 
       {designsQ.isLoading && items.length === 0 ? (
-        <Text variant="bodySm" tone="textMuted" style={styles.muted}>{t('common.loading')}</Text>
+        <View style={styles.skeletonWrap}>
+          <SkeletonGrid columns={3} />
+        </View>
       ) : items.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="color-palette-outline" size={40} color={colors.textMuted} />
@@ -163,6 +169,7 @@ const styles = StyleSheet.create({
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   addBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   muted: { textAlign: 'center', marginTop: spacing.xl },
+  skeletonWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   empty: { alignItems: 'center', marginTop: spacing.xl * 2, paddingHorizontal: spacing.xl, gap: spacing.md },
   emptyText: { textAlign: 'center' },
   grid: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 96 },

@@ -3,10 +3,12 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text, AvatarStack } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonDetail } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
+import { FabricField } from '../../../components/FabricField';
 import {
   useAddGroupMember,
   useClients,
@@ -80,7 +82,7 @@ export default function GroupDetail() {
     return (
       <Screen>
         <ScreenHeader title={t('groups.groupFallbackTitle')} />
-        <Text variant="bodySm" tone="textMuted">{t('common.loading')}</Text>
+        <SkeletonDetail />
       </Screen>
     );
   }
@@ -153,6 +155,19 @@ export default function GroupDetail() {
             <Text variant="bodySm" tone="textMuted">{group.sharedDesignNotes}</Text>
           </>
         ) : null}
+
+        <View style={{ marginTop: spacing.lg }}>
+          <FabricField
+            label={t('fabrics.sharedFabricLabel')}
+            value={group.sharedFabricId}
+            onChange={(fabricId) =>
+              updateGroup.mutate(
+                { sharedFabricId: fabricId },
+                { onError: (err) => void dialog.error(err) },
+              )
+            }
+          />
+        </View>
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 

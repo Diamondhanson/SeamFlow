@@ -27,3 +27,20 @@ body {
 .tabular {
   font-feature-settings: 'tnum' 1;
 }
+
+/* Print / "Save as PDF": drop the decorative washes for a clean sheet, keep
+   surface + accent colours, and hide anything marked `.no-print`. */
+@media print {
+  html,
+  body {
+    background-image: none;
+    background-color: #ffffff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

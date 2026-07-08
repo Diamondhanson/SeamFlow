@@ -12,6 +12,30 @@ export const TemplateFieldSchema = z.object({
 });
 export type TemplateField = z.infer<typeof TemplateFieldSchema>;
 
+/**
+ * One reference image / stencil attached to a template. What the client sends
+ * on create/update — `id` is a client-generated uuid so entries have a stable
+ * key for edit/remove. Images are stored in the `designs` bucket under
+ * `<tailorId>/templates/<id>`.
+ */
+export const TemplateImageInputSchema = z.object({
+  id: z.string().min(1),
+  storagePath: z.string().min(1),
+  thumbnailPath: z.string().nullable().optional(),
+  contentType: z.string().nullable().optional(),
+});
+export type TemplateImageInput = z.infer<typeof TemplateImageInputSchema>;
+
+/**
+ * A template image as returned by the API — the stored fields plus short-lived
+ * signed URLs the API resolves on read (absent when reading straight from DB).
+ */
+export const TemplateImageSchema = TemplateImageInputSchema.extend({
+  signedUrl: z.string().url().optional(),
+  thumbnailUrl: z.string().url().optional(),
+});
+export type TemplateImage = z.infer<typeof TemplateImageSchema>;
+
 export const MeasurementTemplateSchema = z.object({
   id: z.string().uuid(),
   tailorId: z.string().uuid(),
@@ -19,6 +43,7 @@ export const MeasurementTemplateSchema = z.object({
   garmentType: z.string().nullable(),
   description: z.string().nullable(),
   fields: z.array(TemplateFieldSchema),
+  images: z.array(TemplateImageSchema),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -30,6 +55,7 @@ export const MeasurementTemplateCreateSchema = z.object({
   garmentType: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   fields: z.array(TemplateFieldSchema).default([]),
+  images: z.array(TemplateImageInputSchema).default([]),
 });
 export type MeasurementTemplateCreateInput = z.infer<
   typeof MeasurementTemplateCreateSchema

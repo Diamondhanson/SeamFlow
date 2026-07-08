@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TailorsModule } from '../tailors/tailors.module';
 import { OrderPhotosModule } from '../order-photos/order-photos.module';
+import { FabricsModule } from '../fabrics/fabrics.module';
 import { ShareLinksController } from './share-links.controller';
 import { ShareLinksService } from './share-links.service';
 
 @Module({
-  imports: [TailorsModule, OrderPhotosModule],
+  imports: [TailorsModule, OrderPhotosModule, FabricsModule],
   controllers: [ShareLinksController],
   providers: [ShareLinksService],
   exports: [ShareLinksService],

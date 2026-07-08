@@ -26,7 +26,11 @@ import { registerMutationDefaults } from './mutation-defaults';
 
 const STALE_TIME_MS = 5 * 60 * 1000; // 5 minutes
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-const PERSIST_KEY = 'seamflow:react-query-cache:v1';
+// Bumped v1 → v2 when mutations switched to networkMode 'online' (see below).
+// The old key held error-state mutations that could never replay and left the
+// "Syncing…" banner stuck; a new key gives every install a clean slate.
+const PERSIST_KEY = 'seamflow:react-query-cache:v2';
+const STALE_PERSIST_KEYS = ['seamflow:react-query-cache:v1'];
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,10 +53,22 @@ export const queryClient = new QueryClient({
       },
       // Offline-first: serve cached data when offline; refetch when online.
       networkMode: 'offlineFirst',
+      // Pull fresh server data when connectivity returns or the app is
+      // refocused, so a tailor who was offline sees up-to-date data on
+      // reconnect. (These are TanStack defaults — pinned here to make the
+      // offline-sync intent explicit.) A dedicated delta /sync/pull endpoint
+      // exists for efficient multi-device sync but isn't needed for the
+      // single-tailor model.
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: true,
     },
     mutations: {
-      // Pause when offline; resume on reconnect.
-      networkMode: 'offlineFirst',
+      // 'online' (NOT 'offlineFirst'): when offline a mutation PAUSES without
+      // attempting the request, so it survives in the queue and is replayed by
+      // resumePausedMutations() on reconnect. 'offlineFirst' would fire the
+      // request once even offline → it fails with "Network request failed",
+      // lands in an un-resumable error state, and the edit is lost.
+      networkMode: 'online',
       retry: false,
     },
   },
@@ -80,6 +96,9 @@ let listenersInstalled = false;
 export function installOfflineListeners(): void {
   if (listenersInstalled) return;
   listenersInstalled = true;
+
+  // Drop any orphaned cache from a previous PERSIST_KEY version (fire-and-forget).
+  void AsyncStorage.multiRemove(STALE_PERSIST_KEYS).catch(() => {});
 
   onlineManager.setEventListener((setOnline) => {
     const sub = NetInfo.addEventListener((state) => {

@@ -45,6 +45,8 @@ export const OrderSchema = z.object({
   clientId: z.string().uuid(),
   groupOrderId: z.string().uuid().nullable(),
   groupOrderMemberId: z.string().uuid().nullable(),
+  fabricId: z.string().uuid().nullable(),
+  fabricYardageUsed: z.string().nullable(),
   orderName: z.string().min(1),
   dateOrdered: z.string().datetime(),
   dateDelivery: z.string().datetime().nullable(),
@@ -127,6 +129,10 @@ const OrderCreateBaseSchema = z.object({
   contact: OrderClientContactSchema.optional(),
   groupOrderId: z.string().uuid().nullable().optional(),
   groupOrderMemberId: z.string().uuid().nullable().optional(),
+  /** Fabric used for this order (from the fabric library). */
+  fabricId: z.string().uuid().nullable().optional(),
+  /** Meters of that fabric used — pre-fills the invoice fabric line. */
+  fabricYardageUsed: z.number().nonnegative().nullable().optional(),
   orderName: z.string().min(1),
   dateOrdered: z.string().datetime().optional(),
   dateDelivery: z.string().datetime().nullable().optional(),

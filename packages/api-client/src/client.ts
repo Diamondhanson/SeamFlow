@@ -11,6 +11,7 @@ import {
   makeMeasurementTemplatesResource,
   type MeasurementTemplatesResource,
 } from './resources/measurement-templates';
+import { makeFabricsResource, type FabricsResource } from './resources/fabrics';
 import {
   makeGroupOrdersResource,
   type GroupOrdersResource,
@@ -36,6 +37,10 @@ import {
   type ShareLinksResource,
 } from './resources/share-links';
 import {
+  makeInvoicesResource,
+  type InvoicesResource,
+} from './resources/invoices';
+import {
   makeNotificationsResource,
   type NotificationsResource,
 } from './resources/notifications';
@@ -51,6 +56,7 @@ export interface ApiClient {
   clients: ClientsResource;
   measurementSets: MeasurementSetsResource;
   measurementTemplates: MeasurementTemplatesResource;
+  fabrics: FabricsResource;
   groupOrders: GroupOrdersResource;
   groupOrderMembers: GroupOrderMembersResource;
   orders: OrdersResource;
@@ -60,6 +66,7 @@ export interface ApiClient {
   ai: AiResource;
   sync: SyncResource;
   shareLinks: ShareLinksResource;
+  invoices: InvoicesResource;
   notifications: NotificationsResource;
   notificationPreferences: NotificationPreferencesResource;
 }
@@ -86,6 +93,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     clients: makeClientsResource(http),
     measurementSets: makeMeasurementSetsResource(http),
     measurementTemplates: makeMeasurementTemplatesResource(http),
+    fabrics: makeFabricsResource(http),
     groupOrders: makeGroupOrdersResource(http),
     groupOrderMembers: makeGroupOrderMembersResource(http),
     orders: makeOrdersResource(http),
@@ -95,6 +103,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     ai: makeAiResource(http),
     sync: makeSyncResource(http),
     shareLinks: makeShareLinksResource(http),
+    invoices: makeInvoicesResource(http),
     notifications: makeNotificationsResource(http),
     notificationPreferences: makeNotificationPreferencesResource(http),
   };

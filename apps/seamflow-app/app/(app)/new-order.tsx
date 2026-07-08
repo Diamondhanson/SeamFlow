@@ -23,6 +23,7 @@ import { Input } from '../../components/Input';
 import { PhoneInput } from '../../components/PhoneInput';
 import { DateField } from '../../components/DateField';
 import { ContactPickerModal } from '../../components/ContactPickerModal';
+import { FabricField } from '../../components/FabricField';
 import { api } from '../../lib/api';
 import { useMe } from '../../lib/queries';
 import type { DeviceContact } from '../../lib/contacts';
@@ -73,6 +74,8 @@ export default function NewOrderWizard() {
   const [orderName, setOrderName] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   const [orderDate, setOrderDate] = useState<Date | null>(null);
+  const [fabricId, setFabricId] = useState<string | null>(null);
+  const [fabricYardage, setFabricYardage] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -214,6 +217,8 @@ export default function NewOrderWizard() {
         orderName,
         notes: orderNotes || null,
         dateDelivery: orderDate ? orderDate.toISOString() : null,
+        fabricId,
+        fabricYardageUsed: fabricYardage.trim() ? Number(fabricYardage) : null,
         items: hasMeasurements
           ? [
               {
@@ -411,6 +416,18 @@ export default function NewOrderWizard() {
             placeholder={t('common.optional')}
             multiline
           />
+
+          <FabricField value={fabricId} onChange={setFabricId} />
+          {fabricId ? (
+            <Input
+              label={t('fabrics.metersUsedLabel')}
+              value={fabricYardage}
+              onChangeText={setFabricYardage}
+              keyboardType="decimal-pad"
+              placeholder={t('fabrics.yardagePlaceholder')}
+            />
+          ) : null}
+          <View style={{ height: spacing.sm }} />
 
           <Button
             label={t('common.save')}

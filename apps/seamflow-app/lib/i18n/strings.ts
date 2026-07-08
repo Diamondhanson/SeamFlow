@@ -18,7 +18,9 @@ import { clients } from './locales/clients';
 import { orders } from './locales/orders';
 import { groups } from './locales/groups';
 import { templates } from './locales/templates';
+import { fabrics } from './locales/fabrics';
 import { designs } from './locales/designs';
+import { invoices } from './locales/invoices';
 import { misc } from './locales/misc';
 
 export type LanguageCode = 'en' | 'fr';
@@ -38,7 +40,9 @@ export const translations = {
     orders: orders.en,
     groups: groups.en,
     templates: templates.en,
+    fabrics: fabrics.en,
     designs: designs.en,
+    invoices: invoices.en,
     misc: misc.en,
   },
   fr: {
@@ -50,7 +54,9 @@ export const translations = {
     orders: orders.fr,
     groups: groups.fr,
     templates: templates.fr,
+    fabrics: fabrics.fr,
     designs: designs.fr,
+    invoices: invoices.fr,
     misc: misc.fr,
   },
 } as const;

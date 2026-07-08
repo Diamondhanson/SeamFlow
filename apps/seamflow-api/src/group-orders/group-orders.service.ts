@@ -141,6 +141,7 @@ export class GroupOrdersService {
           name: data.name,
           description: data.description ?? null,
           sharedDesignNotes: data.sharedDesignNotes ?? null,
+          sharedFabricId: data.sharedFabricId ?? null,
           ownerClientId,
           eventDate: data.eventDate ? new Date(data.eventDate) : null,
           dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,

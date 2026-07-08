@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SearchField } from '../../../components/SearchField';
 import { SwipeableClientRow } from '../../../components/SwipeableClientRow';
@@ -80,9 +81,9 @@ export default function ClientsList() {
       </View>
 
       {isLoading && items.length === 0 ? (
-        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          {t('common.loading')}
-        </Text>
+        <View style={styles.skeletonWrap}>
+          <SkeletonList leading="circle" />
+        </View>
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
           {t('clients.emptyList')}
@@ -110,4 +111,5 @@ const styles = StyleSheet.create({
     paddingBottom: 96,
   },
   muted: { textAlign: 'center', marginTop: spacing.xl },
+  skeletonWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
 });

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, Image, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { MeasurementTemplate } from '@seamflow/schemas';
@@ -11,6 +11,7 @@ import {
   useAtelierTheme,
 } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { api, ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
@@ -108,9 +109,9 @@ export default function TemplatesList() {
       </View>
 
       {loading && items.length === 0 ? (
-        <Text variant="bodySm" tone="textMuted" style={styles.muted}>
-          {t('templates.loading')}
-        </Text>
+        <View style={styles.skeletonWrap}>
+          <SkeletonList leading="square" />
+        </View>
       ) : (
         <FlatList
           {...scroll}
@@ -137,7 +138,14 @@ export default function TemplatesList() {
                 )}
                 subtitleNumeric
                 leading={
-                  <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+                  item.images[0]?.thumbnailUrl ? (
+                    <Image
+                      source={{ uri: item.images[0].thumbnailUrl }}
+                      style={styles.leadingThumb}
+                    />
+                  ) : (
+                    <Ionicons name="document-text-outline" size={20} color={colors.primary} />
+                  )
                 }
                 onPress={() => router.push(`/(app)/templates/${item.id}`)}
               />
@@ -158,7 +166,9 @@ const styles = StyleSheet.create({
     rowGap: spacing.md,
   },
   rowWrap: { gap: spacing.md },
+  leadingThumb: { width: 44, height: 44, borderRadius: 10 },
   muted: { textAlign: 'center', marginTop: spacing.xl, paddingHorizontal: spacing.lg },
+  skeletonWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   starter: { marginTop: spacing.xl },
   starterChips: {
     flexDirection: 'row',

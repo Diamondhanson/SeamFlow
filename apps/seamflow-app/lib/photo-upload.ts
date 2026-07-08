@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
-import { PermissionDeniedError } from './permissions';
+import { onlineManager } from '@tanstack/react-query';
+import { PermissionDeniedError, PhotoOfflineError } from './permissions';
 import { supabase } from './supabase';
 import { api } from './api';
 import type { Design, OrderPhoto, OrderPhotoRole } from '@seamflow/schemas';
@@ -91,6 +92,12 @@ async function ensurePermission(source: 'camera' | 'library'): Promise<void> {
 export async function pickPhoto(
   source: 'camera' | 'library',
 ): Promise<PickedAsset | null> {
+  // Photo uploads hit storage directly (not the offline mutation queue), so
+  // they can't be deferred. Fail fast with a clear message when offline
+  // instead of letting the picker → upload hang on a network error.
+  if (!onlineManager.isOnline()) {
+    throw new PhotoOfflineError();
+  }
   await ensurePermission(source);
 
   const opts: ImagePicker.ImagePickerOptions = {
@@ -246,6 +253,64 @@ export async function uploadDesign(args: {
     caption: caption ?? null,
     tags: tags ?? [],
   });
+}
+
+/**
+ * Pick → compress → upload a template reference image / stencil into the
+ * `designs` bucket under `<tailorId>/templates/<uuid>`. Unlike designs there's
+ * no DB row of its own — the returned metadata is stored inline on the
+ * template's `images[]` array (via create/update). `id` doubles as the storage
+ * filename and the stable entry key.
+ */
+export async function uploadTemplateImage(args: {
+  tailorId: string;
+  asset: PickedAsset;
+}): Promise<{
+  id: string;
+  storagePath: string;
+  thumbnailPath: string;
+  contentType: string;
+}> {
+  const { tailorId, asset } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const folder = `${tailorId}/templates`;
+  const storagePath = `${folder}/${id}.${full.ext}`;
+  const thumbnailPath = `${folder}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(DESIGNS_BUCKET, storagePath, full),
+    uploadOne(DESIGNS_BUCKET, thumbnailPath, thumb),
+  ]);
+
+  return { id, storagePath, thumbnailPath, contentType: full.contentType };
+}
+
+/**
+ * Pick → compress → upload a fabric swatch photo into the `designs` bucket
+ * under `<tailorId>/fabrics/<uuid>`. Like template images there's no DB row of
+ * its own — the returned keys are stored inline on the fabric's
+ * `photoKey` / `photoThumbKey` columns.
+ */
+export async function uploadFabricImage(args: {
+  tailorId: string;
+  asset: PickedAsset;
+}): Promise<{ photoKey: string; photoThumbKey: string; contentType: string }> {
+  const { tailorId, asset } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const folder = `${tailorId}/fabrics`;
+  const photoKey = `${folder}/${id}.${full.ext}`;
+  const photoThumbKey = `${folder}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(DESIGNS_BUCKET, photoKey, full),
+    uploadOne(DESIGNS_BUCKET, photoThumbKey, thumb),
+  ]);
+
+  return { photoKey, photoThumbKey, contentType: full.contentType };
 }
 
 /**

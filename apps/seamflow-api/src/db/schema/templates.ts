@@ -12,6 +12,10 @@ export const measurementTemplates = pgTable(
     garmentType: text('garment_type'),
     description: text('description'),
     fields: jsonb('fields').notNull().default([]),
+    // Optional reference images / stencils: array of
+    // { id, storagePath, thumbnailPath, contentType }. Signed URLs are
+    // resolved by the service on read.
+    images: jsonb('images').notNull().default([]),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

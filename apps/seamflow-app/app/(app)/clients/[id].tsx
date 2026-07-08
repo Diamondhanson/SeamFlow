@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonDetail } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
@@ -86,7 +87,7 @@ export default function ClientDetail() {
     return (
       <Screen>
         <ScreenHeader title={t('clients.clientTitle')} />
-        <Text variant="bodySm" tone="textMuted">{t('common.loading')}</Text>
+        <SkeletonDetail />
       </Screen>
     );
   }

@@ -7,6 +7,7 @@ export * from './orders';
 export * from './order-photos';
 export * from './designs';
 export * from './payments';
+export * from './invoices';
 export * from './sync';
 export * from './device-tokens';
 export * from './notification-preferences';
