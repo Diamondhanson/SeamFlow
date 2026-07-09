@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "584251390644",
+    "project_id": "seamflow-a2fe6",
+    "storage_bucket": "seamflow-a2fe6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584251390644:android:1d841a6f74822fe3ba75e1",
+        "android_client_info": {
+          "package_name": "com.bambothanson.FashionApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDD56WNiBxX8RdRzNV1irjHT0Kesyj1jOM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
