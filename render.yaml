@@ -1,0 +1,45 @@
+# Render blueprint for the SeamFlow API.
+#
+# Render builds from your GitHub repo. In the Render dashboard:
+#   New +  ->  Blueprint  ->  pick the SeamFlow repo  ->  it reads this file.
+# Then fill in the secret env vars (marked `sync: false`) from
+# apps/seamflow-api/.env, and Deploy.
+#
+# The Dockerfile is monorepo-aware: build context is the repo root and the
+# Dockerfile lives in apps/seamflow-api. Render supports both below.
+
+services:
+  - type: web
+    name: seamflow-api
+    runtime: docker
+    repo: https://github.com/Diamondhanson/SeamFlow
+    plan: free
+    region: oregon            # pick the region nearest your Supabase project
+    dockerfilePath: ./apps/seamflow-api/Dockerfile
+    dockerContext: .          # build context = repo root (resolves @seamflow/*)
+    healthCheckPath: /health
+    autoDeploy: false         # deploy manually; flip to true for push-to-deploy
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"        # Render routes to this port
+      # ---- secrets: enter values in the Render dashboard (not stored in git) ----
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SHARE_LINK_JWT_SECRET
+        sync: false
+      - key: WEB_BASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false           # optional — leave blank to run without the queue
+      - key: SENTRY_DSN
+        sync: false           # optional
+      - key: ANTHROPIC_API_KEY
+        sync: false           # optional

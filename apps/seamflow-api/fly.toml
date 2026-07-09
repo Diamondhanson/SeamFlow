@@ -1,0 +1,42 @@
+# Fly.io config for the SeamFlow API.
+#
+# `app` must be globally unique on Fly — if "seamflow-api" is taken, pick
+# another (e.g. seamflow-api-prod) here AND in `fly apps create <name>`.
+#
+# Deploy from the repo root:
+#   fly deploy . --config apps/seamflow-api/fly.toml \
+#     --dockerfile apps/seamflow-api/Dockerfile --remote-only
+
+app = "seamflow-api"
+primary_region = "iad"   # change to the region nearest your Supabase project
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Scale to zero when idle to save cost. Set min_machines_running = 1 if you
+  # want to avoid the ~1–2s cold start on the first request after idle.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"   # bump to 1gb if you see OOM restarts in `fly logs`

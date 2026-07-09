@@ -1,0 +1,37 @@
+# Docker build context = repo root (see apps/seamflow-api/Dockerfile).
+# Keep the uploaded context small and force a clean install/build inside the
+# image. Anything heavy or host-specific is excluded here.
+
+# Dependencies — reinstalled in the image for the target platform
+**/node_modules
+.pnpm-store
+
+# Build output — rebuilt in the image
+**/dist
+**/.turbo
+**/*.tsbuildinfo
+apps/seamflow-web/.next
+
+# Mobile app native + Expo artifacts (huge; irrelevant to the API)
+apps/seamflow-app/android
+apps/seamflow-app/ios
+**/.expo
+**/.expo-shared
+
+# VCS / editor / OS
+.git
+.gitignore
+**/.DS_Store
+.vscode
+.idea
+
+# Logs & local env — secrets are injected via `fly secrets`, never baked in
+**/*.log
+**/.env
+**/.env.*
+!**/.env.example
+
+# Misc
+scratchpad
+coverage
+**/*.md
