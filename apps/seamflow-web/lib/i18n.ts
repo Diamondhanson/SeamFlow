@@ -406,4 +406,8 @@ export const SITE = {
 // Direct Android APK download. Empty string → not yet available (the Android
 // badge falls back to a "coming soon" state). Set to the built .apk URL to turn
 // on the real "Download for Android" button.
-export const ANDROID_APK_URL = '';
+// EAS build artifact (preview profile, points at the Render API). Note: EAS
+// free-tier artifacts are retained ~30 days — self-host the .apk (e.g. in
+// public/) once the web is deployed for a permanent link.
+export const ANDROID_APK_URL =
+  'https://expo.dev/artifacts/eas/zbiI8YD4rgBKIfhuTrSScgiPEE5V4Bx08L1RCzZigXc.apk';
