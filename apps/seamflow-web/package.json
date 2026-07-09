@@ -5,6 +5,7 @@
   "description": "Client-facing web app — Phase 1.5 magic-link order view; future lookbook + public site.",
   "scripts": {
     "dev": "next dev -p 3000",
+    "prebuild": "pnpm --filter \"seamflow-web^...\" build",
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "tsc --noEmit",
