@@ -410,4 +410,4 @@ export const SITE = {
 // free-tier artifacts are retained ~30 days — self-host the .apk (e.g. in
 // public/) once the web is deployed for a permanent link.
 export const ANDROID_APK_URL =
-  'https://expo.dev/artifacts/eas/zbiI8YD4rgBKIfhuTrSScgiPEE5V4Bx08L1RCzZigXc.apk';
+  'https://expo.dev/artifacts/eas/TGm5oc1bPJzXQvMkUtzu-3N3gldgLOOJxtOwVxla96U.apk';
