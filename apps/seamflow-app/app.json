@@ -23,7 +23,11 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.bambothanson.FashionApp"
+      "package": "com.bambothanson.FashionApp",
+      "permissions": [
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -76,9 +80,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "fb6e2ea2-97b6-4829-9e5a-b421d61429d9"
+        "projectId": "da3ea415-e753-4047-b8cb-a1601ebfad64"
       }
     },
-    "owner": "bambothanson"
+    "owner": "diamondhans1998"
   }
 }
