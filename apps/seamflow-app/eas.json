@@ -14,13 +14,17 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://seamflow-api.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://seamflow-api.onrender.com",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://aqsppiyiegzatnjvjgyp.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxc3BwaXlpZWd6YXRuanZqZ3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzA3NTcsImV4cCI6MjA5NDcwNjc1N30.3U6o66H5yxGqTliK0Fu_Sb1ml-d5oV9xIag9j6do78w"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://seamflow-api.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://seamflow-api.onrender.com",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://aqsppiyiegzatnjvjgyp.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxc3BwaXlpZWd6YXRuanZqZ3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzA3NTcsImV4cCI6MjA5NDcwNjc1N30.3U6o66H5yxGqTliK0Fu_Sb1ml-d5oV9xIag9j6do78w"
       }
     }
   },
