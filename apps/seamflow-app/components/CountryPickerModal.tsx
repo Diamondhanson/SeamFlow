@@ -97,6 +97,7 @@ export function CountryPickerModal({
             data={filtered}
             keyExtractor={(c) => c.cc}
             keyboardShouldPersistTaps="handled"
+            style={styles.list}
             renderItem={({ item }) => {
               const active = selected?.toUpperCase() === item.cc;
               return (
@@ -145,7 +146,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 24,
-    maxHeight: '82%',
+    // Definite height so the FlatList (flex:1) has room to render — an auto-
+    // height sheet collapses a flex list to 0 and shows nothing.
+    height: '82%',
     width: '100%',
     maxWidth: 600,
     alignSelf: 'center',
@@ -185,4 +188,5 @@ const styles = StyleSheet.create({
   },
   rowFlag: { width: 28 },
   rowName: { flex: 1 },
+  list: { flex: 1 },
 });

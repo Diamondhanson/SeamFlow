@@ -197,7 +197,9 @@ const styles = StyleSheet.create({
     elevation: 24,
     width: '95%',
     maxWidth: 600,
-    maxHeight: '85%',
+    // Definite height (not just maxHeight) so the FlatList's flex:1 has room —
+    // a flex list inside an auto-height sheet collapses to 0 and renders nothing.
+    height: '85%',
     borderRadius: 24,
     paddingTop: spacing.lg,
     paddingHorizontal: spacing.lg,

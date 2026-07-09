@@ -261,7 +261,9 @@ const styles = StyleSheet.create({
     elevation: 24,
     width: '95%',
     maxWidth: 600,
-    maxHeight: '85%',
+    // Definite height so the dial-code FlatList (flex:1) has room — an auto-
+    // height sheet collapses a flex list to 0 and shows no countries.
+    height: '85%',
     borderRadius: 24,
     paddingTop: spacing.lg,
     paddingHorizontal: spacing.lg,
