@@ -41,6 +41,25 @@ const config: Config = {
         statusTesting: '#D89F4A',
         statusOnPause: '#B4564B',
         statusDelivered: '#8FA68E',
+
+        // ── Marketing site palette (roadmap 3.12) ──────────────────────────
+        // Same Atelier DNA, dialed poppier/more saturated. Kept separate from
+        // the tokens above so the /o and /i share pages stay in the calm linen
+        // palette while the landing + legal pages get the brighter treatment.
+        brand: {
+          bg: '#FBF8F3', // warm cream
+          surface: '#F4EEE3', // warm off-white cards
+          ink: '#1A1714', // warm near-black text
+          muted: '#5B554F', // secondary text
+          hairline: 'rgba(26,23,20,0.08)',
+          border: 'rgba(26,23,20,0.12)',
+          primary: '#5A46E0', // poppier indigo-violet
+          primaryDeep: '#4634C4',
+          lavender: '#A89CFF', // gradient stop / soft primary
+          accent: '#F0875A', // bright coral-peach
+          accentSoft: '#F8B79A',
+          success: '#2FBF95', // brighter mint
+        },
       },
       fontFamily: {
         display: ['var(--font-display)', 'Georgia', 'serif'],
@@ -50,9 +69,21 @@ const config: Config = {
       boxShadow: {
         card: '0 1px 2px rgba(26,23,20,0.04), 0 12px 32px -12px rgba(26,23,20,0.18)',
         pill: '0 1px 2px rgba(26,23,20,0.10)',
+        soft: '0 2px 6px rgba(26,23,20,0.05), 0 20px 48px -20px rgba(90,70,224,0.28)',
+        glow: '0 12px 40px -12px rgba(90,70,224,0.45)',
       },
       borderRadius: {
         '4xl': '2rem',
+        '5xl': '2.5rem',
+      },
+      keyframes: {
+        floaty: {
+          '0%,100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+      },
+      animation: {
+        floaty: 'floaty 6s ease-in-out infinite',
       },
     },
   },

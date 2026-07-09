@@ -13,6 +13,7 @@ import {
 import { spacing } from '../lib/theme';
 import { useDialog } from '../lib/dialog';
 import { useTranslation } from '../lib/i18n';
+import { openLegal } from '../lib/legal-links';
 
 type Mode = 'signIn' | 'signUp';
 
@@ -29,7 +30,7 @@ export default function SignIn() {
   const { signInWithPassword, signUpWithPassword, signInWithGoogle, signInWithApple } =
     useAuth();
   const theme = useAtelierTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const dialog = useDialog();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
@@ -219,6 +220,22 @@ export default function SignIn() {
           {t('auth.signUpHint')}
         </Text>
       ) : null}
+
+      <Text
+        variant="caption"
+        tone="textMuted"
+        style={{ textAlign: 'center', marginTop: spacing.xl }}
+      >
+        {t('auth.agreePrefix')}{' '}
+        <Text variant="caption" tone="primary" onPress={() => openLegal('terms', language)}>
+          {t('auth.termsWord')}
+        </Text>{' '}
+        {t('auth.agreeAnd')}{' '}
+        <Text variant="caption" tone="primary" onPress={() => openLegal('privacy', language)}>
+          {t('auth.privacyWord')}
+        </Text>
+        {t('auth.agreeSuffix')}
+      </Text>
     </Screen>
   );
 }

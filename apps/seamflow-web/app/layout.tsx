@@ -29,8 +29,22 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SeamFlow',
-  description: 'View your tailoring order.',
+  metadataBase: new URL('https://seamflow.app'),
+  title: {
+    default: 'SeamFlow — the calm home for your tailoring business',
+    template: '%s',
+  },
+  description:
+    'SeamFlow keeps your clients, measurements, orders and deadlines together — built bilingual and offline-first for tailors and fashion designers.',
+  applicationName: 'SeamFlow',
+  keywords: [
+    'tailor app',
+    'tailoring software',
+    'measurements',
+    'fashion designer',
+    'order tracking',
+    'atelier',
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

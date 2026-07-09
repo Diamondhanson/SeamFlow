@@ -621,6 +621,124 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **Cost & safety:** no free tier (funded provider account required); ~$0.03/image means quotas matter before real users can burn credits. Providers apply their own content moderation, which is acceptable for a tailoring context.
 - **Dependencies:** Design Studio M1–M3 (`docs/design-studio-moodboard-plan.md`); `QueueModule`; a funded fal.ai/Replicate account. Pairs naturally with 3.7 (embeddings → "generate variations of a saved design").
 
+### 3.12 Marketing landing page + legal pages + in-app policy links
+
+> **Build only — do NOT deploy.** Build everything locally so it can be reviewed
+> (`pnpm --filter seamflow-web dev`) before we point a domain / ship to Vercel.
+> All work lives in the existing `apps/seamflow-web` (Next.js 15 App Router,
+> React 19, Tailwind 3.4) plus small additions to the mobile app. Use
+> `seamflow.app` as the placeholder domain everywhere (swap later).
+
+- **What:** A public marketing site for SeamFlow (what it does, the value, the
+  vision) + a hosted **Privacy Policy** and **Terms** page, and links from inside
+  the mobile app that open the policy in an in-app browser.
+- **Why:** Drives downloads, looks credible for app review, and satisfies the
+  hard requirement that both stores have a public privacy-policy URL.
+
+#### A. Design direction (do this first)
+
+Same **Atelier** identity as the app, but a touch **poppier / more saturated** —
+tasteful, not neon. The app uses tokens in `packages/ui/src/tokens/colors.ts`;
+port an adjusted set into the web's Tailwind theme (`tailwind.config.ts` +
+`app/globals.css` CSS variables). Suggested web palette (tune to taste):
+
+- Background (warm cream): `#FBF8F3`
+- Surface / cards: `#F4EEE3` (warm off-white — keep the no-pure-black/white rule)
+- **Primary (poppier indigo-violet):** `#5A46E0` (vs the app's `#2E3A8C`)
+- Primary tint / gradient stop: `#A89CFF` (the app's silk lavender)
+- **Warm accent (bright coral-peach):** `#F0875A` (vs the app's copper `#C97B5C`)
+- Success: `#2FBF95` (brighter mint)
+- Text ink: `#1A1714`; muted `#5B554F`; hairline `rgba(26,23,20,0.08)`
+
+Type: **Fraunces** (display/headings) + **Inter** (body) via `next/font/google`.
+Allow subtle primary→lavender gradients on hero accents/buttons, used sparingly.
+Generous whitespace, large rounded cards (radius ~20–24px), soft shadows.
+
+#### B. Pages / routes (in `apps/seamflow-web/app`)
+
+- `/` — the landing page (replace the current placeholder `app/page.tsx`).
+- `/privacy` — Privacy Policy (see section D).
+- `/terms` — Terms of Service (short, standard).
+- `/support` — a simple contact/support page (email + FAQ links). Optional but nice.
+- Keep existing `o/[token]` and `i/[token]` routes untouched.
+- Add `sitemap.ts`, `robots.ts`, and `opengraph-image` (OG share image).
+
+#### C. Landing page sections (top → bottom)
+
+1. **Header/nav** — logo, anchor links (Features, How it works, FAQ), a "Get the
+   app" button, language toggle (EN/FR). Sticky, condenses on scroll.
+2. **Hero** — headline (value prop) + tagline + subhead, a phone mockup/screenshot,
+   and App Store + Google Play badges (placeholder badges until store listings exist).
+3. **Problem → solution** — the pain (scattered measurements, missed due dates,
+   notes everywhere) → SeamFlow in one place.
+4. **Features grid** — icon + one-line + screenshot for each: Clients &
+   measurements; Orders with status tracking; Group orders (weddings/aso-ebi);
+   Design Studio moodboard + AI auto-describe; Due-date reminders; Bilingual
+   (EN/FR); works offline.
+5. **How it works** — 3 steps: add a client → create an order → get reminded.
+6. **Vision / mission** — empowering independent tailors; more languages; the
+   creative + business companion for the craft.
+7. **Screenshot gallery** — a few app screens in phone frames.
+8. **FAQ** — accordion: cost, languages, offline, "is my data private?" (links `/privacy`).
+9. **Final CTA** — big "Download" with both store badges.
+10. **Footer** — links to Privacy, Terms, Support, contact email, language toggle,
+    copyright.
+
+Build as reusable components under `apps/seamflow-web/components/` (e.g. `Nav`,
+`Hero`, `FeatureCard`, `Steps`, `PhoneFrame`, `Faq`, `Footer`, `StoreBadges`,
+`LangToggle`). Use **placeholder** logo + screenshots (a `/public/placeholders/`
+folder) until the real brand assets land; make them trivial to swap.
+
+#### D. i18n (EN/FR)
+
+Match the app's two languages. Keep it lightweight (no heavy framework needed):
+a `lib/i18n` with `en`/`fr` dictionaries and a `?lang=fr` query (or `[lang]`
+segment) that the `LangToggle` switches. Every page (landing, privacy, terms)
+renders in the requested language, English default.
+
+#### E. Legal content
+
+- **Privacy Policy** must cover, at minimum: what's collected (tailor account
+  email/phone; client names, phone numbers, addresses, measurements, and photos
+  **entered by the tailor**; design images; device push token; basic usage/logs),
+  who processes it (Supabase for DB/auth/storage, Expo for push, Upstash for
+  queues, Anthropic **only if** AI auto-describe is used), how it's stored/retained,
+  user rights (access/export/delete), children, security, international transfer,
+  contact email, and a "last updated" date + changes clause.
+- **Terms** — standard short SaaS terms (acceptable use, no warranty, liability
+  cap, governing law, contact).
+- Draft copy will be provided as Markdown; the pages render it (MDX or a simple
+  content module). Include a visible "Last updated" date.
+
+#### F. In-app policy links (mobile, `apps/seamflow-app`)
+
+- Add a **"Legal" section** to Settings (`app/(app)/me.tsx`) with **Privacy Policy**
+  and **Terms** rows.
+- Add a footer line on the **sign-in screen**: "By continuing, you agree to our
+  Terms & Privacy Policy," with those two words tappable.
+- Both open via **`expo-web-browser`** (already installed):
+  `WebBrowser.openBrowserAsync(\`\${WEB_URL}/privacy?lang=\${language}\`)` — an
+  in-app browser (SFSafariViewController / Chrome Custom Tabs). No native rebuild.
+- `WEB_URL` comes from a new env var `EXPO_PUBLIC_WEB_URL` (default
+  `https://seamflow.app`) in `lib/config.ts`; pass the current i18n `language`.
+- All new strings go through `t()` (add to `lib/i18n/locales/settings.ts` +
+  `auth`), and must pass `npm run i18n:check`.
+
+#### G. Quality bar
+
+Responsive (mobile-first — the audience is on phones), accessible (semantic
+headings, alt text, keyboard-navigable FAQ), fast (optimized images, minimal JS),
+and SEO-complete (per-page `metadata`, OG image, sitemap, robots). Lighthouse
+pass before we consider deploy.
+
+- **Tech:** `apps/seamflow-web` (Next.js 15, Tailwind), `next/font`,
+  `expo-web-browser` (mobile). No new backend.
+- **New env:** `EXPO_PUBLIC_WEB_URL` in the mobile app.
+- **Explicitly deferred (do not do):** buying/pointing the domain, Vercel deploy,
+  real store badges/links, final brand assets. Stop at a reviewable local build.
+- **Dependencies:** brand assets (logo from `SeamFlow-Brand-Brief.docx`) are
+  nice-to-have but not blocking — use placeholders.
+
 **Phase 3 exit criteria:** Multiple cities live, two-sided activity (clients independently inviting other tailors), organic search traffic to directory pages, ARR in low six figures.
 
 ---

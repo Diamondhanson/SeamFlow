@@ -31,6 +31,7 @@ import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode, type ThemePreference } from '../../lib/theme-mode';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
+import { openLegal } from '../../lib/legal-links';
 
 // Localized "Month YYYY" for the member-since line. Bundled month names keep
 // this deterministic under Hermes (Intl month formatting is unreliable there).
@@ -284,6 +285,24 @@ export default function Me() {
           variant="secondary"
           iconLeft={<Ionicons name="notifications-outline" size={18} color={colors.text} />}
           onPress={onTestNotification}
+        />
+
+        <View style={{ height: spacing.xl }} />
+        <Text variant="h3" tone="text" style={{ marginBottom: spacing.sm }}>
+          {t('settings.legal')}
+        </Text>
+        <Button
+          label={t('settings.privacyPolicy')}
+          variant="secondary"
+          iconLeft={<Ionicons name="shield-checkmark-outline" size={18} color={colors.text} />}
+          onPress={() => openLegal('privacy', language)}
+        />
+        <View style={{ height: spacing.md }} />
+        <Button
+          label={t('settings.termsOfService')}
+          variant="secondary"
+          iconLeft={<Ionicons name="document-text-outline" size={18} color={colors.text} />}
+          onPress={() => openLegal('terms', language)}
         />
 
         <View style={{ height: spacing.md }} />

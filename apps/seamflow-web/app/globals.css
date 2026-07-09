@@ -20,12 +20,37 @@ body {
       rgba(46, 58, 140, 0.07) 0%,
       rgba(46, 58, 140, 0) 55%
     );
-  background-attachment: fixed;
+  /* NOTE: no `background-attachment: fixed` — a fixed gradient repaints the
+     whole viewport on every scroll frame and makes long pages scroll janky.
+     The wash scrolls with the page instead. */
 }
 
 /* Tabular figures for any measurement / numeric run set in the mono face. */
 .tabular {
   font-feature-settings: 'tnum' 1;
+}
+
+/* Anchor-nav on the marketing site scrolls smoothly. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Marketing site (landing + legal) — a brighter, poppier wash of violet +
+   coral over the cream, painted by a full-page wrapper so the /o and /i share
+   pages keep the calm linen palette. */
+.marketing {
+  background-color: theme('colors.brand.bg');
+  background-image:
+    radial-gradient(
+      110% 70% at 100% -8%,
+      rgba(90, 70, 224, 0.12) 0%,
+      rgba(90, 70, 224, 0) 55%
+    ),
+    radial-gradient(
+      95% 65% at -8% 30%,
+      rgba(240, 135, 90, 0.1) 0%,
+      rgba(240, 135, 90, 0) 55%
+    );
 }
 
 /* Print / "Save as PDF": drop the decorative washes for a clean sheet, keep

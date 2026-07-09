@@ -18,6 +18,7 @@ import { clients } from './locales/clients';
 import { orders } from './locales/orders';
 import { groups } from './locales/groups';
 import { templates } from './locales/templates';
+import { measurements } from './locales/measurements';
 import { fabrics } from './locales/fabrics';
 import { designs } from './locales/designs';
 import { invoices } from './locales/invoices';
@@ -40,6 +41,7 @@ export const translations = {
     orders: orders.en,
     groups: groups.en,
     templates: templates.en,
+    measurements: measurements.en,
     fabrics: fabrics.en,
     designs: designs.en,
     invoices: invoices.en,
@@ -54,6 +56,7 @@ export const translations = {
     orders: orders.fr,
     groups: groups.fr,
     templates: templates.fr,
+    measurements: measurements.fr,
     fabrics: fabrics.fr,
     designs: designs.fr,
     invoices: invoices.fr,
