@@ -19,10 +19,5 @@
     "turbo": "^2.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "@supabase/supabase-js@2.106.0": "patches/@supabase__supabase-js@2.106.0.patch"
-    }
   }
 }
