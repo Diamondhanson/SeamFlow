@@ -53,10 +53,6 @@ function GatedStack() {
     );
   }
 
-  if (pinSet && locked) {
-    return <PinLockScreen />;
-  }
-
   // Native headers are hidden app-wide — every screen renders its own
   // <ScreenHeader> (large Fraunces title + back chevron). Transitions slide in
   // from the right on both platforms; `gestureEnabled` + `fullScreenGesture`
@@ -91,6 +87,17 @@ function GatedStack() {
           />
         </Stack>
         <FloatingLogo />
+
+        {/* PIN gate rendered as an overlay ON TOP of the Stack — not in place
+            of it. Swapping the Stack out unmounts the whole navigator, so on
+            unlock you'd land on a rootless screen with a dead back button.
+            Keeping the Stack mounted underneath preserves your exact place +
+            history; unlocking just removes this overlay. */}
+        {pinSet && locked ? (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.bg }]}>
+            <PinLockScreen />
+          </View>
+        ) : null}
       </View>
     </FloatingScrollProvider>
   );
