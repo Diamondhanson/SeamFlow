@@ -48,12 +48,21 @@ export async function fetchDeviceContacts(
   defaultCountry: CountryCode,
 ): Promise<DeviceContact[]> {
   const { data } = await Contacts.getContactsAsync({
-    fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers],
+    fields: [
+      Contacts.Fields.Name,
+      Contacts.Fields.FirstName,
+      Contacts.Fields.LastName,
+      Contacts.Fields.PhoneNumbers,
+    ],
   });
 
   const out: DeviceContact[] = [];
   for (const c of data) {
-    const name = c.name?.trim();
+    // Android often leaves the composite `name` empty for contacts synced from
+    // Google/other accounts, while first/last are populated — fall back to
+    // those so those contacts aren't silently dropped (empty picker).
+    const name =
+      c.name?.trim() || [c.firstName, c.lastName].filter(Boolean).join(' ').trim();
     const raw = c.phoneNumbers?.[0]?.number?.trim();
     if (!name || !raw) continue;
 
