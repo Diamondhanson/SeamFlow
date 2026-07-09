@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@supabase/supabase-js': 2.100.0
-
 importers:
 
   .:
@@ -62,7 +59,7 @@ importers:
         specifier: ^8.30.0
         version: 8.55.2
       '@supabase/supabase-js':
-        specifier: 2.100.0
+        specifier: ^2.45.0
         version: 2.100.0
       bullmq:
         specifier: ^5.12.0

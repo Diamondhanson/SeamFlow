@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "i18n:check": "node scripts/verify-i18n.mjs",
-    "lint": "expo lint && node scripts/verify-i18n.mjs"
+    "lint": "expo lint && node scripts/verify-i18n.mjs",
+    "eas-build-post-install": "pnpm --filter \"seamflow-app^...\" build"
   },
   "jest": {
     "preset": "jest-expo"
