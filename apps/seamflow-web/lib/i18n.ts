@@ -58,6 +58,8 @@ export const copy = {
       soon: 'Coming soon',
       appStore: 'Download on the App Store',
       googlePlay: 'Get it on Google Play',
+      androidEyebrow: 'Android APK',
+      androidCta: 'Download for Android',
     },
     problem: {
       eyebrow: 'The problem',
@@ -233,6 +235,8 @@ export const copy = {
       soon: 'Bientôt disponible',
       appStore: 'Télécharger sur l’App Store',
       googlePlay: 'Disponible sur Google Play',
+      androidEyebrow: 'APK Android',
+      androidCta: 'Télécharger pour Android',
     },
     problem: {
       eyebrow: 'Le problème',
@@ -398,3 +402,8 @@ export const SITE = {
   url: 'https://seamflow.app',
   email: 'hello@seamflow.app',
 };
+
+// Direct Android APK download. Empty string → not yet available (the Android
+// badge falls back to a "coming soon" state). Set to the built .apk URL to turn
+// on the real "Download for Android" button.
+export const ANDROID_APK_URL = '';
