@@ -78,12 +78,12 @@ const config: Config = {
       },
       keyframes: {
         floaty: {
-          '0%,100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-8px)' },
+          '0%,100%': { transform: 'translateY(0) rotate(0deg)' },
+          '50%': { transform: 'translateY(-18px) rotate(-1.2deg)' },
         },
       },
       animation: {
-        floaty: 'floaty 6s ease-in-out infinite',
+        floaty: 'floaty 4.5s ease-in-out infinite',
       },
     },
   },

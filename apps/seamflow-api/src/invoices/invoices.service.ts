@@ -7,9 +7,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import jwt from 'jsonwebtoken';
 import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import { DbService } from '../db/db.service';
 import {
   clients,
@@ -18,6 +17,7 @@ import {
   invoices,
   orderItems,
   orders,
+  shareLinks,
   tailors,
 } from '../db/schema';
 import type {
@@ -27,17 +27,9 @@ import type {
   InvoiceWithContext,
   PublicInvoiceResponse,
 } from '@seamflow/schemas';
+import { currencyForCountry } from '@seamflow/utils';
 
 const DEFAULT_TTL_DAYS = 60;
-const TOKEN_ISSUER = 'seamflow:invoice-link';
-
-interface InvoicePayload {
-  iid: string; // invoice id
-  tid: string; // tailor id (sanity check on verify)
-  iat: number;
-  exp: number;
-  iss: string;
-}
 
 export interface IssuedInvoiceLink {
   url: string;
@@ -50,15 +42,31 @@ type InvoiceRow = typeof invoices.$inferSelect;
 @Injectable()
 export class InvoicesService {
   private readonly logger = new Logger(InvoicesService.name);
-  private readonly secret: string;
   private readonly webBaseUrl: string;
 
   constructor(
     config: ConfigService,
     private readonly dbService: DbService,
   ) {
-    this.secret = config.getOrThrow<string>('SHARE_LINK_JWT_SECRET');
     this.webBaseUrl = config.get<string>('WEB_BASE_URL') ?? 'http://localhost:3000';
+  }
+
+  /** Allocate a unique short code and store the invoice share row. */
+  private async mintCode(
+    invoiceId: string,
+    tailorId: string,
+    expiresAt: Date,
+  ): Promise<string> {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = randomBytes(7).toString('base64url');
+      const inserted = await this.dbService.db
+        .insert(shareLinks)
+        .values({ code, kind: 'invoice', targetId: invoiceId, tailorId, expiresAt })
+        .onConflictDoNothing()
+        .returning({ code: shareLinks.code });
+      if (inserted[0]) return inserted[0].code;
+    }
+    throw new Error('Could not allocate a unique share code');
   }
 
   // --------------------------------------------------------------------------
@@ -123,7 +131,7 @@ export class InvoicesService {
     const [items, [tailor], [{ count }]] = await Promise.all([
       this.dbService.db.select().from(orderItems).where(eq(orderItems.orderId, orderId)),
       this.dbService.db
-        .select({ currency: tailors.currency })
+        .select({ currency: tailors.currency, countryCode: tailors.countryCode })
         .from(tailors)
         .where(eq(tailors.id, tailorId))
         .limit(1),
@@ -158,7 +166,14 @@ export class InvoicesService {
         orderId,
         number,
         status: 'draft',
-        currency: order.currency ?? tailor?.currency ?? null,
+        // Order's own currency → tailor's saved currency → currency of the
+        // tailor's country (so it's never wrongly Naira for, say, a Cameroon
+        // tailor). The tailor can still change it on the invoice.
+        currency:
+          order.currency ??
+          tailor?.currency ??
+          currencyForCountry(tailor?.countryCode) ??
+          null,
         lineItems,
         deposit: '0',
         total: String(total),
@@ -182,6 +197,7 @@ export class InvoicesService {
     if (data.deposit !== undefined) patch.deposit = String(data.deposit);
     if (data.notes !== undefined) patch.notes = data.notes;
     if (data.status !== undefined) patch.status = data.status;
+    if (data.currency !== undefined) patch.currency = data.currency;
 
     await this.dbService.db
       .update(invoices)
@@ -206,12 +222,8 @@ export class InvoicesService {
       .limit(1);
     if (!inv) throw new NotFoundException(`Invoice ${id} not found`);
 
-    const now = Math.floor(Date.now() / 1000);
-    const exp = now + DEFAULT_TTL_DAYS * 24 * 60 * 60;
-    const token = jwt.sign({ iid: id, tid: tailorId }, this.secret, {
-      expiresIn: `${DEFAULT_TTL_DAYS}d`,
-      issuer: TOKEN_ISSUER,
-    });
+    const expiresAt = new Date(Date.now() + DEFAULT_TTL_DAYS * 24 * 60 * 60 * 1000);
+    const code = await this.mintCode(id, tailorId, expiresAt);
 
     await this.dbService.db
       .update(invoices)
@@ -223,22 +235,22 @@ export class InvoicesService {
       .where(and(eq(invoices.tailorId, tailorId), eq(invoices.id, id)));
 
     return {
-      url: `${this.webBaseUrl.replace(/\/$/, '')}/i/${token}`,
-      token,
-      expiresAt: new Date(exp * 1000).toISOString(),
+      url: `${this.webBaseUrl.replace(/\/$/, '')}/i/${code}`,
+      token: code,
+      expiresAt: expiresAt.toISOString(),
     };
   }
 
-  /** Public — resolve a token to the client-facing invoice. No auth. */
-  async resolvePublic(token: string): Promise<PublicInvoiceResponse> {
-    let payload: InvoicePayload;
-    try {
-      payload = jwt.verify(token, this.secret, { issuer: TOKEN_ISSUER }) as InvoicePayload;
-    } catch (err) {
-      if (err instanceof jwt.TokenExpiredError) {
-        throw new GoneException('This link has expired');
-      }
-      throw new UnauthorizedException('Invalid invoice link');
+  /** Public — resolve a short code to the client-facing invoice. No auth. */
+  async resolvePublic(code: string): Promise<PublicInvoiceResponse> {
+    const [link] = await this.dbService.db
+      .select()
+      .from(shareLinks)
+      .where(and(eq(shareLinks.code, code), eq(shareLinks.kind, 'invoice')))
+      .limit(1);
+    if (!link) throw new UnauthorizedException('Invalid invoice link');
+    if (link.expiresAt.getTime() < Date.now()) {
+      throw new GoneException('This link has expired');
     }
 
     const [row] = await this.dbService.db
@@ -253,10 +265,10 @@ export class InvoicesService {
       .innerJoin(orders, eq(orders.id, invoices.orderId))
       .innerJoin(clients, eq(clients.id, orders.clientId))
       .innerJoin(tailors, eq(tailors.id, invoices.tailorId))
-      .where(eq(invoices.id, payload.iid))
+      .where(eq(invoices.id, link.targetId))
       .limit(1);
     if (!row) throw new NotFoundException('Invoice not found');
-    if (row.tailorId !== payload.tid) {
+    if (row.tailorId !== link.tailorId) {
       throw new UnauthorizedException('Invalid invoice link');
     }
 
@@ -274,7 +286,7 @@ export class InvoicesService {
       order: { orderName: row.orderName },
       client: { fullName: row.clientName },
       tailor: { businessName: row.businessName, location: row.location },
-      effectiveExpiresAt: new Date(payload.exp * 1000).toISOString(),
+      effectiveExpiresAt: link.expiresAt.toISOString(),
     };
   }
 

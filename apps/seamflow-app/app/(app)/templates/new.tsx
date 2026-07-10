@@ -62,7 +62,7 @@ export default function NewTemplate() {
   return (
     <Screen>
       <ScreenHeader title={t('templates.newTitle')} />
-      <ScrollView
+      <ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: spacing.xl }}
       >

@@ -9,7 +9,7 @@ export const config = {
   apiUrl: required('EXPO_PUBLIC_API_URL', process.env.EXPO_PUBLIC_API_URL),
   // Marketing + legal site (roadmap 3.12). Optional — defaults to the public
   // domain so the in-app Privacy/Terms links work without extra setup.
-  webUrl: process.env.EXPO_PUBLIC_WEB_URL || 'https://seamflow.app',
+  webUrl: process.env.EXPO_PUBLIC_WEB_URL || 'https://www.seamflowtech.com',
   supabaseUrl: required('EXPO_PUBLIC_SUPABASE_URL', process.env.EXPO_PUBLIC_SUPABASE_URL),
   supabaseAnonKey: required(
     'EXPO_PUBLIC_SUPABASE_ANON_KEY',

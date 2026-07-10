@@ -10,7 +10,7 @@ interface PageProps {
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const lang = resolveLang((await searchParams).lang);
   return {
-    title: `${getDict(lang).legal.termsTitle} — SeamFlow`,
+    title: `${getDict(lang).legal.termsTitle} | SeamFlow`,
     alternates: { canonical: '/terms' },
   };
 }

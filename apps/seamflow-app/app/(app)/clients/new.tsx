@@ -45,7 +45,12 @@ export default function NewClient() {
   return (
     <Screen>
       <ScreenHeader title={t('clients.newClientTitle')} />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         <Input
           label={t('clients.fullNameLabel')}
           value={fullName}

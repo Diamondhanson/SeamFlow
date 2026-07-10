@@ -562,7 +562,7 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **What:** Consumer-facing map and search of tailors near you, filterable by specialty, price tier, languages spoken, and rating.
 - **Why:** Network effects. Tailors invite their existing clients; the platform brings them new clients.
 - **Tech:** PostGIS extension on Supabase for geospatial queries. Algolia or Meilisearch for fuzzy text search. Next.js public pages for SEO.
-- **Approach:** Tailor opt-in (privacy default off). Reviews tied to completed orders only — no review-bombing from non-customers. Profile pages public on `seamflow.app/tailor/<slug>` for SEO.
+- **Approach:** Tailor opt-in (privacy default off). Reviews tied to completed orders only — no review-bombing from non-customers. Profile pages public on `www.seamflowtech.com/tailor/<slug>` for SEO.
 - **Dependencies:** 3.1; enough tailors to make a directory worth opening.
 
 ### 3.7 AI similarity search (pgvector)
@@ -627,7 +627,7 @@ Features that build a real moat. By now you have product-market fit; this phase 
 > (`pnpm --filter seamflow-web dev`) before we point a domain / ship to Vercel.
 > All work lives in the existing `apps/seamflow-web` (Next.js 15 App Router,
 > React 19, Tailwind 3.4) plus small additions to the mobile app. Use
-> `seamflow.app` as the placeholder domain everywhere (swap later).
+> `www.seamflowtech.com` as the placeholder domain everywhere (swap later).
 
 - **What:** A public marketing site for SeamFlow (what it does, the value, the
   vision) + a hosted **Privacy Policy** and **Terms** page, and links from inside
@@ -720,7 +720,7 @@ renders in the requested language, English default.
   `WebBrowser.openBrowserAsync(\`\${WEB_URL}/privacy?lang=\${language}\`)` — an
   in-app browser (SFSafariViewController / Chrome Custom Tabs). No native rebuild.
 - `WEB_URL` comes from a new env var `EXPO_PUBLIC_WEB_URL` (default
-  `https://seamflow.app`) in `lib/config.ts`; pass the current i18n `language`.
+  `https://www.seamflowtech.com`) in `lib/config.ts`; pass the current i18n `language`.
 - All new strings go through `t()` (add to `lib/i18n/locales/settings.ts` +
   `auth`), and must pass `npm run i18n:check`.
 

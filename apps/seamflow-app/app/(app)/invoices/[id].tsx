@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
-import { formatCurrency } from '@seamflow/utils';
+import { formatCurrency, currencyForCountry } from '@seamflow/utils';
 import type { InvoiceLineCategory, InvoiceLineItem } from '@seamflow/schemas';
 import { Screen } from '../../../components/Screen';
 import { SkeletonForm } from '../../../components/Skeleton';
@@ -102,6 +102,7 @@ export default function InvoiceEditor() {
   const [lines, setLines] = useState<EditLine[]>([]);
   const [deposit, setDeposit] = useState('0');
   const [notes, setNotes] = useState('');
+  const [currencyInput, setCurrencyInput] = useState('');
   const [pdfBusy, setPdfBusy] = useState(false);
 
   useEffect(() => {
@@ -109,10 +110,18 @@ export default function InvoiceEditor() {
     setLines(invoice.lineItems.map(toEdit));
     setDeposit(String(invoice.deposit));
     setNotes(invoice.notes ?? '');
+    // Seed the currency: the invoice's own → the tailor's saved currency →
+    // the currency of the tailor's country. Editable below.
+    setCurrencyInput(
+      invoice.currency ??
+        me?.tailor?.currency ??
+        currencyForCountry(me?.tailor?.countryCode) ??
+        '',
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice?.id, invoice?.updatedAt]);
 
-  const currency = invoice?.currency ?? null;
+  const currency = currencyInput.trim() ? currencyInput.trim().toUpperCase() : null;
   const money = (amt: number) => (currency ? formatCurrency(amt, currency) : String(amt));
 
   const subtotal = useMemo(
@@ -153,6 +162,7 @@ export default function InvoiceEditor() {
     })),
     deposit: Math.max(0, num(deposit)),
     notes: notes.trim() ? notes : null,
+    currency: currency && currency.length === 3 ? currency : undefined,
   });
 
   const save = async () => {
@@ -324,6 +334,13 @@ export default function InvoiceEditor() {
           <Text variant="body" tone="textMuted">{t('invoices.subtotal')}</Text>
           <Text variant="body" numeric>{money(subtotal)}</Text>
         </View>
+        <Input
+          label={t('invoices.currencyLabel')}
+          value={currencyInput}
+          onChangeText={setCurrencyInput}
+          autoCapitalize="characters"
+          maxLength={3}
+        />
         <Input
           label={t('invoices.depositLabel')}
           value={deposit}

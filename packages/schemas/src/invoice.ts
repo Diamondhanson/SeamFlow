@@ -59,6 +59,8 @@ export const InvoiceUpdateSchema = z.object({
   deposit: z.number().nonnegative().optional(),
   notes: z.string().nullable().optional(),
   status: InvoiceStatusSchema.optional(),
+  /** ISO 4217, e.g. 'XAF'. Lets the tailor correct/override the invoice currency. */
+  currency: z.string().length(3).nullable().optional(),
 });
 export type InvoiceUpdateInput = z.infer<typeof InvoiceUpdateSchema>;
 

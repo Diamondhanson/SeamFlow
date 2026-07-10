@@ -26,9 +26,9 @@ export const privacy: Record<Lang, LegalDoc> = {
       {
         heading: '1. Information we collect',
         paragraphs: [
-          'Account information — the email address and/or phone number you sign up with, your business name, and your language, currency and country preferences.',
-          'Data you enter about your work — your clients’ names, phone numbers, addresses and measurements; order details, notes and dates; group orders and their members; fabrics; and any photos you upload (reference images, fabric swatches, design inspiration and finished-work photos).',
-          'Device & usage data — a push-notification token so we can send reminders, basic device and app information, and standard logs used to keep the service running and to diagnose problems.',
+          'Account information: the email address and/or phone number you sign up with, your business name, and your language, currency and country preferences.',
+          'Data you enter about your work: your clients’ names, phone numbers, addresses and measurements; order details, notes and dates; group orders and their members; fabrics; and any photos you upload (reference images, fabric swatches, design inspiration and finished-work photos).',
+          'Device & usage data: a push-notification token so we can send reminders, basic device and app information, and standard logs used to keep the service running and to diagnose problems.',
         ],
       },
       {
@@ -90,7 +90,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       {
         heading: '10. Contact',
         paragraphs: [
-          'Questions about privacy? Email us at hello@seamflow.app and we’ll get back to you.',
+          'Questions about privacy? Email us at hello@seamflowtech.com and we’ll get back to you.',
         ],
       },
     ],
@@ -102,9 +102,9 @@ export const privacy: Record<Lang, LegalDoc> = {
       {
         heading: '1. Informations que nous collectons',
         paragraphs: [
-          'Informations de compte — l’adresse e-mail et/ou le numéro de téléphone d’inscription, le nom de votre entreprise, ainsi que vos préférences de langue, de devise et de pays.',
-          'Données que vous saisissez sur votre activité — les noms, numéros, adresses et mesures de vos clients ; les détails, notes et dates de commande ; les commandes de groupe et leurs membres ; les tissus ; et toutes les photos que vous téléversez (images de référence, échantillons de tissu, inspirations, photos de réalisations).',
-          'Données d’appareil et d’usage — un jeton de notification pour envoyer les rappels, des informations de base sur l’appareil et l’application, et des journaux standard servant au bon fonctionnement du service et au diagnostic.',
+          'Informations de compte : l’adresse e-mail et/ou le numéro de téléphone d’inscription, le nom de votre entreprise, ainsi que vos préférences de langue, de devise et de pays.',
+          'Données que vous saisissez sur votre activité : les noms, numéros, adresses et mesures de vos clients ; les détails, notes et dates de commande ; les commandes de groupe et leurs membres ; les tissus ; et toutes les photos que vous téléversez (images de référence, échantillons de tissu, inspirations, photos de réalisations).',
+          'Données d’appareil et d’usage : un jeton de notification pour envoyer les rappels, des informations de base sur l’appareil et l’application, et des journaux standard servant au bon fonctionnement du service et au diagnostic.',
         ],
       },
       {
@@ -166,7 +166,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       {
         heading: '10. Contact',
         paragraphs: [
-          'Des questions sur la confidentialité ? Écrivez-nous à hello@seamflow.app.',
+          'Des questions sur la confidentialité ? Écrivez-nous à hello@seamflowtech.com.',
         ],
       },
     ],
@@ -236,7 +236,7 @@ export const terms: Record<Lang, LegalDoc> = {
       {
         heading: '10. Changes & contact',
         paragraphs: [
-          'We may update these Terms; continued use after an update means you accept the change. Questions? Email hello@seamflow.app.',
+          'We may update these Terms; continued use after an update means you accept the change. Questions? Email hello@seamflowtech.com.',
         ],
       },
     ],
@@ -303,7 +303,7 @@ export const terms: Record<Lang, LegalDoc> = {
       {
         heading: '10. Modifications et contact',
         paragraphs: [
-          'Nous pouvons mettre à jour ces Conditions ; poursuivre l’utilisation après une mise à jour vaut acceptation. Des questions ? Écrivez à hello@seamflow.app.',
+          'Nous pouvons mettre à jour ces Conditions ; poursuivre l’utilisation après une mise à jour vaut acceptation. Des questions ? Écrivez à hello@seamflowtech.com.',
         ],
       },
     ],

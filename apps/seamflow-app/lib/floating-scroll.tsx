@@ -66,6 +66,14 @@ export function useFloatingScroll() {
     };
     return {
       scrollEventThrottle: 16,
+      // App-wide keyboard avoidance for every screen that spreads this onto its
+      // ScrollView/FlatList: the focused input scrolls to sit just above the
+      // keyboard — but only when it would otherwise be covered (iOS content
+      // insets; Android window `adjustResize`). `handled` also lets taps pass
+      // through while the keyboard is open instead of being swallowed by a
+      // first dismiss tap.
+      keyboardShouldPersistTaps: 'handled' as const,
+      automaticallyAdjustKeyboardInsets: true,
       onScrollBeginDrag: show,
       onScrollEndDrag: hide,
       onMomentumScrollBegin: show,

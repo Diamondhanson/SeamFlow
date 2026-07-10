@@ -87,7 +87,7 @@ export default function VerifyOtp() {
   };
 
   return (
-    <Screen>
+    <Screen scroll>
       <View style={styles.header}>
         <Text variant="h1">{t('auth.checkYourEmail')}</Text>
         <Text variant="bodySm" tone="textMuted" style={styles.subtitle}>

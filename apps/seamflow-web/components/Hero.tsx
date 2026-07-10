@@ -56,7 +56,7 @@ export function Hero({ d }: { d: Dict }) {
               <div className="relative h-[540px] w-[640px]">
                 <div
                   aria-hidden="true"
-                  className="absolute inset-6 transform-gpu rounded-[80px] bg-gradient-to-tr from-brand-primary/25 via-brand-lavender/20 to-brand-accent/20 blur-3xl"
+                  className="absolute -inset-2 transform-gpu rounded-[80px] bg-gradient-to-tr from-brand-primary/50 via-brand-lavender/40 to-brand-accent/30 blur-3xl"
                 />
                 {/* Phone — behind, shifted right */}
                 <div className="absolute left-[380px] top-[6px] z-0 animate-floaty">

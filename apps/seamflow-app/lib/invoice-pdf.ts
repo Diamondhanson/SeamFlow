@@ -76,41 +76,41 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 40px 36px;
+    padding: 44px 40px;
     background: #F5F1EA;
     color: #1A1714;
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 14px;
+    font-size: 22px;
     line-height: 1.5;
   }
-  .head { text-align: center; margin-bottom: 28px; }
-  .rule { width: 40px; height: 2px; background: #C06A3E; margin: 0 auto 14px; }
-  .biz { font-family: Georgia, "Times New Roman", serif; font-size: 20px; font-weight: 700; letter-spacing: -0.2px; }
-  .loc { color: #5B554F; font-size: 13px; margin-top: 2px; }
-  .card { border: 1px solid #E1D9CB; border-radius: 18px; background: #FBF8F2; padding: 24px; }
+  .head { text-align: center; margin-bottom: 30px; }
+  .rule { width: 48px; height: 3px; background: #C06A3E; margin: 0 auto 16px; }
+  .biz { font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 700; letter-spacing: -0.2px; }
+  .loc { color: #5B554F; font-size: 20px; margin-top: 4px; }
+  .card { border: 1px solid #E1D9CB; border-radius: 18px; background: #FBF8F2; padding: 28px; }
   .toprow { display: flex; justify-content: space-between; align-items: flex-start; }
-  .eyebrow { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #8A8178; margin-bottom: 4px; }
-  .num { font-family: Georgia, "Times New Roman", serif; font-size: 30px; font-weight: 700; }
-  .date { color: #5B554F; font-size: 13px; }
-  .meta { display: flex; gap: 24px; margin: 18px 0 8px; }
+  .eyebrow { font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: #8A8178; margin-bottom: 6px; }
+  .num { font-family: Georgia, "Times New Roman", serif; font-size: 46px; font-weight: 700; }
+  .date { color: #5B554F; font-size: 20px; }
+  .meta { display: flex; gap: 24px; margin: 20px 0 8px; }
   .meta div { flex: 1; }
-  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-  th { text-align: left; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #8A8178; padding: 6px 0; border-bottom: 1px solid #E1D9CB; }
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+  th { text-align: left; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: #8A8178; padding: 8px 0; border-bottom: 1px solid #E1D9CB; }
   th.r, td.amt { text-align: right; }
-  td { padding: 10px 0; border-bottom: 1px solid #EFE9DE; vertical-align: top; }
-  .desc { font-size: 15px; }
-  .cat { color: #8A8178; font-size: 12px; margin-top: 2px; }
+  td { padding: 13px 0; border-bottom: 1px solid #EFE9DE; vertical-align: top; }
+  .desc { font-size: 24px; }
+  .cat { color: #8A8178; font-size: 17px; margin-top: 3px; }
   .amt { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .totals { margin-top: 18px; }
-  .totrow { display: flex; justify-content: space-between; padding: 4px 0; }
+  .totals { margin-top: 20px; }
+  .totrow { display: flex; justify-content: space-between; padding: 6px 0; }
   .totrow .lbl { color: #5B554F; }
   .totrow .val { font-variant-numeric: tabular-nums; }
-  .balance { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 12px; border-top: 1px solid #D8CFBE; }
-  .balance .lbl { font-family: Georgia, serif; font-size: 17px; font-weight: 700; }
-  .balance .val { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .notes { margin-top: 18px; border: 1px solid #EFE9DE; border-radius: 12px; padding: 14px; background: #F5F1EA; }
-  .notes .eyebrow { margin-bottom: 6px; }
-  .foot { text-align: center; color: #8A8178; font-size: 12px; margin-top: 28px; }
+  .balance { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; padding-top: 14px; border-top: 1px solid #D8CFBE; }
+  .balance .lbl { font-family: Georgia, serif; font-size: 28px; font-weight: 700; }
+  .balance .val { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .notes { margin-top: 20px; border: 1px solid #EFE9DE; border-radius: 12px; padding: 16px; background: #F5F1EA; }
+  .notes .eyebrow { margin-bottom: 8px; }
+  .foot { text-align: center; color: #8A8178; font-size: 17px; margin-top: 30px; }
 </style>
 </head>
 <body>

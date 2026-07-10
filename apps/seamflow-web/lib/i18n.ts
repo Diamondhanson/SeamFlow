@@ -49,7 +49,7 @@ export const copy = {
       eyebrow: 'For tailors & fashion designers',
       title: 'Your whole workshop, in one calm place.',
       subtitle:
-        'SeamFlow keeps your clients, measurements, orders and deadlines together — so nothing slips between the notebook, the group chat and your memory.',
+        'SeamFlow keeps your clients, measurements, orders and deadlines together, so nothing slips between the notebook, the group chat and your memory.',
       ctaPrimary: 'Get the app',
       ctaSecondary: 'See how it works',
       note: 'Works offline · English & French',
@@ -67,12 +67,12 @@ export const copy = {
       body: 'When everything lives in different places, a due date slips, a measurement gets re-taken, and a client asks "is it ready?" for the tenth time. It’s a lot to hold.',
       solutionTitle: 'SeamFlow holds it for you.',
       solutionBody:
-        'One place for every client, order and fitting — with reminders, a shareable order page, and it all keeps working even when the network doesn’t.',
+        'One place for every client, order and fitting, with reminders, a shareable order page, and it all keeps working even when the network doesn’t.',
     },
     features: {
       heading: 'Everything the craft needs',
       subheading:
-        'Purpose-built for how tailors actually work — not a generic to-do list.',
+        'Purpose-built for how tailors actually work, not a generic to-do list.',
       items: [
         {
           key: 'clients',
@@ -87,7 +87,7 @@ export const copy = {
         {
           key: 'groups',
           title: 'Group orders',
-          body: 'Wedding parties, aso-ebi, uniforms — coordinate a whole group with shared fabric and per-member measurements.',
+          body: 'Wedding parties, aso-ebi, uniforms: coordinate a whole group with shared fabric and per-member measurements.',
         },
         {
           key: 'design',
@@ -102,12 +102,12 @@ export const copy = {
         {
           key: 'share',
           title: 'Share with clients',
-          body: 'Send a link and your client sees their order, status, fitting date and photos — no app to install.',
+          body: 'Send a link and your client sees their order, status, fitting date and photos, with no app to install.',
         },
         {
           key: 'offline',
           title: 'Bilingual & offline',
-          body: 'Full English and French. Take orders and edit on the spot even with no signal — it syncs when you’re back.',
+          body: 'Full English and French. Take orders and edit on the spot even with no signal. It syncs when you’re back.',
         },
         {
           key: 'fabric',
@@ -122,7 +122,7 @@ export const copy = {
       items: [
         {
           title: 'Add a client',
-          body: 'Name, phone, measurements — or import straight from your contacts.',
+          body: 'Name, phone, measurements, or import straight from your contacts.',
         },
         {
           title: 'Create an order',
@@ -137,11 +137,11 @@ export const copy = {
     vision: {
       eyebrow: 'Why we built it',
       title: 'The business companion for a craft that deserves one.',
-      body: 'Independent tailors run real businesses on notebooks and memory. SeamFlow gives that craft modern tools — starting bilingual, built offline-first, and growing toward every language and market where great clothes are still made by hand.',
+      body: 'Independent tailors run real businesses on notebooks and memory. SeamFlow gives that craft modern tools: starting bilingual, built offline-first, and growing toward every language and market where great clothes are still made by hand.',
     },
     gallery: {
       heading: 'A look inside',
-      subheading: 'A calm, considered interface — the same care you put into the work.',
+      subheading: 'A calm, considered interface, with the same care you put into the work.',
     },
     faq: {
       heading: 'Questions, answered',
@@ -164,13 +164,13 @@ export const copy = {
         },
         {
           q: 'Is my data private?',
-          a: 'Your data is yours — we don’t sell it. Our Privacy Policy spells out exactly what’s stored and your rights.',
+          a: 'Your data is yours; we don’t sell it. Our Privacy Policy spells out exactly what’s stored and your rights.',
           href: '/privacy',
           linkLabel: 'Read the Privacy Policy',
         },
         {
           q: 'Which devices does it run on?',
-          a: 'Phones and tablets — Android today, iOS soon.',
+          a: 'Phones and tablets: Android today, iOS soon.',
         },
       ] as Faq[],
     },
@@ -192,7 +192,7 @@ export const copy = {
         terms: 'Terms',
         support: 'Support',
       },
-      email: 'hello@seamflow.app',
+      email: 'hello@seamflowtech.com',
       rights: '© {year} SeamFlow. All rights reserved.',
       madeWith: 'Made for tailors, everywhere.',
     },
@@ -200,7 +200,7 @@ export const copy = {
       lastUpdated: 'Last updated',
       backToHome: 'Back to home',
       draftNotice:
-        'This is draft copy for review — please have it checked before publishing.',
+        'This is draft copy for review, so please have it checked before publishing.',
       privacyTitle: 'Privacy Policy',
       termsTitle: 'Terms of Service',
       supportTitle: 'Support',
@@ -226,7 +226,7 @@ export const copy = {
       eyebrow: 'Pour les tailleurs et créateurs',
       title: 'Tout votre atelier, en un seul endroit serein.',
       subtitle:
-        'SeamFlow réunit vos clients, mesures, commandes et échéances — pour que rien ne se perde entre le carnet, le groupe et votre mémoire.',
+        'SeamFlow réunit vos clients, mesures, commandes et échéances, pour que rien ne se perde entre le carnet, le groupe et votre mémoire.',
       ctaPrimary: 'Obtenir l’app',
       ctaSecondary: 'Voir comment ça marche',
       note: 'Fonctionne hors ligne · Français et anglais',
@@ -244,12 +244,12 @@ export const copy = {
       body: 'Quand tout est éparpillé, une échéance passe, une mesure est reprise, et un client demande « c’est prêt ? » pour la dixième fois. Ça fait beaucoup à retenir.',
       solutionTitle: 'SeamFlow retient tout pour vous.',
       solutionBody:
-        'Un seul endroit pour chaque client, commande et essayage — avec des rappels, une page de commande partageable, et tout continue de fonctionner même sans réseau.',
+        'Un seul endroit pour chaque client, commande et essayage, avec des rappels, une page de commande partageable, et tout continue de fonctionner même sans réseau.',
     },
     features: {
       heading: 'Tout ce dont le métier a besoin',
       subheading:
-        'Pensé pour la façon dont les tailleurs travaillent vraiment — pas une simple liste de tâches.',
+        'Pensé pour la façon dont les tailleurs travaillent vraiment, pas une simple liste de tâches.',
       items: [
         {
           key: 'clients',
@@ -264,7 +264,7 @@ export const copy = {
         {
           key: 'groups',
           title: 'Commandes de groupe',
-          body: 'Cortèges, aso-ebi, uniformes — coordonnez tout un groupe avec tissu partagé et mesures par membre.',
+          body: 'Cortèges, aso-ebi, uniformes : coordonnez tout un groupe avec tissu partagé et mesures par membre.',
         },
         {
           key: 'design',
@@ -279,12 +279,12 @@ export const copy = {
         {
           key: 'share',
           title: 'Partage avec les clients',
-          body: 'Envoyez un lien : votre client voit sa commande, son statut, la date d’essayage et les photos — sans rien installer.',
+          body: 'Envoyez un lien : votre client voit sa commande, son statut, la date d’essayage et les photos, sans rien installer.',
         },
         {
           key: 'offline',
           title: 'Bilingue et hors ligne',
-          body: 'Français et anglais complets. Prenez des commandes et modifiez sur place, même sans signal — la synchro se fait au retour du réseau.',
+          body: 'Français et anglais complets. Prenez des commandes et modifiez sur place, même sans signal. La synchro se fait au retour du réseau.',
         },
         {
           key: 'fabric',
@@ -299,7 +299,7 @@ export const copy = {
       items: [
         {
           title: 'Ajoutez un client',
-          body: 'Nom, téléphone, mesures — ou importez directement depuis vos contacts.',
+          body: 'Nom, téléphone, mesures, ou importez directement depuis vos contacts.',
         },
         {
           title: 'Créez une commande',
@@ -314,11 +314,11 @@ export const copy = {
     vision: {
       eyebrow: 'Pourquoi nous l’avons créé',
       title: 'Le compagnon d’affaires d’un métier qui le mérite.',
-      body: 'Les tailleurs indépendants font tourner de vraies entreprises avec un carnet et leur mémoire. SeamFlow offre à ce métier des outils modernes — bilingue dès le départ, pensé hors-ligne, et s’ouvrant à chaque langue et marché où l’on crée encore de beaux vêtements à la main.',
+      body: 'Les tailleurs indépendants font tourner de vraies entreprises avec un carnet et leur mémoire. SeamFlow offre à ce métier des outils modernes : bilingue dès le départ, pensé hors-ligne, et s’ouvrant à chaque langue et marché où l’on crée encore de beaux vêtements à la main.',
     },
     gallery: {
       heading: 'Un aperçu de l’intérieur',
-      subheading: 'Une interface calme et soignée — le même soin que vous mettez au travail.',
+      subheading: 'Une interface calme et soignée, avec le même soin que vous mettez au travail.',
     },
     faq: {
       heading: 'Vos questions, nos réponses',
@@ -341,13 +341,13 @@ export const copy = {
         },
         {
           q: 'Mes données sont-elles privées ?',
-          a: 'Vos données vous appartiennent — nous ne les vendons pas. Notre Politique de confidentialité précise exactement ce qui est stocké et vos droits.',
+          a: 'Vos données vous appartiennent ; nous ne les vendons pas. Notre Politique de confidentialité précise exactement ce qui est stocké et vos droits.',
           href: '/privacy',
           linkLabel: 'Lire la Politique de confidentialité',
         },
         {
           q: 'Sur quels appareils ?',
-          a: 'Téléphones et tablettes — Android aujourd’hui, iOS bientôt.',
+          a: 'Téléphones et tablettes : Android aujourd’hui, iOS bientôt.',
         },
       ] as Faq[],
     },
@@ -369,7 +369,7 @@ export const copy = {
         terms: 'Conditions',
         support: 'Support',
       },
-      email: 'hello@seamflow.app',
+      email: 'hello@seamflowtech.com',
       rights: '© {year} SeamFlow. Tous droits réservés.',
       madeWith: 'Conçu pour les tailleurs, partout.',
     },
@@ -377,7 +377,7 @@ export const copy = {
       lastUpdated: 'Dernière mise à jour',
       backToHome: 'Retour à l’accueil',
       draftNotice:
-        'Texte provisoire à relire — faites-le vérifier avant publication.',
+        'Texte provisoire à relire : faites-le vérifier avant publication.',
       privacyTitle: 'Politique de confidentialité',
       termsTitle: 'Conditions d’utilisation',
       supportTitle: 'Support',
@@ -398,9 +398,9 @@ export const getDict = (lang: Lang): Dict => copy[lang];
 
 export const SITE = {
   name: 'SeamFlow',
-  domain: 'seamflow.app',
-  url: 'https://seamflow.app',
-  email: 'hello@seamflow.app',
+  domain: 'www.seamflowtech.com',
+  url: 'https://www.seamflowtech.com',
+  email: 'hello@seamflowtech.com',
 };
 
 // Direct Android APK download. Empty string → not yet available (the Android

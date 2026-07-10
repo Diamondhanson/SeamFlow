@@ -13,7 +13,7 @@ interface PageProps {
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const lang = resolveLang((await searchParams).lang);
   const d = getDict(lang);
-  const title = `${SITE.name} — ${d.hero.title}`;
+  const title = `${SITE.name} | ${d.hero.title}`;
   return {
     title,
     description: d.hero.subtitle,

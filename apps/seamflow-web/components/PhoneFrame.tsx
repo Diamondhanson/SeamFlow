@@ -56,7 +56,7 @@ function HomeMock() {
       >
         <Bar w="30%" c="rgba(255,255,255,0.12)" h={6} />
         <div style={{ color: MID.text, fontFamily: 'var(--font-display), serif', fontSize: 17, fontWeight: 700, letterSpacing: 0.3 }}>
-          LYZMA CREATIONS
+          SEAMFLOW DESIGNS
         </div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <span style={{ color: MID.primary, fontWeight: 700, fontSize: 12 }}>3</span>
@@ -170,7 +170,7 @@ function TabletHomeMock() {
               letterSpacing: 0.3,
             }}
           >
-            LYZMA CREATIONS
+            SEAMFLOW DESIGNS
           </div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <span style={{ color: MID.primary, fontWeight: 700, fontSize: 12 }}>3</span>

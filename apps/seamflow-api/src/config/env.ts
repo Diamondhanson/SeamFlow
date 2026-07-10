@@ -27,9 +27,11 @@ export const envSchema = z.object({
   // invalidate user sessions. 32+ random bytes recommended.
   SHARE_LINK_JWT_SECRET: z.string().min(32),
 
-  // Base URL of seamflow-web for building share URLs. In dev:
-  // http://localhost:3000. In prod (eventual): https://seamflow.app.
-  WEB_BASE_URL: z.string().url().default('http://localhost:3000'),
+  // Base URL of seamflow-web for building share URLs. Set to your deployed web
+  // domain in every real environment. Defaults to the production placeholder so
+  // links never accidentally point at localhost; override locally if you're
+  // testing the web app on http://localhost:3000.
+  WEB_BASE_URL: z.string().url().default('https://www.seamflowtech.com'),
 });
 
 export type Env = z.infer<typeof envSchema>;

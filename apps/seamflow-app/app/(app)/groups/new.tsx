@@ -156,6 +156,8 @@ export default function NewGroup() {
       <ScreenHeader title={t('groups.newGroupOrder')} />
       <ScrollView
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
         contentContainerStyle={{ paddingBottom: spacing.xl }}
       >
         {/* ---------- 1. Title ---------- */}

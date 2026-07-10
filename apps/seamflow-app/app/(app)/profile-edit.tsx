@@ -11,6 +11,7 @@ import { CountryPickerModal } from '../../components/CountryPickerModal';
 import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useMe, useUpsertMyTailor } from '../../lib/queries';
 import { countryName, flagEmoji } from '../../lib/countries';
+import { currencyForCountry } from '@seamflow/utils';
 import { spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 import { useDialog } from '../../lib/dialog';
@@ -25,10 +26,15 @@ export default function ProfileEdit() {
   const [businessName, setBusinessName] = useState('');
   const [countryCode, setCountryCode] = useState('NG');
   const [location, setLocation] = useState('');
-  // Currency is not user-facing anymore, but the profile schema still requires
-  // it — carry the tailor's existing value through untouched.
   const [currency, setCurrency] = useState('NGN');
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  // Picking a new country defaults the currency to that country's currency
+  // (the tailor can still edit it below).
+  const onSelectCountry = (code: string) => {
+    setCountryCode(code);
+    setCurrency(currencyForCountry(code));
+  };
 
   // Hydrate from the loaded tailor.
   useEffect(() => {
@@ -84,6 +90,14 @@ export default function ProfileEdit() {
         />
 
         <Input
+          label={t('settings.currency')}
+          value={currency}
+          onChangeText={setCurrency}
+          autoCapitalize="characters"
+          maxLength={3}
+        />
+
+        <Input
           label={t('settings.location')}
           value={location}
           onChangeText={setLocation}
@@ -95,14 +109,14 @@ export default function ProfileEdit() {
           label={t('settings.save')}
           onPress={save}
           loading={upsert.isPending}
-          disabled={!businessName.trim() || countryCode.length !== 2}
+          disabled={!businessName.trim() || countryCode.length !== 2 || currency.trim().length !== 3}
         />
       </ScrollView>
 
       <CountryPickerModal
         visible={pickerOpen}
         selected={countryCode}
-        onSelect={setCountryCode}
+        onSelect={onSelectCountry}
         onClose={() => setPickerOpen(false)}
         title={t('settings.selectCountry')}
         searchPlaceholder={t('settings.searchCountry')}

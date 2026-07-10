@@ -29,13 +29,13 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://seamflow.app'),
+  metadataBase: new URL('https://www.seamflowtech.com'),
   title: {
-    default: 'SeamFlow — the calm home for your tailoring business',
+    default: 'SeamFlow, the calm home for your tailoring business',
     template: '%s',
   },
   description:
-    'SeamFlow keeps your clients, measurements, orders and deadlines together — built bilingual and offline-first for tailors and fashion designers.',
+    'SeamFlow keeps your clients, measurements, orders and deadlines together. Built bilingual and offline-first for tailors and fashion designers.',
   applicationName: 'SeamFlow',
   keywords: [
     'tailor app',

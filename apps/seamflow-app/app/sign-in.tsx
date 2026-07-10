@@ -110,7 +110,7 @@ export default function SignIn() {
   };
 
   return (
-    <Screen>
+    <Screen scroll>
       <View style={styles.header}>
         <Text variant="display" tone="text">
           SeamFlow

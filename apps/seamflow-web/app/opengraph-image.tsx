@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'SeamFlow — your whole workshop, in one calm place.';
+export const alt = 'SeamFlow: your whole workshop, in one calm place.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -51,7 +51,7 @@ export default function OpengraphImage() {
           Your whole workshop, in one calm place.
         </div>
         <div style={{ marginTop: 28, fontSize: 30, color: 'rgba(251,248,243,0.82)' }}>
-          Clients · measurements · orders · reminders — for tailors & designers.
+          Clients · measurements · orders · reminders, for tailors & designers.
         </div>
       </div>
     ),

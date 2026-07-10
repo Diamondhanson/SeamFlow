@@ -6,38 +6,34 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import jwt from 'jsonwebtoken';
+import { randomBytes } from 'crypto';
 import { and, desc, eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { groupOrders, orderEvents, orderItems, orderPhotos, orders, tailors } from '../db/schema';
+import {
+  groupOrders,
+  orderEvents,
+  orderItems,
+  orderPhotos,
+  orders,
+  shareLinks,
+  tailors,
+} from '../db/schema';
 import { OrderPhotosService } from '../order-photos/order-photos.service';
 import { FabricsService } from '../fabrics/fabrics.service';
 import type { OrderFabric } from '@seamflow/schemas';
 
 // ============================================================================
-// Share-link token rules
+// Share-link rules
 //
-// - Default TTL: 60 days from issue. Hard cap baked into the JWT `exp`.
+// - The public URL carries a SHORT CODE (row in `share_links`), not a JWT, so
+//   links are short + shareable: `/o/<9-char-code>`.
+// - Default TTL: 60 days from issue (stored on the row).
 // - Soft expiry: if the order's status is `delivered` and the delivery
-//   happened more than 2 days ago, the link rejects regardless of `exp`.
-//   This stops links from sitting around publicly long after the work is done.
-// - JWT secret is separate from Supabase auth so rotating one doesn't blow
-//   up the other.
+//   happened more than 2 days ago, the link rejects regardless of the row exp.
 // ============================================================================
 
 const DEFAULT_TTL_DAYS = 60;
 const POST_DELIVERY_GRACE_MS = 2 * 24 * 60 * 60 * 1000;
-const TOKEN_ISSUER = 'seamflow:share-link';
-
-interface SharePayload {
-  /** Order id baked into the token */
-  oid: string;
-  /** Tailor id at issue time (sanity check on verify) */
-  tid: string;
-  iat: number;
-  exp: number;
-  iss: string;
-}
 
 export interface IssuedShareLink {
   url: string;
@@ -59,7 +55,6 @@ export interface PublicOrderPayload {
 @Injectable()
 export class ShareLinksService {
   private readonly logger = new Logger(ShareLinksService.name);
-  private readonly secret: string;
   private readonly webBaseUrl: string;
 
   constructor(
@@ -68,13 +63,12 @@ export class ShareLinksService {
     private readonly photosService: OrderPhotosService,
     private readonly fabricsService: FabricsService,
   ) {
-    this.secret = config.getOrThrow<string>('SHARE_LINK_JWT_SECRET');
     this.webBaseUrl = config.get<string>('WEB_BASE_URL') ?? 'http://localhost:3000';
   }
 
-  /** Tailor calls this to mint a fresh share link for one of their orders. */
+  /** Tailor calls this to mint a fresh short share link for one of their orders. */
   async issue(tailorId: string, orderId: string): Promise<IssuedShareLink> {
-    // Belt-and-suspenders: confirm ownership before signing.
+    // Belt-and-suspenders: confirm ownership before minting.
     const [order] = await this.dbService.db
       .select({ id: orders.id })
       .from(orders)
@@ -82,19 +76,34 @@ export class ShareLinksService {
       .limit(1);
     if (!order) throw new NotFoundException(`Order ${orderId} not found`);
 
-    const now = Math.floor(Date.now() / 1000);
-    const exp = now + DEFAULT_TTL_DAYS * 24 * 60 * 60;
-    const token = jwt.sign(
-      { oid: orderId, tid: tailorId } satisfies Omit<SharePayload, 'iat' | 'exp' | 'iss'>,
-      this.secret,
-      { expiresIn: `${DEFAULT_TTL_DAYS}d`, issuer: TOKEN_ISSUER },
-    );
+    const expiresAt = new Date(Date.now() + DEFAULT_TTL_DAYS * 24 * 60 * 60 * 1000);
+    const code = await this.mintCode('order', orderId, tailorId, expiresAt);
 
     return {
-      url: `${this.webBaseUrl.replace(/\/$/, '')}/o/${token}`,
-      token,
-      expiresAt: new Date(exp * 1000).toISOString(),
+      url: `${this.webBaseUrl.replace(/\/$/, '')}/o/${code}`,
+      token: code,
+      expiresAt: expiresAt.toISOString(),
     };
+  }
+
+  /** Allocate a unique short code and store the share row. */
+  private async mintCode(
+    kind: 'order' | 'invoice',
+    targetId: string,
+    tailorId: string,
+    expiresAt: Date,
+  ): Promise<string> {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      // ~9 url-safe chars, plenty of entropy for share links.
+      const code = randomBytes(7).toString('base64url');
+      const inserted = await this.dbService.db
+        .insert(shareLinks)
+        .values({ code, kind, targetId, tailorId, expiresAt })
+        .onConflictDoNothing()
+        .returning({ code: shareLinks.code });
+      if (inserted[0]) return inserted[0].code;
+    }
+    throw new Error('Could not allocate a unique share code');
   }
 
   /**
@@ -104,36 +113,34 @@ export class ShareLinksService {
    *   3. Reject if the order was delivered >2 days ago
    *   4. Return order + items + photos (with signed image URLs) + tailor brand info
    */
-  async resolvePublic(token: string): Promise<PublicOrderPayload> {
-    let payload: SharePayload;
-    try {
-      payload = jwt.verify(token, this.secret, {
-        issuer: TOKEN_ISSUER,
-      }) as SharePayload;
-    } catch (err) {
-      if (err instanceof jwt.TokenExpiredError) {
-        throw new GoneException('This link has expired');
-      }
-      throw new UnauthorizedException('Invalid share link');
+  async resolvePublic(code: string): Promise<PublicOrderPayload> {
+    const [link] = await this.dbService.db
+      .select()
+      .from(shareLinks)
+      .where(and(eq(shareLinks.code, code), eq(shareLinks.kind, 'order')))
+      .limit(1);
+    if (!link) throw new UnauthorizedException('Invalid share link');
+    if (link.expiresAt.getTime() < Date.now()) {
+      throw new GoneException('This link has expired');
     }
 
     // Hard query — bypass RLS via service-role since this endpoint is public.
     const [order] = await this.dbService.db
       .select()
       .from(orders)
-      .where(eq(orders.id, payload.oid))
+      .where(eq(orders.id, link.targetId))
       .limit(1);
     if (!order) {
       throw new NotFoundException('Order not found');
     }
-    if (order.tailorId !== payload.tid) {
-      // Order has been moved to a different tailor (shouldn't happen in
-      // practice) OR the token was tampered. Either way, reject.
-      this.logger.warn(`Token tailor mismatch: tok=${payload.tid} actual=${order.tailorId}`);
+    if (order.tailorId !== link.tailorId) {
+      this.logger.warn(
+        `Share tailor mismatch: link=${link.tailorId} actual=${order.tailorId}`,
+      );
       throw new UnauthorizedException('Invalid share link');
     }
 
-    let effectiveExpires = new Date(payload.exp * 1000);
+    let effectiveExpires = link.expiresAt;
 
     if (order.status === 'delivered') {
       const [latestDelivery] = await this.dbService.db
