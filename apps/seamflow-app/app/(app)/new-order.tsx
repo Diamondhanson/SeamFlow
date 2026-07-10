@@ -1,18 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import type { CountryCode } from 'libphonenumber-js';
 import type {
   Client,
   MeasurementTemplate,
   MeasurementValues,
-  TemplateField,
 } from '@seamflow/schemas';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -37,6 +30,36 @@ import { useTranslation } from '../../lib/i18n';
 type PickedContact = { fullName: string; phone: string };
 
 type Step = 'client' | 'measurements' | 'order';
+
+/** One garment being added to the order — its type, an optional measurement
+ *  template, the entered measurements, and how many of it to sew. An order can
+ *  hold several of these. */
+type GarmentDraft = {
+  id: string;
+  template: MeasurementTemplate | null;
+  garmentType: string;
+  values: Record<string, string>;
+  quantity: string;
+};
+
+let garmentSeq = 0;
+const makeGarment = (): GarmentDraft => ({
+  id: `g${garmentSeq++}`,
+  template: null,
+  garmentType: '',
+  values: {},
+  quantity: '1',
+});
+
+/** Extract the positive-numeric measurement values from a garment's raw inputs. */
+function numericMeasurements(values: Record<string, string>): MeasurementValues {
+  const out: MeasurementValues = {};
+  for (const [k, v] of Object.entries(values)) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) out[k] = n;
+  }
+  return out;
+}
 
 export default function NewOrderWizard() {
   const { t } = useTranslation();
@@ -63,12 +86,9 @@ export default function NewOrderWizard() {
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newClientAddress, setNewClientAddress] = useState('');
 
-  // Step 2: measurements
+  // Step 2: garments (one order can hold several garments to sew)
   const [templates, setTemplates] = useState<MeasurementTemplate[]>([]);
-  const [pickedTemplate, setPickedTemplate] = useState<MeasurementTemplate | null>(null);
-  const [measurementsValues, setMeasurementsValues] = useState<Record<string, string>>(
-    {},
-  );
+  const [garments, setGarments] = useState<GarmentDraft[]>([makeGarment()]);
 
   // Step 3: order
   const [orderName, setOrderName] = useState('');
@@ -150,33 +170,56 @@ export default function NewOrderWizard() {
   const pickedName = pickedClient?.fullName ?? pickedContact?.fullName ?? '';
   const hasPicked = !!pickedClient || !!pickedContact;
 
-  // -------- Step 2: measurements --------
-  const pickTemplate = (t: MeasurementTemplate | null) => {
-    setPickedTemplate(t);
-    // Seed empty values for each field
-    if (t) {
-      const seeded: Record<string, string> = {};
-      for (const f of t.fields) seeded[f.key] = '';
-      setMeasurementsValues(seeded);
-    } else {
-      setMeasurementsValues({});
-    }
-  };
+  // -------- Step 2: garments --------
+  const updateGarment = (id: string, patch: Partial<GarmentDraft>) =>
+    setGarments((gs) => gs.map((g) => (g.id === id ? { ...g, ...patch } : g)));
 
-  const setFieldValue = (key: string, v: string) =>
-    setMeasurementsValues((cur) => ({ ...cur, [key]: v }));
+  const setGarmentField = (id: string, key: string, v: string) =>
+    setGarments((gs) =>
+      gs.map((g) => (g.id === id ? { ...g, values: { ...g.values, [key]: v } } : g)),
+    );
+
+  const pickTemplateForGarment = (id: string, tpl: MeasurementTemplate | null) =>
+    setGarments((gs) =>
+      gs.map((g) => {
+        if (g.id !== id) return g;
+        const seeded: Record<string, string> = {};
+        if (tpl) for (const f of tpl.fields) seeded[f.key] = '';
+        return {
+          ...g,
+          template: tpl,
+          values: seeded,
+          // Adopt the template's garment type, but never clobber a name the
+          // tailor already typed.
+          garmentType: g.garmentType || (tpl?.garmentType ?? ''),
+        };
+      }),
+    );
+
+  const addGarment = () => setGarments((gs) => [...gs, makeGarment()]);
+  const removeGarment = (id: string) =>
+    setGarments((gs) => (gs.length > 1 ? gs.filter((g) => g.id !== id) : gs));
 
   const goToOrderStep = async () => {
-    // Validate at least one numeric value if any field is required
-    if (pickedTemplate) {
-      for (const f of pickedTemplate.fields) {
-        if (f.required && !measurementsValues[f.key]) {
-          await dialog.alert({
-            title: t('orders.requiredFieldTitle'),
-            message: t('orders.requiredFieldMessage', { label: f.label }),
-            tone: 'warning',
-          });
-          return;
+    for (const [idx, g] of garments.entries()) {
+      if (!g.garmentType.trim()) {
+        await dialog.alert({
+          title: t('orders.garmentTypeRequiredTitle'),
+          message: t('orders.garmentTypeRequiredMessage', { n: idx + 1 }),
+          tone: 'warning',
+        });
+        return;
+      }
+      if (g.template) {
+        for (const f of g.template.fields) {
+          if (f.required && !g.values[f.key]) {
+            await dialog.alert({
+              title: t('orders.requiredFieldTitle'),
+              message: t('orders.requiredFieldMessage', { label: f.label }),
+              tone: 'warning',
+            });
+            return;
+          }
         }
       }
     }
@@ -188,28 +231,32 @@ export default function NewOrderWizard() {
     if (!hasPicked || !orderName) return;
     setSubmitting(true);
     try {
-      // Collect any numeric measurement values entered.
-      const numericValues: MeasurementValues = {};
-      for (const [k, v] of Object.entries(measurementsValues)) {
-        const n = Number(v);
-        if (Number.isFinite(n) && n > 0) numericValues[k] = n;
-      }
-      const hasMeasurements = Object.keys(numericValues).length > 0;
+      // Build one order item per garment.
+      const items = garments.map((g) => {
+        const measurements = numericMeasurements(g.values);
+        const qty = Math.floor(Number(g.quantity));
+        return {
+          garmentType: g.garmentType.trim() || 'garment',
+          measurements: Object.keys(measurements).length ? measurements : undefined,
+          quantity: Number.isFinite(qty) && qty > 0 ? qty : 1,
+        };
+      });
 
-      // For an existing client we can save the measurement set up front. For a
-      // picked contact there's no client id yet — we save it after the order
-      // materializes the client (below).
-      if (pickedClient && hasMeasurements) {
-        await api.measurementSets.createForClient(pickedClient.id, {
-          label: pickedTemplate?.name ?? 'default',
-          templateId: pickedTemplate?.id ?? null,
-          values: numericValues,
-        });
+      // Save each garment's measurements against the existing client for reuse.
+      if (pickedClient) {
+        for (const g of garments) {
+          const measurements = numericMeasurements(g.values);
+          if (Object.keys(measurements).length) {
+            await api.measurementSets.createForClient(pickedClient.id, {
+              label: g.template?.name ?? g.garmentType.trim() ?? 'default',
+              templateId: g.template?.id ?? null,
+              values: measurements,
+            });
+          }
+        }
       }
 
-      // Create the order. Pass either the existing clientId or the picked
-      // contact for the server to materialize into a client. Measurements are
-      // also inlined as an order item so they're attached to the order itself.
+      // Create the order with all its garments.
       const created = await api.orders.create({
         ...(pickedClient
           ? { clientId: pickedClient.id }
@@ -219,25 +266,22 @@ export default function NewOrderWizard() {
         dateDelivery: orderDate ? orderDate.toISOString() : null,
         fabricId,
         fabricYardageUsed: fabricYardage.trim() ? Number(fabricYardage) : null,
-        items: hasMeasurements
-          ? [
-              {
-                garmentType: pickedTemplate?.garmentType ?? 'garment',
-                measurements: numericValues,
-                quantity: 1,
-              },
-            ]
-          : undefined,
+        items: items.length ? items : undefined,
       });
 
-      // Contact path: the order just created the client — save the reference
-      // measurement set against the materialized client id.
-      if (!pickedClient && hasMeasurements) {
-        await api.measurementSets.createForClient(created.clientId, {
-          label: pickedTemplate?.name ?? 'default',
-          templateId: pickedTemplate?.id ?? null,
-          values: numericValues,
-        });
+      // Contact path: the order just materialized the client — save each
+      // garment's measurements against the new client id.
+      if (!pickedClient) {
+        for (const g of garments) {
+          const measurements = numericMeasurements(g.values);
+          if (Object.keys(measurements).length) {
+            await api.measurementSets.createForClient(created.clientId, {
+              label: g.template?.name ?? g.garmentType.trim() ?? 'default',
+              templateId: g.template?.id ?? null,
+              values: measurements,
+            });
+          }
+        }
       }
 
       router.replace(`/(app)/orders/${created.id}`);
@@ -336,58 +380,87 @@ export default function NewOrderWizard() {
           <Text variant="body" tone="textMuted" style={styles.context}>
             <Text variant="body" tone="text" style={styles.contextStrong}>{t('orders.clientLabel', { name: pickedName })}</Text>
           </Text>
-
-          <Text variant="h3" tone="text" style={styles.section}>{t('orders.pickTemplate')}</Text>
-          <Text variant="bodySm" tone="textMuted">
-            {t('orders.templateHint')}
-          </Text>
+          <Text variant="bodySm" tone="textMuted">{t('orders.garmentsHint')}</Text>
           <View style={{ height: spacing.sm }} />
-          <Button
-            label={pickedTemplate ? t('orders.usingTemplate', { name: pickedTemplate.name }) : t('orders.noTemplateSkip')}
-            variant="secondary"
-            onPress={async () => {
-              const key = await dialog.pick({
-                title: t('orders.pickTemplate'),
-                selectedKey: pickedTemplate?.id ?? '__none__',
-                options: [
-                  { key: '__none__', label: t('orders.noTemplateOption') },
-                  ...templates.map((tpl) => ({ key: tpl.id, label: tpl.name })),
-                ],
-              });
-              if (!key) return;
-              if (key === '__none__') {
-                pickTemplate(null);
-              } else {
-                const picked = templates.find((tpl) => tpl.id === key);
-                if (picked) pickTemplate(picked);
-              }
-            }}
-          />
-          <View style={{ height: spacing.lg }} />
 
-          {pickedTemplate && pickedTemplate.fields.length > 0 ? (
-            <>
-              <Text variant="h3" tone="text" style={styles.section}>{t('orders.measurementsCm')}</Text>
-              {pickedTemplate.fields.map((f) => (
-                <Input
-                  key={f.key}
-                  label={`${f.label}${f.required ? ' *' : ''}`}
-                  value={measurementsValues[f.key] ?? ''}
-                  onChangeText={(v) => setFieldValue(f.key, v)}
-                  keyboardType="numeric"
-                  placeholder={t('orders.measurementPlaceholder')}
+          {garments.map((g, idx) => (
+            <Card key={g.id}>
+              <View style={styles.garmentHead}>
+                <CardTitle>{t('orders.garmentLabel', { n: idx + 1 })}</CardTitle>
+                {garments.length > 1 ? (
+                  <Pressable onPress={() => removeGarment(g.id)} hitSlop={10} accessibilityRole="button">
+                    <Text variant="bodySm" style={{ color: colors.danger }}>
+                      {t('orders.removeGarment')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+
+              <Input
+                label={t('orders.garmentTypeLabel')}
+                value={g.garmentType}
+                onChangeText={(v) => updateGarment(g.id, { garmentType: v })}
+                placeholder={t('orders.garmentTypePlaceholder')}
+              />
+
+              <Button
+                label={g.template ? t('orders.usingTemplate', { name: g.template.name }) : t('orders.chooseTemplate')}
+                variant="secondary"
+                onPress={async () => {
+                  const key = await dialog.pick({
+                    title: t('orders.pickTemplate'),
+                    selectedKey: g.template?.id ?? '__none__',
+                    options: [
+                      { key: '__none__', label: t('orders.noTemplateOption') },
+                      ...templates.map((tpl) => ({ key: tpl.id, label: tpl.name })),
+                    ],
+                  });
+                  if (!key) return;
+                  pickTemplateForGarment(g.id, key === '__none__' ? null : templates.find((tpl) => tpl.id === key) ?? null);
+                }}
+              />
+
+              {g.template && g.template.fields.length > 0 ? (
+                <>
+                  <Text variant="bodySm" tone="textMuted" style={styles.section}>
+                    {t('orders.measurementsCm')}
+                  </Text>
+                  {g.template.fields.map((f) => (
+                    <Input
+                      key={f.key}
+                      label={`${f.label}${f.required ? ' *' : ''}`}
+                      value={g.values[f.key] ?? ''}
+                      onChangeText={(v) => setGarmentField(g.id, f.key, v)}
+                      keyboardType="numeric"
+                      placeholder={t('orders.measurementPlaceholder')}
+                    />
+                  ))}
+                </>
+              ) : null}
+
+              {!g.template ? (
+                <FreeMeasurements
+                  values={g.values}
+                  setValues={(cb) => updateGarment(g.id, { values: cb(g.values) })}
                 />
-              ))}
-            </>
-          ) : null}
+              ) : null}
 
-          {!pickedTemplate ? (
-            <FreeMeasurements
-              values={measurementsValues}
-              setValues={setMeasurementsValues}
-            />
-          ) : null}
+              <Input
+                label={t('orders.quantityLabel')}
+                value={g.quantity}
+                onChangeText={(v) => updateGarment(g.id, { quantity: v.replace(/[^0-9]/g, '') })}
+                keyboardType="number-pad"
+                placeholder="1"
+              />
+            </Card>
+          ))}
 
+          <Button
+            label={t('orders.addAnotherGarment')}
+            variant="secondary"
+            onPress={addGarment}
+          />
+          <View style={{ height: spacing.md }} />
           <Button label={t('orders.nextOrder')} onPress={goToOrderStep} />
         </ScrollView>
       ) : null}
@@ -496,7 +569,7 @@ function FreeMeasurements({
   const [newKey, setNewKey] = useState('');
   return (
     <View>
-      <Text variant="h3" tone="text" style={styles.section}>{t('orders.manualMeasurementsCm')}</Text>
+      <Text variant="bodySm" tone="textMuted" style={styles.section}>{t('orders.manualMeasurementsCm')}</Text>
       {Object.entries(values).map(([k, v]) => (
         <Input
           key={k}
@@ -537,6 +610,12 @@ const styles = StyleSheet.create({
   contextStrong: { fontWeight: '600' },
   section: {
     marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  garmentHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
 });
