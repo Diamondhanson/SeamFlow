@@ -167,9 +167,11 @@ function paletteFor(
         tone: 'textOnPrimary',
       };
     case 'secondary':
+      // A subtle surface fill + a defined border so the button reads as a real,
+      // tappable control — not near-invisible text with a faint hairline.
       return {
-        bg: 'transparent',
-        border: c.hairline,
+        bg: c.surface,
+        border: c.border,
         borderWidth: 1,
         label: c.text,
         tone: 'text',

@@ -145,6 +145,7 @@ export default function GroupDetail() {
           <Button
             label={ownerMember ? t('groups.changeOwner') : t('groups.setOwner')}
             variant="secondary"
+            fullWidth={false}
             onPress={setOwner}
           />
         </View>
@@ -177,6 +178,7 @@ export default function GroupDetail() {
             <Button
               label={t('groups.addShort')}
               variant="secondary"
+              fullWidth={false}
               onPress={() => setShowForm(true)}
             />
           ) : null}
@@ -376,5 +378,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  divider: { height: 1, marginVertical: spacing.lg },
+  divider: { height: 1, marginVertical: spacing.md },
 });

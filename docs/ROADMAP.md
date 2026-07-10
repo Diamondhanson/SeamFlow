@@ -826,6 +826,85 @@ This is the full feature list for the client-facing mobile app, which gets built
 
 **A.17 Multi-tailor measurement deltas** — Heads-up: "You haven't been measured in 14 months. Update before your next order?" with optional in-app body scan via the camera.
 
+### Power features — deepen the relationship (Phase 3 → 4)
+
+These make the client app something people *keep*, not just check. Several extend
+the core features above rather than replace them.
+
+**A.18 Fit Passport** — Elevate the measurement locker (A.2) into a full fit
+profile the client OWNS: measurements **plus** fit preferences ("sleeves
+slightly loose", "true to the waist", "hems a touch longer") and per-garment
+notes on what worked and what didn't. Portable across every tailor. Solving fit
+anxiety + re-measuring is the app's single strongest hook. Extends A.2 + A.10.
+
+**A.19 Guided self-measurement** — Camera/AR-assisted or step-by-step video so a
+client can capture or update measurements at home; the tailor confirms them.
+Unlocks remote/diaspora orders ("I'm in Paris, my tailor's in Douala") and kills
+the "come in to be re-measured" friction. Extends A.17.
+
+**A.20 Approvals & fitting loop** — Tap-approve fabric → design → fitting photos
+("looks good" / "adjust: sleeve too long"), each timestamped. Fewer surprises,
+fewer disputes, faster delivery. Pairs with A.11 (chat) + A.12 (timeline).
+
+**A.21 "Make this again" reorder** — One tap to reorder a past garment (same
+measurements) in a new fabric. Turns repeat business — the tailor's most
+valuable revenue — into a single tap.
+
+**A.22 AI design preview** — Preview a style rendered in the client's chosen
+fabric BEFORE ordering, then approve the look together. Depends on the AI
+design-generation work (roadmap 3.11 / Design Studio M4).
+
+**A.23 In-app payments + light buyer protection** — Milestone deposits/balance,
+receipts (extends A.8), plus an optional held-until-delivery guarantee so a
+first-time or remote client feels safe paying up front. Uses the 1.7 payment
+abstraction.
+
+**A.24 Occasion planner** — Client adds upcoming events (wedding, Eid, birthday);
+the app nudges them to order in time AND nudges the tailor. Predictable,
+recurring demand.
+
+**A.25 Care & styling tips** — Post-delivery fabric-care and AI styling
+suggestions (leans on the vision model). Keeps the app useful between orders →
+retention.
+
+### Social layer — discovery & community (Phase 4)
+
+Turns SeamFlow from a tool into a *place*. Keep it **tasteful and purpose-built**
+(discovery that leads to commissions), not another endless-scroll feed.
+
+**A.26 Style feed & "Get this look"** — Opt-in, craft-focused feed of tailor work
++ client "wearing it" photos. Tap a look → request that style from a tailor
+(theirs or the one who made it). Pinterest energy, but every look leads to a real
+commission. Leans on 3.7 (pgvector similarity) for "more like this".
+
+**A.27 Follows & notifications** — Follow tailors and tastemakers; get notified of
+new work and fabric drops. Keeps tailors top-of-mind between orders.
+
+**A.28 Tailor public storefront** — Portfolio, specialties, languages spoken,
+reviews, follower count — the social-proof profile that wins new clients.
+Extends the 3.6 directory into a real profile page.
+
+**A.29 Mutual tagging / credited looks (the growth loop)** — When a client posts
+a delivered outfit, BOTH the client and the tailor are credited. The client's
+friends discover the tailor; the tailor's profile grows; the client looks great.
+One post grows both sides at once — the viral loop unique to this space.
+
+**A.30 Collaborative boards & style stories** — Shared inspiration boards (e.g. a
+wedding party plans together, friends react/vote) and a client's opt-in public
+"style story" profile of their commissions. Extends A.6.
+
+**A.31 Tailor-to-tailor community** — Refer overflow work, co-run big group
+orders, and swap sourcing/pattern tips. A quiet B2B network that makes the tailor
+side stickier too.
+
+**A.32 Reputation & spotlight** — Badges, "rising tailors near you",
+tailor-of-the-month. Reputation a tailor can earn; discovery for clients.
+
+**A.33 Trust & safety (cross-cutting — required before any social feature ships)**
+— Everything public is **opt-in, private by default**. Content moderation +
+reporting/blocking from day one. Review integrity: reviews tied to completed
+orders only (no review-bombing). Clear rules for user-posted photos.
+
 ### Technical stack for seamflow-client
 
 Same baseline as `seamflow-app`:

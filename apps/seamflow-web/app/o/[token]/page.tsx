@@ -81,7 +81,7 @@ export default async function PublicOrderPage({ params }: PageProps) {
           <DateCell label="Ordered" value={formatDate(order.dateOrdered)} />
           <DateCell
             label="Delivery"
-            value={order.dateDelivery ? formatDate(order.dateDelivery) : '—'}
+            value={order.dateDelivery ? formatDate(order.dateDelivery) : 'To be confirmed'}
             accent
           />
         </dl>
