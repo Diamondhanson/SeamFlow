@@ -3,7 +3,12 @@ import { onlineManager } from '@tanstack/react-query';
 import { PermissionDeniedError, PhotoOfflineError } from './permissions';
 import { supabase } from './supabase';
 import { api } from './api';
-import type { Design, OrderPhoto, OrderPhotoRole } from '@seamflow/schemas';
+import type {
+  Design,
+  GroupOrderPhoto,
+  OrderPhoto,
+  OrderPhotoRole,
+} from '@seamflow/schemas';
 
 // Lazy-load image-manipulator so the auth/onboarding screens still load on
 // dev APKs that pre-date the photos feature. If the native module is
@@ -215,6 +220,41 @@ export async function uploadAndRegister(args: {
   ]);
 
   return api.orderPhotos.createForOrder(orderId, {
+    storagePath: fullPath,
+    thumbnailPath: thumbPath,
+    contentType: full.contentType,
+    role,
+    caption: caption ?? null,
+  });
+}
+
+/**
+ * Group-order variant of `uploadAndRegister`: one shared reference/inspiration
+ * image for a whole group order. Reuses the `order-photos` bucket under
+ * `<tailorId>/groups/<groupOrderId>/<uuid>` so the server's tailor-id path
+ * check still holds. Returns the registered GroupOrderPhoto (with signed URLs).
+ */
+export async function uploadAndRegisterGroupPhoto(args: {
+  tailorId: string;
+  groupOrderId: string;
+  asset: PickedAsset;
+  role?: OrderPhotoRole;
+  caption?: string;
+}): Promise<GroupOrderPhoto> {
+  const { tailorId, groupOrderId, asset, role, caption } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const folder = `${tailorId}/groups/${groupOrderId}`;
+  const fullPath = `${folder}/${id}.${full.ext}`;
+  const thumbPath = `${folder}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(BUCKET, fullPath, full),
+    uploadOne(BUCKET, thumbPath, thumb),
+  ]);
+
+  return api.groupOrderPhotos.createForGroup(groupOrderId, {
     storagePath: fullPath,
     thumbnailPath: thumbPath,
     contentType: full.contentType,

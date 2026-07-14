@@ -35,6 +35,8 @@ export const qk = {
     ['orders', filter ?? {}] as const,
   order: (id: string) => ['orders', id] as const,
   orderPhotos: (orderId: string) => ['orders', orderId, 'photos'] as const,
+  groupPhotos: (groupOrderId: string) =>
+    ['groups', groupOrderId, 'photos'] as const,
 
   designs: () => ['designs'] as const,
   design: (id: string) => ['designs', id] as const,

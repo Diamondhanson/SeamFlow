@@ -16,6 +16,10 @@ import {
   Inter_600SemiBold,
 } from '@expo-google-fonts/inter';
 import { JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
+import {
+  Figtree_400Regular,
+  Figtree_500Medium,
+} from '@expo-google-fonts/figtree';
 import { AtelierThemeProvider, semanticForMode } from '@seamflow/ui';
 import { AuthProvider } from '../lib/auth-context';
 import {
@@ -27,6 +31,7 @@ import { OfflineBanner } from '../components/OfflineBanner';
 import { ThemeModeProvider, useThemeMode } from '../lib/theme-mode';
 import { DialogProvider } from '../lib/dialog';
 import { FavoritesProvider } from '../lib/favorites';
+import { GuidesProvider } from '../lib/guides';
 import { LanguageProvider } from '../lib/i18n';
 
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -60,6 +65,8 @@ function ThemedRoot() {
     Inter_500Medium,
     Inter_600SemiBold,
     JetBrainsMono_500Medium,
+    Figtree_400Regular,
+    Figtree_500Medium,
   });
 
   if (!fontsReady) {
@@ -113,6 +120,7 @@ function ThemedRoot() {
             <LanguageProvider>
             <DialogProvider>
             <FavoritesProvider>
+            <GuidesProvider>
             <AuthProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
               <OfflineBanner />
@@ -129,9 +137,11 @@ function ThemedRoot() {
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="sign-in" options={{ headerShown: false }} />
                 <Stack.Screen name="verify-otp" options={{ headerShown: false }} />
+                <Stack.Screen name="reset-password" options={{ headerShown: false }} />
                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
               </Stack>
             </AuthProvider>
+            </GuidesProvider>
             </FavoritesProvider>
             </DialogProvider>
             </LanguageProvider>

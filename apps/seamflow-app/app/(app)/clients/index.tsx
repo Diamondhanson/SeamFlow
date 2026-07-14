@@ -6,6 +6,7 @@ import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { HelpCard } from '../../../components/HelpCard';
 import { SearchField } from '../../../components/SearchField';
 import { SwipeableClientRow } from '../../../components/SwipeableClientRow';
 import { useClients } from '../../../lib/queries';
@@ -77,6 +78,12 @@ export default function ClientsList() {
           value={q}
           onChangeText={setQ}
           placeholder={t('clients.searchPlaceholder')}
+        />
+        <HelpCard
+          guideKey="flow.clients"
+          title={t('guides.clientsTitle')}
+          message={t('guides.clientsBody')}
+          style={{ marginTop: spacing.md }}
         />
       </View>
 

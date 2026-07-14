@@ -9,6 +9,7 @@ import { Button } from '../../../components/Button';
 import { useCreateClient } from '../../../lib/queries';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { useGuides } from '../../../lib/guides';
 
 // New-client form is intentionally minimal: name, phone, address. The edit
 // screen (`clients/[id].tsx`) is where additional fields like email and
@@ -17,6 +18,7 @@ import { useDialog } from '../../../lib/dialog';
 export default function NewClient() {
   const { t } = useTranslation();
   const dialog = useDialog();
+  const { isDismissed, dismiss } = useGuides();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -33,7 +35,16 @@ export default function NewClient() {
         address: address.trim(),
       },
       {
-        onSuccess: (c) => {
+        onSuccess: async (c) => {
+          // One-time reassurance the first time a client is saved.
+          if (!isDismissed('success.firstClient')) {
+            dismiss('success.firstClient');
+            await dialog.alert({
+              title: t('guides.firstClientTitle'),
+              message: t('guides.firstClientBody'),
+              tone: 'success',
+            });
+          }
           router.dismiss();
           router.push(`/(app)/clients/${c.id}`);
         },

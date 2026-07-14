@@ -34,6 +34,7 @@ import {
   Pressable,
   StyleSheet,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated';
@@ -41,6 +42,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, spacing, radii, type SemanticColors } from '@seamflow/ui';
 import { Button } from '../components/Button';
 import { OptionSheet, type SheetOption } from '../components/OptionSheet';
+import { useResponsiveValue } from './use-breakpoint';
 import { useTranslation } from './i18n';
 
 // ----------------------------------------------------------------------------
@@ -243,6 +245,13 @@ function CenteredDialog({
   const { t } = useTranslation();
   const { colors, shadows } = useAtelierTheme();
   const reduceMotion = useReducedMotion();
+  // The card fills the available width up to a cap; the cap grows on tablets so
+  // dialogs don't look like a tiny stamp in the middle of a large screen. An
+  // explicit numeric width is required — `width: '100%'` collapses to the
+  // content width inside the centered auto-sized wrapper.
+  const { width: winWidth } = useWindowDimensions();
+  const maxWidth = useResponsiveValue({ compact: 400, medium: 520, expanded: 560 });
+  const cardWidth = Math.min(winWidth - spacing.xl * 2, maxWidth);
   const [text, setText] = useState(req.kind === 'prompt' ? req.defaultValue ?? '' : '');
 
   const tone = req.tone ?? 'info';
@@ -274,7 +283,7 @@ function CenteredDialog({
           <Animated.View entering={cardEntering}>
             {/* Swallow taps so pressing the card doesn't dismiss. */}
             <Pressable
-              style={[styles.card, { backgroundColor: colors.overlay }, shadows.xl]}
+              style={[styles.card, { width: cardWidth, backgroundColor: colors.overlay }, shadows.xl]}
               onPress={() => {}}
             >
               <View style={[styles.iconWrap, { backgroundColor: withToneWash(toneColor) }]}>
@@ -420,8 +429,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    width: '100%',
-    maxWidth: 380,
     borderRadius: radii.l,
     padding: spacing.xl,
     alignItems: 'center',

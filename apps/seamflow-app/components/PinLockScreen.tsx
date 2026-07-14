@@ -83,6 +83,20 @@ export function PinLockScreen({ prompt }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin]);
 
+  // Forgetting the PIN isn't a lockout: the PIN is just a local gate, so the
+  // way back in is to sign out and log in again (which clears the PIN and lets
+  // them set a new one). Confirm first so an accidental tap doesn't sign them
+  // out, and reassure them their data is safe.
+  const onForgotPin = async () => {
+    const ok = await dialog.confirm({
+      title: t('misc.forgotPinConfirmTitle'),
+      message: t('misc.forgotPinConfirmBody'),
+      confirmLabel: t('misc.forgotPinConfirmCta'),
+    });
+    if (!ok) return;
+    void signOut();
+  };
+
   const press = (key: string) => {
     if (busy) return;
     if (key === 'backspace') {
@@ -124,7 +138,7 @@ export function PinLockScreen({ prompt }: Props) {
         <View style={[styles.bottom, isLandscape && styles.bottomLandscape]}>
           <Dialpad onKey={press} disabled={busy} />
           <Pressable
-            onPress={() => void signOut()}
+            onPress={onForgotPin}
             hitSlop={12}
             style={styles.forgotBtn}
           >

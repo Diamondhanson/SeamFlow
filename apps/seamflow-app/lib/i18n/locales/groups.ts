@@ -94,6 +94,12 @@ export const groups = {
     copiedMessage: 'Measurements pulled from the linked client.',
     removeMemberTitle: 'Remove member?',
     removeMemberMessage: 'Remove {name} from this group?',
+    // ----- shared photos -----
+    photosHeading: 'Reference photos',
+    photosSubtitle: 'One shared pattern / inspiration for the whole group',
+    noPhotosYet: 'No reference photos yet',
+    deletePhotoTitle: 'Delete photo?',
+    deletePhotoMessage: 'This reference photo will be removed from the group order.',
   },
   fr: {
     // ----- list screen -----
@@ -188,5 +194,11 @@ export const groups = {
     copiedMessage: 'Mesures récupérées depuis le client lié.',
     removeMemberTitle: 'Retirer le membre ?',
     removeMemberMessage: 'Retirer {name} de ce groupe ?',
+    // ----- shared photos -----
+    photosHeading: 'Photos de référence',
+    photosSubtitle: 'Un motif / une inspiration partagé pour tout le groupe',
+    noPhotosYet: 'Aucune photo de référence pour le moment',
+    deletePhotoTitle: 'Supprimer la photo ?',
+    deletePhotoMessage: 'Cette photo de référence sera retirée de la commande de groupe.',
   },
 } as const;

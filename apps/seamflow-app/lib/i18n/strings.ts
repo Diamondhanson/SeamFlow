@@ -22,6 +22,7 @@ import { measurements } from './locales/measurements';
 import { fabrics } from './locales/fabrics';
 import { designs } from './locales/designs';
 import { invoices } from './locales/invoices';
+import { guides } from './locales/guides';
 import { misc } from './locales/misc';
 
 export type LanguageCode = 'en' | 'fr';
@@ -45,6 +46,7 @@ export const translations = {
     fabrics: fabrics.en,
     designs: designs.en,
     invoices: invoices.en,
+    guides: guides.en,
     misc: misc.en,
   },
   fr: {
@@ -60,6 +62,7 @@ export const translations = {
     fabrics: fabrics.fr,
     designs: designs.fr,
     invoices: invoices.fr,
+    guides: guides.fr,
     misc: misc.fr,
   },
 } as const;

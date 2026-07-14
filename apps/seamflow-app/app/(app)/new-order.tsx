@@ -10,6 +10,8 @@ import type {
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { HelpCard } from '../../components/HelpCard';
+import { InfoDot } from '../../components/InfoDot';
 import { Card, CardLine, CardTitle } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
@@ -23,6 +25,7 @@ import type { DeviceContact } from '../../lib/contacts';
 import { spacing, useThemeColors } from '../../lib/theme';
 import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useDialog } from '../../lib/dialog';
+import { useGuides } from '../../lib/guides';
 import { useTranslation } from '../../lib/i18n';
 
 /** A person chosen for the order who isn't a saved client yet (picked from
@@ -66,6 +69,7 @@ export default function NewOrderWizard() {
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
   const dialog = useDialog();
+  const { isDismissed, dismiss } = useGuides();
   const [step, setStep] = useState<Step>('client');
 
   // Step 1: client
@@ -284,6 +288,17 @@ export default function NewOrderWizard() {
         }
       }
 
+      // First order ever → a one-time reassuring confirmation before we land
+      // on the order. Shows only once per device (remembered by GuidesProvider).
+      if (!isDismissed('success.firstOrder')) {
+        dismiss('success.firstOrder');
+        await dialog.alert({
+          title: t('guides.firstOrderTitle'),
+          message: t('guides.firstOrderBody'),
+          tone: 'success',
+        });
+      }
+
       router.replace(`/(app)/orders/${created.id}`);
     } catch (err) {
       void dialog.error(err);
@@ -309,6 +324,11 @@ export default function NewOrderWizard() {
 
       {step === 'client' ? (
         <ScrollView {...scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
+          <HelpCard
+            guideKey="flow.newOrder"
+            title={t('guides.newOrderTitle')}
+            message={t('guides.newOrderBody')}
+          />
           <Input
             label={t('orders.searchExistingClients')}
             value={search}
@@ -403,6 +423,23 @@ export default function NewOrderWizard() {
                 placeholder={t('orders.garmentTypePlaceholder')}
               />
 
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginTop: spacing.sm,
+                  marginBottom: 4,
+                }}
+              >
+                <Text variant="label" tone="textMuted">
+                  {t('guides.infoTemplateTitle')}
+                </Text>
+                <InfoDot
+                  title={t('guides.infoTemplateTitle')}
+                  message={t('guides.infoTemplateBody')}
+                />
+              </View>
               <Button
                 label={g.template ? t('orders.usingTemplate', { name: g.template.name }) : t('orders.chooseTemplate')}
                 variant="secondary"

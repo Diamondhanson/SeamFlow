@@ -477,6 +477,25 @@ export function useDeleteOrderPhoto(orderId: string) {
 }
 
 // ============================================================================
+// Group order photos (shared reference/inspiration for the whole group)
+// ============================================================================
+
+export const useGroupPhotos = (groupOrderId: string) =>
+  useQuery({
+    queryKey: qk.groupPhotos(groupOrderId),
+    queryFn: () => api.groupOrderPhotos.listForGroup(groupOrderId),
+    enabled: !!groupOrderId,
+  });
+
+export function useDeleteGroupPhoto(groupOrderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (photoId: string) => api.groupOrderPhotos.delete(photoId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.groupPhotos(groupOrderId) }),
+  });
+}
+
+// ============================================================================
 // Designs (inspiration library / moodboard)
 // ============================================================================
 

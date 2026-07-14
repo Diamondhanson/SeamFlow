@@ -5,6 +5,7 @@ export * from './templates';
 export * from './fabrics';
 export * from './orders';
 export * from './order-photos';
+export * from './group-order-photos';
 export * from './designs';
 export * from './payments';
 export * from './invoices';

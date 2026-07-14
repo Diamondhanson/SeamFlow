@@ -13,6 +13,7 @@ import {
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { HelpCard } from '../../../components/HelpCard';
 import { api, ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
@@ -105,6 +106,11 @@ export default function TemplatesList() {
               <Ionicons name="add" size={24} color={colors.textOnPrimary} />
             </IconButton>
           }
+        />
+        <HelpCard
+          guideKey="flow.templates"
+          title={t('guides.templatesTitle')}
+          message={t('guides.templatesBody')}
         />
       </View>
 

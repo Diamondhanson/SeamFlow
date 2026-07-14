@@ -20,6 +20,7 @@ import { GroupOrderMembersModule } from './group-order-members/group-order-membe
 import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
 import { OrderPhotosModule } from './order-photos/order-photos.module';
+import { GroupOrderPhotosModule } from './group-order-photos/group-order-photos.module';
 import { DesignsModule } from './designs/designs.module';
 import { AiModule } from './ai/ai.module';
 import { ShareLinksModule } from './share-links/share-links.module';
@@ -52,6 +53,7 @@ import { RemindersModule } from './notifications/reminders.module';
     OrdersModule,
     OrderItemsModule,
     OrderPhotosModule,
+    GroupOrderPhotosModule,
     DesignsModule,
     AiModule,
     ShareLinksModule,

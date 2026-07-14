@@ -5,6 +5,7 @@ export * from './measurement';
 export * from './template';
 export * from './order';
 export * from './order-photo';
+export * from './group-order-photo';
 export * from './design';
 export * from './ai';
 export * from './group-order';

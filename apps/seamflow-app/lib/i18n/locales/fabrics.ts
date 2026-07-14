@@ -4,6 +4,7 @@ export const fabrics = {
     // Tile + list
     tileLabel: 'Fabrics',
     tileCount: '{count} in stock',
+    tileEmpty: 'Add your first fabric',
     listTitle: 'Fabrics',
     listSubtitle: 'Your fabric stock, with cost and supplier.',
     searchPlaceholder: 'Search name, colour, supplier…',
@@ -58,6 +59,7 @@ export const fabrics = {
     // Tile + list
     tileLabel: 'Tissus',
     tileCount: '{count} en stock',
+    tileEmpty: 'Ajoutez votre premier tissu',
     listTitle: 'Tissus',
     listSubtitle: 'Votre stock de tissus, avec coût et fournisseur.',
     searchPlaceholder: 'Rechercher nom, couleur, fournisseur…',

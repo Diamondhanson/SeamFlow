@@ -96,7 +96,12 @@ export function Tile({
               variant={subtitleNumeric ? 'mono' : 'bodySm'}
               tone="textMuted"
               numberOfLines={1}
-              style={subtitleNumeric ? styles.count : { marginTop: 2 }}
+              style={[
+                subtitleNumeric ? styles.count : styles.subtitle,
+                // Tile subtext uses Figtree (a warm humanist sans) to set it
+                // apart from the Inter titles. Counts get the medium weight.
+                { fontFamily: subtitleNumeric ? 'Figtree_500Medium' : 'Figtree_400Regular' },
+              ]}
             >
               {subtitle}
             </Text>
@@ -124,4 +129,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   count: { marginTop: 2, fontSize: 13 },
+  subtitle: { marginTop: 2 },
 });

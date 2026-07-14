@@ -7,6 +7,7 @@ import type { FabricResponse } from '@seamflow/schemas';
 import { Text, ListRow, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { HelpCard } from '../../../components/HelpCard';
 import { Input } from '../../../components/Input';
 import { SkeletonList } from '../../../components/Skeleton';
 import { useFabrics, useMe } from '../../../lib/queries';
@@ -82,6 +83,11 @@ export default function FabricsList() {
             autoCapitalize="none"
           />
         ) : null}
+        <HelpCard
+          guideKey="flow.fabrics"
+          title={t('guides.fabricsTitle')}
+          message={t('guides.fabricsBody')}
+        />
       </View>
 
       {isLoading && !data ? (

@@ -1,25 +1,41 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Text, AvatarStack } from '@seamflow/ui';
+import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import { Text, AvatarStack, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { InfoDot } from '../../../components/InfoDot';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { FabricField } from '../../../components/FabricField';
 import {
+  qk,
   useAddGroupMember,
   useClients,
   useCopyMemberMeasurements,
   useDeleteGroupMember,
   useDeleteGroupOrder,
+  useDeleteGroupPhoto,
   useGroupOrder,
+  useGroupPhotos,
   usePromoteMember,
   useUpdateGroupOrder,
 } from '../../../lib/queries';
-import { spacing, useThemeColors } from '../../../lib/theme';
+import { pickPhoto, uploadAndRegisterGroupPhoto } from '../../../lib/photo-upload';
+import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
+import { radii, spacing, useThemeColors } from '../../../lib/theme';
+import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
@@ -29,20 +45,62 @@ export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const groupQ = useGroupOrder(id);
   const clientsQ = useClients();
+  const photosQ = useGroupPhotos(id);
   const addMember = useAddGroupMember(id);
   const updateGroup = useUpdateGroupOrder(id);
   const deleteGroup = useDeleteGroupOrder(id);
+  const deletePhotoM = useDeleteGroupPhoto(id);
+  const qc = useQueryClient();
   const colors = useThemeColors();
+  const theme = useAtelierTheme();
   const dialog = useDialog();
   const scroll = useFloatingScroll();
+  const thumbSize = useResponsiveValue({ compact: 120, medium: 140, expanded: 160 });
 
   const [showForm, setShowForm] = useState(false);
   const [memberName, setMemberName] = useState('');
   const [memberRole, setMemberRole] = useState('');
   const [memberClientId, setMemberClientId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const group = groupQ.data ?? null;
   const clients = clientsQ.data?.items ?? [];
+  const photos = photosQ.data?.items ?? [];
+
+  const addPhoto = async (source: 'camera' | 'library') => {
+    if (!group) return;
+    setUploading(true);
+    try {
+      const asset = await pickPhoto(source);
+      if (!asset) return; // user cancelled
+      await uploadAndRegisterGroupPhoto({
+        tailorId: group.tailorId,
+        groupOrderId: group.id,
+        asset,
+      });
+      qc.invalidateQueries({ queryKey: qk.groupPhotos(id) });
+    } catch (err) {
+      if (
+        !(await alertIfOffline(err, dialog, t)) &&
+        !(await alertIfPermissionDenied(err, dialog, t))
+      ) {
+        await dialog.error(err);
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const deletePhoto = async (photoId: string) => {
+    const ok = await dialog.confirm({
+      title: t('groups.deletePhotoTitle'),
+      message: t('groups.deletePhotoMessage'),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    deletePhotoM.mutate(photoId, { onError: (err) => void dialog.error(err) });
+  };
 
   const onAddMember = () => {
     addMember.mutate(
@@ -137,7 +195,13 @@ export default function GroupDetail() {
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
-            <Text variant="h3">{t('groups.ownerHeading')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text variant="h3">{t('groups.ownerHeading')}</Text>
+              <InfoDot
+                title={t('guides.infoOwnerTitle')}
+                message={t('guides.infoOwnerBody')}
+              />
+            </View>
             <Text variant="bodySm" tone="textMuted">
               {ownerMember ? ownerMember.fullName : t('groups.ownerNotSet')}
             </Text>
@@ -169,6 +233,87 @@ export default function GroupDetail() {
             }
           />
         </View>
+
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
+
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text variant="h3">{t('groups.photosHeading')}</Text>
+            <Text variant="bodySm" tone="textMuted">{t('groups.photosSubtitle')}</Text>
+          </View>
+          {uploading ? <ActivityIndicator color={colors.accent} /> : null}
+        </View>
+        <View style={styles.photoActions}>
+          <Button
+            label={t('orders.camera')}
+            variant="secondary"
+            fullWidth={false}
+            iconLeft={<Ionicons name="camera-outline" size={18} color={colors.text} />}
+            onPress={() => addPhoto('camera')}
+            disabled={uploading}
+          />
+          <View style={{ width: spacing.sm }} />
+          <Button
+            label={t('orders.gallery')}
+            variant="secondary"
+            fullWidth={false}
+            iconLeft={<Ionicons name="images-outline" size={18} color={colors.text} />}
+            onPress={() => addPhoto('library')}
+            disabled={uploading}
+          />
+        </View>
+        {photos.length === 0 ? (
+          <View
+            style={[
+              styles.photoEmpty,
+              { backgroundColor: withAlpha(theme.colors.textMuted, 0.06) },
+            ]}
+          >
+            <Ionicons name="images-outline" size={22} color={colors.textMuted} />
+            <Text variant="bodySm" tone="textMuted">{t('groups.noPhotosYet')}</Text>
+          </View>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.photoStrip}
+          >
+            {photos.map((p) => {
+              const previewUrl = p.thumbnailUrl ?? p.signedUrl;
+              return (
+                <Pressable
+                  key={p.id}
+                  onLongPress={() => deletePhoto(p.id)}
+                  style={[styles.photoThumbWrap, { width: thumbSize }]}
+                >
+                  {previewUrl ? (
+                    <Image
+                      source={{ uri: previewUrl }}
+                      style={[
+                        styles.photoThumb,
+                        { width: thumbSize, height: thumbSize, backgroundColor: colors.card },
+                      ]}
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        styles.photoThumbPlaceholder,
+                        { width: thumbSize, height: thumbSize, backgroundColor: colors.card },
+                      ]}
+                    >
+                      <ActivityIndicator color={colors.textMuted} />
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
+        {photos.length > 0 ? (
+          <Text variant="caption" tone="textMuted" style={styles.photoHint}>
+            {t('orders.longPressToDelete')}
+          </Text>
+        ) : null}
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
@@ -379,4 +524,40 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   divider: { height: 1, marginVertical: spacing.md },
+  photoActions: {
+    flexDirection: 'row',
+    marginBottom: spacing.md,
+  },
+  photoEmpty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xl,
+    borderRadius: radii.md,
+  },
+  photoStrip: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  photoThumbWrap: {
+    width: 120,
+    marginRight: spacing.sm,
+  },
+  photoThumb: {
+    width: 120,
+    height: 120,
+    borderRadius: radii.md,
+  },
+  photoThumbPlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoHint: {
+    marginTop: spacing.xs,
+    fontStyle: 'italic',
+  },
 });

@@ -19,6 +19,7 @@ import {
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { HelpCard } from '../../../components/HelpCard';
 import { useGroupOrders } from '../../../lib/queries';
 import { ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
@@ -150,6 +151,11 @@ export default function GroupsList() {
               <Ionicons name="add" size={24} color={colors.textOnPrimary} />
             </IconButton>
           }
+        />
+        <HelpCard
+          guideKey="flow.groups"
+          title={t('guides.groupsTitle')}
+          message={t('guides.groupsBody')}
         />
       </View>
 

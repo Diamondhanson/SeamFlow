@@ -18,8 +18,11 @@ import {
 } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { Tile } from '../../components/Tile';
+import { GettingStarted } from '../../components/GettingStarted';
+import { WelcomeSlides } from '../../components/WelcomeSlides';
 import { OrderCard } from '../../components/OrderCard';
 import { useAuth } from '../../lib/auth-context';
+import { useGuides } from '../../lib/guides';
 import {
   useMe,
   useOrders,
@@ -99,32 +102,53 @@ export default function Home() {
 
   const businessName = me?.tailor?.businessName ?? 'SeamFlow';
   const needsOnboarding = me ? !me.tailor : false;
+
+  // Brand-new user (signed in, no shop profile yet) who hasn't seen the intro:
+  // show the welcome slides once, then hand off to profile setup. `forceWelcome`
+  // lets the dev "Preview welcome" button show it on any account.
+  const { ready: guidesReady, isDismissed, forceWelcome, endWelcome } = useGuides();
+  const showWelcome =
+    guidesReady && (needsOnboarding || forceWelcome) && !isDismissed('welcome.intro');
   const greeting = t(`home.${greetingKeyFor(new Date().getHours())}`);
   const monthShort = new Date().toLocaleDateString(undefined, { month: 'short' });
+
+  // For count tiles: when there's nothing yet, show an inviting call-to-action
+  // ("Add your first client") instead of a cold "0 people" — clearer for a
+  // first-time user. Non-numeric so it reads as a prompt, not a stat.
+  const countSub = (
+    count: number,
+    countKey: string,
+    emptyKey: string,
+  ): Pick<HomeTile, 'subtitle' | 'subtitleNumeric'> =>
+    count === 0
+      ? { subtitle: t(emptyKey), subtitleNumeric: false }
+      : { subtitle: t(countKey, { count }), subtitleNumeric: true };
+
+  const clientsCount = clientsData?.items.length ?? 0;
+  const groupsCount = groupsData?.items.length ?? 0;
+  const templatesCount = templatesData?.items.length ?? 0;
+  const fabricsCount = fabricsData?.items.length ?? 0;
 
   const tiles: HomeTile[] = [
     {
       label: t('home.orders'),
       icon: 'list',
       tone: 'primary',
-      subtitle: t('home.openCount', { count: openOrders.length }),
-      subtitleNumeric: true,
+      ...countSub(openOrders.length, 'home.openCount', 'home.ordersEmpty'),
       onPress: () => router.push('/(app)/orders'),
     },
     {
       label: t('home.clients'),
       icon: 'people',
       tone: 'textMuted',
-      subtitle: t('home.peopleCount', { count: clientsData?.items.length ?? 0 }),
-      subtitleNumeric: true,
+      ...countSub(clientsCount, 'home.peopleCount', 'home.clientsEmpty'),
       onPress: () => router.push('/(app)/clients'),
     },
     {
       label: t('home.groups'),
       icon: 'diamond',
       tone: 'success',
-      subtitle: t('home.eventsCount', { count: groupsData?.items.length ?? 0 }),
-      subtitleNumeric: true,
+      ...countSub(groupsCount, 'home.eventsCount', 'home.groupsEmpty'),
       onPress: () => router.push('/(app)/groups'),
     },
     {
@@ -138,18 +162,14 @@ export default function Home() {
       label: t('home.templates'),
       icon: 'document-text',
       tone: 'primary',
-      subtitle: t('home.patternsCount', {
-        count: templatesData?.items.length ?? 0,
-      }),
-      subtitleNumeric: true,
+      ...countSub(templatesCount, 'home.patternsCount', 'home.templatesEmpty'),
       onPress: () => router.push('/(app)/templates'),
     },
     {
       label: t('fabrics.tileLabel'),
       icon: 'layers',
       tone: 'success',
-      subtitle: t('fabrics.tileCount', { count: fabricsData?.items.length ?? 0 }),
-      subtitleNumeric: true,
+      ...countSub(fabricsCount, 'fabrics.tileCount', 'fabrics.tileEmpty'),
       onPress: () => router.push('/(app)/fabrics'),
     },
     {
@@ -276,13 +296,16 @@ export default function Home() {
             />
           </View>
         ) : (
-          <View style={styles.grid}>
-            {tiles.map((tile) => (
-              <View key={tile.label} style={{ width: tileWidth }}>
-                <Tile {...tile} />
-              </View>
-            ))}
-          </View>
+          <>
+            <GettingStarted />
+            <View style={styles.grid}>
+              {tiles.map((tile) => (
+                <View key={tile.label} style={{ width: tileWidth }}>
+                  <Tile {...tile} />
+                </View>
+              ))}
+            </View>
+          </>
         )}
 
         {/* Due soon rail */}
@@ -308,6 +331,17 @@ export default function Home() {
           </View>
         ) : null}
       </ScrollView>
+
+      {/* First-run welcome — a centered dialog over the home screen. */}
+      {showWelcome ? (
+        <WelcomeSlides
+          onDone={() => {
+            endWelcome();
+            // Genuinely new users go set up their shop; a dev preview just closes.
+            if (needsOnboarding) router.push('/(app)/me');
+          }}
+        />
+      ) : null}
     </Screen>
   );
 }

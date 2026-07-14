@@ -80,6 +80,23 @@ interface AuthState {
   /** Re-send the signup OTP. Rate-limited by Supabase server-side. */
   resendSignupOtp: (email: string) => Promise<void>;
   /**
+   * Start password recovery: Supabase emails a 6-digit recovery code to the
+   * address (if an account exists — it stays silent otherwise so we don't leak
+   * which emails are registered). Requires the Supabase "Reset Password" email
+   * template to include `{{ .Token }}` (same as the signup template).
+   */
+  sendPasswordResetOtp: (email: string) => Promise<void>;
+  /**
+   * Finish password recovery: verify the 6-digit recovery code (which creates a
+   * short-lived recovery session) and set the new password on the account. On
+   * success the user is left signed in.
+   */
+  confirmPasswordReset: (
+    email: string,
+    token: string,
+    newPassword: string,
+  ) => Promise<void>;
+  /**
    * Launch the Google OAuth flow in an in-app browser. Resolves once the
    * user is signed in (the session listener picks up the new state).
    * Throws GoogleCancelledError if the user dismissed the browser.
@@ -169,6 +186,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.resend({ email, type: 'signup' });
     if (error) throw error;
   }, []);
+
+  const sendPasswordResetOtp = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+  }, []);
+
+  const confirmPasswordReset = useCallback(
+    async (email: string, token: string, newPassword: string) => {
+      // verifyOtp with type 'recovery' checks the code AND establishes a
+      // short-lived session — that session is what authorises updateUser().
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'recovery',
+      });
+      if (verifyError) throw verifyError;
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (updateError) throw updateError;
+    },
+    [],
+  );
 
   const signInWithGoogle = useCallback(async () => {
     // Deep link the OAuth provider will redirect back to. `Linking.createURL`
@@ -293,6 +333,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpWithPassword,
       verifyOtpSignup,
       resendSignupOtp,
+      sendPasswordResetOtp,
+      confirmPasswordReset,
       signInWithGoogle,
       signInWithApple,
       signOut,
@@ -304,6 +346,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpWithPassword,
       verifyOtpSignup,
       resendSignupOtp,
+      sendPasswordResetOtp,
+      confirmPasswordReset,
       signInWithGoogle,
       signInWithApple,
       signOut,

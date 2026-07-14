@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -16,6 +16,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useAuth } from '../../lib/auth-context';
+import { useGuides } from '../../lib/guides';
 import {
   useMe,
   useNotificationPreferences,
@@ -29,7 +30,7 @@ import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
 import { useDialog } from '../../lib/dialog';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
-import { useThemeMode, type ThemePreference } from '../../lib/theme-mode';
+import { useThemeMode } from '../../lib/theme-mode';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
 import { openLegal } from '../../lib/legal-links';
 
@@ -48,13 +49,33 @@ function formatMonthYear(iso: string | undefined, lang: LanguageCode): string {
 
 export default function Me() {
   const { signOut } = useAuth();
+  const { previewWelcome } = useGuides();
   const { data: me, isLoading } = useMe();
-  const { t, language } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
+  const { preference } = useThemeMode();
   const scroll = useFloatingScroll();
   const colors = useThemeColors();
   const dialog = useDialog();
   const upsert = useUpsertMyTailor();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Right-hand value shown on the Appearance / Language rows.
+  const appearanceLabel = t(`settings.${preference}`);
+  const currentLanguageLabel =
+    LANGUAGES.find((l) => l.code === language)?.label ?? language;
+
+  // Language is a centered dialog (choose), not a bottom sheet. The active
+  // language gets a ✓ so the current choice is obvious.
+  const onChooseLanguage = async () => {
+    const picked = await dialog.choose<LanguageCode>({
+      title: t('settings.language'),
+      actions: LANGUAGES.map((l) => ({
+        label: l.code === language ? `${l.label}  ✓` : l.label,
+        value: l.code,
+      })),
+    });
+    if (picked && picked !== language) setLanguage(picked);
+  };
 
   // Change / remove the profile photo. Upload lands in the public `avatars`
   // bucket; the returned URL is persisted on the tailor via the profile upsert
@@ -251,61 +272,73 @@ export default function Me() {
           />
         </View>
 
-        <View style={{ height: spacing.xl }} />
-        <Text variant="h3" tone="text" style={{ marginBottom: spacing.sm }}>
-          {t('settings.appearance')}
-        </Text>
-        <AppearancePicker />
+        {/* Preferences */}
+        <SectionTitle>{t('settings.preferences')}</SectionTitle>
+        <SettingsCard>
+          <SettingsRow
+            first
+            icon="color-palette-outline"
+            label={t('settings.appearance')}
+            value={appearanceLabel}
+            onPress={() => router.push('/(app)/appearance')}
+          />
+          <SettingsRow
+            icon="language-outline"
+            label={t('settings.language')}
+            value={currentLanguageLabel}
+            onPress={onChooseLanguage}
+          />
+          <SettingsRow
+            icon="notifications-outline"
+            label={t('settings.notificationPreferences')}
+            onPress={() => router.push('/(app)/notification-preferences')}
+          />
+          <SettingsRow
+            icon="lock-closed-outline"
+            label={t('settings.pinLock')}
+            onPress={() => router.push('/(app)/pin')}
+          />
+        </SettingsCard>
+
+        {/* Legal */}
+        <SectionTitle>{t('settings.legal')}</SectionTitle>
+        <SettingsCard>
+          <SettingsRow
+            first
+            icon="shield-checkmark-outline"
+            label={t('settings.privacyPolicy')}
+            onPress={() => openLegal('privacy', language)}
+          />
+          <SettingsRow
+            icon="document-text-outline"
+            label={t('settings.termsOfService')}
+            onPress={() => openLegal('terms', language)}
+          />
+        </SettingsCard>
 
         <View style={{ height: spacing.xl }} />
-        <Text variant="h3" tone="text" style={{ marginBottom: spacing.sm }}>
-          {t('settings.language')}
-        </Text>
-        <LanguagePicker />
-
-        <View style={{ height: spacing.xl }} />
-        <Button
-          label={t('settings.notificationPreferences')}
-          variant="secondary"
-          iconLeft={<Ionicons name="notifications-outline" size={18} color={colors.text} />}
-          onPress={() => router.push('/(app)/notification-preferences')}
-        />
-
-        <View style={{ height: spacing.md }} />
-        <Button
-          label={t('settings.pinLock')}
-          variant="secondary"
-          iconLeft={<Ionicons name="lock-closed-outline" size={18} color={colors.text} />}
-          onPress={() => router.push('/(app)/pin')}
-        />
-
-        <View style={{ height: spacing.md }} />
-        <Button
-          label={t('settings.sendTestNotification')}
-          variant="secondary"
-          iconLeft={<Ionicons name="notifications-outline" size={18} color={colors.text} />}
-          onPress={onTestNotification}
-        />
-
-        <View style={{ height: spacing.xl }} />
-        <Text variant="h3" tone="text" style={{ marginBottom: spacing.sm }}>
-          {t('settings.legal')}
-        </Text>
-        <Button
-          label={t('settings.privacyPolicy')}
-          variant="secondary"
-          iconLeft={<Ionicons name="shield-checkmark-outline" size={18} color={colors.text} />}
-          onPress={() => openLegal('privacy', language)}
-        />
-        <View style={{ height: spacing.md }} />
-        <Button
-          label={t('settings.termsOfService')}
-          variant="secondary"
-          iconLeft={<Ionicons name="document-text-outline" size={18} color={colors.text} />}
-          onPress={() => openLegal('terms', language)}
-        />
-
-        <View style={{ height: spacing.md }} />
+        {/* Dev-only helper — never shown in production builds. */}
+        {__DEV__ ? (
+          <>
+            <Button
+              label={t('settings.sendTestNotification')}
+              variant="secondary"
+              iconLeft={<Ionicons name="paper-plane-outline" size={18} color={colors.text} />}
+              onPress={onTestNotification}
+            />
+            <View style={{ height: spacing.md }} />
+            <Button
+              label={t('settings.previewWelcome')}
+              variant="secondary"
+              iconLeft={<Ionicons name="sparkles-outline" size={18} color={colors.text} />}
+              onPress={() => {
+                previewWelcome();
+                router.back();
+              }}
+            />
+            <View style={{ height: spacing.md }} />
+          </>
+        ) : null}
         <Button
           label={t('settings.signOut')}
           variant="danger"
@@ -338,76 +371,68 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-// ----- appearance (light / dark / system) -----
+// ----- grouped settings section (card + hairline-separated rows) -----
 
-const APPEARANCE_OPTIONS: Array<{ value: ThemePreference; labelKey: string }> = [
-  { value: 'system', labelKey: 'settings.system' },
-  { value: 'light', labelKey: 'settings.light' },
-  { value: 'dark', labelKey: 'settings.dark' },
-];
-
-function AppearancePicker() {
-  const { preference, setPreference } = useThemeMode();
-  const { t } = useTranslation();
-  const colors = useThemeColors();
-
+function SectionTitle({ children }: { children: string }) {
   return (
-    <View style={[styles.segment, { borderColor: colors.border }]}>
-      {APPEARANCE_OPTIONS.map((opt) => {
-        const active = preference === opt.value;
-        return (
-          <Pressable
-            key={opt.value}
-            style={[
-              styles.segmentItem,
-              active && { backgroundColor: colors.accent },
-            ]}
-            onPress={() => setPreference(opt.value)}
-          >
-            <Text
-              variant="bodySm"
-              tone={active ? 'textOnPrimary' : 'textMuted'}
-              style={styles.segmentText}
-            >
-              {t(opt.labelKey)}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <Text
+      variant="h3"
+      tone="text"
+      style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}
+    >
+      {children}
+    </Text>
+  );
+}
+
+function SettingsCard({ children }: { children: ReactNode }) {
+  const colors = useThemeColors();
+  return (
+    <View
+      style={[styles.settingsCard, { backgroundColor: colors.card, borderColor: colors.hairline }]}
+    >
+      {children}
     </View>
   );
 }
 
-// ----- language (English / Français) -----
-
-function LanguagePicker() {
-  const { language, setLanguage } = useTranslation();
+function SettingsRow({
+  icon,
+  label,
+  value,
+  onPress,
+  first,
+  showChevron = true,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value?: string;
+  onPress: () => void;
+  first?: boolean;
+  showChevron?: boolean;
+}) {
   const colors = useThemeColors();
-
   return (
-    <View style={[styles.segment, { borderColor: colors.border }]}>
-      {LANGUAGES.map((opt) => {
-        const active = language === opt.code;
-        return (
-          <Pressable
-            key={opt.code}
-            style={[
-              styles.segmentItem,
-              active && { backgroundColor: colors.accent },
-            ]}
-            onPress={() => setLanguage(opt.code)}
-          >
-            <Text
-              variant="bodySm"
-              tone={active ? 'textOnPrimary' : 'textMuted'}
-              style={styles.segmentText}
-            >
-              {opt.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.settingsRow,
+        !first && { borderTopWidth: 1, borderTopColor: colors.hairline },
+      ]}
+    >
+      <Ionicons name={icon} size={20} color={colors.text} style={styles.settingsRowIcon} />
+      <Text variant="body" tone="text" style={styles.settingsRowLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      {value ? (
+        <Text variant="bodySm" tone="textMuted" numberOfLines={1} style={styles.settingsRowValue}>
+          {value}
+        </Text>
+      ) : null}
+      {showChevron ? (
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      ) : null}
+    </Pressable>
   );
 }
 
@@ -457,17 +482,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   infoValue: { flexShrink: 1, textAlign: 'right' },
-  segment: {
-    flexDirection: 'row',
+  settingsCard: {
     borderWidth: 1,
-    borderRadius: radii.md,
-    overflow: 'hidden',
+    borderRadius: radii.lg,
+    paddingHorizontal: spacing.lg,
   },
-  segmentItem: {
-    flex: 1,
-    paddingVertical: spacing.md,
+  settingsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
   },
-  segmentText: { fontWeight: '600' },
+  settingsRowIcon: { width: 22, textAlign: 'center' },
+  settingsRowLabel: { flex: 1 },
+  settingsRowValue: { flexShrink: 1, textAlign: 'right', maxWidth: '45%' },
 });

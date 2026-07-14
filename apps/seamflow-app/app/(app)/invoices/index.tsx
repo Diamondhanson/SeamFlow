@@ -7,6 +7,7 @@ import { formatCurrency } from '@seamflow/utils';
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { HelpCard } from '../../../components/HelpCard';
 import { useInvoices, useOrders } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
@@ -59,6 +60,11 @@ export default function InvoicingHome() {
     <Screen padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader title={t('invoices.listTitle')} subtitle={t('invoices.listSubtitle')} />
+        <HelpCard
+          guideKey="flow.invoices"
+          title={t('guides.invoicesTitle')}
+          message={t('guides.invoicesBody')}
+        />
       </View>
       <ScrollView
         {...scroll}

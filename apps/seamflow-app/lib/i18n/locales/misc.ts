@@ -35,6 +35,10 @@ export const misc = {
       '{max} wrong tries. Signing you out — please sign in again to continue.',
     wrongPinAttempts: 'Wrong PIN. {left} attempt{plural} left.',
     forgotPinSignOut: 'Forgot PIN? Sign out',
+    forgotPinConfirmTitle: 'Reset your PIN?',
+    forgotPinConfirmBody:
+      "To reset your PIN you'll sign out, then log back in and set a new one. Your work is safe — it stays on your account.",
+    forgotPinConfirmCta: 'Sign out',
     // Contact picker
     selectFromContacts: 'Select from contacts',
     searchNameOrNumber: 'Search name or number…',
@@ -108,6 +112,10 @@ export const misc = {
       '{max} mauvaises tentatives. Déconnexion — veuillez vous reconnecter pour continuer.',
     wrongPinAttempts: 'Code incorrect. {left} tentative{plural} restante{plural}.',
     forgotPinSignOut: 'Code oublié ? Se déconnecter',
+    forgotPinConfirmTitle: 'Réinitialiser votre code ?',
+    forgotPinConfirmBody:
+      'Pour réinitialiser votre code, vous allez vous déconnecter, puis vous reconnecter et en définir un nouveau. Vos données sont en sécurité — elles restent sur votre compte.',
+    forgotPinConfirmCta: 'Se déconnecter',
     // Contact picker
     selectFromContacts: 'Choisir dans les contacts',
     searchNameOrNumber: 'Rechercher un nom ou un numéro…',

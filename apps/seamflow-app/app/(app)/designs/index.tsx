@@ -13,6 +13,7 @@ import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonGrid } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { HelpCard } from '../../../components/HelpCard';
 import { useDesigns, useMe } from '../../../lib/queries';
 import { pickPhoto, uploadDesign } from '../../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
@@ -107,6 +108,12 @@ export default function DesignStudio() {
         <Text variant="bodySm" tone="textMuted">
           {t('designs.subtitle')}
         </Text>
+        <HelpCard
+          guideKey="flow.designs"
+          title={t('guides.designsTitle')}
+          message={t('guides.designsBody')}
+          style={{ marginTop: spacing.md }}
+        />
       </View>
 
       {designsQ.isLoading && items.length === 0 ? (

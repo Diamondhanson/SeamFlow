@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Button, Input, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
+import { PasswordInput } from '../components/PasswordInput';
 import {
   APPLE_SIGN_IN_ENABLED,
   AppleCancelledError,
@@ -197,11 +198,10 @@ export default function SignIn() {
         autoComplete="email"
         keyboardType="email-address"
       />
-      <Input
+      <PasswordInput
         label={mode === 'signUp' ? t('auth.passwordWithMin', { min: MIN_PASSWORD_LEN }) : t('auth.password')}
         value={password}
         onChangeText={setPassword}
-        secureTextEntry
       />
 
       <Button
@@ -210,6 +210,24 @@ export default function SignIn() {
         loading={submitting}
         disabled={!canSubmit}
       />
+
+      {mode === 'signIn' ? (
+        <Pressable
+          onPress={() =>
+            router.push(
+              isValidEmail
+                ? `/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`
+                : '/reset-password',
+            )
+          }
+          hitSlop={8}
+          style={{ marginTop: spacing.md }}
+        >
+          <Text variant="caption" tone="primary" style={{ textAlign: 'center' }}>
+            {t('auth.forgotPassword')}
+          </Text>
+        </Pressable>
+      ) : null}
 
       {mode === 'signUp' ? (
         <Text
