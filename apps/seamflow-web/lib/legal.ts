@@ -90,7 +90,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       {
         heading: '10. Contact',
         paragraphs: [
-          'Questions about privacy? Email us at hello@seamflowtech.com and we’ll get back to you.',
+          'Questions about privacy? Email us at contactseamflow@gmail.com and we’ll get back to you.',
         ],
       },
     ],
@@ -166,7 +166,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       {
         heading: '10. Contact',
         paragraphs: [
-          'Des questions sur la confidentialité ? Écrivez-nous à hello@seamflowtech.com.',
+          'Des questions sur la confidentialité ? Écrivez-nous à contactseamflow@gmail.com.',
         ],
       },
     ],
@@ -236,7 +236,7 @@ export const terms: Record<Lang, LegalDoc> = {
       {
         heading: '10. Changes & contact',
         paragraphs: [
-          'We may update these Terms; continued use after an update means you accept the change. Questions? Email hello@seamflowtech.com.',
+          'We may update these Terms; continued use after an update means you accept the change. Questions? Email contactseamflow@gmail.com.',
         ],
       },
     ],
@@ -303,7 +303,7 @@ export const terms: Record<Lang, LegalDoc> = {
       {
         heading: '10. Modifications et contact',
         paragraphs: [
-          'Nous pouvons mettre à jour ces Conditions ; poursuivre l’utilisation après une mise à jour vaut acceptation. Des questions ? Écrivez à hello@seamflowtech.com.',
+          'Nous pouvons mettre à jour ces Conditions ; poursuivre l’utilisation après une mise à jour vaut acceptation. Des questions ? Écrivez à contactseamflow@gmail.com.',
         ],
       },
     ],

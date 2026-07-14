@@ -65,6 +65,12 @@ export default async function SupportPage({ searchParams }: PageProps) {
             >
               {SITE.email}
             </a>
+            <a
+              href={SITE.phoneHref}
+              className="mt-3 block text-sm font-medium text-brand-muted transition hover:text-brand-ink"
+            >
+              {SITE.phone}
+            </a>
           </div>
 
           <div className="rounded-3xl border border-brand-hairline bg-brand-surface/60 p-7">

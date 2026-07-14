@@ -39,6 +39,12 @@ export function Footer({ d, lang, year }: { d: Dict; lang: Lang; year: number })
             >
               {f.email}
             </a>
+            <a
+              href={`tel:${f.phone.replace(/[^+\d]/g, '')}`}
+              className="text-sm text-brand-muted transition hover:text-brand-ink"
+            >
+              {f.phone}
+            </a>
             <div className="pt-2">
               <LangToggle lang={lang} />
             </div>

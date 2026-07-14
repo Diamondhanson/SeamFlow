@@ -192,7 +192,8 @@ export const copy = {
         terms: 'Terms',
         support: 'Support',
       },
-      email: 'hello@seamflowtech.com',
+      email: 'contactseamflow@gmail.com',
+      phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. All rights reserved.',
       madeWith: 'Made for tailors, everywhere.',
     },
@@ -369,7 +370,8 @@ export const copy = {
         terms: 'Conditions',
         support: 'Support',
       },
-      email: 'hello@seamflowtech.com',
+      email: 'contactseamflow@gmail.com',
+      phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. Tous droits réservés.',
       madeWith: 'Conçu pour les tailleurs, partout.',
     },
@@ -400,7 +402,9 @@ export const SITE = {
   name: 'SeamFlow',
   domain: 'www.seamflowtech.com',
   url: 'https://www.seamflowtech.com',
-  email: 'hello@seamflowtech.com',
+  email: 'contactseamflow@gmail.com',
+  phone: '+237 670 15 19 73',
+  phoneHref: 'tel:+237670151973',
 };
 
 // Direct Android APK download. Empty string → not yet available (the Android
