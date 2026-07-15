@@ -31,3 +31,20 @@ export const AiDescribeImageResponseSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 export type AiDescribeImageResponse = z.infer<typeof AiDescribeImageResponseSchema>;
+
+// ============================================================================
+// AI text→text — "tidy up" a tailor's rough order notes into a clean summary.
+// Same server plumbing as describe-image (Claude, 503 when ANTHROPIC_API_KEY is
+// unset). Text-only, so no image / storagePath.
+// ============================================================================
+
+/** Body for POST /ai/summarize-notes. */
+export const AiSummarizeNotesRequestSchema = z.object({
+  notes: z.string().min(1).max(4000),
+});
+export type AiSummarizeNotesRequest = z.infer<typeof AiSummarizeNotesRequestSchema>;
+
+export const AiSummarizeNotesResponseSchema = z.object({
+  text: z.string(),
+});
+export type AiSummarizeNotesResponse = z.infer<typeof AiSummarizeNotesResponseSchema>;

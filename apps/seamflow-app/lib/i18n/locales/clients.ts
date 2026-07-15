@@ -4,6 +4,10 @@ export const clients = {
   en: {
     // clients list
     title: 'Clients',
+    contactTitle: 'Contact client',
+    callAction: 'Call',
+    whatsappAction: 'WhatsApp',
+    smsAction: 'Text message',
     newClientA11y: 'New client',
     searchPlaceholder: 'Search name or phone…',
     emptyList: 'No clients yet. Tap + to add one.',
@@ -47,6 +51,10 @@ export const clients = {
   fr: {
     // clients list
     title: 'Clients',
+    contactTitle: 'Contacter le client',
+    callAction: 'Appeler',
+    whatsappAction: 'WhatsApp',
+    smsAction: 'SMS',
     newClientA11y: 'Nouveau client',
     searchPlaceholder: 'Rechercher un nom ou un téléphone…',
     emptyList: 'Aucun client pour le moment. Appuyez sur + pour en ajouter un.',

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import type { CountryCode } from 'libphonenumber-js';
 import type {
   Client,
@@ -10,8 +10,10 @@ import type {
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { Ionicons } from '@expo/vector-icons';
 import { HelpCard } from '../../components/HelpCard';
 import { InfoDot } from '../../components/InfoDot';
+import { TidyNotesSheet } from '../../components/TidyNotesSheet';
 import { Card, CardLine, CardTitle } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
@@ -20,7 +22,7 @@ import { DateField } from '../../components/DateField';
 import { ContactPickerModal } from '../../components/ContactPickerModal';
 import { FabricField } from '../../components/FabricField';
 import { api } from '../../lib/api';
-import { useMe } from '../../lib/queries';
+import { useMe, useOrder, useClient } from '../../lib/queries';
 import type { DeviceContact } from '../../lib/contacts';
 import { spacing, useThemeColors } from '../../lib/theme';
 import { useFloatingScroll } from '../../lib/floating-scroll';
@@ -84,6 +86,13 @@ export default function NewOrderWizard() {
   const { data: me } = useMe();
   const defaultCountry = ((me?.tailor?.countryCode as CountryCode) || 'NG');
 
+  // "Duplicate / repeat order": ?duplicateFrom=<orderId> pre-fills the wizard
+  // from an existing order (same client, garments, measurements, notes, fabric).
+  const { duplicateFrom } = useLocalSearchParams<{ duplicateFrom?: string }>();
+  const dupOrderQ = useOrder(duplicateFrom ?? '');
+  const dupClientQ = useClient(dupOrderQ.data?.clientId ?? '');
+  const seededRef = useRef(false);
+
   // Inline new-client form
   const [showNewClientForm, setShowNewClientForm] = useState(false);
   const [newClientName, setNewClientName] = useState('');
@@ -102,6 +111,7 @@ export default function NewOrderWizard() {
   const [fabricYardage, setFabricYardage] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
+  const [tidyOpen, setTidyOpen] = useState(false);
 
   const loadClients = useCallback(async (q: string) => {
     try {
@@ -125,6 +135,42 @@ export default function NewOrderWizard() {
   useEffect(() => {
     if (step === 'measurements') loadTemplates();
   }, [step, loadTemplates]);
+
+  // Seed the wizard from an existing order once (duplicate / repeat). Templates
+  // aren't stored on order items, so measurements come back as manual entries.
+  useEffect(() => {
+    if (!duplicateFrom || seededRef.current) return;
+    const order = dupOrderQ.data;
+    const client = dupClientQ.data;
+    if (!order || !client) return;
+    seededRef.current = true;
+
+    setPickedClient(client);
+    const items = order.items.length ? order.items : [];
+    setGarments(
+      items.length
+        ? items.map((it) => {
+            const values: Record<string, string> = {};
+            for (const [k, v] of Object.entries(it.measurements ?? {})) {
+              values[k] = String(v);
+            }
+            return {
+              ...makeGarment(),
+              // submitAll defaults a blank type to 'garment' — show it blank again.
+              garmentType: it.garmentType === 'garment' ? '' : it.garmentType,
+              values,
+              quantity: String(it.quantity ?? 1),
+            };
+          })
+        : [makeGarment()],
+    );
+    setOrderName(order.orderName);
+    setOrderNotes(order.notes ?? '');
+    setFabricId(order.fabricId);
+    setFabricYardage(order.fabricYardageUsed ?? '');
+    // Client is known — jump straight to reviewing the garments/measurements.
+    setStep('measurements');
+  }, [duplicateFrom, dupOrderQ.data, dupClientQ.data]);
 
   // -------- Step 1: pick or create client --------
   const createClientInline = async () => {
@@ -526,6 +572,12 @@ export default function NewOrderWizard() {
             placeholder={t('common.optional')}
             multiline
           />
+          {orderNotes.trim().length > 0 ? (
+            <Pressable onPress={() => setTidyOpen(true)} hitSlop={8} style={styles.tidyBtn}>
+              <Ionicons name="sparkles-outline" size={15} color={colors.accent} />
+              <Text variant="caption" tone="primary">{t('orders.tidyUp')}</Text>
+            </Pressable>
+          ) : null}
 
           <FabricField value={fabricId} onChange={setFabricId} />
           {fabricId ? (
@@ -559,6 +611,12 @@ export default function NewOrderWizard() {
         onClose={() => setContactsOpen(false)}
         onSelect={onPickContact}
         defaultCountry={defaultCountry}
+      />
+      <TidyNotesSheet
+        visible={tidyOpen}
+        onClose={() => setTidyOpen(false)}
+        notes={orderNotes}
+        onAccept={setOrderNotes}
       />
     </Screen>
   );
@@ -645,6 +703,14 @@ const styles = StyleSheet.create({
   },
   context: { marginBottom: spacing.md },
   contextStrong: { fontWeight: '600' },
+  tidyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginTop: -4,
+    marginBottom: spacing.md,
+  },
   section: {
     marginTop: spacing.md,
     marginBottom: spacing.sm,

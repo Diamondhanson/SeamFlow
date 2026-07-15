@@ -923,6 +923,83 @@ What it does NOT share with `seamflow-app`:
 - Different navigation hierarchy (orders-first, not clients-first)
 - Lighter offline footprint (consumers don't need all measurement data offline — usually just their own)
 
+### Build status — seamflow-client scaffolded + spine shipped (2026-07-15)
+
+**No longer a stub.** `apps/seamflow-client` is a real Expo/React Native app with
+the same production foundation as `seamflow-app`, plus a working consumer spine.
+tsc + `i18n:check` clean across app, API, and shared packages.
+
+**Foundation (mirrors seamflow-app):** offline-first (TanStack Query + AsyncStorage
+persister + NetInfo + paused-mutation queue), Supabase auth in the OS keychain
+(PKCE), PIN lock (HMAC-SHA-256, 5-attempt lockout, 5-min re-lock), push wiring
+(register/unregister/tap), EN/FR i18n + guard, the `useDialog()` system, shared
+`@seamflow/*` packages. Same Atelier design system **except the primary is warm
+rose-pink** (`#CE4E74` light / `#F090AE` dark, `lib/client-theme.ts`); light
+(linen) default. Auth reuses email+OTP+Google (see decision D below).
+
+**Consumer API surface (NEW, built + live):**
+- `order_claims` table + RLS keyed to `auth.uid()` — migration
+  `supabase/migrations/20260715120000_order_claims.sql`, **applied to the shared
+  DB + recorded in the ledger**.
+- NestJS `consumer` module (`apps/seamflow-api/src/consumer/`): `POST /consumer/claims`
+  (claim an order from its share-link code), `GET /consumer/orders` (unified
+  cross-tailor inbox), `GET /consumer/orders/:id` (detail: items, signed photos,
+  timeline, tailor), `GET /consumer/measurements` (locker). Scoped to the auth
+  user (never a tailor). Reuses `ShareLinksService.resolvePublic` for token
+  validation + `OrderPhotosService.attachSignedUrl`.
+- Contracts in `packages/schemas/src/consumer.ts`; `api.consumer.*` in api-client.
+
+**Claim model (no SMS needed):** a customer claims an order by pasting its
+share-link (…/o/&lt;code&gt;) → `order_claims` links it to their account → the order
+appears in the inbox, and the client record behind it surfaces their measurements
+(locker) and photos (lookbook, later). Phone-based *auto*-claim of all their
+orders is a later enhancement that needs an SMS provider (see below).
+
+**Client spine built (features A.4 + A.2 + A.1-partial):** home (pink tiles) →
+**My orders** inbox → **order detail** (status, dates, tailor, photos, progress
+timeline) → **measurement locker** → **Add order by link** claim flow. All wired
+to the consumer API.
+
+**Still needed from the product owner (blockers — nothing else stands between us
+and running it on device / shipping):**
+
+1. **EAS project** — run `eas init` in `apps/seamflow-client`; paste the
+   `projectId` into `app.json` (currently `REPLACE_WITH_EAS_PROJECT_ID`). Needed
+   for dev-client builds AND Expo push tokens.
+2. **Confirm identifiers** — bundle id `com.bambothanson.seamflowclient` (iOS +
+   Android) and the on-device app name (currently "SeamFlow", same as the tailor
+   app). Change if desired.
+3. **Real brand assets** — icon / adaptive-icon / splash in
+   `apps/seamflow-client/assets/images/` (currently the default Expo placeholders).
+4. **Push notifications — credentials + files** (nothing works until these land;
+   the register/tap code is already wired):
+   - **EAS projectId** (blocker #1) — the Expo push *token* itself needs it
+     (`getExpoPushTokenAsync({ projectId })` reads `extra.eas.projectId`).
+   - **Android (FCM):** create a Firebase project, add an Android app for package
+     **`com.bambothanson.seamflowclient`** (the tailor app's `google-services.json`
+     is for a different package and will NOT work), download the resulting
+     **`google-services.json`** into `apps/seamflow-client/`, and add
+     `"googleServicesFile": "./google-services.json"` under `android` in `app.json`
+     (intentionally left out for now so `expo start` works without the file).
+   - **iOS (APNs):** the **Apple Developer Program ($99/yr)** → upload an APNs key
+     (`.p8`) via `eas credentials` (same key also enables Apple Sign-In).
+   - Note: on SDK 55 push only works in a real dev/prod build (Expo Go can't), so
+     this comes online together with the EAS project.
+5. **Decision D — consumer auth method.** Currently reuses **email + OTP + Google**.
+   Roadmap A.1 favors **phone-OTP** for consumers. If we go phone-first, it needs
+   the Supabase phone provider enabled + an **SMS provider (Twilio or Termii —
+   paid)**.
+6. **SMS provider (Twilio/Termii)** — ONLY if we want phone-based **auto-claim**
+   (auto-link every order for a customer by verified phone) on top of the current
+   link-based claim. Not required for what's built.
+7. **Render deploy** — the consumer API endpoints run locally now; deploy
+   `seamflow-api` to Render for them to work in production (the DB migration is
+   already applied to the shared Supabase).
+
+**Suggested next features (from Appendix A):** A.18 Fit Passport (extend the
+locker with fit preferences), A.3 QR/link measurement sharing, A.5 Lookbook (the
+order photos are already flowing), A.9 reminders/calendar, A.21 "make this again".
+
 ---
 
 ## Appendix B — Key architectural decisions

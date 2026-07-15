@@ -10,6 +10,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import type {
   AiDescribeImageResponse,
   AiDescribeMode,
+  AiSummarizeNotesResponse,
 } from '@seamflow/schemas';
 
 // Haiku 4.5 — fast + cheap, ideal for describing a single image. Swap to a
@@ -29,6 +30,10 @@ const INSTRUCTIONS: Record<AiDescribeMode, string> = {
   fabric: 'Describe this fabric.',
   tags: 'Give comma-separated tags for this image.',
 };
+
+// "Tidy up" — turn a tailor's rough scribbled order notes into a clean, ordered
+// summary a client could read. Preserve every concrete detail; never invent.
+const SUMMARIZE_SYSTEM = `You are a master tailor's assistant. Rewrite the tailor's rough order notes into a clean, well-organized summary that a client could read and confirm. Keep EVERY concrete detail they wrote — garment(s), colours, fabric, any measurements or numbers, deadlines, and special requests. Group related points and use short bullet-style lines. Do NOT invent details, sizes, or dates that are not in the notes. Do not add commentary or a preamble — return only the tidied notes.`;
 
 @Injectable()
 export class AiService {
@@ -95,6 +100,30 @@ export class AiService {
       return { mode, text, tags };
     }
     return { mode, text };
+  }
+
+  /**
+   * Tidy up a tailor's rough order notes into a clean, ordered summary. Same
+   * 503-when-unconfigured contract as describeImage; text-only.
+   */
+  async summarizeNotes(notes: string): Promise<AiSummarizeNotesResponse> {
+    if (!this.client) {
+      throw new ServiceUnavailableException(
+        'AI is not configured on the server (missing ANTHROPIC_API_KEY).',
+      );
+    }
+    const msg = await this.client.messages.create({
+      model: MODEL,
+      max_tokens: MAX_TOKENS,
+      system: SUMMARIZE_SYSTEM,
+      messages: [{ role: 'user', content: [{ type: 'text', text: notes }] }],
+    });
+    const text = msg.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n')
+      .trim();
+    return { text };
   }
 
   /**

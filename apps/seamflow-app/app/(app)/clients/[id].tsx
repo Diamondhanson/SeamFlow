@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -17,6 +18,7 @@ import {
   useOrders,
 } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
+import { useContactActions } from '../../../lib/contact-actions';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
@@ -31,6 +33,7 @@ export default function ClientDetail() {
   const deleteClient = useDeleteClient(id);
   const colors = useThemeColors();
   const dialog = useDialog();
+  const contact = useContactActions();
   const scroll = useFloatingScroll();
 
   // Inline new-measurement-set form
@@ -100,7 +103,18 @@ export default function ClientDetail() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
       >
-        <Text variant="bodySm" tone="textMuted">{client.phone}</Text>
+        {client.phone ? (
+          <Pressable
+            onPress={() => contact(client.phone)}
+            hitSlop={6}
+            style={styles.phoneRow}
+            accessibilityRole="button"
+            accessibilityLabel={t('clients.contactTitle')}
+          >
+            <Ionicons name="call-outline" size={15} color={colors.accent} />
+            <Text variant="bodySm" tone="primary">{client.phone}</Text>
+          </Pressable>
+        ) : null}
         {client.address ? <Text variant="bodySm" tone="textMuted">{client.address}</Text> : null}
         {client.email ? <Text variant="bodySm" tone="textMuted">{client.email}</Text> : null}
         {client.notes ? (
@@ -222,5 +236,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   divider: { height: 1, marginVertical: spacing.lg },
+  phoneRow: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
   jsonInput: { fontFamily: 'Courier', minHeight: 120 },
 });

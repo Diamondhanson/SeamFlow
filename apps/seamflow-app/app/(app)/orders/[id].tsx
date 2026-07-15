@@ -446,6 +446,13 @@ export default function OrderDetailScreen() {
         </Section>
 
         <View style={styles.deleteWrap}>
+          <Button
+            label={t('orders.duplicateOrder')}
+            variant="secondary"
+            iconLeft={<Ionicons name="copy-outline" size={18} color={colors.text} />}
+            onPress={() => router.push(`/(app)/new-order?duplicateFrom=${id}`)}
+          />
+          <View style={{ height: spacing.md }} />
           <Button label={t('orders.deleteOrder')} variant="danger" onPress={deleteOrder} />
         </View>
       </ScrollView>

@@ -21,4 +21,8 @@ export type { ListOrdersQuery, ListOrdersResponse } from './resources/orders';
 export type { ListOrderItemsResponse } from './resources/order-items';
 export type { ListOrderPhotosResponse } from './resources/order-photos';
 export type { ListGroupOrderPhotosResponse } from './resources/group-order-photos';
+export type {
+  ListConsumerOrdersResponse,
+  ListConsumerMeasurementsResponse,
+} from './resources/consumer';
 export type { ListDesignsResponse } from './resources/designs';

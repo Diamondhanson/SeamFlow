@@ -33,6 +33,10 @@ import {
   makeGroupOrderPhotosResource,
   type GroupOrderPhotosResource,
 } from './resources/group-order-photos';
+import {
+  makeConsumerResource,
+  type ConsumerResource,
+} from './resources/consumer';
 import { makeDesignsResource, type DesignsResource } from './resources/designs';
 import { makeAiResource, type AiResource } from './resources/ai';
 import { makeSyncResource, type SyncResource } from './resources/sync';
@@ -67,6 +71,7 @@ export interface ApiClient {
   orderItems: OrderItemsResource;
   orderPhotos: OrderPhotosResource;
   groupOrderPhotos: GroupOrderPhotosResource;
+  consumer: ConsumerResource;
   designs: DesignsResource;
   ai: AiResource;
   sync: SyncResource;
@@ -105,6 +110,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     orderItems: makeOrderItemsResource(http),
     orderPhotos: makeOrderPhotosResource(http),
     groupOrderPhotos: makeGroupOrderPhotosResource(http),
+    consumer: makeConsumerResource(http),
     designs: makeDesignsResource(http),
     ai: makeAiResource(http),
     sync: makeSyncResource(http),
