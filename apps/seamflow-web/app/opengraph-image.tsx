@@ -43,7 +43,15 @@ export default function OpengraphImage() {
               fontSize: 34,
             }}
           >
-            ✂
+            <svg width="40" height="43" viewBox="0 0 96 96">
+              <rect x="27" y="23" width="42" height="8" rx="4" fill="#FBF8F3" />
+              <rect x="27" y="65" width="42" height="8" rx="4" fill="#FBF8F3" />
+              <path d="M37 39 H59" stroke="#FBF8F3" strokeWidth="4" strokeLinecap="round" />
+              <path d="M37 46 H59" stroke="#FBF8F3" strokeWidth="4" strokeLinecap="round" />
+              <path d="M37 53 H59" stroke="#FBF8F3" strokeWidth="4" strokeLinecap="round" />
+              <path d="M37 60 H59" stroke="#FBF8F3" strokeWidth="4" strokeLinecap="round" />
+              <path d="M59 60 C73 62 74 80 60 82" stroke="#FBF8F3" strokeWidth="4" fill="none" strokeLinecap="round" />
+            </svg>
           </div>
           SeamFlow
         </div>

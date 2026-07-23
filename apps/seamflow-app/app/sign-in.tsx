@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Button, Input, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
@@ -113,6 +113,12 @@ export default function SignIn() {
   return (
     <Screen scroll>
       <View style={styles.header}>
+        <Image
+          source={require('../assets/images/brand-mark.png')}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityLabel="SeamFlow"
+        />
         <Text variant="display" tone="text">
           SeamFlow
         </Text>
@@ -259,6 +265,11 @@ export default function SignIn() {
 }
 
 const styles = StyleSheet.create({
+  logo: {
+    width: 72,
+    height: 72,
+    marginBottom: spacing.md,
+  },
   header: {
     alignItems: 'center',
     marginTop: spacing.xl,

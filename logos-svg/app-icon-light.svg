@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="SeamFlow app icon">
+<rect x="0" y="0" width="512" height="512" fill="#FAF7F2"/>
+<g transform="translate(2.62,-7.22) scale(4.92)"><g fill="none" stroke-linecap="round">
+  <rect x="27" y="23" width="42" height="8" rx="4" fill="#C97B5C" stroke="none"/>
+  <rect x="27" y="65" width="42" height="8" rx="4" fill="#C97B5C" stroke="none"/>
+  <line x1="37" y1="39" x2="59" y2="39" stroke="#2E3A8C" stroke-width="4"/>
+  <line x1="37" y1="46" x2="59" y2="46" stroke="#2E3A8C" stroke-width="4"/>
+  <line x1="37" y1="53" x2="59" y2="53" stroke="#2E3A8C" stroke-width="4"/>
+  <line x1="37" y1="60" x2="59" y2="60" stroke="#2E3A8C" stroke-width="4"/>
+  <path d="M59,60 C73,62 74,80 60,82" stroke="#2E3A8C" stroke-width="4"/>
+</g></g>
+</svg>

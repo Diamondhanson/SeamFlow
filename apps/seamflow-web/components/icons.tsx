@@ -100,9 +100,13 @@ export const Icons: Record<string, (p: IconProps) => JSX.Element> = {
   ),
   logo: ({ className }) => (
     <S className={className}>
-      {/* stitch: a needle path through cloth — the SeamFlow mark */}
-      <path d="M4 15c3-6 5-9 8-9s5 3 8 9" />
-      <path d="M4 15c3 3 5 4 8 4s5-1 8-4" strokeDasharray="0.1 3.4" />
+      {/* SeamFlow spool mark */}
+      <path d="M6.5 7h11" strokeWidth={2.2} />
+      <path d="M6.5 17.5h11" strokeWidth={2.2} />
+      <path d="M9 10.2h6" strokeWidth={1.5} />
+      <path d="M9 12h6" strokeWidth={1.5} />
+      <path d="M9 13.8h6" strokeWidth={1.5} />
+      <path d="M15 13.8c2.7 .4 2.8 4.9 0 5.1" strokeWidth={1.5} />
     </S>
   ),
 };
