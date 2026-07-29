@@ -1,10 +1,11 @@
 // ============================================================================
-// <AiDescribeSheet> — "Auto-describe" UI for a saved image (M3, front-end only).
+// <AiDescribeSheet> — "Auto-describe" UI for a saved image.
 //
-// Pick a mode (Spec / Fabric / Tags), tap Describe, then Accept / Edit /
-// Discard the result. The description currently comes from a local STUB
-// (lib/ai) — Claude is not connected yet. A banner makes that explicit so the
-// look can be reviewed without misleading anyone that it's live.
+// Pick one or MORE modes (Spec / Fabric / Tags), tap Describe — selected modes
+// run in parallel and their results combine into one editable draft (spec +
+// fabric prose stacked, tags merged). Accept / Edit / Discard as before.
+// Output is sanitized to plain text (no markdown) before it reaches the
+// caption field.
 // ============================================================================
 
 import { useEffect, useState } from 'react';
@@ -21,7 +22,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import type { AiDescribeMode } from '@seamflow/schemas';
-import { useDescribeImage } from '../lib/ai';
+import { api } from '../lib/api';
+import { stripMarkdown } from './RichText';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
@@ -51,32 +53,58 @@ export function AiDescribeSheet({
 }: Props) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
-  const describe = useDescribeImage();
-  const [mode, setMode] = useState<AiDescribeMode>('spec');
+  const [modes, setModes] = useState<Set<AiDescribeMode>>(new Set(['spec']));
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [tags, setTags] = useState<string[] | undefined>(undefined);
 
   // Reset when reopened.
   useEffect(() => {
     if (visible) {
-      setMode('spec');
+      setModes(new Set(['spec']));
+      setPending(false);
+      setError(null);
       setText('');
       setTags(undefined);
-      describe.reset();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  const run = () => {
-    describe.mutate(
-      { storagePath, mode },
-      {
-        onSuccess: (res) => {
-          setText(res.text);
-          setTags(res.tags);
-        },
-      },
-    );
+  const toggleMode = (key: AiDescribeMode) =>
+    setModes((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (next.size > 1) next.delete(key); // keep at least one selected
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+
+  // Run every selected mode in parallel; stack the prose results in a fixed
+  // order and merge tags from the tags mode.
+  const run = async () => {
+    const selected = MODES.map((m) => m.key).filter((k) => modes.has(k));
+    setPending(true);
+    setError(null);
+    try {
+      const results = await Promise.all(
+        selected.map((mode) => api.ai.describeImage({ storagePath, mode })),
+      );
+      const prose = results
+        .filter((r) => r.mode !== 'tags')
+        .map((r) => stripMarkdown(r.text).trim())
+        .filter(Boolean);
+      const tagRes = results.find((r) => r.mode === 'tags');
+      setText(prose.join('\n\n'));
+      setTags(tagRes?.tags);
+      // Tags-only run: show the tags line as the editable text.
+      if (prose.length === 0 && tagRes) setText(tagRes.tags?.join(', ') ?? '');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('designs.describeError'));
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -112,13 +140,16 @@ export function AiDescribeSheet({
               />
             ) : null}
 
+            <Text variant="caption" tone="textMuted" style={styles.modesHint}>
+              {t('designs.modesHint')}
+            </Text>
             <View style={styles.modeRow}>
               {MODES.map((m) => {
-                const active = m.key === mode;
+                const active = modes.has(m.key);
                 return (
                   <Pressable
                     key={m.key}
-                    onPress={() => setMode(m.key)}
+                    onPress={() => toggleMode(m.key)}
                     style={[
                       styles.modeChip,
                       {
@@ -128,6 +159,9 @@ export function AiDescribeSheet({
                       },
                     ]}
                   >
+                    {active ? (
+                      <Ionicons name="checkmark" size={13} color={colors.primary} />
+                    ) : null}
                     <Text variant="caption" tone={active ? 'text' : 'textMuted'}>
                       {t('designs.mode_' + m.key)}
                     </Text>
@@ -136,7 +170,7 @@ export function AiDescribeSheet({
               })}
             </View>
 
-            {!text && !describe.isPending ? (
+            {!text && !pending ? (
               <Pressable
                 onPress={run}
                 style={[styles.describeBtn, { backgroundColor: colors.primary, borderRadius: radii.pill }]}
@@ -146,7 +180,7 @@ export function AiDescribeSheet({
               </Pressable>
             ) : null}
 
-            {describe.isPending ? (
+            {pending ? (
               <View style={styles.loading}>
                 <ActivityIndicator color={colors.primary} />
                 <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>
@@ -155,11 +189,9 @@ export function AiDescribeSheet({
               </View>
             ) : null}
 
-            {describe.isError && !text ? (
+            {error && !text ? (
               <Text variant="bodySm" tone="danger" style={styles.errorText}>
-                {describe.error instanceof Error
-                  ? describe.error.message
-                  : t('designs.describeError')}
+                {error}
               </Text>
             ) : null}
 
@@ -241,8 +273,16 @@ const styles = StyleSheet.create({
   bannerText: { flex: 1 },
   body: { paddingBottom: spacing.md },
   preview: { width: '100%', height: 160, marginBottom: spacing.md },
+  modesHint: { marginBottom: 6 },
   modeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  modeChip: { paddingVertical: 6, paddingHorizontal: spacing.md, borderWidth: 1 },
+  modeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+  },
   describeBtn: {
     flexDirection: 'row',
     alignItems: 'center',

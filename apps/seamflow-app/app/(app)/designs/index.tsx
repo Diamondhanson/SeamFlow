@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import type { Design } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonGrid } from '../../../components/Skeleton';
@@ -38,14 +39,38 @@ export default function DesignStudio() {
   const items = designsQ.data?.items ?? [];
   const tailorId = me?.tailor?.id;
 
-  // Responsive grid: 2 cols (phone) → 3 (medium) → 4 (expanded). Cell width is
-  // computed from the same wide content width the <Screen> uses, so a short
-  // last row keeps the same tile size instead of stretching (flex:1 would).
+  // Responsive masonry: 2 cols (phone) → 3 (medium) → 4 (expanded). Cell width
+  // is computed from the same wide content width the <Screen> uses.
   const columns = useGridColumns();
   const contentW = useContentWidth('wide');
   const cellW = Math.floor(
     (contentW - spacing.lg * 2 - spacing.md * (columns - 1)) / columns,
   );
+
+  // Pinterest-style layout: each image keeps its own aspect ratio. Ratios come
+  // from the image itself as it loads (no extra network fetch); until then a
+  // square placeholder holds the spot, and the column reflows on load.
+  const [ratios, setRatios] = useState<Record<string, number>>({});
+  const onImgLoad = useCallback(
+    (id: string, w: number, h: number) => {
+      if (!w || !h) return;
+      // Clamp so one extreme panorama/strip can't wreck the column rhythm.
+      const ratio = Math.min(Math.max(w / h, 0.55), 1.9);
+      setRatios((prev) => (prev[id] ? prev : { ...prev, [id]: ratio }));
+    },
+    [],
+  );
+
+  // Greedy shortest-column packing — keeps column bottoms roughly level.
+  const cols: Design[][] = Array.from({ length: columns }, () => []);
+  const heights = new Array(columns).fill(0);
+  for (const item of items) {
+    const ratio = ratios[item.id] ?? 1;
+    const cellH = cellW / ratio + (item.caption ? 22 : 0) + spacing.md;
+    const shortest = heights.indexOf(Math.min(...heights));
+    cols[shortest].push(item);
+    heights[shortest] += cellH;
+  }
 
   const add = async (source: 'camera' | 'library') => {
     if (!tailorId) {
@@ -128,45 +153,61 @@ export default function DesignStudio() {
           </Text>
         </View>
       ) : (
-        <FlatList
+        <ScrollView
           {...scroll}
-          data={items}
-          keyExtractor={(d) => d.id}
-          // numColumns can't change on the fly without a fresh list identity.
-          key={`grid-${columns}`}
-          numColumns={columns}
-          columnWrapperStyle={styles.rowWrap}
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => {
-            const url = item.thumbnailUrl ?? item.signedUrl;
-            return (
-              <Pressable
-                style={[styles.cell, { width: cellW }]}
-                onPress={() => router.push(`/(app)/designs/${item.id}`)}
-              >
-                {url ? (
-                  <Image
-                    source={{ uri: url }}
-                    style={[styles.thumb, { backgroundColor: colors.surface, borderRadius: radii.l }]}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View
-                    style={[styles.thumb, styles.thumbPlaceholder, { backgroundColor: colors.surface, borderRadius: radii.l }]}
-                  >
-                    <ActivityIndicator color={colors.textMuted} />
-                  </View>
-                )}
-                {item.caption ? (
-                  <Text variant="caption" tone="textMuted" numberOfLines={1} style={styles.caption}>
-                    {item.caption}
-                  </Text>
-                ) : null}
-              </Pressable>
-            );
-          }}
-        />
+        >
+          <View style={styles.masonry}>
+            {cols.map((col, ci) => (
+              <View key={ci} style={{ width: cellW, gap: spacing.md }}>
+                {col.map((item) => {
+                  const url = item.thumbnailUrl ?? item.signedUrl;
+                  const ratio = ratios[item.id] ?? 1;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => router.push(`/(app)/designs/${item.id}`)}
+                    >
+                      {url ? (
+                        <Image
+                          source={{ uri: url }}
+                          onLoad={(e) =>
+                            onImgLoad(
+                              item.id,
+                              e.nativeEvent.source?.width ?? 0,
+                              e.nativeEvent.source?.height ?? 0,
+                            )
+                          }
+                          style={[
+                            styles.thumb,
+                            { aspectRatio: ratio, backgroundColor: colors.surface, borderRadius: radii.l },
+                          ]}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View
+                          style={[
+                            styles.thumb,
+                            styles.thumbPlaceholder,
+                            { aspectRatio: 1, backgroundColor: colors.surface, borderRadius: radii.l },
+                          ]}
+                        >
+                          <ActivityIndicator color={colors.textMuted} />
+                        </View>
+                      )}
+                      {item.caption ? (
+                        <Text variant="caption" tone="textMuted" numberOfLines={1} style={styles.caption}>
+                          {item.caption}
+                        </Text>
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       )}
     </Screen>
   );
@@ -180,9 +221,8 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: spacing.xl * 2, paddingHorizontal: spacing.xl, gap: spacing.md },
   emptyText: { textAlign: 'center' },
   grid: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 96 },
-  rowWrap: { gap: spacing.md },
-  cell: { marginBottom: spacing.md },
-  thumb: { width: '100%', aspectRatio: 1 },
+  masonry: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
+  thumb: { width: '100%' },
   thumbPlaceholder: { alignItems: 'center', justifyContent: 'center' },
   caption: { marginTop: 4 },
 });

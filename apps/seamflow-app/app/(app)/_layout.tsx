@@ -3,7 +3,6 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '../../lib/auth-context';
 import { LockProvider, useLock } from '../../lib/lock-context';
 import { PinLockScreen } from '../../components/PinLockScreen';
-import { FloatingLogo } from '../../components/FloatingLogo';
 import { FloatingScrollProvider } from '../../lib/floating-scroll';
 import { useNotificationTapHandler } from '../../lib/notifications';
 import { useThemeColors } from '../../lib/theme';
@@ -86,7 +85,6 @@ function GatedStack() {
             options={{ presentation: 'modal', gestureEnabled: true }}
           />
         </Stack>
-        <FloatingLogo />
 
         {/* PIN gate rendered as an overlay ON TOP of the Stack — not in place
             of it. Swapping the Stack out unmounts the whole navigator, so on

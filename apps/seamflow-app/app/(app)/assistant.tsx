@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -42,6 +43,8 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { HelpCard } from '../../components/HelpCard';
 import { Button } from '../../components/Button';
+import { RichText, stripMarkdown } from '../../components/RichText';
+import { MarkdownText } from '../../components/MarkdownText';
 import { api, ApiError } from '../../lib/api';
 import {
   ACTION_TITLE_KEY,
@@ -70,6 +73,12 @@ import { useDialog } from '../../lib/dialog';
 
 const SPEAK_PREF_KEY = 'seamflow.assistant.speakReplies';
 
+// Composer growth: one line tall at rest, grows with content to 5 lines, then
+// scrolls internally. Height is driven from onContentSizeChange because iOS
+// doesn't reliably auto-grow multiline TextInputs the way Android does.
+const INPUT_LINE_H = 20;
+const INPUT_MAX_H = INPUT_LINE_H * 5;
+
 export default function AssistantScreen() {
   const { t, language } = useTranslation();
   const { colors } = useAtelierTheme();
@@ -81,6 +90,7 @@ export default function AssistantScreen() {
   const [messages, setMessages] = useState<LocalChatMessage[]>([]);
   const [threadReady, setThreadReady] = useState(false);
   const [input, setInput] = useState('');
+  const [inputContentH, setInputContentH] = useState(INPUT_LINE_H);
   const [sending, setSending] = useState(false);
   const [pending, setPending] = useState<ActionPreview | null>(null);
   const [executing, setExecuting] = useState(false);
@@ -123,6 +133,16 @@ export default function AssistantScreen() {
   const scrollToEnd = () =>
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
 
+  // Android resize mode shrinks the window when the keyboard opens — keep the
+  // latest messages in view instead of letting them slip under the input bar.
+  useEffect(() => {
+    const sub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => scrollToEnd(),
+    );
+    return () => sub.remove();
+  }, []);
+
   // ---- speaking (TTS) -------------------------------------------------------
   const speakMessage = useCallback(
     (m: LocalChatMessage) => {
@@ -131,7 +151,8 @@ export default function AssistantScreen() {
         setSpeakingId(null);
         return;
       }
-      const ok = speak(m.content, language, {
+      // Read the plain words — never the ** markdown markers.
+      const ok = speak(stripMarkdown(m.content), language, {
         onStart: () => setSpeakingId(m.id),
         onDone: () => setSpeakingId(null),
       });
@@ -337,9 +358,16 @@ export default function AssistantScreen() {
               },
             ]}
           >
-            <Text variant="body" tone={m.link ? 'primary' : 'text'}>
-              {m.content}
-            </Text>
+            {isDone || isError || m.link ? (
+              // App-generated bubbles (done ✓ / error / link) stay simple text.
+              <RichText variant="body" tone={m.link ? 'primary' : 'text'}>
+                {m.content}
+              </RichText>
+            ) : (
+              // Model replies render full markdown — bold, headings, bullets,
+              // small tables — themed, never raw symbols.
+              <MarkdownText>{m.content}</MarkdownText>
+            )}
           </Pressable>
           <View style={styles.bubbleMetaRow}>
             {caption ? (
@@ -433,7 +461,6 @@ export default function AssistantScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
         <FlatList
           ref={listRef}
@@ -495,7 +522,20 @@ export default function AssistantScreen() {
               multiline
               editable={!sending && !!tailorId}
               onSubmitEditing={() => void send()}
-              style={[styles.input, { color: colors.text }]}
+              onContentSizeChange={(e) =>
+                setInputContentH(e.nativeEvent.contentSize.height)
+              }
+              scrollEnabled={inputContentH > INPUT_MAX_H}
+              style={[
+                styles.input,
+                {
+                  color: colors.text,
+                  height: Math.min(
+                    Math.max(inputContentH, INPUT_LINE_H),
+                    INPUT_MAX_H,
+                  ),
+                },
+              ]}
             />
           </View>
           <IconButton
@@ -741,8 +781,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
-    paddingVertical: Platform.OS === 'ios' ? spacing.sm : 4,
-    maxHeight: 110,
+    paddingVertical: Platform.OS === 'ios' ? spacing.sm : 8,
   },
-  input: { fontSize: 15, lineHeight: 20, padding: 0 },
+  input: { fontSize: 15, lineHeight: INPUT_LINE_H, padding: 0 },
 });

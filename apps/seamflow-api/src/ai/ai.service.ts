@@ -34,8 +34,8 @@ const EXTRACT_MAX_TOKENS = 1536;
 
 // Per-mode system prompt. Kept terse and tailor-domain-specific.
 const SYSTEM_PROMPTS: Record<AiDescribeMode, string> = {
-  spec: `You are a master tailor's assistant. Look at the garment or design in the image and write a concise construction spec: garment type, silhouette, neckline, sleeves, notable details, and print/pattern. 2–4 sentences. Describe only what is visible; do not invent measurements or fabric composition you cannot see.`,
-  fabric: `You are a master tailor's assistant. Describe the fabric in the image: dominant colours, pattern/motif, apparent weight and texture, and 2–3 garments it would suit. 2–3 sentences. Describe only what is visible; hedge material guesses ("appears to be…").`,
+  spec: `You are a master tailor's assistant. Look at the garment or design in the image and write a concise construction spec: garment type, silhouette, neckline, sleeves, notable details, and print/pattern. 2–4 sentences. Describe only what is visible; do not invent measurements or fabric composition you cannot see. Plain prose only — no markdown, no asterisks, no headings, no bullet lists.`,
+  fabric: `You are a master tailor's assistant. Describe the fabric in the image: dominant colours, pattern/motif, apparent weight and texture, and 2–3 garments it would suit. 2–3 sentences. Describe only what is visible; hedge material guesses ("appears to be…"). Plain prose only — no markdown, no asterisks, no headings, no bullet lists.`,
   tags: `You are a tagging assistant for a tailor's inspiration library. Return 4–8 short lowercase tags (garment type, silhouette, neckline, fabric, occasion) as a single comma-separated line. No sentences, no extra text.`,
 };
 
