@@ -69,9 +69,14 @@ export function TemplateFieldsEditor({
             <Input
               label={t('templates.fieldNameLabel')}
               value={f.label}
-              onChangeText={(v) => update(i, { label: v })}
+              onChangeText={(v) => update(i, { label: v, lowConfidence: false })}
               placeholder={t('templates.fieldNamePlaceholder')}
             />
+            {f.lowConfidence ? (
+              <Text variant="bodySm" tone="warning" style={styles.lowConfidence}>
+                {t('templates.scanLowConfidence')}
+              </Text>
+            ) : null}
             <View style={styles.row}>
               <Button
                 label={f.required ? t('templates.required') : t('templates.optional')}
@@ -142,6 +147,7 @@ export function TemplateFieldsEditor({
 const styles = StyleSheet.create({
   heading: { marginBottom: spacing.sm },
   row: { flexDirection: 'row' },
+  lowConfidence: { marginBottom: spacing.sm },
   paletteHead: { marginTop: spacing.xl },
   group: { marginTop: spacing.md },
   groupTitle: { marginBottom: spacing.sm },

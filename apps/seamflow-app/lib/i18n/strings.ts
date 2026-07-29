@@ -24,6 +24,7 @@ import { designs } from './locales/designs';
 import { invoices } from './locales/invoices';
 import { guides } from './locales/guides';
 import { misc } from './locales/misc';
+import { assistant } from './locales/assistant';
 
 export type LanguageCode = 'en' | 'fr';
 
@@ -48,6 +49,7 @@ export const translations = {
     invoices: invoices.en,
     guides: guides.en,
     misc: misc.en,
+    assistant: assistant.en,
   },
   fr: {
     common: common.fr,
@@ -64,6 +66,7 @@ export const translations = {
     invoices: invoices.fr,
     guides: guides.fr,
     misc: misc.fr,
+    assistant: assistant.fr,
   },
 } as const;
 

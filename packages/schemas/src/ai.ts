@@ -48,3 +48,51 @@ export const AiSummarizeNotesResponseSchema = z.object({
   text: z.string(),
 });
 export type AiSummarizeNotesResponse = z.infer<typeof AiSummarizeNotesResponseSchema>;
+
+// ============================================================================
+// AI photo→measurements — "scan to measurement".
+//
+// One extraction, two uses (see docs/measurement-scan-plan.md):
+//   mode 'template'     → read measurement NAMES off a blank booklet page
+//                         (every item's `value` is null) → pre-fill a template.
+//   mode 'measurements' → read name + handwritten NUMBER pairs off a client's
+//                         filled sheet → pre-fill a measurement set.
+//
+// The endpoint never saves anything — the app always lands the result on an
+// editable form for review. Labels are returned exactly as read; locale
+// normalization happens client-side (the app owns the i18n dictionary).
+// ============================================================================
+
+export const AiExtractModeSchema = z.enum(['template', 'measurements']);
+export type AiExtractMode = z.infer<typeof AiExtractModeSchema>;
+
+/** Body for POST /ai/extract-measurements. `storagePath` points at an image
+ *  the caller's tailor owns (same ownership rule as describe-image). */
+export const AiExtractMeasurementsRequestSchema = z.object({
+  storagePath: z.string().min(1),
+  mode: AiExtractModeSchema,
+});
+export type AiExtractMeasurementsRequest = z.infer<
+  typeof AiExtractMeasurementsRequestSchema
+>;
+
+/** One measurement line as read off the page. `value` is null in template
+ *  mode and for blank cells; `confidence: 'low'` flags rows the UI should
+ *  highlight for review. */
+export const ExtractedMeasurementItemSchema = z.object({
+  label: z.string().min(1),
+  unit: z.enum(['cm', 'in']).nullable(),
+  value: z.number().positive().nullable(),
+  confidence: z.enum(['high', 'low']).optional(),
+});
+export type ExtractedMeasurementItem = z.infer<typeof ExtractedMeasurementItemSchema>;
+
+export const AiExtractMeasurementsResponseSchema = z.object({
+  mode: AiExtractModeSchema,
+  /** Page-level unit hint when the sheet states one (e.g. "all in cm"). */
+  detectedUnit: z.enum(['cm', 'in']).nullable(),
+  items: z.array(ExtractedMeasurementItemSchema),
+});
+export type AiExtractMeasurementsResponse = z.infer<
+  typeof AiExtractMeasurementsResponseSchema
+>;

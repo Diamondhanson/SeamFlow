@@ -24,6 +24,7 @@ import { GroupOrderPhotosModule } from './group-order-photos/group-order-photos.
 import { ConsumerModule } from './consumer/consumer.module';
 import { DesignsModule } from './designs/designs.module';
 import { AiModule } from './ai/ai.module';
+import { AssistantModule } from './assistant/assistant.module';
 import { ShareLinksModule } from './share-links/share-links.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { PublicModule } from './public/public.module';
@@ -58,6 +59,7 @@ import { RemindersModule } from './notifications/reminders.module';
     ConsumerModule,
     DesignsModule,
     AiModule,
+    AssistantModule,
     ShareLinksModule,
     InvoicesModule,
     PublicModule,

@@ -1,0 +1,188 @@
+// ============================================================================
+// Voice — Tier 1, fully on-device (docs/tailor-copilot-plan.md §8).
+//
+// A sandwich around the copilot: speech-to-text fills the chat input
+// (expo-speech-recognition → native iOS Speech / Android SpeechRecognizer),
+// text-to-speech reads replies aloud (expo-speech). Nothing leaves the device
+// for voice, and the copilot itself is untouched.
+//
+// Both modules are LAZY-LOADED: `expo-speech-recognition` is a community
+// module and older dev builds won't contain either native module — requiring
+// them at import time would crash the app on startup. Instead callers probe
+// `getVoiceSupport()` and degrade gracefully (mic explains it needs a
+// rebuild; replies just don't speak).
+// ============================================================================
+
+import type * as ExpoSpeech from 'expo-speech';
+import type {
+  ExpoSpeechRecognitionModule as SpeechRecModule,
+} from 'expo-speech-recognition';
+
+type SpeechModule = typeof ExpoSpeech;
+type RecognitionModule = typeof SpeechRecModule;
+
+// undefined = not probed yet; null = probed and unavailable on this build.
+let speechMod: SpeechModule | null | undefined;
+let recognitionMod: RecognitionModule | null | undefined;
+
+function getSpeech(): SpeechModule | null {
+  if (speechMod !== undefined) return speechMod;
+  try {
+    speechMod = require('expo-speech') as SpeechModule;
+  } catch {
+    speechMod = null;
+  }
+  return speechMod;
+}
+
+function getRecognition(): RecognitionModule | null {
+  if (recognitionMod !== undefined) return recognitionMod;
+  try {
+    const mod = require('expo-speech-recognition') as {
+      ExpoSpeechRecognitionModule: RecognitionModule;
+    };
+    recognitionMod = mod.ExpoSpeechRecognitionModule;
+  } catch {
+    recognitionMod = null;
+  }
+  return recognitionMod;
+}
+
+export interface VoiceSupport {
+  /** Speech-to-text (mic) available in this build. */
+  stt: boolean;
+  /** Text-to-speech (spoken replies) available in this build. */
+  tts: boolean;
+}
+
+export function getVoiceSupport(): VoiceSupport {
+  return { stt: getRecognition() !== null, tts: getSpeech() !== null };
+}
+
+/** BCP-47 recognizer/speech locale for the app language. */
+function localeFor(lang: 'en' | 'fr'): string {
+  return lang === 'fr' ? 'fr-FR' : 'en-US';
+}
+
+// ----------------------------------------------------------------------------
+// Speech-to-text
+// ----------------------------------------------------------------------------
+
+export async function requestMicPermission(): Promise<boolean> {
+  const rec = getRecognition();
+  if (!rec) return false;
+  try {
+    const res = await rec.requestPermissionsAsync();
+    return res.granted;
+  } catch {
+    return false;
+  }
+}
+
+export interface ListenCallbacks {
+  /** Streams while the tailor talks — live transcript for the input field. */
+  onPartial: (transcript: string) => void;
+  /** The finished utterance (may fire more than once on some platforms). */
+  onFinal: (transcript: string) => void;
+  /** The session ended (stop, natural pause, or error) — reset the mic UI. */
+  onEnd: () => void;
+  /** Recognition error (e.g. no speech detected). Code is platform-ish. */
+  onError?: (code: string) => void;
+}
+
+let listenSubs: { remove: () => void }[] = [];
+
+/**
+ * Start an on-device recognition session. Returns false when this build has
+ * no recognizer (old APK — show the "needs a rebuild" note instead).
+ */
+export function startListening(lang: 'en' | 'fr', cbs: ListenCallbacks): boolean {
+  const rec = getRecognition();
+  if (!rec) return false;
+
+  stopListeningCleanup();
+  listenSubs = [
+    rec.addListener('result', (event) => {
+      const transcript = event.results?.[0]?.transcript ?? '';
+      if (!transcript) return;
+      if (event.isFinal) cbs.onFinal(transcript);
+      else cbs.onPartial(transcript);
+    }),
+    rec.addListener('error', (event) => {
+      cbs.onError?.(event.error ?? 'unknown');
+    }),
+    rec.addListener('end', () => {
+      stopListeningCleanup();
+      cbs.onEnd();
+    }),
+  ];
+
+  try {
+    rec.start({
+      lang: localeFor(lang),
+      interimResults: true,
+      continuous: false,
+    });
+    return true;
+  } catch {
+    stopListeningCleanup();
+    return false;
+  }
+}
+
+/** Stop the current session (the `end` event still fires → onEnd). */
+export function stopListening(): void {
+  const rec = getRecognition();
+  if (!rec) return;
+  try {
+    rec.stop();
+  } catch {
+    // ignore
+  }
+}
+
+function stopListeningCleanup(): void {
+  for (const s of listenSubs) s.remove();
+  listenSubs = [];
+}
+
+// ----------------------------------------------------------------------------
+// Text-to-speech
+// ----------------------------------------------------------------------------
+
+/**
+ * Read `text` aloud in the app language. Returns false when unsupported.
+ * `onDone` fires on finish, stop, or error — always reset the UI from it.
+ */
+export function speak(
+  text: string,
+  lang: 'en' | 'fr',
+  cbs: { onStart?: () => void; onDone: () => void },
+): boolean {
+  const speech = getSpeech();
+  if (!speech) return false;
+  try {
+    speech.stop();
+    speech.speak(text, {
+      language: localeFor(lang),
+      onStart: cbs.onStart,
+      onDone: cbs.onDone,
+      onStopped: cbs.onDone,
+      onError: cbs.onDone,
+    });
+    return true;
+  } catch {
+    cbs.onDone();
+    return false;
+  }
+}
+
+export function stopSpeaking(): void {
+  const speech = getSpeech();
+  if (!speech) return;
+  try {
+    speech.stop();
+  } catch {
+    // ignore
+  }
+}

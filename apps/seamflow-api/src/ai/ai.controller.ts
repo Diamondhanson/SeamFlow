@@ -3,7 +3,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { AiService } from './ai.service';
-import { DescribeImageDto, SummarizeNotesDto } from './ai.dto';
+import {
+  DescribeImageDto,
+  ExtractMeasurementsDto,
+  SummarizeNotesDto,
+} from './ai.dto';
 
 @Controller('ai')
 export class AiController {
@@ -19,6 +23,15 @@ export class AiController {
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
     return this.ai.describeImage(tailorId, body.storagePath, body.mode);
+  }
+
+  @Post('extract-measurements')
+  async extractMeasurements(
+    @CurrentUser() user: AuthedUser,
+    @Body() body: ExtractMeasurementsDto,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.ai.extractMeasurements(tailorId, body.storagePath, body.mode);
   }
 
   @Post('summarize-notes')

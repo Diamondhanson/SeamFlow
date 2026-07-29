@@ -51,6 +51,21 @@ export const templates = {
     noFieldsYet: 'No measurements yet — add some below.',
     saveTemplate: 'Save template',
 
+    // scan-to-template (photo → pre-filled form)
+    scanTemplate: 'Scan a template',
+    scanSourceTitle: 'Scan a measurement page',
+    scanSourceBody: 'Take a clear, straight-on photo of a booklet page in good light — the fields fill in automatically for you to check before saving.',
+    scanReading: 'Reading your template…',
+    scanBanner: 'Extracted from your photo — check the names and units before saving.',
+    scanLowConfidence: 'Hard to read — double-check this one.',
+    scanEmptyTitle: 'Nothing readable',
+    scanEmptyBody: 'Couldn’t read any measurements from that photo. Try a clearer, straight-on shot — or add them by hand.',
+    scanUnavailableTitle: 'Scanning unavailable',
+    scanUnavailableBody: 'Scanning isn’t available right now — you can still build the template by hand.',
+    scanAttachTitle: 'Keep the photo?',
+    scanAttachBody: 'Attach the scanned page to this template as a reference image.',
+    scanAttachConfirm: 'Attach photo',
+
     detailTitle: 'Template',
     garmentLine: 'Garment: {garment}',
     measurementFieldsCount: 'Measurement fields ({count})',
@@ -110,6 +125,21 @@ export const templates = {
     groupOther: 'Autres',
     noFieldsYet: 'Aucune mesure — ajoutez-en ci-dessous.',
     saveTemplate: 'Enregistrer le modèle',
+
+    // scan-to-template (photo → formulaire pré-rempli)
+    scanTemplate: 'Scanner un modèle',
+    scanSourceTitle: 'Scanner une page de mesures',
+    scanSourceBody: 'Prenez une photo nette, bien de face et bien éclairée d’une page du carnet — les champs se remplissent automatiquement, à vérifier avant d’enregistrer.',
+    scanReading: 'Lecture de votre modèle…',
+    scanBanner: 'Extrait de votre photo — vérifiez les noms et les unités avant d’enregistrer.',
+    scanLowConfidence: 'Difficile à lire — vérifiez celle-ci.',
+    scanEmptyTitle: 'Rien de lisible',
+    scanEmptyBody: 'Impossible de lire des mesures sur cette photo. Essayez une photo plus nette, bien de face — ou ajoutez-les à la main.',
+    scanUnavailableTitle: 'Scan indisponible',
+    scanUnavailableBody: 'Le scan n’est pas disponible pour le moment — vous pouvez toujours créer le modèle à la main.',
+    scanAttachTitle: 'Garder la photo ?',
+    scanAttachBody: 'Joindre la page scannée à ce modèle comme image de référence.',
+    scanAttachConfirm: 'Joindre la photo',
 
     detailTitle: 'Modèle',
     garmentLine: 'Vêtement : {garment}',

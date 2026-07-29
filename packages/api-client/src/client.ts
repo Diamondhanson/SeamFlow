@@ -39,6 +39,10 @@ import {
 } from './resources/consumer';
 import { makeDesignsResource, type DesignsResource } from './resources/designs';
 import { makeAiResource, type AiResource } from './resources/ai';
+import {
+  makeAssistantResource,
+  type AssistantResource,
+} from './resources/assistant';
 import { makeSyncResource, type SyncResource } from './resources/sync';
 import {
   makeShareLinksResource,
@@ -74,6 +78,7 @@ export interface ApiClient {
   consumer: ConsumerResource;
   designs: DesignsResource;
   ai: AiResource;
+  assistant: AssistantResource;
   sync: SyncResource;
   shareLinks: ShareLinksResource;
   invoices: InvoicesResource;
@@ -113,6 +118,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     consumer: makeConsumerResource(http),
     designs: makeDesignsResource(http),
     ai: makeAiResource(http),
+    assistant: makeAssistantResource(http),
     sync: makeSyncResource(http),
     shareLinks: makeShareLinksResource(http),
     invoices: makeInvoicesResource(http),

@@ -180,6 +180,13 @@ export default function Home() {
       onPress: () => router.push('/(app)/designs'),
     },
     {
+      label: t('home.assistant'),
+      icon: 'sparkles',
+      tone: 'accent',
+      subtitle: t('home.assistantSubtitle'),
+      onPress: () => router.push('/(app)/assistant'),
+    },
+    {
       label: t('invoices.tileLabel'),
       icon: 'receipt',
       tone: 'warning',

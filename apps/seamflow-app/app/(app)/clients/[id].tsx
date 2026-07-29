@@ -7,13 +7,16 @@ import { Screen } from '../../../components/Screen';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
+import { HelpCard } from '../../../components/HelpCard';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
+import { MeasurementSheetScan } from '../../../components/MeasurementSheetScan';
 import {
   useClient,
   useCreateMeasurementSet,
   useDeleteClient,
   useDeleteMeasurementSet,
+  useMe,
   useMeasurementSets,
   useOrders,
 } from '../../../lib/queries';
@@ -42,6 +45,23 @@ export default function ClientDetail() {
   const [valuesJson, setValuesJson] = useState(
     '{\n  "chest": 88,\n  "waist": 70,\n  "hips": 96\n}',
   );
+  // Scan-a-filled-sheet flow (photo → reviewed measurement set)
+  const [scanOpen, setScanOpen] = useState(false);
+  const { data: me } = useMe();
+  const tailorId = me?.tailor?.id;
+
+  const chooseAddMethod = async () => {
+    const method = await dialog.choose<'scan' | 'manual'>({
+      title: t('clients.addMeasurementsTitle'),
+      message: t('clients.addMeasurementsBody'),
+      actions: [
+        { label: t('clients.scanFromPhoto'), value: 'scan' },
+        { label: t('clients.enterByHand'), value: 'manual' },
+      ],
+    });
+    if (method === 'scan') setScanOpen(true);
+    else if (method === 'manual') setShowForm(true);
+  };
 
   const client = clientQ.data ?? null;
   const sets = setsQ.data?.items ?? [];
@@ -123,6 +143,12 @@ export default function ClientDetail() {
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
+        <HelpCard
+          guideKey="flow.scanSheet"
+          icon="camera-outline"
+          title={t('guides.scanSheetTitle')}
+          message={t('guides.scanSheetBody')}
+        />
         <View style={styles.row}>
           <Text variant="h3">{t('clients.measurementSets')}</Text>
           {!showForm ? (
@@ -131,7 +157,7 @@ export default function ClientDetail() {
               variant="ghost"
               size="sm"
               fullWidth={false}
-              onPress={() => setShowForm(true)}
+              onPress={chooseAddMethod}
             />
           ) : null}
         </View>
@@ -188,6 +214,14 @@ export default function ClientDetail() {
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
         <Button label={t('clients.deleteClient')} variant="danger" onPress={onDeleteClient} />
       </ScrollView>
+
+      <MeasurementSheetScan
+        clientId={id}
+        tailorId={tailorId}
+        visible={scanOpen}
+        onClose={() => setScanOpen(false)}
+        onManualFallback={() => setShowForm(true)}
+      />
     </Screen>
   );
 }

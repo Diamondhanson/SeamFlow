@@ -8,6 +8,7 @@ export * from './order-photo';
 export * from './group-order-photo';
 export * from './design';
 export * from './ai';
+export * from './assistant';
 export * from './group-order';
 export * from './fabric';
 export * from './payment';

@@ -67,6 +67,16 @@ export default function TemplatesList() {
         {t('templates.starterHelp')}
       </Text>
       <View style={styles.starterChips}>
+        <Chip
+          label={t('templates.scanTemplate')}
+          tone="success"
+          onPress={() =>
+            router.push({
+              pathname: '/(app)/templates/new',
+              params: { scan: '1' },
+            })
+          }
+        />
         {STARTERS.map((g) => (
           <Chip
             key={g}

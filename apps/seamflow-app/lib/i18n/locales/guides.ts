@@ -44,6 +44,15 @@ export const guides = {
     invoicesTitle: 'Bills you can share',
     invoicesBody:
       'Turn a finished order into a bill you can send your client on WhatsApp.',
+    scanTemplateTitle: 'Skip the typing — scan it',
+    scanTemplateBody:
+      'Have a paper measurement booklet? Tap “Scan a template” and photograph a page — the measurement names fill in automatically for you to check and save.',
+    scanSheetTitle: 'Measurements from a photo',
+    scanSheetBody:
+      'Got a filled-in measurement sheet? Tap “+ Add” and choose “Scan from photo” — the names and numbers fill in for you to check before saving.',
+    assistantTitle: 'Your assistant',
+    assistantBody:
+      'Ask about your business — “what’s due this week?”, “who owes me?” — or tell it what to do: “create an order for Ama, due Friday.” It always shows a confirm card before anything is saved, and you can talk to it with the mic.',
 
     // ----- Info dots (tap-to-explain) -----
     infoTemplateTitle: 'Template',
@@ -109,6 +118,15 @@ export const guides = {
     invoicesTitle: 'Des factures à partager',
     invoicesBody:
       'Transformez une commande terminée en facture à envoyer à votre client sur WhatsApp.',
+    scanTemplateTitle: 'Évitez la saisie — scannez',
+    scanTemplateBody:
+      'Vous avez un carnet de mesures papier ? Touchez « Scanner un modèle » et photographiez une page — les noms des mesures se remplissent automatiquement, à vérifier puis enregistrer.',
+    scanSheetTitle: 'Des mesures à partir d’une photo',
+    scanSheetBody:
+      'Vous avez une fiche de mesures remplie ? Touchez « + Ajouter » puis « Scanner depuis une photo » — les noms et les nombres se remplissent, à vérifier avant d’enregistrer.',
+    assistantTitle: 'Votre assistant',
+    assistantBody:
+      'Interrogez-le sur votre activité — « qu’est-ce qui est dû cette semaine ? », « qui me doit de l’argent ? » — ou dites-lui quoi faire : « crée une commande pour Ama, pour vendredi ». Il affiche toujours une carte de confirmation avant d’enregistrer, et vous pouvez lui parler avec le micro.',
 
     // ----- Info dots (tap-to-explain) -----
     infoTemplateTitle: 'Modèle',

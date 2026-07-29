@@ -2,6 +2,8 @@ import type { HttpClient } from '../http';
 import type {
   AiDescribeImageRequest,
   AiDescribeImageResponse,
+  AiExtractMeasurementsRequest,
+  AiExtractMeasurementsResponse,
   AiSummarizeNotesRequest,
   AiSummarizeNotesResponse,
 } from '@seamflow/schemas';
@@ -16,6 +18,12 @@ export function makeAiResource(http: HttpClient) {
     /** Tidy a tailor's rough order notes into a clean summary. */
     summarizeNotes(input: AiSummarizeNotesRequest): Promise<AiSummarizeNotesResponse> {
       return http.post<AiSummarizeNotesResponse>('/ai/summarize-notes', input);
+    },
+    /** Read measurement names (and, for filled sheets, values) off a photo. */
+    extractMeasurements(
+      input: AiExtractMeasurementsRequest,
+    ): Promise<AiExtractMeasurementsResponse> {
+      return http.post<AiExtractMeasurementsResponse>('/ai/extract-measurements', input);
     },
   };
 }

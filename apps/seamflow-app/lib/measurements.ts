@@ -13,12 +13,16 @@
 // ============================================================================
 
 import type { TemplateField } from '@seamflow/schemas';
+import { measurements as measurementNames } from './i18n/locales/measurements';
 
-/** What the field editor works with — the tailor edits a name + toggles. */
+/** What the field editor works with — the tailor edits a name + toggles.
+ *  `lowConfidence` is set on fields pre-filled from a photo scan the AI
+ *  wasn't sure about — display-only, dropped at save time. */
 export interface EditableField {
   label: string;
   required?: boolean;
   unit?: 'cm' | 'in';
+  lowConfidence?: boolean;
 }
 
 /**
@@ -55,6 +59,97 @@ export interface MeasurementGroup {
   titleKey: string;
   /** i18n keys (measurements.*) for each measurement in the group. */
   keys: string[];
+}
+
+// ============================================================================
+// Label matching — normalize a label read off a scanned photo onto the app's
+// measurement vocabulary, so scanned templates stay consistent with hand-built
+// ones ("Poitrine" / "Chest" / "tour de poitrine" all collapse onto the
+// tailor's localized "Chest"). A miss keeps the raw label as-is — an unmatched
+// row is a fine outcome, not an error. Client-side on purpose: the app owns
+// the i18n dictionary and the active locale; the API returns what it read.
+// ============================================================================
+
+/** Common variants/abbreviations the en/fr vocabulary doesn't cover verbatim.
+ *  Keys are matched after `normalizeScannedLabel` (lowercased, accents and
+ *  punctuation stripped), values are `measurements.*` i18n keys. */
+const LABEL_SYNONYMS: Record<string, string> = {
+  // English variants
+  shoulders: 'shoulder',
+  hip: 'hips',
+  seat: 'hips',
+  burst: 'bust', // common sheet misspelling
+  sleeve: 'sleeveLength',
+  'long sleeve': 'sleeveLength',
+  'sleeve lenght': 'sleeveLength', // common sheet misspelling
+  'round sleeve': 'roundArm',
+  lap: 'thigh', // common West African usage
+  trouser: 'trouserLength',
+  'trousers length': 'trouserLength',
+  top: 'topLength',
+  'head size': 'head',
+  'cap size': 'cap',
+  // French variants
+  'tour de poitrine': 'chest',
+  'tour de taille': 'waist',
+  'tour de hanche': 'hips',
+  'tour de hanches': 'hips',
+  'tour de cou': 'neck',
+  epaule: 'shoulder',
+  epaules: 'shoulder',
+  hanche: 'hips',
+  manche: 'sleeveLength',
+  'longueur manche': 'sleeveLength',
+  'longueur des manches': 'sleeveLength',
+  'longueur pantalon': 'trouserLength',
+  cuisses: 'thigh',
+  genoux: 'knee',
+};
+
+/** Lowercase, strip accents + punctuation, collapse whitespace. */
+function normalizeScannedLabel(raw: string): string {
+  return raw
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// normalized label (en + fr + synonyms) → measurements.* key. Built once.
+let labelLookup: Map<string, string> | null = null;
+function getLabelLookup(): Map<string, string> {
+  if (labelLookup) return labelLookup;
+  const map = new Map<string, string>();
+  for (const group of MEASUREMENT_GROUPS) {
+    for (const mkey of group.keys) {
+      for (const lang of ['en', 'fr'] as const) {
+        const name = (measurementNames[lang] as Record<string, string>)[mkey];
+        if (name) map.set(normalizeScannedLabel(name), mkey);
+      }
+    }
+  }
+  for (const [syn, mkey] of Object.entries(LABEL_SYNONYMS)) {
+    map.set(normalizeScannedLabel(syn), mkey);
+  }
+  labelLookup = map;
+  return map;
+}
+
+/**
+ * Match a raw scanned label against the vocabulary. On a hit, returns the
+ * tailor's localized canonical name (via the caller's `t`); on a miss, the
+ * cleaned-up raw label — never dropped, the tailor can rename it.
+ */
+export function matchMeasurementLabel(
+  raw: string,
+  t: (key: string) => string,
+): { label: string; matched: boolean } {
+  const norm = normalizeScannedLabel(raw);
+  const mkey = norm ? getLabelLookup().get(norm) : undefined;
+  if (!mkey) return { label: raw.trim().replace(/\s+/g, ' '), matched: false };
+  return { label: t('measurements.' + mkey), matched: true };
 }
 
 export const MEASUREMENT_GROUPS: MeasurementGroup[] = [
