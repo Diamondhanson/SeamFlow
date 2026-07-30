@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { formatCurrency, currencyForCountry } from '@seamflow/utils';
 import type { InvoiceLineCategory, InvoiceLineItem } from '@seamflow/schemas';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { SkeletonForm } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card } from '../../../components/Card';
@@ -28,7 +29,6 @@ import {
   type InvoicePdfLabels,
 } from '../../../lib/invoice-pdf';
 import { spacing, useThemeColors } from '../../../lib/theme';
-import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
 
@@ -62,7 +62,6 @@ export default function InvoiceEditor() {
   const { t } = useTranslation();
   const { colors: atelier } = useAtelierTheme();
   const colors = useThemeColors();
-  const scroll = useFloatingScroll();
   const dialog = useDialog();
 
   const createM = useCreateInvoiceForOrder();
@@ -263,8 +262,7 @@ export default function InvoiceEditor() {
         title={invoice.number}
         subtitle={`${t(`invoices.status_${invoice.status}`)} · ${invoice.clientName ?? ''}`}
       />
-      <ScrollView
-        {...scroll}
+      <FormScroll
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
       >
@@ -381,7 +379,7 @@ export default function InvoiceEditor() {
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
         <Button label={t('invoices.deleteInvoice')} variant="danger" onPress={onDelete} />
-      </ScrollView>
+      </FormScroll>
     </Screen>
   );
 }

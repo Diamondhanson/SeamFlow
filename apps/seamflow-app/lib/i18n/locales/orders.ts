@@ -46,6 +46,10 @@ export const orders = {
     // Step 2: measurements
     clientLabel: 'Client: {name}',
     pickTemplate: 'Pick a template',
+    useSavedMeasurements: 'Use saved measurements',
+    pickSavedSet: 'Saved measurements',
+    savedSetOption: '{label} · {count} values',
+    prefilledFrom: '✓ Filled from saved measurements ({label}) — review before continuing.',
     templateHint:
       'Templates define which measurements to ask for. Skip if you want loose entries.',
     usingTemplate: 'Using: {name}',
@@ -70,8 +74,9 @@ export const orders = {
     requiredFieldMessage: '{label} is required by this template.',
 
     // Step 3: order
-    orderNameLabel: 'Order name *',
+    orderNameLabel: 'Order title *',
     orderNamePlaceholder: 'Aso ebi outfit, Suit for wedding…',
+    orderNameHelp: 'The whole job\u2019s title, as it appears in your orders list \u2014 we suggested one from the garments; change it freely.',
     deliveryDate: 'Delivery date',
     notesLabel: 'Notes / design specifications',
     tidyUp: 'Tidy up',
@@ -167,6 +172,10 @@ export const orders = {
     // Step 2: measurements
     clientLabel: 'Client : {name}',
     pickTemplate: 'Choisir un modèle',
+    useSavedMeasurements: 'Utiliser les mesures enregistrées',
+    pickSavedSet: 'Mesures enregistrées',
+    savedSetOption: '{label} · {count} valeurs',
+    prefilledFrom: '✓ Rempli à partir des mesures enregistrées ({label}) — vérifiez avant de continuer.',
     templateHint:
       'Les modèles définissent les mesures à demander. Ignorez pour des saisies libres.',
     usingTemplate: 'Modèle : {name}',
@@ -191,8 +200,9 @@ export const orders = {
     requiredFieldMessage: '{label} est requis par ce modèle.',
 
     // Step 3: order
-    orderNameLabel: 'Nom de la commande *',
+    orderNameLabel: 'Titre de la commande *',
     orderNamePlaceholder: 'Tenue aso ebi, costume de mariage…',
+    orderNameHelp: 'Le titre du travail complet, tel qu\u2019il appara\u00eet dans votre liste de commandes \u2014 nous en avons sugg\u00e9r\u00e9 un \u00e0 partir des v\u00eatements ; modifiez-le librement.',
     deliveryDate: 'Date de livraison',
     notesLabel: 'Notes / spécifications de conception',
     tidyUp: 'Mettre au propre',

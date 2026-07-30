@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { CountryCode } from 'libphonenumber-js';
 import type {
   Client,
+  MeasurementSet,
   MeasurementTemplate,
   MeasurementValues,
 } from '@seamflow/schemas';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
+import { FormScroll } from '../../components/FormScroll';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { HelpCard } from '../../components/HelpCard';
@@ -25,7 +27,6 @@ import { api } from '../../lib/api';
 import { useMe, useOrder, useClient } from '../../lib/queries';
 import type { DeviceContact } from '../../lib/contacts';
 import { spacing, useThemeColors } from '../../lib/theme';
-import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useDialog } from '../../lib/dialog';
 import { useGuides } from '../../lib/guides';
 import { useTranslation } from '../../lib/i18n';
@@ -45,6 +46,9 @@ type GarmentDraft = {
   garmentType: string;
   values: Record<string, string>;
   quantity: string;
+  /** Label of the saved measurement set the values were pre-filled from —
+   *  display-only, drives the "loaded from saved" note. */
+  prefilledFrom?: string;
 };
 
 let garmentSeq = 0;
@@ -69,7 +73,6 @@ function numericMeasurements(values: Record<string, string>): MeasurementValues 
 export default function NewOrderWizard() {
   const { t } = useTranslation();
   const colors = useThemeColors();
-  const scroll = useFloatingScroll();
   const dialog = useDialog();
   const { isDismissed, dismiss } = useGuides();
   const [step, setStep] = useState<Step>('client');
@@ -102,6 +105,9 @@ export default function NewOrderWizard() {
   // Step 2: garments (one order can hold several garments to sew)
   const [templates, setTemplates] = useState<MeasurementTemplate[]>([]);
   const [garments, setGarments] = useState<GarmentDraft[]>([makeGarment()]);
+  // The picked client's saved measurement sets — so a returning client's
+  // numbers are reused instead of retyped. Newest first.
+  const [clientSets, setClientSets] = useState<MeasurementSet[]>([]);
 
   // Step 3: order
   const [orderName, setOrderName] = useState('');
@@ -135,6 +141,27 @@ export default function NewOrderWizard() {
   useEffect(() => {
     if (step === 'measurements') loadTemplates();
   }, [step, loadTemplates]);
+
+  // Load the picked client's saved measurements as soon as they're chosen —
+  // best-effort: if it fails, the flow just behaves like a new client.
+  useEffect(() => {
+    let cancelled = false;
+    setClientSets([]);
+    if (!pickedClient) return;
+    void api.measurementSets
+      .listForClient(pickedClient.id)
+      .then((res) => {
+        if (cancelled) return;
+        const sorted = [...res.items].sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        );
+        setClientSets(sorted);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [pickedClient]);
 
   // Seed the wizard from an existing order once (duplicate / repeat). Templates
   // aren't stored on order items, so measurements come back as manual entries.
@@ -229,22 +256,78 @@ export default function NewOrderWizard() {
       gs.map((g) => (g.id === id ? { ...g, values: { ...g.values, [key]: v } } : g)),
     );
 
+  /** The saved set that best matches a template: prefer one created from this
+   *  exact template, else the newest set sharing at least one field key. */
+  const bestSetForTemplate = (tpl: MeasurementTemplate): MeasurementSet | null => {
+    const exact = clientSets.find((s) => s.templateId === tpl.id);
+    if (exact) return exact;
+    return (
+      clientSets.find((s) =>
+        tpl.fields.some((f) => s.values[f.key] !== undefined),
+      ) ?? null
+    );
+  };
+
   const pickTemplateForGarment = (id: string, tpl: MeasurementTemplate | null) =>
     setGarments((gs) =>
       gs.map((g) => {
         if (g.id !== id) return g;
         const seeded: Record<string, string> = {};
-        if (tpl) for (const f of tpl.fields) seeded[f.key] = '';
+        // Returning client: their saved numbers pre-fill the matching fields
+        // so nothing gets retyped — still fully editable before submitting.
+        const saved = tpl ? bestSetForTemplate(tpl) : null;
+        if (tpl) {
+          for (const f of tpl.fields) {
+            const v = saved?.values[f.key];
+            seeded[f.key] = v !== undefined ? String(v) : '';
+          }
+        }
         return {
           ...g,
           template: tpl,
           values: seeded,
+          prefilledFrom: saved ? saved.label : undefined,
           // Adopt the template's garment type, but never clobber a name the
           // tailor already typed.
           garmentType: g.garmentType || (tpl?.garmentType ?? ''),
         };
       }),
     );
+
+  /** Manual path: pick one of the client's saved sets and load its values —
+   *  into the template's fields when one is chosen, else as free entries. */
+  const fillFromSavedSet = async (id: string) => {
+    const g = garments.find((x) => x.id === id);
+    if (!g || clientSets.length === 0) return;
+    const key = await dialog.pick({
+      title: t('orders.pickSavedSet'),
+      options: clientSets.map((s) => ({
+        key: s.id,
+        label: t('orders.savedSetOption', {
+          label: s.label,
+          count: Object.keys(s.values).length,
+        }),
+      })),
+    });
+    if (!key) return;
+    const set = clientSets.find((s) => s.id === key);
+    if (!set) return;
+    setGarments((gs) =>
+      gs.map((x) => {
+        if (x.id !== id) return x;
+        const values: Record<string, string> = {};
+        if (x.template) {
+          for (const f of x.template.fields) {
+            const v = set.values[f.key];
+            values[f.key] = v !== undefined ? String(v) : (x.values[f.key] ?? '');
+          }
+        } else {
+          for (const [k, v] of Object.entries(set.values)) values[k] = String(v);
+        }
+        return { ...x, values, prefilledFrom: set.label };
+      }),
+    );
+  };
 
   const addGarment = () => setGarments((gs) => [...gs, makeGarment()]);
   const removeGarment = (id: string) =>
@@ -272,6 +355,17 @@ export default function NewOrderWizard() {
           }
         }
       }
+    }
+    // Kill the "name it twice" confusion: suggest the order's title from the
+    // garments + client so the tailor usually just confirms it. Never
+    // overwrites a title they already typed (or a duplicated order's name).
+    if (!orderName.trim()) {
+      const types = [...new Set(garments.map((g) => g.garmentType.trim()).filter(Boolean))];
+      const base = types
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(' + ');
+      const firstName = pickedName.trim().split(/\s+/)[0] ?? '';
+      if (base) setOrderName(firstName ? `${base} — ${firstName}` : base);
     }
     setStep('order');
   };
@@ -369,7 +463,7 @@ export default function NewOrderWizard() {
       </View>
 
       {step === 'client' ? (
-        <ScrollView {...scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
+        <FormScroll showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
           <HelpCard
             guideKey="flow.newOrder"
             title={t('guides.newOrderTitle')}
@@ -438,11 +532,11 @@ export default function NewOrderWizard() {
               </Card>
             ))
           )}
-        </ScrollView>
+        </FormScroll>
       ) : null}
 
       {step === 'measurements' && hasPicked ? (
-        <ScrollView {...scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
+        <FormScroll showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
           <Text variant="body" tone="textMuted" style={styles.context}>
             <Text variant="body" tone="text" style={styles.contextStrong}>{t('orders.clientLabel', { name: pickedName })}</Text>
           </Text>
@@ -503,6 +597,24 @@ export default function NewOrderWizard() {
                 }}
               />
 
+              {clientSets.length > 0 ? (
+                <>
+                  <View style={{ height: spacing.sm }} />
+                  <Button
+                    label={t('orders.useSavedMeasurements')}
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => void fillFromSavedSet(g.id)}
+                  />
+                </>
+              ) : null}
+
+              {g.prefilledFrom ? (
+                <Text variant="caption" tone="success" style={styles.prefilledNote}>
+                  {t('orders.prefilledFrom', { label: g.prefilledFrom })}
+                </Text>
+              ) : null}
+
               {g.template && g.template.fields.length > 0 ? (
                 <>
                   <Text variant="bodySm" tone="textMuted" style={styles.section}>
@@ -545,11 +657,11 @@ export default function NewOrderWizard() {
           />
           <View style={{ height: spacing.md }} />
           <Button label={t('orders.nextOrder')} onPress={goToOrderStep} />
-        </ScrollView>
+        </FormScroll>
       ) : null}
 
       {step === 'order' && hasPicked ? (
-        <ScrollView {...scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
+        <FormScroll showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
           <Text variant="body" tone="textMuted" style={styles.context}>
             <Text variant="body" tone="text" style={styles.contextStrong}>{t('orders.clientLabel', { name: pickedName })}</Text>
           </Text>
@@ -560,6 +672,9 @@ export default function NewOrderWizard() {
             onChangeText={setOrderName}
             placeholder={t('orders.orderNamePlaceholder')}
           />
+          <Text variant="caption" tone="textMuted" style={styles.nameHelp}>
+            {t('orders.orderNameHelp')}
+          </Text>
           <DateField
             label={t('orders.deliveryDate')}
             value={orderDate}
@@ -603,7 +718,7 @@ export default function NewOrderWizard() {
             variant="secondary"
             onPress={() => setStep('measurements')}
           />
-        </ScrollView>
+        </FormScroll>
       ) : null}
 
       <ContactPickerModal
@@ -691,6 +806,8 @@ function FreeMeasurements({
 }
 
 const styles = StyleSheet.create({
+  prefilledNote: { marginTop: spacing.sm },
+  nameHelp: { marginTop: 4, marginBottom: spacing.sm },
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',

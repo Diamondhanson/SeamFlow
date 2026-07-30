@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { Text, AvatarStack, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { InfoDot } from '../../../components/InfoDot';
@@ -36,7 +37,6 @@ import { pickPhoto, uploadAndRegisterGroupPhoto } from '../../../lib/photo-uploa
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useResponsiveValue } from '../../../lib/use-breakpoint';
-import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
 
@@ -54,7 +54,6 @@ export default function GroupDetail() {
   const colors = useThemeColors();
   const theme = useAtelierTheme();
   const dialog = useDialog();
-  const scroll = useFloatingScroll();
   const thumbSize = useResponsiveValue({ compact: 120, medium: 140, expanded: 160 });
 
   const [showForm, setShowForm] = useState(false);
@@ -171,8 +170,7 @@ export default function GroupDetail() {
   return (
     <Screen>
       <ScreenHeader title={group.name} />
-      <ScrollView
-        {...scroll}
+      <FormScroll
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
       >
@@ -410,7 +408,7 @@ export default function GroupDetail() {
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
         <Button label={t('groups.deleteGroupOrder')} variant="danger" onPress={onDeleteGroup} />
-      </ScrollView>
+      </FormScroll>
     </Screen>
   );
 }

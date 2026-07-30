@@ -14,13 +14,13 @@ import { nextOrderStatuses } from '@seamflow/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { Text, Chip, type ChipTone, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { FabricField } from '../../../components/FabricField';
 import { SkeletonDetail } from '../../../components/Skeleton';
-import { useFloatingScroll } from '../../../lib/floating-scroll';
 import {
   qk,
   useClient,
@@ -70,7 +70,6 @@ export default function OrderDetailScreen() {
   const dialog = useDialog();
   // Photos fill more of the (reading-width) detail column on larger screens.
   const thumbSize = useResponsiveValue({ compact: 120, medium: 140, expanded: 160 });
-  const scroll = useFloatingScroll();
 
   const order = orderQ.data ?? null;
   const photos = photosQ.data?.items ?? [];
@@ -180,8 +179,7 @@ export default function OrderDetailScreen() {
   return (
     <Screen>
       <ScreenHeader title={order.orderName} />
-      <ScrollView
-        {...scroll}
+      <FormScroll
         contentContainerStyle={{ paddingBottom: 96 }}
         showsVerticalScrollIndicator={false}
       >
@@ -281,9 +279,13 @@ export default function OrderDetailScreen() {
           right={uploading ? <ActivityIndicator color={colors.accent} /> : undefined}
         >
           <View style={styles.photoActions}>
+            {/* fullWidth={false} is load-bearing: the Button default is 100%
+                width, which made the camera button fill the row and push the
+                gallery button off-screen entirely. */}
             <Button
               label={t('orders.camera')}
               variant="secondary"
+              fullWidth={false}
               iconLeft={<Ionicons name="camera-outline" size={18} color={colors.text} />}
               onPress={() => addPhoto('camera')}
               disabled={uploading}
@@ -292,6 +294,7 @@ export default function OrderDetailScreen() {
             <Button
               label={t('orders.gallery')}
               variant="secondary"
+              fullWidth={false}
               iconLeft={<Ionicons name="images-outline" size={18} color={colors.text} />}
               onPress={() => addPhoto('library')}
               disabled={uploading}
@@ -455,7 +458,7 @@ export default function OrderDetailScreen() {
           <View style={{ height: spacing.md }} />
           <Button label={t('orders.deleteOrder')} variant="danger" onPress={deleteOrder} />
         </View>
-      </ScrollView>
+      </FormScroll>
     </Screen>
   );
 }

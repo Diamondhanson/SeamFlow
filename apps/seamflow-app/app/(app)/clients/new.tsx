@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
 import { PhoneInput } from '../../../components/PhoneInput';
@@ -56,10 +57,10 @@ export default function NewClient() {
   return (
     <Screen>
       <ScreenHeader title={t('clients.newClientTitle')} />
-      <ScrollView
+      <FormScroll
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+       
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         <Input
@@ -82,7 +83,7 @@ export default function NewClient() {
           loading={create.isPending}
           disabled={!canSubmit}
         />
-      </ScrollView>
+      </FormScroll>
     </Screen>
   );
 }

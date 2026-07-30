@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import {
@@ -21,6 +22,7 @@ import {
   Figtree_500Medium,
 } from '@expo-google-fonts/figtree';
 import { AtelierThemeProvider, semanticForMode } from '@seamflow/ui';
+import { api } from '../lib/api';
 import { AuthProvider } from '../lib/auth-context';
 import {
   installOfflineListeners,
@@ -52,6 +54,12 @@ function ThemedRoot() {
   // Hook NetInfo + AppState into TanStack Query exactly once.
   useEffect(() => {
     installOfflineListeners();
+    // Wake the API immediately — the free-tier host spins down when idle and
+    // takes ~30-60s to boot. Firing a throwaway ping at launch means the
+    // server warms up WHILE the user types their credentials / reads the
+    // home screen, instead of after their first real request. Fire-and-forget:
+    // failures (offline, timeout) are irrelevant here.
+    void api.health.check().catch(() => {});
   }, []);
 
   // Load the Atelier font stack. The app delays its first paint until
@@ -87,6 +95,10 @@ function ThemedRoot() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
       <SafeAreaProvider>
+        {/* Drives keyboard handling from the real IME insets — the OS-level
+            windowSoftInputMode is unreliable under edge-to-edge (RN 0.81+),
+            especially on tablets/Android 15+. */}
+        <KeyboardProvider>
         <PersistQueryClientProvider
           client={queryClient}
           persistOptions={{
@@ -147,6 +159,7 @@ function ThemedRoot() {
             </LanguageProvider>
           </AtelierThemeProvider>
         </PersistQueryClientProvider>
+        </KeyboardProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

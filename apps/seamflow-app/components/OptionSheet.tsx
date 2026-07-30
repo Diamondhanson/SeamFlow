@@ -1,13 +1,14 @@
 // ============================================================================
-// <OptionSheet> — a compact bottom-sheet menu for single-select filters.
+// <OptionSheet> — a centered card menu for single-select lists.
 //
 // Collapses a sprawling row of chips into one tidy control: a trigger pill
-// opens this sheet listing the options, each with a tone dot and a checkmark on
-// the active one. Tap an option (or the backdrop) to dismiss. Uses the shared
-// `overlay` / `scrim` tokens so the layering matches every other dialog.
+// opens this centered card listing the options, each with a tone dot and a
+// checkmark on the active one. Long lists scroll inside the card. Tap an
+// option (or the backdrop) to dismiss. Uses the shared `overlay` / `scrim`
+// tokens so the layering matches every other dialog.
 // ============================================================================
 
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
@@ -41,7 +42,7 @@ export function OptionSheet({
   const { colors } = useAtelierTheme();
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <Pressable
         style={[styles.backdrop, { backgroundColor: colors.scrim }]}
         onPress={onClose}
@@ -58,6 +59,7 @@ export function OptionSheet({
             </Pressable>
           </View>
 
+          <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
           {options.map((opt, i) => {
             const active = opt.key === selectedKey;
             const dot = opt.tone ? colors[opt.tone] : colors.textMuted;
@@ -88,6 +90,7 @@ export function OptionSheet({
               </Pressable>
             );
           })}
+          </ScrollView>
         </Pressable>
       </Pressable>
     </Modal>
@@ -95,18 +98,23 @@ export function OptionSheet({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: 'flex-end' },
+  backdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.l,
+  },
   sheet: {
     width: '100%',
-    maxWidth: 600,
+    maxWidth: 480,
+    maxHeight: '72%',
     alignSelf: 'center',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderRadius: 24,
     paddingTop: spacing.l,
     paddingHorizontal: spacing.l,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.l,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -6 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 24,

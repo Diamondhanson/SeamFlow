@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
@@ -22,7 +23,6 @@ import {
 } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useContactActions } from '../../../lib/contact-actions';
-import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
 
@@ -37,7 +37,6 @@ export default function ClientDetail() {
   const colors = useThemeColors();
   const dialog = useDialog();
   const contact = useContactActions();
-  const scroll = useFloatingScroll();
 
   // Inline new-measurement-set form
   const [showForm, setShowForm] = useState(false);
@@ -118,8 +117,7 @@ export default function ClientDetail() {
   return (
     <Screen>
       <ScreenHeader title={client.fullName} />
-      <ScrollView
-        {...scroll}
+      <FormScroll
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
       >
@@ -213,7 +211,7 @@ export default function ClientDetail() {
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
         <Button label={t('clients.deleteClient')} variant="danger" onPress={onDeleteClient} />
-      </ScrollView>
+      </FormScroll>
 
       <MeasurementSheetScan
         clientId={id}

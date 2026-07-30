@@ -2,8 +2,9 @@
 // <ScanOverlay> — labeled progress state for the AI scan step.
 //
 // Per the skeleton rule this is an async AI job, not a data fetch, so it gets
-// a progress message ("Reading your template…") with the picked photo dimmed
-// behind it — not a data skeleton and not a bare spinner.
+// a progress message ("Reading your template…") over the picked photo. The
+// backdrop is fully OPAQUE (theme background) — no translucency: the photo
+// sits in a rounded card at full strength with the progress row beneath it.
 // ============================================================================
 
 import { ActivityIndicator, Image, Modal, StyleSheet, View } from 'react-native';
@@ -16,23 +17,31 @@ export function ScanOverlay({
   label,
 }: {
   visible: boolean;
-  /** The picked photo, dimmed behind the progress badge. */
+  /** The picked photo, previewed while the AI reads it. */
   imageUri: string | null;
   /** Localized progress message — pass a t() result. */
   label: string;
 }) {
   const { colors } = useAtelierTheme();
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={[styles.backdrop, { backgroundColor: colors.scrim }]}>
+    <Modal visible={visible} animationType="fade">
+      <View style={[styles.screen, { backgroundColor: colors.bg }]}>
         {imageUri ? (
           <Image
             source={{ uri: imageUri }}
-            style={styles.image}
+            style={[
+              styles.image,
+              { backgroundColor: colors.surface, borderColor: colors.hairline },
+            ]}
             resizeMode="contain"
           />
         ) : null}
-        <View style={[styles.badge, { backgroundColor: colors.overlay }]}>
+        <View
+          style={[
+            styles.badge,
+            { backgroundColor: colors.surface, borderColor: colors.hairline },
+          ]}
+        >
           <ActivityIndicator color={colors.primary} />
           <Text variant="body" style={styles.badgeText}>
             {label}
@@ -44,21 +53,27 @@ export function ScanOverlay({
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  screen: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.lg,
+    gap: spacing.lg,
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.35,
+    width: '100%',
+    height: '60%',
+    borderRadius: radii.lg,
+    borderWidth: 1,
   },
   badge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.lg,
+    gap: spacing.md,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: radii.lg,
+    borderWidth: 1,
   },
-  badgeText: { marginTop: spacing.sm, textAlign: 'center' },
+  badgeText: { textAlign: 'center' },
 });

@@ -19,6 +19,7 @@ import {
 import { Screen } from '../../components/Screen';
 import { Tile } from '../../components/Tile';
 import { GettingStarted } from '../../components/GettingStarted';
+import { ColdStartBanner } from '../../components/ColdStartBanner';
 import { WelcomeSlides } from '../../components/WelcomeSlides';
 import { OrderCard } from '../../components/OrderCard';
 import { useAuth } from '../../lib/auth-context';
@@ -58,7 +59,7 @@ function greetingKeyFor(hour: number): 'goodMorning' | 'goodAfternoon' | 'goodEv
 
 export default function Home() {
   const { signOut } = useAuth();
-  const { data: me, error } = useMe();
+  const { data: me, error, isLoading: meLoading } = useMe();
   const { colors } = useAtelierTheme();
   const scroll = useFloatingScroll();
   const { t } = useTranslation();
@@ -71,12 +72,16 @@ export default function Home() {
   }, [error, signOut]);
 
   // Dashboard counts — lightweight list queries the app already caches.
-  const { data: ordersData } = useOrders({});
-  const { data: clientsData } = useClients('');
+  const { data: ordersData, isLoading: ordersLoading } = useOrders({});
+  const { data: clientsData, isLoading: clientsLoading } = useClients('');
   const { data: templatesData } = useTemplates();
   const { data: fabricsData } = useFabrics();
   const { data: groupsData } = useGroupOrders();
   const { data: invoicesData } = useInvoices();
+
+  // First-paint loading (no cached data yet — cold start / brand-new user).
+  // Returning users hydrate from the persisted cache and never see this.
+  const coldLoading = meLoading || ordersLoading || clientsLoading;
 
   const orders = ordersData?.items ?? [];
   const openOrders = orders.filter((o) => o.status !== 'delivered');
@@ -120,9 +125,13 @@ export default function Home() {
     countKey: string,
     emptyKey: string,
   ): Pick<HomeTile, 'subtitle' | 'subtitleNumeric'> =>
-    count === 0
-      ? { subtitle: t(emptyKey), subtitleNumeric: false }
-      : { subtitle: t(countKey, { count }), subtitleNumeric: true };
+    coldLoading
+      ? // Data still on its way — a quiet ellipsis beats a wrong "add your
+        // first client" prompt that flips once the server answers.
+        { subtitle: '…', subtitleNumeric: false }
+      : count === 0
+        ? { subtitle: t(emptyKey), subtitleNumeric: false }
+        : { subtitle: t(countKey, { count }), subtitleNumeric: true };
 
   const clientsCount = clientsData?.items.length ?? 0;
   const groupsCount = groupsData?.items.length ?? 0;
@@ -211,6 +220,10 @@ export default function Home() {
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
       >
+        {/* Names the wait when the API is cold-starting (shows only after ~3s
+            of pending first-load queries — warm opens never see it). */}
+        <ColdStartBanner loading={coldLoading} />
+
         {/* Greeting hero — the whole banner opens Settings; the avatar + gear
             in the corner signal that affordance. */}
         <Pressable

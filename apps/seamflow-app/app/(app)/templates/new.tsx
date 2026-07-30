@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
@@ -174,7 +175,7 @@ export default function NewTemplate() {
   return (
     <Screen>
       <ScreenHeader title={t('templates.newTitle')} />
-      <ScrollView keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets
+      <FormScroll keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: spacing.xl }}
       >
@@ -239,7 +240,7 @@ export default function NewTemplate() {
           loading={create.isPending}
           disabled={!name.trim()}
         />
-      </ScrollView>
+      </FormScroll>
 
       <ScanOverlay
         visible={scanning && scanningUri !== null}

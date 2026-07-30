@@ -4,7 +4,6 @@ import {
   Image,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -12,6 +11,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
@@ -24,7 +24,6 @@ import {
   useOrders,
 } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
-import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useDialog } from '../../../lib/dialog';
 import { useTranslation } from '../../../lib/i18n';
 
@@ -32,7 +31,6 @@ export default function DesignDetail() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, radii } = useAtelierTheme();
-  const scroll = useFloatingScroll();
   const dialog = useDialog();
 
   const designQ = useDesign(id);
@@ -120,7 +118,7 @@ export default function DesignDetail() {
   return (
     <Screen>
       <ScreenHeader title={t('designs.inspirationTitle')} />
-      <ScrollView {...scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
+      <FormScroll showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
         {url ? (
           <Image
             source={{ uri: url }}
@@ -154,7 +152,7 @@ export default function DesignDetail() {
 
         <View style={{ height: spacing.lg }} />
         <Button label={t('common.delete')} variant="danger" onPress={confirmDelete} loading={deleteM.isPending} />
-      </ScrollView>
+      </FormScroll>
 
       <AiDescribeSheet
         visible={describeOpen}

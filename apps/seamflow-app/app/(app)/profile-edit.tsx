@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
+import { FormScroll } from '../../components/FormScroll';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { CountryPickerModal } from '../../components/CountryPickerModal';
-import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useMe, useUpsertMyTailor } from '../../lib/queries';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { currencyForCountry } from '@seamflow/utils';
@@ -21,7 +21,6 @@ export default function ProfileEdit() {
   const upsert = useUpsertMyTailor();
   const { t } = useTranslation();
   const dialog = useDialog();
-  const scroll = useFloatingScroll();
 
   const [businessName, setBusinessName] = useState('');
   const [countryCode, setCountryCode] = useState('NG');
@@ -71,8 +70,7 @@ export default function ProfileEdit() {
   return (
     <Screen>
       <ScreenHeader title={t('settings.editProfile')} />
-      <ScrollView
-        {...scroll}
+      <FormScroll
         contentContainerStyle={{ paddingBottom: 96 }}
         showsVerticalScrollIndicator={false}
       >
@@ -111,7 +109,7 @@ export default function ProfileEdit() {
           loading={upsert.isPending}
           disabled={!businessName.trim() || countryCode.length !== 2 || currency.trim().length !== 3}
         />
-      </ScrollView>
+      </FormScroll>
 
       <CountryPickerModal
         visible={pickerOpen}

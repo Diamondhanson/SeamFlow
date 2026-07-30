@@ -12,12 +12,13 @@
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
-import { Image, Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Modal, StyleSheet, View } from 'react-native';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from './Screen';
 import { Card } from './Card';
 import { Input } from './Input';
 import { Button } from './Button';
+import { FormScroll } from './FormScroll';
 import { ScanOverlay } from './ScanOverlay';
 import {
   discardScanUpload,
@@ -288,12 +289,7 @@ export function MeasurementSheetScan({
           <Text variant="h2" style={styles.title}>
             {t('clients.scanReviewTitle')}
           </Text>
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            automaticallyAdjustKeyboardInsets
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: spacing.xl }}
-          >
+          <FormScroll contentContainerStyle={{ paddingBottom: spacing.xl }}>
             {previewUri ? (
               <Image
                 source={{ uri: previewUri }}
@@ -370,7 +366,7 @@ export function MeasurementSheetScan({
               variant="secondary"
               onPress={cancelReview}
             />
-          </ScrollView>
+          </FormScroll>
         </Screen>
       </Modal>
     </>

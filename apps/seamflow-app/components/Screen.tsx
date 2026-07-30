@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FormScroll } from './FormScroll';
 import { spacing, useThemeColors } from '../lib/theme';
 import { useContentWidth, type ContentWidth } from '../lib/use-breakpoint';
 
@@ -19,11 +20,10 @@ export function Screen({
    */
   width?: ContentWidth;
   /**
-   * Wrap the body in a keyboard-aware ScrollView. Use on any screen that has
-   * text inputs: the focused field scrolls to sit just above the keyboard —
-   * but ONLY when the keyboard would otherwise cover it (iOS
-   * `automaticallyAdjustKeyboardInsets`; Android window `adjustResize`). If
-   * nothing is covered, nothing moves.
+   * Wrap the body in a keyboard-aware scroll view (<FormScroll>). Use on any
+   * screen that has text inputs: the focused field scrolls to sit just above
+   * the keyboard, driven by the real IME insets — reliable on edge-to-edge
+   * Android (incl. tablets) and iOS alike.
    *
    * Don't set this on screens whose body is itself a FlatList or a ScrollView
    * (it would nest scroll views).
@@ -49,18 +49,15 @@ export function Screen({
       edges={['top', 'bottom', 'left', 'right']}
     >
       {scroll ? (
-        <ScrollView
+        <FormScroll
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          automaticallyAdjustKeyboardInsets
-          showsVerticalScrollIndicator={false}
         >
           <View style={[styles.grow, { width: bodyWidth }, padded && styles.padded]}>
             {children}
           </View>
-        </ScrollView>
+        </FormScroll>
       ) : (
         <View style={[styles.body, { width: bodyWidth }, padded && styles.padded]}>
           {children}

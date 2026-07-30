@@ -18,7 +18,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Keyboard,
-  KeyboardAvoidingView,
   Linking,
   Platform,
   Pressable,
@@ -26,6 +25,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
+// NOT react-native's KeyboardAvoidingView: this one is driven by the real IME
+// insets natively, so it works under edge-to-edge Android (incl. tablets)
+// where the OS-level pan/resize window modes are ignored.
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -458,10 +461,7 @@ export default function AssistantScreen() {
         />
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <FlatList
           ref={listRef}
           data={threadReady ? messages : []}

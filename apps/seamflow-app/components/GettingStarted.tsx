@@ -14,6 +14,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
+import { SkeletonLine } from './Skeleton';
 import { useGuides } from '../lib/guides';
 import { useMe, useClients, useOrders, useTemplates } from '../lib/queries';
 import { radii, spacing } from '../lib/theme';
@@ -64,7 +65,27 @@ export function GettingStarted() {
   const doneCount = steps.filter((s) => s.done).length;
   const allDone = doneCount === steps.length;
 
-  if (!ready || !loaded || allDone || isDismissed(GUIDE_KEY)) return null;
+  if (!ready || isDismissed(GUIDE_KEY)) return null;
+
+  // Data still loading (cold start / first sign-in): hold the checklist's spot
+  // with a shimmer card instead of rendering nothing — an empty stretch of
+  // screen reads as "broken", a loading card reads as "on its way".
+  if (!loaded) {
+    return (
+      <View
+        style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.hairline }]}
+      >
+        <Text variant="h3">{t('guides.checklistTitle')}</Text>
+        <View style={{ marginTop: spacing.md, gap: spacing.md }}>
+          <SkeletonLine width="70%" />
+          <SkeletonLine width="55%" />
+          <SkeletonLine width="62%" />
+        </View>
+      </View>
+    );
+  }
+
+  if (allDone) return null;
 
   return (
     <View

@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { Design } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { DesignViewer } from '../../../components/DesignViewer';
 import { SkeletonGrid } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { HelpCard } from '../../../components/HelpCard';
@@ -38,6 +39,10 @@ export default function DesignStudio() {
 
   const items = designsQ.data?.items ?? [];
   const tailorId = me?.tailor?.id;
+
+  // Fullscreen preview: tap a tile → viewer at that image; swipe l/r to browse,
+  // swipe down / ✕ to return. Details now open from the viewer's pencil button.
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   // Responsive masonry: 2 cols (phone) → 3 (medium) → 4 (expanded). Cell width
   // is computed from the same wide content width the <Screen> uses.
@@ -167,7 +172,7 @@ export default function DesignStudio() {
                   return (
                     <Pressable
                       key={item.id}
-                      onPress={() => router.push(`/(app)/designs/${item.id}`)}
+                      onPress={() => setViewerIndex(items.indexOf(item))}
                     >
                       {url ? (
                         <Image
@@ -209,6 +214,16 @@ export default function DesignStudio() {
           </View>
         </ScrollView>
       )}
+
+      <DesignViewer
+        items={items}
+        initialIndex={viewerIndex}
+        onClose={() => setViewerIndex(null)}
+        onOpenDetails={(id) => {
+          setViewerIndex(null);
+          router.push(`/(app)/designs/${id}`);
+        }}
+      />
     </Screen>
   );
 }

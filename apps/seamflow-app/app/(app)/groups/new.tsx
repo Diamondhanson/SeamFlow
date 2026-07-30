@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -11,6 +10,7 @@ import type { CountryCode } from 'libphonenumber-js';
 import type { GroupOrderWithMembersCreateInput } from '@seamflow/schemas';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
 import { PhoneInput } from '../../../components/PhoneInput';
@@ -154,10 +154,10 @@ export default function NewGroup() {
   return (
     <Screen>
       <ScreenHeader title={t('groups.newGroupOrder')} />
-      <ScrollView
+      <FormScroll
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+       
         contentContainerStyle={{ paddingBottom: spacing.xl }}
       >
         {/* ---------- 1. Title ---------- */}
@@ -364,7 +364,7 @@ export default function NewGroup() {
           loading={create.isPending}
           disabled={!canSubmit}
         />
-      </ScrollView>
+      </FormScroll>
 
       <ContactPickerModal
         visible={contactsOpen}
