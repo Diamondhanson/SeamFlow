@@ -14,7 +14,7 @@ import { Linking } from 'react-native';
 import type { DialogApi } from './dialog';
 
 /** What the app was trying to access when permission was denied. */
-export type PermissionKind = 'camera' | 'photos' | 'contacts';
+export type PermissionKind = 'camera' | 'photos' | 'contacts' | 'microphone';
 
 // Matches the shape of the app's `t()` — kept local so this module doesn't
 // depend on the i18n provider types.
@@ -72,6 +72,7 @@ const MESSAGE_KEY: Record<PermissionKind, string> = {
   camera: 'misc.cameraAccessOff',
   photos: 'misc.photosAccessOff',
   contacts: 'misc.contactsAccessOff',
+  microphone: 'misc.micAccessOff',
 };
 
 /**

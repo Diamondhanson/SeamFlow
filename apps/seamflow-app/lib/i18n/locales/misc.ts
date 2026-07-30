@@ -51,6 +51,8 @@ export const misc = {
       "Camera access is off. Enable it for this app in your phone's Settings to take photos.",
     photosAccessOff:
       "Photo access is off. Enable it for this app in your phone's Settings to choose a photo.",
+    micAccessOff:
+      "Microphone access is off. Enable Microphone for this app in your phone's Settings to talk to the assistant.",
     openSettings: 'Open Settings',
     photosOfflineTitle: "You're offline",
     photosOfflineBody:
@@ -128,6 +130,8 @@ export const misc = {
       'L’accès à l’appareil photo est désactivé. Activez-le pour cette application dans les réglages de votre téléphone pour prendre des photos.',
     photosAccessOff:
       'L’accès aux photos est désactivé. Activez-le pour cette application dans les réglages de votre téléphone pour choisir une photo.',
+    micAccessOff:
+      'L’accès au micro est désactivé. Activez le micro pour cette application dans les réglages de votre téléphone pour parler à l’assistant.',
     openSettings: 'Ouvrir les réglages',
     photosOfflineTitle: 'Vous êtes hors ligne',
     photosOfflineBody:

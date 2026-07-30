@@ -68,14 +68,20 @@ function localeFor(lang: 'en' | 'fr'): string {
 // Speech-to-text
 // ----------------------------------------------------------------------------
 
-export async function requestMicPermission(): Promise<boolean> {
+/** Ask for mic + speech-recognition access. `canAskAgain: false` means the OS
+ *  has permanently silenced its own prompt (a prior denial) — the only path
+ *  left is the app's Settings page, so callers must offer that. */
+export async function requestMicPermission(): Promise<{
+  granted: boolean;
+  canAskAgain: boolean;
+}> {
   const rec = getRecognition();
-  if (!rec) return false;
+  if (!rec) return { granted: false, canAskAgain: true };
   try {
     const res = await rec.requestPermissionsAsync();
-    return res.granted;
+    return { granted: res.granted, canAskAgain: res.canAskAgain ?? true };
   } catch {
-    return false;
+    return { granted: false, canAskAgain: true };
   }
 }
 

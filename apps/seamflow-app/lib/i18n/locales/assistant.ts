@@ -6,7 +6,7 @@ export const assistant = {
   en: {
     title: 'Assistant',
     subtitle: 'Ask about your business, or tell it what to do.',
-    inputPlaceholder: 'Ask anything — “what’s due this week?”',
+    inputPlaceholder: 'Ask anything…',
     send: 'Send',
     thinking: 'Thinking…',
     emptyHello: 'Ask me about your orders, clients, measurements or invoices — or tell me to create something. Nothing is saved without your confirmation.',
@@ -79,7 +79,7 @@ export const assistant = {
   fr: {
     title: 'Assistant',
     subtitle: 'Posez des questions sur votre activité, ou dites-lui quoi faire.',
-    inputPlaceholder: 'Demandez — « qu’est-ce qui est dû cette semaine ? »',
+    inputPlaceholder: 'Demandez-moi…',
     send: 'Envoyer',
     thinking: 'Réflexion…',
     emptyHello: 'Interrogez-moi sur vos commandes, clients, mesures ou factures — ou demandez-moi de créer quelque chose. Rien n’est enregistré sans votre confirmation.',

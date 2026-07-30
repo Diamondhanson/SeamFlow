@@ -53,7 +53,7 @@
         {
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos so you can attach reference images and order photos.",
           "cameraPermission": "Allow $(PRODUCT_NAME) to use your camera so you can photograph garments, fittings, and finished orders.",
-          "microphonePermission": false
+          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so you can talk to the assistant."
         }
       ],
       "expo-font",

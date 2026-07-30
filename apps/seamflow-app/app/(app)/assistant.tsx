@@ -25,10 +25,15 @@ import {
   TextInput,
   View,
 } from 'react-native';
-// NOT react-native's KeyboardAvoidingView: this one is driven by the real IME
-// insets natively, so it works under edge-to-edge Android (incl. tablets)
-// where the OS-level pan/resize window modes are ignored.
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+// KeyboardStickyView translates the composer bar in lockstep with the real
+// keyboard (native IME insets), and useReanimatedKeyboardAnimation drives the
+// matching list padding — reliable under edge-to-edge Android (phones and
+// tablets alike), where OS window modes and generic avoiding views misbehave.
+import {
+  KeyboardStickyView,
+  useReanimatedKeyboardAnimation,
+} from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -49,6 +54,7 @@ import { Button } from '../../components/Button';
 import { RichText, stripMarkdown } from '../../components/RichText';
 import { MarkdownText } from '../../components/MarkdownText';
 import { api, ApiError } from '../../lib/api';
+import { alertPermissionDenied } from '../../lib/permissions';
 import {
   ACTION_TITLE_KEY,
   DISPLAY_FIELD_KEY,
@@ -103,6 +109,15 @@ export default function AssistantScreen() {
 
   const listRef = useRef<FlatList<LocalChatMessage>>(null);
   const voice = useMemo(() => getVoiceSupport(), []);
+
+  // Keyboard-follow: the composer translates up by (keyboard − bottom inset)
+  // via KeyboardStickyView; the list gets the same amount of animated bottom
+  // padding so the newest messages stay visible above the raised bar.
+  const insets = useSafeAreaInsets();
+  const { height: kbHeight } = useReanimatedKeyboardAnimation(); // 0 → -kb px
+  const listKbPad = useAnimatedStyle(() => ({
+    paddingBottom: Math.max(0, -kbHeight.value - insets.bottom),
+  }));
 
   // ---- on-device thread: load per tailor, persist on every change ----------
   useEffect(() => {
@@ -277,13 +292,12 @@ export default function AssistantScreen() {
       });
       return;
     }
-    const granted = await requestMicPermission();
-    if (!granted) {
-      await dialog.alert({
-        title: t('assistant.micPermissionTitle'),
-        message: t('assistant.micPermissionBody'),
-        tone: 'warning',
-      });
+    const perm = await requestMicPermission();
+    if (!perm.granted) {
+      // Same recovery flow as camera/photos: when the OS has permanently
+      // silenced its own prompt (prior denial), offer Open Settings — a plain
+      // "allow the mic" alert would be a dead end the user can't act on.
+      await alertPermissionDenied('microphone', perm.canAskAgain, dialog, t);
       return;
     }
     const started = startListening(language, {
@@ -461,7 +475,7 @@ export default function AssistantScreen() {
         />
       </View>
 
-      <KeyboardAvoidingView style={styles.flex} behavior="padding">
+      <Animated.View style={[styles.flex, listKbPad]}>
         <FlatList
           ref={listRef}
           data={threadReady ? messages : []}
@@ -487,6 +501,9 @@ export default function AssistantScreen() {
           }
         />
 
+      </Animated.View>
+
+      <KeyboardStickyView offset={{ closed: 0, opened: insets.bottom }}>
         {listening ? (
           <View style={styles.listeningRow}>
             <PulsingDot color={colors.danger} />
@@ -547,7 +564,7 @@ export default function AssistantScreen() {
             <Ionicons name="arrow-up" size={20} color={colors.textOnPrimary} />
           </IconButton>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
     </Screen>
   );
 }
