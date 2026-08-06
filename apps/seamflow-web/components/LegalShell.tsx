@@ -4,6 +4,7 @@ import { getDict, withLang } from '../lib/i18n';
 import type { LegalDoc } from '../lib/legal';
 import { LEGAL_UPDATED } from '../lib/legal';
 import { Icon } from './icons';
+import { Wordmark } from './Wordmark';
 import { LangToggle } from './LangToggle';
 import { Footer } from './Footer';
 
@@ -34,7 +35,7 @@ export function LegalShell({
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-primary to-brand-lavender text-white">
               <Icon name="logo" className="h-4 w-4" />
             </span>
-            <span className="font-display text-base font-bold">SeamFlow</span>
+            <Wordmark className="h-4 w-auto" />
           </Link>
           <LangToggle lang={lang} />
         </div>

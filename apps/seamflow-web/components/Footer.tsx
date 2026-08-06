@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Dict, Lang } from '../lib/i18n';
 import { withLang } from '../lib/i18n';
 import { Icon } from './icons';
+import { Wordmark } from './Wordmark';
 import { LangToggle } from './LangToggle';
 
 export function Footer({ d, lang, year }: { d: Dict; lang: Lang; year: number }) {
@@ -15,7 +16,7 @@ export function Footer({ d, lang, year }: { d: Dict; lang: Lang; year: number })
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-primary to-brand-lavender text-white">
                 <Icon name="logo" className="h-4 w-4" />
               </span>
-              <span className="font-display text-base font-bold">SeamFlow</span>
+              <Wordmark className="h-4 w-auto" />
             </div>
             <p className="mt-3 text-sm leading-relaxed text-brand-muted">{f.tagline}</p>
           </div>

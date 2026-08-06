@@ -1,3 +1,5 @@
+import { Wordmark } from '../components/Wordmark';
+
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-5 py-20 text-center">
@@ -10,7 +12,7 @@ export default function NotFound() {
         your tailor.
       </p>
       <p className="mt-10 text-xs text-muted">
-        <span className="font-display font-semibold text-ink/70">SeamFlow</span>
+        <Wordmark className="h-4 w-auto opacity-70" />
       </p>
     </main>
   );

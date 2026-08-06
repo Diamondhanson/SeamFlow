@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Dict, Lang } from '../lib/i18n';
 import { Icon } from './icons';
+import { Wordmark } from './Wordmark';
 import { LangToggle } from './LangToggle';
 
 export function Nav({ d, lang }: { d: Dict; lang: Lang }) {
@@ -37,7 +38,7 @@ export function Nav({ d, lang }: { d: Dict; lang: Lang }) {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-primary to-brand-lavender text-white shadow-glow">
             <Icon name="logo" className="h-5 w-5" />
           </span>
-          <span className="font-display text-lg font-bold tracking-tight">SeamFlow</span>
+          <Wordmark className="h-[18px] w-auto" />
         </a>
 
         <div className="hidden items-center gap-7 md:flex">
