@@ -26,8 +26,8 @@ export const linen = {
   clay: '#D9C6AE', // warm neutral chip / divider tint
   ink: '#1A1714', // primary text — warm near-black, never #000
   inkMuted: '#5B554F', // secondary text
-  indigo: '#2632A8', // primary (dyed thread)
-  indigoSoft: '#4655D6', // hover / focus tint
+  violet: '#5A18C9', // primary — brand gradient's deep stop
+  violetSoft: '#7B30E8', // hover / focus tint — the wordmark purple
   copper: '#D9673D', // accent / warm pop
   sage: '#6DA869', // secondary / success
   rose: '#C63B2C', // error / destructive
@@ -44,8 +44,8 @@ export const midnight = {
   clay: '#2F2F40', // dark equivalent of the clay neutral
   cream: '#F2F0EB', // primary text — warm white, never #FFF
   creamMuted: '#A5A3A0',
-  lavender: '#8B7BFF', // primary (silk)
-  lavSoft: '#7A69F0', // hover / focus tint
+  lavender: '#C45BFF', // primary — brand gradient's light stop
+  lavSoft: '#B45CF5', // hover / focus tint
   peach: '#F2A66C', // accent / warm pop
   mint: '#55D6A0', // success
   rose: '#E9695D', // error / destructive
@@ -82,8 +82,8 @@ export const linenSemantic = {
   border: linen.clay,
 
   // Primary + accents
-  primary: linen.indigo,
-  primarySoft: linen.indigoSoft,
+  primary: linen.violet,
+  primarySoft: linen.violetSoft,
   accent: linen.copper,
   success: linen.sage,
   warning: linen.amber,
@@ -91,7 +91,7 @@ export const linenSemantic = {
 
   // Status badges (used by order pills)
   statusRegistered: linen.inkMuted,
-  statusInProgress: linen.indigo,
+  statusInProgress: linen.violet,
   statusTesting: linen.amber,
   statusOnPause: linen.rose,
   statusDelivered: linen.sage,

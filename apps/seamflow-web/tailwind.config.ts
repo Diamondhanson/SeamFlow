@@ -53,9 +53,9 @@ const config: Config = {
           muted: '#5B554F', // secondary text
           hairline: 'rgba(26,23,20,0.08)',
           border: 'rgba(26,23,20,0.12)',
-          primary: '#5A46E0', // poppier indigo-violet
-          primaryDeep: '#4634C4',
-          lavender: '#A89CFF', // gradient stop / soft primary
+          primary: '#7B30E8', // brand purple (wordmark)
+          primaryDeep: '#5A18C9', // brand gradient deep stop
+          lavender: '#C45BFF', // brand gradient light stop
           accent: '#F0875A', // bright coral-peach
           accentSoft: '#F8B79A',
           success: '#2FBF95', // brighter mint

@@ -119,9 +119,19 @@ export default function SignIn() {
           resizeMode="contain"
           accessibilityLabel="SeamFlow"
         />
-        <Text variant="display" tone="text">
-          SeamFlow
-        </Text>
+        {/* The real wordmark artwork, not typeset text — light/dark variants
+            keep "Seam" legible on either canvas ("Flow" is brand purple in
+            both). */}
+        <Image
+          source={
+            theme.mode === 'midnight'
+              ? require('../assets/images/wordmark-dark.png')
+              : require('../assets/images/wordmark-light.png')
+          }
+          style={styles.wordmark}
+          resizeMode="contain"
+          accessibilityLabel="SeamFlow"
+        />
         <Text variant="bodySm" tone="textMuted" style={{ marginTop: 4 }}>
           {t('auth.tagline')}
         </Text>
@@ -269,6 +279,11 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     marginBottom: spacing.md,
+  },
+  // Wordmark aspect ratio is 1201:186 (~6.45:1).
+  wordmark: {
+    width: 200,
+    height: 31,
   },
   header: {
     alignItems: 'center',

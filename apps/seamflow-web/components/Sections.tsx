@@ -157,7 +157,7 @@ export function Gallery({ d }: { d: Dict }) {
 export function Cta({ d }: { d: Dict }) {
   return (
     <section id="get-app" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 sm:py-24">
-      <div className="relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-primary via-brand-primaryDeep to-[#2B1F86] p-10 text-center text-white shadow-glow sm:p-16">
+      <div className="relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-primary via-brand-primaryDeep to-[#41109B] p-10 text-center text-white shadow-glow sm:p-16">
         <div aria-hidden="true" className="absolute -left-16 -top-16 h-56 w-56 transform-gpu rounded-full bg-brand-lavender/30 blur-3xl" />
         <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 transform-gpu rounded-full bg-brand-accent/25 blur-3xl" />
         <div className="relative">
