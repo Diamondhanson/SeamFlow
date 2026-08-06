@@ -98,15 +98,16 @@ export const Icons: Record<string, (p: IconProps) => JSX.Element> = {
       <path d="M12 3.5c.6 3.9 1.6 4.9 5.5 5.5-3.9.6-4.9 1.6-5.5 5.5-.6-3.9-1.6-4.9-5.5-5.5 3.9-.6 4.9-1.6 5.5-5.5Z" />
     </S>
   ),
+  // SeamFlow scissors mark — the brand logo, drawn as a stroke icon so it
+  // inherits currentColor like every other icon here. The filled/gradient
+  // version lives in assets/brand for icons and app stores.
   logo: ({ className }) => (
     <S className={className}>
-      {/* SeamFlow spool mark */}
-      <path d="M6.5 7h11" strokeWidth={2.2} />
-      <path d="M6.5 17.5h11" strokeWidth={2.2} />
-      <path d="M9 10.2h6" strokeWidth={1.5} />
-      <path d="M9 12h6" strokeWidth={1.5} />
-      <path d="M9 13.8h6" strokeWidth={1.5} />
-      <path d="M15 13.8c2.7 .4 2.8 4.9 0 5.1" strokeWidth={1.5} />
+      <circle cx="7" cy="17.2" r="3" strokeWidth={1.7} />
+      <circle cx="17" cy="17.2" r="3" strokeWidth={1.7} />
+      <path d="M8.8 14.6 17.5 3.6" strokeWidth={1.7} />
+      <path d="M15.2 14.6 6.5 3.6" strokeWidth={1.7} />
+      <circle cx="12" cy="11.4" r=".85" fill="currentColor" strokeWidth={0} />
     </S>
   ),
 };

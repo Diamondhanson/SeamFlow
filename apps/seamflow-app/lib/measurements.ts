@@ -138,6 +138,36 @@ function getLabelLookup(): Map<string, string> {
 }
 
 /**
+ * Tidy a stored measurement key for display. Keys come from templates or from
+ * scanned sheets, so they can carry the paper form's shorthand and shouting:
+ *
+ *   "B / ROUND HIPS"        → "Round hips"
+ *   "LT DOS / HALF LENGTH"  → "Half length"
+ *   "chest"                 → "Chest"
+ *
+ * The stored key is never changed — this is presentation only, so existing
+ * measurement sets keep working.
+ */
+export function prettyMeasurementLabel(key: string): string {
+  // Drop a leading abbreviation code ("B /", "LT DOS /", "HBP /") — short,
+  // all-caps/punctuation shorthand before a slash, never a real word phrase.
+  let label = key.trim();
+  const slash = label.indexOf('/');
+  if (slash > 0 && slash <= 8) {
+    const prefix = label.slice(0, slash).trim();
+    if (/^[A-Z0-9.\s]{1,8}$/.test(prefix)) label = label.slice(slash + 1).trim();
+  }
+  label = label.replace(/\s+/g, ' ');
+  if (!label) return key.trim();
+  // De-shout ALL-CAPS scans; leave mixed-case labels (tailor's own wording)
+  // exactly as written.
+  if (label === label.toUpperCase() && /[A-Z]{2,}/.test(label)) {
+    label = label.toLowerCase();
+  }
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/**
  * Match a raw scanned label against the vocabulary. On a hit, returns the
  * tailor's localized canonical name (via the caller's `t`); on a miss, the
  * cleaned-up raw label — never dropped, the tailor can rename it.
@@ -146,9 +176,13 @@ export function matchMeasurementLabel(
   raw: string,
   t: (key: string) => string,
 ): { label: string; matched: boolean } {
-  const norm = normalizeScannedLabel(raw);
+  // Strip the paper form's shorthand code ("B / ROUND HIPS") and de-shout
+  // before matching — both so the vocabulary lookup can hit, and so an
+  // unmatched label is still stored readably.
+  const cleaned = prettyMeasurementLabel(raw);
+  const norm = normalizeScannedLabel(cleaned);
   const mkey = norm ? getLabelLookup().get(norm) : undefined;
-  if (!mkey) return { label: raw.trim().replace(/\s+/g, ' '), matched: false };
+  if (!mkey) return { label: cleaned, matched: false };
   return { label: t('measurements.' + mkey), matched: true };
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   Image,
   Pressable,
@@ -23,6 +23,8 @@ import { ColdStartBanner } from '../../components/ColdStartBanner';
 import { WelcomeSlides } from '../../components/WelcomeSlides';
 import { OrderCard } from '../../components/OrderCard';
 import { useAuth } from '../../lib/auth-context';
+import { supabase } from '../../lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGuides } from '../../lib/guides';
 import {
   useMe,
@@ -64,12 +66,36 @@ export default function Home() {
   const scroll = useFloatingScroll();
   const { t } = useTranslation();
 
-  // If the JWT is dead, drop the session.
+  // 401 recovery. A single unauthorized response is NOT proof the session is
+  // dead — it's usually a token that expired while the app was backgrounded,
+  // caught mid-refresh by the parallel query burst on mount. Signing out on
+  // the first 401 caused spurious sign-outs (which also used to wipe a
+  // freshly-set PIN). Instead: try ONE explicit session refresh and rerun
+  // the queries; only sign out if the refresh itself fails, or if a second
+  // 401 arrives right after a successful refresh (the session really is
+  // dead server-side).
+  const qc = useQueryClient();
+  const authRecovery = useRef<'idle' | 'tried'>('idle');
   useEffect(() => {
-    if (error instanceof ApiError && error.isUnauthorized()) {
-      signOut();
+    if (!(error instanceof ApiError && error.isUnauthorized())) {
+      // Healthy again — re-arm recovery for a future, unrelated expiry.
+      if (!error) authRecovery.current = 'idle';
+      return;
     }
-  }, [error, signOut]);
+    if (authRecovery.current === 'tried') {
+      signOut();
+      return;
+    }
+    authRecovery.current = 'tried';
+    void (async () => {
+      const { data, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError || !data.session) {
+        signOut();
+      } else {
+        await qc.invalidateQueries();
+      }
+    })();
+  }, [error, signOut, qc]);
 
   // Dashboard counts — lightweight list queries the app already caches.
   const { data: ordersData, isLoading: ordersLoading } = useOrders({});

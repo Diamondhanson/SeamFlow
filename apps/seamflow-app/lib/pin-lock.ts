@@ -28,6 +28,11 @@ import * as Crypto from 'expo-crypto';
 const SALT_KEY = 'pin.salt.v1';
 const HASH_KEY = 'pin.hash.v1';
 const ATTEMPTS_KEY = 'pin.failed.v1';
+/** Supabase user id of whoever set the PIN. The PIN survives sign-out (so a
+ *  transient auth hiccup can't erase it), but a DIFFERENT account signing in
+ *  clears it — a shared device must never lock the next user behind the
+ *  previous user's PIN. */
+const OWNER_KEY = 'pin.owner.v1';
 
 export const PIN_LENGTH = 4;
 export const MAX_ATTEMPTS = 5;
@@ -87,14 +92,19 @@ export async function pinExists(): Promise<boolean> {
 
 /**
  * Set or replace the PIN. Caller is responsible for collecting a
- * confirmation (typed twice) before calling.
+ * confirmation (typed twice) before calling. `ownerUserId` records which
+ * account the PIN belongs to (see OWNER_KEY); pass null only when no
+ * session is available — the next sign-in adopts it.
  */
-export async function setPin(pin: string): Promise<void> {
+export async function setPin(pin: string, ownerUserId: string | null): Promise<void> {
   assertPinShape(pin);
   const salt = await getOrCreateSalt();
   const hash = await hashPin(pin, salt);
   await SecureStore.setItemAsync(HASH_KEY, hash);
   await SecureStore.deleteItemAsync(ATTEMPTS_KEY);
+  if (ownerUserId) {
+    await SecureStore.setItemAsync(OWNER_KEY, ownerUserId);
+  }
 }
 
 /**
@@ -104,8 +114,29 @@ export async function setPin(pin: string): Promise<void> {
 export async function clearPin(): Promise<void> {
   await SecureStore.deleteItemAsync(HASH_KEY);
   await SecureStore.deleteItemAsync(ATTEMPTS_KEY);
+  await SecureStore.deleteItemAsync(OWNER_KEY);
   // Keep the salt — re-using it on next setPin() is fine and avoids the
   // tiny chance of secure-store fragmenting if we churn salts.
+}
+
+/**
+ * Called on every sign-in: keep the PIN when the same account returns (so a
+ * transient sign-out never costs the user their PIN), clear it when a
+ * different account signs in (shared-device safety), and adopt ownerless
+ * legacy PINs for the signing-in account.
+ */
+export async function reconcilePinOwner(userId: string): Promise<void> {
+  if (!(await pinExists())) return;
+  const owner = await SecureStore.getItemAsync(OWNER_KEY);
+  if (!owner) {
+    // Legacy PIN from before ownership existed — whoever signs in first
+    // adopts it (in practice the device's single real user).
+    await SecureStore.setItemAsync(OWNER_KEY, userId);
+    return;
+  }
+  if (owner !== userId) {
+    await clearPin();
+  }
 }
 
 export interface VerifyResult {

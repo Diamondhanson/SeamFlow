@@ -27,6 +27,7 @@ export const clients = {
     // client detail
     clientTitle: 'Client',
     measurementSets: 'Measurement sets',
+    setCount: '{count} measurements',
     addSet: '+ Add',
     noMeasurementSets: 'No measurement sets yet.',
     labelLabel: 'Label',
@@ -107,6 +108,7 @@ export const clients = {
     // client detail
     clientTitle: 'Client',
     measurementSets: 'Jeux de mesures',
+    setCount: '{count} mesures',
     addSet: '+ Ajouter',
     noMeasurementSets: 'Aucun jeu de mesures pour le moment.',
     labelLabel: 'Libellé',

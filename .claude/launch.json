@@ -4,10 +4,9 @@
     {
       "name": "seamflow-web",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["next", "dev"],
+      "runtimeArgs": ["next", "dev", "--port", "3000"],
       "cwd": "apps/seamflow-web",
-      "port": 3000,
-      "autoPort": true
+      "port": 3000
     }
   ]
 }

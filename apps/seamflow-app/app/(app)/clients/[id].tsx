@@ -22,6 +22,8 @@ import {
   useOrders,
 } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
+import { prettyMeasurementLabel } from '../../../lib/measurements';
+import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useContactActions } from '../../../lib/contact-actions';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
@@ -235,16 +237,51 @@ function MeasurementSetCard({
 }) {
   const { t } = useTranslation();
   const dialog = useDialog();
+  const colors = useThemeColors();
   const del = useDeleteMeasurementSet(setId, clientId);
+  // Two columns on tablets/landscape, one on a phone — 17 measurements in a
+  // single narrow column is a wall of text on a wide screen.
+  const columns = useResponsiveValue({ compact: 1, medium: 2, expanded: 2 });
+  const entries = Object.entries(set.values);
+
   return (
     <Card>
-      <CardTitle>{set.label}</CardTitle>
-      {Object.entries(set.values).map(([k, v]) => (
-        <CardLine key={k}>
-          {k}: {String(v)} {set.unitPreference}
-        </CardLine>
-      ))}
-      <View style={{ marginTop: spacing.sm }}>
+      <View style={styles.setHead}>
+        <CardTitle>{set.label}</CardTitle>
+        <Text variant="caption" tone="textMuted">
+          {t('clients.setCount', { count: entries.length })}
+        </Text>
+      </View>
+
+      {/* Label left, value right, hairline between rows: the eye scans one
+          column of names and one column of numbers instead of decoding
+          "NAME: 94 cm" run-ons. */}
+      <View style={styles.measureGrid}>
+        {entries.map(([k, v]) => (
+          <View
+            key={k}
+            style={[
+              styles.measureRow,
+              { borderBottomColor: colors.hairline },
+              columns > 1 && styles.measureRowHalf,
+            ]}
+          >
+            <Text
+              variant="bodySm"
+              tone="textMuted"
+              style={styles.measureLabel}
+              numberOfLines={2}
+            >
+              {prettyMeasurementLabel(k)}
+            </Text>
+            <Text variant="bodySm" numeric style={styles.measureValue}>
+              {String(v)} {set.unitPreference}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={{ marginTop: spacing.md }}>
         <Button
           label={t('common.delete')}
           variant="danger"
@@ -261,6 +298,26 @@ function MeasurementSetCard({
 }
 
 const styles = StyleSheet.create({
+  setHead: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+  measureGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  measureRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    paddingVertical: 7,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  // Two-up on wide screens: just under half so the columns keep a gutter.
+  measureRowHalf: { width: '48%', marginRight: '4%' },
+  measureLabel: { flex: 1 },
+  measureValue: { flexShrink: 0 },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

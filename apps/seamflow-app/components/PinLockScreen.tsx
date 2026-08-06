@@ -18,7 +18,7 @@ import { useLock } from '../lib/lock-context';
 import { useAuth } from '../lib/auth-context';
 import { useDialog } from '../lib/dialog';
 import { useTranslation } from '../lib/i18n';
-import { MAX_ATTEMPTS, PIN_LENGTH, verifyPin } from '../lib/pin-lock';
+import { MAX_ATTEMPTS, PIN_LENGTH, clearPin, verifyPin } from '../lib/pin-lock';
 import { spacing, useThemeColors } from '../lib/theme';
 import { useBreakpoint } from '../lib/use-breakpoint';
 
@@ -70,6 +70,11 @@ export function PinLockScreen({ prompt }: Props) {
             message: t('misc.tooManyAttemptsBody', { max: MAX_ATTEMPTS }),
             tone: 'error',
           });
+          // The PIN no longer auto-clears on sign-out (it survives transient
+          // auth failures) — so these escape hatches must clear it
+          // explicitly, or the user would still be locked out after signing
+          // back in.
+          await clearPin();
           signOut();
         }
       } finally {
@@ -84,9 +89,10 @@ export function PinLockScreen({ prompt }: Props) {
   }, [pin]);
 
   // Forgetting the PIN isn't a lockout: the PIN is just a local gate, so the
-  // way back in is to sign out and log in again (which clears the PIN and lets
-  // them set a new one). Confirm first so an accidental tap doesn't sign them
-  // out, and reassure them their data is safe.
+  // way back in is to clear it and sign out (log in again, set a new one).
+  // The clear is explicit here — sign-out alone no longer removes the PIN.
+  // Confirm first so an accidental tap doesn't sign them out, and reassure
+  // them their data is safe.
   const onForgotPin = async () => {
     const ok = await dialog.confirm({
       title: t('misc.forgotPinConfirmTitle'),
@@ -94,6 +100,7 @@ export function PinLockScreen({ prompt }: Props) {
       confirmLabel: t('misc.forgotPinConfirmCta'),
     });
     if (!ok) return;
+    await clearPin();
     void signOut();
   };
 

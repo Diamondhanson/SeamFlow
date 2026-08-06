@@ -12,7 +12,7 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
 import { ensurePushRegistered, unregisterPushOnSignOut } from './notifications';
-import { clearPin } from './pin-lock';
+import { reconcilePinOwner } from './pin-lock';
 
 // Required so the in-app browser hands control back to the JS runtime on web
 // (no-op on native) when the auth session completes. Safe to call at module
@@ -132,14 +132,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ensurePushRegistered() is idempotent and never throws.
       if (newSession && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
         void ensurePushRegistered();
+        // PIN ownership check. The PIN deliberately SURVIVES sign-out now —
+        // clearing it there meant any transient auth failure (expired-token
+        // race, refresh-token revocation) silently deleted a freshly-set
+        // PIN. Instead: same account returning keeps its PIN; a DIFFERENT
+        // account signing in clears it (a shared device must never lock the
+        // next user behind the previous user's PIN). The forgot-PIN and
+        // too-many-attempts flows clear the PIN explicitly themselves.
+        void reconcilePinOwner(newSession.user.id);
       }
       if (event === 'SIGNED_OUT') {
         void unregisterPushOnSignOut();
-        // Clear the device PIN on sign-out. PINs live in the OS keychain
-        // which is shared across user accounts on the same install — if
-        // we kept it around, the next person to sign in would inherit
-        // (and be locked behind) the previous user's PIN.
-        void clearPin();
       }
     });
     unsub = () => sub.data.subscription.unsubscribe();

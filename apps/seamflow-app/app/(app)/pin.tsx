@@ -22,6 +22,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { PinDots, Dialpad } from '../../components/PinKeypad';
 import { useLock } from '../../lib/lock-context';
+import { useAuth } from '../../lib/auth-context';
 import { useDialog } from '../../lib/dialog';
 import { useTranslation } from '../../lib/i18n';
 import {
@@ -42,6 +43,7 @@ type Stage =
 export default function PinSettings() {
   const { t } = useTranslation();
   const { pinSet, refreshPinState, lock } = useLock();
+  const { session } = useAuth();
   const dialog = useDialog();
   const { isLandscape } = useBreakpoint();
   const [stage, setStage] = useState<Stage>({ kind: 'menu' });
@@ -127,7 +129,9 @@ export default function PinSettings() {
           setEntry('');
           return;
         }
-        await savePin(pin);
+        // Record who owns this PIN so it survives the same account's
+        // sign-out/sign-in cycles but is cleared for a different account.
+        await savePin(pin, session?.user.id ?? null);
         await refreshPinState();
         // Re-engage the gate so it's active on next background. We don't
         // call lock() right now — that would force the user to re-enter
