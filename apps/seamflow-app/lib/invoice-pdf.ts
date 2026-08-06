@@ -12,6 +12,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { formatCurrency } from '@seamflow/utils';
 import type { InvoiceLineItem } from '@seamflow/schemas';
+import { canGenerateNativePdf } from './platform-capabilities';
 
 export interface InvoicePdfLabels {
   invoice: string;
@@ -165,8 +166,27 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
 </html>`;
 }
 
-/** Render `html` to a PDF on-device and open the OS share sheet. */
+/**
+ * Render `html` to a PDF and hand it off.
+ *
+ * Native: expo-print → OS share sheet.
+ * Web: no expo-print, so open the invoice in a new window and trigger the
+ * browser's own print dialog — which offers "Save as PDF" everywhere. Same
+ * outcome (a PDF the tailor can send), different mechanism.
+ */
 export async function shareInvoicePdf(html: string, dialogTitle: string): Promise<void> {
+  if (!canGenerateNativePdf) {
+    const win = globalThis.open?.('', '_blank');
+    if (!win) {
+      throw new Error('Please allow pop-ups to print or save this invoice.');
+    }
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    // Let the document lay out (and any web fonts settle) before printing.
+    setTimeout(() => win.print(), 400);
+    return;
+  }
   const { uri } = await Print.printToFileAsync({ html });
   if (!(await Sharing.isAvailableAsync())) {
     throw new Error('Sharing is not available on this device');

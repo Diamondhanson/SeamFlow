@@ -31,6 +31,7 @@ import { Text } from '@seamflow/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
+import { isWeb } from '../lib/platform-capabilities';
 
 const CLOSE_DRAG = 110; // px of downward drag that commits the dismiss
 const CLOSE_VELOCITY = 0.7;
@@ -57,6 +58,34 @@ export function DesignViewer({
   useEffect(() => {
     if (initialIndex !== null) setIndex(initialIndex);
   }, [initialIndex]);
+
+  // Web: swiping is a touch idiom — with a mouse you expect arrow keys and
+  // Esc. Wire them up so the viewer is usable on a desktop browser.
+  useEffect(() => {
+    if (!isWeb || initialIndex === null) return;
+    const onKey = (ev: Event) => {
+      const e = ev as Event & { key: string };
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goTo(Math.min(index + 1, items.length - 1));
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goTo(Math.max(index - 1, 0));
+      }
+    };
+    globalThis.addEventListener?.('keydown', onKey);
+    return () => globalThis.removeEventListener?.('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialIndex, index, items.length]);
+
+  const listRef = useRef<FlatList<Design>>(null);
+  const goTo = (i: number) => {
+    setIndex(i);
+    listRef.current?.scrollToIndex({ index: i, animated: true });
+  };
 
   // Swipe-down-to-dismiss: image translates with the finger, backdrop fades.
   const dragY = useRef(new Animated.Value(0)).current;
@@ -102,6 +131,7 @@ export function DesignViewer({
         {...pan.panHandlers}
       >
         <FlatList
+          ref={listRef}
           data={items}
           keyExtractor={(d) => d.id}
           horizontal

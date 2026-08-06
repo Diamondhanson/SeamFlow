@@ -26,6 +26,7 @@ import Constants from 'expo-constants';
 import type * as ExpoNotifications from 'expo-notifications';
 import type { DevicePlatform } from '@seamflow/schemas';
 import { api } from './api';
+import { canUsePushNotifications } from './platform-capabilities';
 
 // Lazy-load native modules so a stale dev APK (built before 1.8 added push)
 // doesn't crash the whole app at module init. Each getter returns null when
@@ -80,6 +81,9 @@ let lastRegisteredToken: string | null = null;
  * project id, etc.). Never throws.
  */
 export async function ensurePushRegistered(): Promise<string | null> {
+  // Web has no native push (and web push is unreliable in iOS PWAs) — bail
+  // before touching any native module. See lib/platform-capabilities.ts.
+  if (!canUsePushNotifications) return null;
   try {
     const Device = getDevice();
     // If expo-device's native module isn't in the APK (stale dev build),
@@ -170,6 +174,7 @@ export async function sendPushTest(): Promise<number> {
  */
 export function useNotificationTapHandler(): void {
   useEffect(() => {
+    if (!canUsePushNotifications) return;
     const N = getNotifications();
     if (!N) return;
 

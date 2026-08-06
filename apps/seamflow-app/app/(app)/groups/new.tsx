@@ -27,6 +27,7 @@ import {
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { canPickContacts } from '../../../lib/platform-capabilities';
 
 // ============================================================================
 // New group order — atomic create flow.
@@ -208,12 +209,17 @@ export default function NewGroup() {
 
         {ownerMode === 'new' ? (
           <>
-            <Button
-              label={t('groups.selectFromContacts')}
-              variant="secondary"
-              onPress={() => setContactsOpen(true)}
-            />
-            <View style={{ height: spacing.sm }} />
+            {/* No address-book API in a browser — manual entry only there. */}
+            {canPickContacts ? (
+              <>
+                <Button
+                  label={t('groups.selectFromContacts')}
+                  variant="secondary"
+                  onPress={() => setContactsOpen(true)}
+                />
+                <View style={{ height: spacing.sm }} />
+              </>
+            ) : null}
             <Input
               label={t('groups.ownerNameLabel')}
               value={ownerFullName}

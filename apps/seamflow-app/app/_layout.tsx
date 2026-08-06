@@ -23,6 +23,8 @@ import {
 } from '@expo-google-fonts/figtree';
 import { AtelierThemeProvider, semanticForMode } from '@seamflow/ui';
 import { api } from '../lib/api';
+import { installWebStyles } from '../lib/web-styles';
+import { installPwa } from '../lib/pwa';
 import { AuthProvider } from '../lib/auth-context';
 import {
   installOfflineListeners,
@@ -54,6 +56,10 @@ function ThemedRoot() {
   // Hook NetInfo + AppState into TanStack Query exactly once.
   useEffect(() => {
     installOfflineListeners();
+    // Browser-only: cursor/hover/focus-ring/text-selection polish (no-op native).
+    installWebStyles();
+    // Manifest + iOS meta tags + app-shell service worker (no-op native).
+    installPwa();
     // Wake the API immediately — the free-tier host spins down when idle and
     // takes ~30-60s to boot. Firing a throwaway ping at launch means the
     // server warms up WHILE the user types their credentials / reads the

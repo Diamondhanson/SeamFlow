@@ -121,10 +121,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let unsub: (() => void) | undefined;
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+    // NEVER leave `loading` true on a rejection — a storage failure here used
+    // to hang the app on its splash spinner forever (this is exactly what
+    // broke the web build: expo-secure-store rejects in a browser). Treat any
+    // failure as "no session" and let the user sign in.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setSession(data.session))
+      .catch(() => setSession(null))
+      .finally(() => setLoading(false));
 
     const sub = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);

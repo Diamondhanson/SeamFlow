@@ -6,12 +6,14 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { createElement } from 'react';
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { useTranslation } from '../lib/i18n';
 import { radii, spacing, useThemeColors } from '../lib/theme';
+import { isWeb } from '../lib/platform-capabilities';
 
 interface DateFieldProps {
   label: string;
@@ -20,6 +22,12 @@ interface DateFieldProps {
   placeholder?: string;
   minimumDate?: Date;
   maximumDate?: Date;
+}
+
+/** `<input type="date">` wants a local yyyy-mm-dd string. */
+function toInputValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export function DateField({
@@ -66,14 +74,43 @@ export function DateField({
     <View style={styles.wrap}>
       <Text variant="caption" tone="textMuted" style={styles.label}>{label}</Text>
       <View style={styles.row}>
-        <Pressable
-          style={[styles.field, { backgroundColor: colors.card, borderColor: colors.hairline }]}
-          onPress={openPicker}
-        >
-          <Text variant="body" tone={value ? 'text' : 'textMuted'}>
-            {value ? formatDate(value) : placeholderText}
-          </Text>
-        </Pressable>
+        {isWeb ? (
+          // @react-native-community/datetimepicker has no web build — use the
+          // browser's own date input (calendar popover + typing + autofill).
+          <View
+            style={[styles.field, { backgroundColor: colors.card, borderColor: colors.hairline }]}
+          >
+            {/* eslint-disable-next-line react/no-unknown-property */}
+            {createElement('input', {
+              type: 'date',
+              value: value ? toInputValue(value) : '',
+              min: minimumDate ? toInputValue(minimumDate) : undefined,
+              max: maximumDate ? toInputValue(maximumDate) : undefined,
+              onChange: (e: { target: { value: string } }) => {
+                const v = e.target.value;
+                onChange(v ? new Date(v + 'T12:00:00') : null);
+              },
+              style: {
+                width: '100%',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: colors.text,
+                fontFamily: 'Inter_400Regular',
+                fontSize: 15,
+              },
+            })}
+          </View>
+        ) : (
+          <Pressable
+            style={[styles.field, { backgroundColor: colors.card, borderColor: colors.hairline }]}
+            onPress={openPicker}
+          >
+            <Text variant="body" tone={value ? 'text' : 'textMuted'}>
+              {value ? formatDate(value) : placeholderText}
+            </Text>
+          </Pressable>
+        )}
         {value ? (
           <Pressable
             style={[styles.clear, { borderColor: colors.hairline }]}
@@ -85,7 +122,7 @@ export function DateField({
       </View>
 
       {/* Android renders the native dialog inline. */}
-      {showPicker && !isIOS ? (
+      {showPicker && !isIOS && !isWeb ? (
         <DateTimePicker
           value={value ?? new Date()}
           mode="date"

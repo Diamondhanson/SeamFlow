@@ -13,11 +13,12 @@
 // - `right` is an optional node (e.g. an IconButton "+" or a prev/next pair).
 // ============================================================================
 
-import { type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme, spacing } from '@seamflow/ui';
+import { isWeb } from '../lib/platform-capabilities';
 
 export interface ScreenHeaderProps {
   title: string;
@@ -38,6 +39,17 @@ export function ScreenHeader({
   onBack,
 }: ScreenHeaderProps) {
   const { colors } = useAtelierTheme();
+
+  // Web: every screen renders this header, so it's the natural place to keep
+  // the browser tab / history entry in sync. Native ignores it.
+  useEffect(() => {
+    if (!isWeb || !title) return;
+    try {
+      if (globalThis.document) globalThis.document.title = `${title} · SeamFlow`;
+    } catch {
+      // no DOM — nothing to do
+    }
+  }, [title]);
 
   return (
     <View style={styles.container}>

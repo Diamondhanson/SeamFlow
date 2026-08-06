@@ -4,9 +4,27 @@
     {
       "name": "seamflow-web",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["next", "dev", "--port", "3000"],
+      "runtimeArgs": [
+        "next",
+        "dev",
+        "--port",
+        "3000"
+      ],
       "cwd": "apps/seamflow-web",
       "port": 3000
+    },
+    {
+      "name": "app-web-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "serve",
+        "dist",
+        "-l",
+        "4300",
+        "-s"
+      ],
+      "cwd": "apps/seamflow-app",
+      "port": 4300
     }
   ]
 }

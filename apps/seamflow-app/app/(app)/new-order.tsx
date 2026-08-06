@@ -30,6 +30,7 @@ import { spacing, useThemeColors } from '../../lib/theme';
 import { useDialog } from '../../lib/dialog';
 import { useGuides } from '../../lib/guides';
 import { useTranslation } from '../../lib/i18n';
+import { canPickContacts } from '../../lib/platform-capabilities';
 
 /** A person chosen for the order who isn't a saved client yet (picked from
  *  phone contacts). Materialized into a client on the server at submit. */
@@ -475,12 +476,17 @@ export default function NewOrderWizard() {
             onChangeText={(v) => { setSearch(v); loadClients(v); }}
             placeholder={t('orders.searchClientsPlaceholder')}
           />
-          <Button
-            label={t('orders.selectFromContacts')}
-            variant="secondary"
-            onPress={() => setContactsOpen(true)}
-          />
-          <View style={{ height: spacing.sm }} />
+          {/* No address-book API in a browser — manual entry only there. */}
+          {canPickContacts ? (
+            <>
+              <Button
+                label={t('orders.selectFromContacts')}
+                variant="secondary"
+                onPress={() => setContactsOpen(true)}
+              />
+              <View style={{ height: spacing.sm }} />
+            </>
+          ) : null}
           <Button
             label={t('orders.newClient')}
             variant="secondary"

@@ -54,6 +54,8 @@ export const misc = {
     micAccessOff:
       "Microphone access is off. Enable Microphone for this app in your phone's Settings to talk to the assistant.",
     openSettings: 'Open Settings',
+    installHintTitle: 'Add SeamFlow to your Home Screen',
+    installHintBody: 'Tap the Share button below, then choose “Add to Home Screen” — SeamFlow opens like an app, full screen.',
     photosOfflineTitle: "You're offline",
     photosOfflineBody:
       'Photos need a connection to upload. Reconnect and add them then.',
@@ -133,6 +135,8 @@ export const misc = {
     micAccessOff:
       'L’accès au micro est désactivé. Activez le micro pour cette application dans les réglages de votre téléphone pour parler à l’assistant.',
     openSettings: 'Ouvrir les réglages',
+    installHintTitle: 'Ajoutez SeamFlow à votre écran d’accueil',
+    installHintBody: 'Touchez le bouton Partager en bas, puis « Sur l’écran d’accueil » — SeamFlow s’ouvrira comme une application, en plein écran.',
     photosOfflineTitle: 'Vous êtes hors ligne',
     photosOfflineBody:
       'Les photos nécessitent une connexion pour être envoyées. Reconnectez-vous pour les ajouter.',

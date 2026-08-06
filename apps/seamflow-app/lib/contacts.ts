@@ -16,6 +16,7 @@
 
 import * as Contacts from 'expo-contacts';
 import { parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js';
+import { canPickContacts } from './platform-capabilities';
 
 export interface DeviceContact {
   /** Stable-ish id for list keys (contact id, or a name+phone fallback). */
@@ -33,6 +34,8 @@ export interface DeviceContact {
  * show a friendly "enable in Settings" message.
  */
 export async function ensureContactsPermission(): Promise<boolean> {
+  // No address-book API in the browser — callers fall back to manual entry.
+  if (!canPickContacts) return false;
   const current = await Contacts.getPermissionsAsync();
   if (current.granted) return true;
   if (current.canAskAgain === false) return false;

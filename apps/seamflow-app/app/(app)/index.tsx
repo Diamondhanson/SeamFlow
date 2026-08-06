@@ -20,6 +20,7 @@ import { Screen } from '../../components/Screen';
 import { Tile } from '../../components/Tile';
 import { GettingStarted } from '../../components/GettingStarted';
 import { ColdStartBanner } from '../../components/ColdStartBanner';
+import { InstallHint } from '../../components/InstallHint';
 import { WelcomeSlides } from '../../components/WelcomeSlides';
 import { OrderCard } from '../../components/OrderCard';
 import { useAuth } from '../../lib/auth-context';
@@ -249,6 +250,8 @@ export default function Home() {
         {/* Names the wait when the API is cold-starting (shows only after ~3s
             of pending first-load queries — warm opens never see it). */}
         <ColdStartBanner loading={coldLoading} />
+        {/* iOS Safari only — Android/Chrome prompts on its own. */}
+        <InstallHint />
 
         {/* Greeting hero — the whole banner opens Settings; the avatar + gear
             in the corner signal that affordance. */}

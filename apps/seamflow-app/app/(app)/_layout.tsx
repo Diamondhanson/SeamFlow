@@ -6,6 +6,8 @@ import { PinLockScreen } from '../../components/PinLockScreen';
 import { FloatingScrollProvider } from '../../lib/floating-scroll';
 import { useNotificationTapHandler } from '../../lib/notifications';
 import { useThemeColors } from '../../lib/theme';
+import { SideRail } from '../../components/SideRail';
+import { useBreakpoint } from '../../lib/use-breakpoint';
 
 export default function AppLayout() {
   const { session, loading } = useAuth();
@@ -35,6 +37,10 @@ export default function AppLayout() {
 }
 
 function GatedStack() {
+  // Rail only where there's real width to spare (desktop browsers, big
+  // tablets in landscape). Phones keep the tile-grid flow.
+  const { isExpanded } = useBreakpoint();
+  const showRail = isExpanded;
   const { ready, pinSet, locked } = useLock();
   const colors = useThemeColors();
 
@@ -60,6 +66,11 @@ function GatedStack() {
   return (
     <FloatingScrollProvider>
       <View style={[styles.flex, { backgroundColor: colors.bg }]}>
+        {/* Wide screens get a persistent nav rail beside the stack so you
+            don't have to return to the home grid to switch sections. */}
+        <View style={showRail ? styles.railRow : styles.flex}>
+        {showRail ? <SideRail /> : null}
+        <View style={styles.flex}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -85,6 +96,8 @@ function GatedStack() {
             options={{ presentation: 'modal', gestureEnabled: true }}
           />
         </Stack>
+        </View>
+        </View>
 
         {/* PIN gate rendered as an overlay ON TOP of the Stack — not in place
             of it. Swapping the Stack out unmounts the whole navigator, so on
@@ -102,6 +115,7 @@ function GatedStack() {
 }
 
 const styles = StyleSheet.create({
+  railRow: { flex: 1, flexDirection: 'row' },
   flex: { flex: 1 },
   center: {
     flex: 1,

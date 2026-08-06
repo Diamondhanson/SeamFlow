@@ -11,6 +11,32 @@ async function bootstrap(): Promise<void> {
   const config = app.get(ConfigService);
   const port = config.get<number>('PORT', 3000);
 
+  // CORS — required only by the browser build (docs/web-app-plan.md). Native
+  // apps send no Origin, so this was never needed before; without it the web
+  // app loads but every data call is blocked by the browser.
+  //
+  // Allowed: the production web app, the marketing site, local dev servers,
+  // and any preview deployment (Vercel/Render) via the extra origins env var.
+  const extraOrigins = (config.get<string>('WEB_ORIGINS') ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  app.enableCors({
+    origin: [
+      'https://app.seamflowtech.com',
+      'https://www.seamflowtech.com',
+      'https://seamflowtech.com',
+      /^http:\/\/localhost:\d+$/,
+      /\.vercel\.app$/,
+      /\.onrender\.com$/,
+      ...extraOrigins,
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400,
+  });
+
   await app.listen(port);
 
   const logger = new Logger('Bootstrap');
