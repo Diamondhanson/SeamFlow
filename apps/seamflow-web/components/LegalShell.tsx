@@ -27,7 +27,7 @@ export function LegalShell({
   const year = new Date().getFullYear();
 
   return (
-    <div className="marketing min-h-screen">
+    <div className="marketing min-h-screen" lang={lang}>
       {/* Minimal header */}
       <header className="sticky top-0 z-50 border-b border-brand-hairline bg-brand-bg/95">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-3">
@@ -79,7 +79,7 @@ export function LegalShell({
         </div>
       </main>
 
-      <Footer d={d} lang={lang} year={year} />
+      <Footer d={d} lang={lang} year={year} onHome={false} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState, type AppStateStatus } from 'react-native';
 import { registerMutationDefaults } from './mutation-defaults';
+import { isWeb } from './platform-capabilities';
 
 // ============================================================================
 // Offline-first wiring
@@ -101,6 +102,30 @@ export function installOfflineListeners(): void {
   void AsyncStorage.multiRemove(STALE_PERSIST_KEYS).catch(() => {});
 
   onlineManager.setEventListener((setOnline) => {
+    // ---- Web: the browser already knows. Do NOT use NetInfo here. ----
+    //
+    // NetInfo's web build decides `isInternetReachable` by firing a HEAD at
+    // `/` and requiring a 200. In practice those probes abort
+    // (net::ERR_ABORTED), so it reports unreachable on a perfectly healthy
+    // connection. That flips us offline, and because queries run with
+    // networkMode 'offlineFirst' they then PAUSE — forever, and silently:
+    // a paused query has isFetching false, so isLoading is false too, and
+    // screens render their empty states ("Add your first client") over real
+    // data while no request is ever sent. navigator.onLine + the online/
+    // offline events are what TanStack Query uses on web by default.
+    if (isWeb) {
+      const on = () => setOnline(true);
+      const off = () => setOnline(false);
+      window.addEventListener('online', on);
+      window.addEventListener('offline', off);
+      setOnline(navigator.onLine);
+      return () => {
+        window.removeEventListener('online', on);
+        window.removeEventListener('offline', off);
+      };
+    }
+
+    // ---- Native: NetInfo, which is accurate here. ----
     const sub = NetInfo.addEventListener((state) => {
       // `isInternetReachable` is more accurate but can be null on first event;
       // fall back to `isConnected`.

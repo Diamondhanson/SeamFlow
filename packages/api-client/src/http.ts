@@ -43,7 +43,15 @@ export class HttpClient {
   constructor(config: HttpConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.getJwt = config.getJwt;
-    this.fetchFn = config.fetch ?? globalThis.fetch;
+    // `.bind(globalThis)` is load-bearing on web. Browsers require fetch to be
+    // invoked with `this === window`; storing it on an instance and calling
+    // `this.fetchFn(...)` passes the Http instance instead, and every request
+    // dies with "TypeError: Failed to execute 'fetch' on 'Window': Illegal
+    // invocation". React Native's fetch is a plain polyfill with no such
+    // requirement, so this only ever broke the browser build — where it made
+    // every screen render its empty state over perfectly good data.
+    const rawFetch = config.fetch ?? globalThis.fetch;
+    this.fetchFn = rawFetch ? rawFetch.bind(globalThis) : rawFetch;
     if (!this.fetchFn) {
       throw new Error(
         'No global fetch available — pass `fetch` in HttpConfig (Node < 18, etc.)',

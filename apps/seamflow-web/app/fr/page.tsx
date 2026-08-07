@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { getDict } from '../lib/i18n';
-import { alternatesFor, openGraphFor } from '../lib/seo';
-import { LandingView } from '../components/views/LandingView';
+import { getDict } from '../../lib/i18n';
+import { alternatesFor, openGraphFor } from '../../lib/seo';
+import { LandingView } from '../../components/views/LandingView';
 
-const LANG = 'en';
+const LANG = 'fr';
 
 export function generateMetadata(): Metadata {
   const d = getDict(LANG);

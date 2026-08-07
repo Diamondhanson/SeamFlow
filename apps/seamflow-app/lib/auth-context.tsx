@@ -10,6 +10,7 @@ import {
 } from 'react';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import { isWeb } from './platform-capabilities';
 import { supabase } from './supabase';
 import { ensurePushRegistered, unregisterPushOnSignOut } from './notifications';
 import { reconcilePinOwner } from './pin-lock';
@@ -113,6 +114,19 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState | null>(null);
+
+/**
+ * The origin to build OAuth redirect URLs from, or `null` when we aren't in a
+ * browser. Derived at call time rather than baked into config: the same bundle
+ * is served from localhost during development, from a Vercel preview URL, and
+ * from the production subdomain, and each must redirect back to *itself*.
+ * A hardcoded origin would send a preview deployment's sign-in to production.
+ */
+function webOrigin(): string | null {
+  if (!isWeb) return null;
+  const origin = globalThis.location?.origin;
+  return origin && origin !== 'null' ? origin : null;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -219,6 +233,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signInWithGoogle = useCallback(async () => {
+    // ── Browser ───────────────────────────────────────────────────────────
+    // The native flow below is wrong on web in two ways: `Linking.createURL`
+    // produces an http URL Supabase has never been told about (so it falls
+    // back to the project's Site URL and dumps the user on the marketing
+    // site), and `openAuthSessionAsync` has no popup to hand control back
+    // from. A browser does the ordinary thing instead: navigate the whole tab
+    // to Google, and come back to /auth/callback, which does the exchange.
+    const origin = webOrigin();
+    if (origin) {
+      const redirectTo = `${origin}/auth/callback`;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo, skipBrowserRedirect: true },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error('No OAuth URL returned by Supabase');
+      globalThis.location.assign(data.url);
+      // Deliberately never resolves: the tab is navigating away, and settling
+      // here would let the caller clear its "Opening Google…" state and flash
+      // an idle sign-in form for the split second before unload.
+      return new Promise<void>(() => {});
+    }
+
+    // ── Native ────────────────────────────────────────────────────────────
     // Deep link the OAuth provider will redirect back to. `Linking.createURL`
     // resolves to:
     //   - Expo Go dev:  exp://<lan-ip>:8081/--/auth/callback

@@ -1,4 +1,6 @@
-import type { Dict } from '../lib/i18n';
+import Link from 'next/link';
+import type { Dict, Lang } from '../lib/i18n';
+import { withLang } from '../lib/i18n';
 import { Icon } from './icons';
 import { PhoneFrame } from './PhoneFrame';
 import { StoreBadges } from './StoreBadges';
@@ -83,6 +85,58 @@ export function Features({ d }: { d: Dict }) {
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+// ── Assistant spotlight ─────────────────────────────────────────────────────
+// The one feature worth its own band on the landing page, and the internal
+// link that feeds authority to /tailor-assistant.
+export function AssistantSpotlight({ d, lang }: { d: Dict; lang: Lang }) {
+  return (
+    <section id="assistant" className="scroll-mt-24 bg-brand-surface/40 py-16 sm:py-20">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 lg:grid-cols-[0.95fr_1.05fr]">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-primary">
+            <Icon name="spark" className="h-3.5 w-3.5" />
+            {d.spotlight.eyebrow}
+          </span>
+          <h2 className="mt-4 font-display text-3xl font-bold leading-tight tracking-tight text-brand-ink sm:text-4xl">
+            {d.spotlight.title}
+          </h2>
+          <p className="mt-4 text-[15px] leading-relaxed text-brand-muted">{d.spotlight.body}</p>
+          <Link
+            href={withLang('/tailor-assistant', lang)}
+            className="mt-7 inline-flex items-center gap-2 rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-primaryDeep"
+          >
+            {d.spotlight.cta}
+            <Icon name="arrow" className="h-4 w-4" />
+          </Link>
+        </div>
+
+        {/* Mock conversation — the fastest way to show what "ask it" means. */}
+        <div className="rounded-4xl border border-brand-hairline bg-brand-bg p-5 shadow-soft sm:p-7">
+          <div className="flex items-center gap-2.5 border-b border-brand-hairline pb-4">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-primary to-brand-lavender text-white">
+              <Icon name="assistant" className="h-5 w-5" />
+            </span>
+            <span className="font-display text-sm font-semibold text-brand-ink">
+              {d.nav.assistant}
+            </span>
+            <Icon name="voice" className="ml-auto h-4 w-4 text-brand-muted" />
+          </div>
+          <ul className="mt-5 flex flex-col gap-2.5">
+            {d.spotlight.examples.map((ex, i) => (
+              <li
+                key={i}
+                className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-brand-primary px-4 py-2.5 text-sm leading-snug text-white"
+              >
+                {ex}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );

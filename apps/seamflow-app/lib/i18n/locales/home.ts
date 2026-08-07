@@ -2,6 +2,8 @@
 // French mirrors it. Keys are camelCase and referenced as t('home.key').
 export const home = {
   en: {
+    // Label for the Home item in the desktop SideRail (components/SideRail.tsx).
+    title: 'Home',
     goodMorning: 'Good morning',
     goodAfternoon: 'Good afternoon',
     goodEvening: 'Good evening',
@@ -36,6 +38,7 @@ export const home = {
     settingsSubtitle: 'Theme, PIN…',
   },
   fr: {
+    title: 'Accueil',
     goodMorning: 'Bonjour',
     goodAfternoon: 'Bon après-midi',
     goodEvening: 'Bonsoir',

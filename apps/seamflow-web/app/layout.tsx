@@ -28,23 +28,52 @@ const jetbrains = JetBrains_Mono({
   display: 'swap',
 });
 
+// Site-wide defaults. Individual pages override title/description/keywords in
+// their own generateMetadata (which is also where the per-language canonical
+// and hreflang alternates live) — these are the fallbacks for anything that
+// doesn't, and the values Next merges into every page.
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.seamflowtech.com'),
   title: {
-    default: 'SeamFlow, the calm home for your tailoring business',
+    default: 'SeamFlow — the AI tailor assistant for measurements, orders & invoices',
     template: '%s',
   },
   description:
-    'SeamFlow keeps your clients, measurements, orders and deadlines together. Built bilingual and offline-first for tailors and fashion designers.',
+    'SeamFlow is a tailor assistant app for tailors and fashion designers. Scan measurements from paper, track orders, send invoices, and ask an AI assistant about your business. Bilingual, offline-first, free in early access.',
   applicationName: 'SeamFlow',
+  authors: [{ name: 'SeamFlow' }],
+  creator: 'SeamFlow',
+  publisher: 'SeamFlow',
+  category: 'business',
   keywords: [
+    'tailor assistant',
+    'tailor assistant app',
+    'AI tailor assistant',
+    'tailoring assistant',
+    'assistant for tailors',
+    'assistant tailleur',
     'tailor app',
     'tailoring software',
-    'measurements',
-    'fashion designer',
-    'order tracking',
-    'atelier',
+    'measurement app for tailors',
+    'tailor order management',
+    'tailoring business app',
+    'fashion designer app',
+    'measurement scanner',
+    'tailor invoicing',
+    'atelier management',
   ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  formatDetection: { telephone: false },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

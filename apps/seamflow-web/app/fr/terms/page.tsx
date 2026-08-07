@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { getDict } from '../../lib/i18n';
-import { alternatesFor } from '../../lib/seo';
-import { terms } from '../../lib/legal';
-import { LegalShell } from '../../components/LegalShell';
+import { getDict } from '../../../lib/i18n';
+import { alternatesFor } from '../../../lib/seo';
+import { terms } from '../../../lib/legal';
+import { LegalShell } from '../../../components/LegalShell';
 
-const LANG = 'en';
+const LANG = 'fr';
 
 export function generateMetadata(): Metadata {
   return {

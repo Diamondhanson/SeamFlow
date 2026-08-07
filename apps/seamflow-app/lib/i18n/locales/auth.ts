@@ -23,6 +23,9 @@ export const auth = {
     privacyWord: 'Privacy Policy',
     agreeSuffix: '.',
     googleSignInFailed: 'Google sign-in failed',
+    // Browser OAuth return leg (app/auth/callback.tsx)
+    finishingSignIn: 'Finishing sign-in…',
+    signInCouldNotComplete: "Couldn't finish signing you in. Please try again.",
     appleSignInFailed: 'Apple sign-in failed',
     appleComingSoonTitle: 'Sign in with Apple',
     appleComingSoonMessage: "Apple Sign-In isn't set up yet — it's coming soon.",
@@ -78,6 +81,9 @@ export const auth = {
     privacyWord: 'Politique de confidentialité',
     agreeSuffix: '.',
     googleSignInFailed: 'Échec de la connexion Google',
+    // Retour du flux OAuth navigateur (app/auth/callback.tsx)
+    finishingSignIn: 'Finalisation de la connexion…',
+    signInCouldNotComplete: 'Impossible de terminer la connexion. Veuillez réessayer.',
     appleSignInFailed: 'Échec de la connexion Apple',
     appleComingSoonTitle: 'Connexion avec Apple',
     appleComingSoonMessage: 'La connexion avec Apple n’est pas encore configurée — bientôt disponible.',

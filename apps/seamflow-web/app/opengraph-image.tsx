@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'SeamFlow: your whole workshop, in one calm place.';
+export const alt =
+  'SeamFlow — the AI tailor assistant: clients, measurements, orders and invoices in one place.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -54,11 +55,11 @@ export default function OpengraphImage() {
           </div>
           SeamFlow
         </div>
-        <div style={{ marginTop: 40, fontSize: 68, fontWeight: 700, lineHeight: 1.05, maxWidth: 900 }}>
-          Your whole workshop, in one calm place.
+        <div style={{ marginTop: 36, fontSize: 64, fontWeight: 700, lineHeight: 1.05, maxWidth: 940 }}>
+          The AI tailor assistant for your workshop.
         </div>
-        <div style={{ marginTop: 28, fontSize: 30, color: 'rgba(251,248,243,0.82)' }}>
-          Clients · measurements · orders · reminders, for tailors & designers.
+        <div style={{ marginTop: 26, fontSize: 29, color: 'rgba(251,248,243,0.82)' }}>
+          Scan measurements · track orders · send invoices · just ask.
         </div>
       </div>
     ),

@@ -53,6 +53,19 @@ html {
     );
 }
 
+/* Honour the OS "reduce motion" setting: the hero's floating device and the
+   toast's entrance are decoration, not information. Smooth anchor scrolling
+   goes too — it's a common vestibular trigger. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-floaty,
+  .animate-toast-in {
+    animation: none !important;
+  }
+}
+
 /* Print / "Save as PDF": drop the decorative washes for a clean sheet, keep
    surface + accent colours, and hide anything marked `.no-print`. */
 @media print {

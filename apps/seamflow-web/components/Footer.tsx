@@ -5,8 +5,20 @@ import { Icon } from './icons';
 import { Wordmark } from './Wordmark';
 import { LangToggle } from './LangToggle';
 
-export function Footer({ d, lang, year }: { d: Dict; lang: Lang; year: number }) {
+export function Footer({
+  d,
+  lang,
+  year,
+  onHome = true,
+}: {
+  d: Dict;
+  lang: Lang;
+  year: number;
+  onHome?: boolean;
+}) {
   const f = d.footer;
+  // Same reasoning as <Nav>: bare hashes only resolve on the landing page.
+  const home = onHome ? '' : withLang('/', lang);
   return (
     <footer className="border-t border-brand-hairline bg-brand-surface/50">
       <div className="mx-auto max-w-6xl px-5 py-14">
@@ -22,9 +34,15 @@ export function Footer({ d, lang, year }: { d: Dict; lang: Lang; year: number })
           </div>
 
           <FooterCol title={f.product}>
-            <FooterA href="#features">{f.links.features}</FooterA>
-            <FooterA href="#how">{f.links.how}</FooterA>
-            <FooterA href="#faq">{f.links.faq}</FooterA>
+            <FooterA href={`${home}#features`}>{f.links.features}</FooterA>
+            <FooterLink href={withLang('/tailor-assistant', lang)}>
+              {f.links.assistant}
+            </FooterLink>
+            <FooterLink href={withLang('/alternatives/tailor-assist', lang)}>
+              {f.links.compare}
+            </FooterLink>
+            <FooterA href={`${home}#how`}>{f.links.how}</FooterA>
+            <FooterA href={`${home}#faq`}>{f.links.faq}</FooterA>
           </FooterCol>
 
           <FooterCol title={f.legal}>

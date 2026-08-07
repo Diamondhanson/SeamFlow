@@ -72,6 +72,54 @@ export const Icons: Record<string, (p: IconProps) => JSX.Element> = {
       <path d="M8 5v14M16 5v14" />
     </S>
   ),
+  // Chat bubble with a spark — the AI tailor assistant.
+  assistant: ({ className }) => (
+    <S className={className}>
+      <path d="M20.5 11.4c0 3.9-3.8 7-8.5 7-.9 0-1.8-.1-2.6-.3L4.5 20l1.2-3.4A6.6 6.6 0 0 1 3.5 11.4c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7Z" />
+      <path d="M12 8.1c.3 1.9.8 2.4 2.7 2.7-1.9.3-2.4.8-2.7 2.7-.3-1.9-.8-2.4-2.7-2.7 1.9-.3 2.4-.8 2.7-2.7Z" />
+    </S>
+  ),
+  // Camera viewfinder over a written sheet — scan measurements from paper.
+  scan: ({ className }) => (
+    <S className={className}>
+      <path d="M3.5 8V5.8c0-1.3 1-2.3 2.3-2.3H8M16 3.5h2.2c1.3 0 2.3 1 2.3 2.3V8M20.5 16v2.2c0 1.3-1 2.3-2.3 2.3H16M8 20.5H5.8c-1.3 0-2.3-1-2.3-2.3V16" />
+      <path d="M8.5 9.5h7M8.5 12.8h7M8.5 16h4" />
+    </S>
+  ),
+  // Receipt with a torn edge — invoices & deposits.
+  invoices: ({ className }) => (
+    <S className={className}>
+      <path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4v-17Z" />
+      <path d="M9.5 8.5h5M9.5 12h5M9.5 15.5h3" />
+    </S>
+  ),
+  calendar: ({ className }) => (
+    <S className={className}>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2.2" />
+      <path d="M3.5 9.8h17M8 3.5v3M16 3.5v3" />
+      <circle cx="12" cy="14.6" r="1.15" fill="currentColor" stroke="none" />
+    </S>
+  ),
+  // Laptop with a phone beside it — phone, tablet or browser.
+  devices: ({ className }) => (
+    <S className={className}>
+      <path d="M3.5 5.8c0-.7.6-1.3 1.3-1.3h9.4c.7 0 1.3.6 1.3 1.3v8.4H3.5V5.8Z" />
+      <path d="M2 17.2h15.5" />
+      <rect x="17.8" y="8.5" width="4.7" height="11" rx="1.4" />
+    </S>
+  ),
+  voice: ({ className }) => (
+    <S className={className}>
+      <rect x="9" y="3" width="6" height="10.5" rx="3" />
+      <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" />
+    </S>
+  ),
+  shield: ({ className }) => (
+    <S className={className}>
+      <path d="M12 3.2 5 6v5.7c0 4 2.9 7.5 7 9.1 4.1-1.6 7-5.1 7-9.1V6l-7-2.8Z" />
+      <path d="M9 12.2l2.1 2.1L15 10.4" />
+    </S>
+  ),
   check: ({ className }) => (
     <S className={className}>
       <path d="M5 12.5 10 17l9-10" />

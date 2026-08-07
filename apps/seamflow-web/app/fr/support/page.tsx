@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { getDict } from '../../lib/i18n';
-import { alternatesFor } from '../../lib/seo';
-import { SupportView } from '../../components/views/SupportView';
+import { getDict } from '../../../lib/i18n';
+import { alternatesFor } from '../../../lib/seo';
+import { SupportView } from '../../../components/views/SupportView';
 
-const LANG = 'en';
+const LANG = 'fr';
 
 export function generateMetadata(): Metadata {
   const d = getDict(LANG);

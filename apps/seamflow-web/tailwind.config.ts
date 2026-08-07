@@ -81,9 +81,16 @@ const config: Config = {
           '0%,100%': { transform: 'translateY(0) rotate(0deg)' },
           '50%': { transform: 'translateY(-18px) rotate(-1.2deg)' },
         },
+        // The -50% X is baked in because the toast is centred with `left-1/2`
+        // and an animated transform would otherwise clobber a translate utility.
+        'toast-in': {
+          from: { opacity: '0', transform: 'translate(-50%, 12px)' },
+          to: { opacity: '1', transform: 'translate(-50%, 0)' },
+        },
       },
       animation: {
         floaty: 'floaty 4.5s ease-in-out infinite',
+        'toast-in': 'toast-in 220ms cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },
