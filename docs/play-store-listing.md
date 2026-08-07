@@ -92,5 +92,42 @@ Download SeamFlow and bring your whole workshop together.
 | Asset | Spec | Where |
 |---|---|---|
 | App icon | 512x512 PNG, under 1 MB | `assets/brand/play-store-icon-512.png` |
-| Feature graphic | 1024x500 PNG/JPEG | **not made yet** — required before publishing |
+| Feature graphic | 1024x500 PNG/JPEG | `assets/brand/play-feature-graphic-1024x500.png` |
 | Phone screenshots | 2-8 shots, min 320px, 16:9 or 9:16 | **not made yet** |
+
+### Regenerating them
+
+Both come from the vector sources in `assets/brand/`, never from downscaling a
+PNG. Requires `librsvg` (`brew install librsvg`).
+
+App icon — full-bleed on purpose, because Play applies its own rounded mask and
+a pre-rounded icon gets clipped twice:
+
+```bash
+rsvg-convert -w 512 -h 512 -b '#7B30E8' \
+  assets/brand/icon-fullbleed.svg -o assets/brand/play-store-icon-512.png
+```
+
+Feature graphic — the composed source is `assets/brand/play-feature-graphic.svg`
+(wordmark and mark embedded as data URIs so it renders standalone). Two things
+that are easy to get wrong:
+
+- **Brand fonts aren't installed system-wide.** They live in
+  `node_modules/@expo-google-fonts/{fraunces,inter}/**/*.ttf`. Stage them in a
+  temp dir and point fontconfig at it with `XDG_DATA_HOME`.
+- **`PANGOCAIRO_BACKEND=fc` is required on macOS.** Without it rsvg goes through
+  CoreText, silently ignores the staged fonts, and falls back to a generic sans
+  — `fc-match` will still claim Fraunces resolves fine, so the only way to catch
+  it is to look at the output.
+
+```bash
+TMP=$(mktemp -d) && mkdir -p "$TMP/fonts"
+cp node_modules/@expo-google-fonts/fraunces/700Bold/Fraunces_700Bold.ttf "$TMP/fonts/"
+cp node_modules/@expo-google-fonts/inter/{500Medium/Inter_500Medium,600SemiBold/Inter_600SemiBold}.ttf "$TMP/fonts/"
+XDG_DATA_HOME="$TMP" PANGOCAIRO_BACKEND=fc rsvg-convert -w 1024 -h 500 -b '#7B30E8' \
+  assets/brand/play-feature-graphic.svg -o assets/brand/play-feature-graphic-1024x500.png
+```
+
+Play may crop the feature graphic on some surfaces, so nothing important sits
+within ~60px of an edge. Play's metadata policy also bans calls to action
+("Download now") and ranking or price claims in graphics — keep it descriptive.
