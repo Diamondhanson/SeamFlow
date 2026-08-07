@@ -18,7 +18,7 @@ services:
     dockerfilePath: ./apps/seamflow-api/Dockerfile
     dockerContext: .          # build context = repo root (resolves @seamflow/*)
     healthCheckPath: /health
-    autoDeploy: false         # deploy manually; flip to true for push-to-deploy
+    autoDeploy: true          # push to main → Render builds and deploys
     envVars:
       - key: NODE_ENV
         value: production
