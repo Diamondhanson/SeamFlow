@@ -1,4 +1,5 @@
 import type { Dict } from '../lib/i18n';
+import { WEB_APP_URL } from '../lib/i18n';
 import { Icon } from './icons';
 import { PhoneFrame, TabletFrame } from './PhoneFrame';
 import { StoreBadges } from './StoreBadges';
@@ -23,7 +24,7 @@ export function Hero({ d }: { d: Dict }) {
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <a
-              href="#get-app"
+              href={WEB_APP_URL || '#get-app'}
               className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-6 py-3 text-base font-semibold text-white shadow-glow transition hover:bg-brand-primaryDeep"
             >
               {d.hero.ctaPrimary}

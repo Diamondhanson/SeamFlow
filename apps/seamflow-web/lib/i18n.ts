@@ -95,14 +95,14 @@ export const copy = {
       assistant: 'AI assistant',
       how: 'How it works',
       faq: 'FAQ',
-      getApp: 'Get the app',
+      useOnBrowser: 'Use on browser',
     },
     hero: {
       eyebrow: 'The AI tailor assistant for workshops',
       title: 'Your whole workshop, in one calm place.',
       subtitle:
         'SeamFlow is the tailor assistant that keeps your clients, measurements, orders and deadlines together — with an AI assistant that answers questions about your business and files the work for you.',
-      ctaPrimary: 'Get the app',
+      ctaPrimary: 'Use on browser',
       ctaSecondary: 'See how it works',
       note: 'Works offline · English & French · Free in early access',
     },
@@ -504,14 +504,14 @@ export const copy = {
       assistant: 'Assistant IA',
       how: 'Comment ça marche',
       faq: 'FAQ',
-      getApp: 'Obtenir l’app',
+      useOnBrowser: 'Utiliser sur navigateur',
     },
     hero: {
       eyebrow: 'L’assistant tailleur IA pour les ateliers',
       title: 'Tout votre atelier, en un seul endroit serein.',
       subtitle:
         'SeamFlow est l’assistant tailleur qui réunit vos clients, mesures, commandes et échéances — avec un assistant IA qui répond à vos questions et enregistre le travail à votre place.',
-      ctaPrimary: 'Obtenir l’app',
+      ctaPrimary: 'Utiliser sur navigateur',
       ctaSecondary: 'Voir comment ça marche',
       note: 'Fonctionne hors ligne · Français et anglais · Gratuit en accès anticipé',
     },

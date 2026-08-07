@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { Dict, Lang } from '../lib/i18n';
-import { withLang } from '../lib/i18n';
+import { withLang, WEB_APP_URL } from '../lib/i18n';
 import { Icon } from './icons';
 import { Wordmark } from './Wordmark';
 import { LangToggle } from './LangToggle';
@@ -68,10 +68,10 @@ export function Nav({ d, lang, onHome = true }: { d: Dict; lang: Lang; onHome?: 
         <div className="flex items-center gap-3">
           <LangToggle lang={lang} className="hidden sm:inline-flex" />
           <a
-            href={`${home}#get-app`}
+            href={WEB_APP_URL || `${home}#get-app`}
             className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-primaryDeep"
           >
-            {d.nav.getApp}
+            {d.nav.useOnBrowser}
           </a>
         </div>
       </nav>
