@@ -916,4 +916,4 @@ export const ANDROID_APK_URL =
 // still renders, but clicking it shows a "coming soon" toast instead of
 // navigating. Set this to the deployed origin and the same badge silently
 // becomes a real link — no other change needed.
-export const WEB_APP_URL = '';
+export const WEB_APP_URL = 'https://app.seamflowtech.com';
