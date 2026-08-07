@@ -1,5 +1,7 @@
 {
   "name": "seamflow-app",
+  "//packageManager": "Mirrors the root manifest. Vercel builds with Root Directory = apps/seamflow-app and takes its pnpm version from the manifest it finds there; with no hint it falls back to pnpm 6, which the root engines field rejects. Keep in sync with the root.",
+  "packageManager": "pnpm@9.0.0",
   "main": "expo-router/entry",
   "version": "0.1.0",
   "scripts": {
