@@ -1,10 +1,13 @@
 import type { Dict } from '../lib/i18n';
 import { ANDROID_APK_URL } from '../lib/i18n';
-import { WebAppBadge } from './WebAppBadge';
 
-// Store badges. iOS is still a "coming soon" placeholder; Android becomes a
-// real "Download for Android" button once ANDROID_APK_URL is set; the browser
-// badge is self-managing (see WebAppBadge).
+// Install badges — the two options that involve actually installing something.
+// iOS is still a "coming soon" placeholder; Android becomes a real "Download
+// for Android" button once ANDROID_APK_URL is set.
+//
+// There is deliberately no browser badge here: the primary CTA in the nav and
+// the hero already links to the web app, so a third badge saying the same
+// thing was just noise sitting next to it.
 
 const AppleGlyph = (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -88,9 +91,6 @@ export function StoreBadges({ d }: { d: Dict }) {
       ) : (
         <ComingSoonBadge soon={d.store.soon} eyebrow="Get it on" title="Google Play" glyph={AndroidGlyph} />
       )}
-
-      {/* Browser — no install at all. Real link once WEB_APP_URL is set. */}
-      <WebAppBadge d={d} />
     </div>
   );
 }

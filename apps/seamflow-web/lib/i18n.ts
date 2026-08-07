@@ -112,11 +112,6 @@ export const copy = {
       googlePlay: 'Get it on Google Play',
       androidEyebrow: 'Android APK',
       androidCta: 'Download for Android',
-      webEyebrow: 'No install needed',
-      webCta: 'Use it in your browser',
-      webToast:
-        'The browser version is almost ready — we’re putting the finishing touches on it. Grab the Android app in the meantime.',
-      webToastDismiss: 'Dismiss',
     },
     problem: {
       eyebrow: 'The problem',
@@ -293,7 +288,6 @@ export const copy = {
     cta: {
       title: 'Bring your workshop together.',
       body: 'Join the tailors making SeamFlow their daily assistant.',
-      button: 'Get the app',
     },
     footer: {
       tagline: 'The AI tailor assistant and calm home for your tailoring business.',
@@ -521,11 +515,6 @@ export const copy = {
       googlePlay: 'Disponible sur Google Play',
       androidEyebrow: 'APK Android',
       androidCta: 'Télécharger pour Android',
-      webEyebrow: 'Sans installation',
-      webCta: 'Utiliser dans le navigateur',
-      webToast:
-        'La version navigateur est presque prête — nous y mettons la dernière main. En attendant, téléchargez l’app Android.',
-      webToastDismiss: 'Fermer',
     },
     problem: {
       eyebrow: 'Le problème',
@@ -701,7 +690,6 @@ export const copy = {
     cta: {
       title: 'Réunissez votre atelier.',
       body: 'Rejoignez les tailleurs qui font de SeamFlow leur assistant quotidien.',
-      button: 'Obtenir l’app',
     },
     footer: {
       tagline: 'L’assistant tailleur IA et le foyer serein de votre activité de couture.',
