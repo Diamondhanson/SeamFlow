@@ -24,6 +24,46 @@
 
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
+import { canUsePinLock } from './platform-capabilities';
+
+// ----------------------------------------------------------------------------
+// Storage access
+//
+// expo-secure-store has no web implementation — its web build is literally
+// `export default {}`, so `SecureStore.getItemAsync` resolves to
+// `undefined(...)` and throws a TypeError in a browser. Every read/write below
+// goes through these three helpers, which answer "nothing stored" on web
+// instead of throwing.
+//
+// Native behaviour is deliberately unchanged: errors still propagate there. A
+// keychain read that fails on a phone must NOT be silently reported as "no PIN
+// configured" — that would turn a transient fault into a silently disabled
+// lock. Callers that must not hang handle their own failures (see
+// lock-context.tsx, which always sets `ready`).
+// ----------------------------------------------------------------------------
+
+async function readItem(key: string): Promise<string | null> {
+  if (!canUsePinLock) return null;
+  return SecureStore.getItemAsync(key);
+}
+
+async function writeItem(key: string, value: string): Promise<void> {
+  if (!canUsePinLock) return;
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function removeItem(key: string): Promise<void> {
+  if (!canUsePinLock) return;
+  await SecureStore.deleteItemAsync(key);
+}
+
+/** Thrown when something tries to set a PIN on a platform that can't hold one. */
+export class PinUnavailableError extends Error {
+  constructor() {
+    super('PIN lock is not available on this platform');
+    this.name = 'PinUnavailableError';
+  }
+}
 
 const SALT_KEY = 'pin.salt.v1';
 const HASH_KEY = 'pin.hash.v1';
@@ -55,12 +95,12 @@ function assertPinShape(pin: string): void {
  * regenerate on each set — only when the secure-store is cleared.
  */
 async function getOrCreateSalt(): Promise<string> {
-  const existing = await SecureStore.getItemAsync(SALT_KEY);
+  const existing = await readItem(SALT_KEY);
   if (existing) return existing;
   const bytes = Crypto.getRandomBytes(32);
   // base64 keeps the string ASCII-safe for secure-store.
   const salt = bufferToBase64(bytes);
-  await SecureStore.setItemAsync(SALT_KEY, salt);
+  await writeItem(SALT_KEY, salt);
   return salt;
 }
 
@@ -86,7 +126,7 @@ async function hashPin(pin: string, salt: string): Promise<string> {
 
 /** Whether a PIN is currently configured on this device. */
 export async function pinExists(): Promise<boolean> {
-  const v = await SecureStore.getItemAsync(HASH_KEY);
+  const v = await readItem(HASH_KEY);
   return !!v;
 }
 
@@ -97,13 +137,17 @@ export async function pinExists(): Promise<boolean> {
  * session is available — the next sign-in adopts it.
  */
 export async function setPin(pin: string, ownerUserId: string | null): Promise<void> {
+  // Reads degrade quietly to "nothing stored", but a write must not: silently
+  // no-op'ing here would show the user a "PIN set" confirmation for a PIN that
+  // was never stored and will never be asked for.
+  if (!canUsePinLock) throw new PinUnavailableError();
   assertPinShape(pin);
   const salt = await getOrCreateSalt();
   const hash = await hashPin(pin, salt);
-  await SecureStore.setItemAsync(HASH_KEY, hash);
-  await SecureStore.deleteItemAsync(ATTEMPTS_KEY);
+  await writeItem(HASH_KEY, hash);
+  await removeItem(ATTEMPTS_KEY);
   if (ownerUserId) {
-    await SecureStore.setItemAsync(OWNER_KEY, ownerUserId);
+    await writeItem(OWNER_KEY, ownerUserId);
   }
 }
 
@@ -112,9 +156,9 @@ export async function setPin(pin: string, ownerUserId: string | null): Promise<v
  * lock gate will not engage.
  */
 export async function clearPin(): Promise<void> {
-  await SecureStore.deleteItemAsync(HASH_KEY);
-  await SecureStore.deleteItemAsync(ATTEMPTS_KEY);
-  await SecureStore.deleteItemAsync(OWNER_KEY);
+  await removeItem(HASH_KEY);
+  await removeItem(ATTEMPTS_KEY);
+  await removeItem(OWNER_KEY);
   // Keep the salt — re-using it on next setPin() is fine and avoids the
   // tiny chance of secure-store fragmenting if we churn salts.
 }
@@ -127,11 +171,11 @@ export async function clearPin(): Promise<void> {
  */
 export async function reconcilePinOwner(userId: string): Promise<void> {
   if (!(await pinExists())) return;
-  const owner = await SecureStore.getItemAsync(OWNER_KEY);
+  const owner = await readItem(OWNER_KEY);
   if (!owner) {
     // Legacy PIN from before ownership existed — whoever signs in first
     // adopts it (in practice the device's single real user).
-    await SecureStore.setItemAsync(OWNER_KEY, userId);
+    await writeItem(OWNER_KEY, userId);
     return;
   }
   if (owner !== userId) {
@@ -156,7 +200,7 @@ export interface VerifyResult {
 export async function verifyPin(entered: string): Promise<VerifyResult> {
   assertPinShape(entered);
 
-  const storedHash = await SecureStore.getItemAsync(HASH_KEY);
+  const storedHash = await readItem(HASH_KEY);
   if (!storedHash) {
     // No PIN set — caller shouldn't have called us, but be safe and treat
     // as a vacuous pass so we don't lock the user out of an unconfigured
@@ -169,12 +213,12 @@ export async function verifyPin(entered: string): Promise<VerifyResult> {
   const ok = enteredHash === storedHash;
 
   if (ok) {
-    await SecureStore.deleteItemAsync(ATTEMPTS_KEY);
+    await removeItem(ATTEMPTS_KEY);
     return { ok: true, failed: 0, shouldSignOut: false };
   }
 
   const failed = (await getAttempts()) + 1;
-  await SecureStore.setItemAsync(ATTEMPTS_KEY, String(failed));
+  await writeItem(ATTEMPTS_KEY, String(failed));
   return {
     ok: false,
     failed,
@@ -183,7 +227,7 @@ export async function verifyPin(entered: string): Promise<VerifyResult> {
 }
 
 async function getAttempts(): Promise<number> {
-  const v = await SecureStore.getItemAsync(ATTEMPTS_KEY);
+  const v = await readItem(ATTEMPTS_KEY);
   if (!v) return 0;
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -191,5 +235,5 @@ async function getAttempts(): Promise<number> {
 
 /** Reset the failed counter without changing the PIN. */
 export async function resetAttempts(): Promise<void> {
-  await SecureStore.deleteItemAsync(ATTEMPTS_KEY);
+  await removeItem(ATTEMPTS_KEY);
 }

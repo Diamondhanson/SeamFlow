@@ -27,6 +27,7 @@ import { clearCache } from '../../lib/query-client';
 import { ensurePushRegistered, sendPushTest } from '../../lib/notifications';
 import { pickPhoto, uploadTailorLogo } from '../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
+import { canUsePinLock } from '../../lib/platform-capabilities';
 import { useDialog } from '../../lib/dialog';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
@@ -293,11 +294,15 @@ export default function Me() {
             label={t('settings.notificationPreferences')}
             onPress={() => router.push('/(app)/notification-preferences')}
           />
-          <SettingsRow
-            icon="lock-closed-outline"
-            label={t('settings.pinLock')}
-            onPress={() => router.push('/(app)/pin')}
-          />
+          {/* No keychain in a browser, so no PIN lock there — see
+              lib/platform-capabilities. Hidden rather than shown-and-failing. */}
+          {canUsePinLock ? (
+            <SettingsRow
+              icon="lock-closed-outline"
+              label={t('settings.pinLock')}
+              onPress={() => router.push('/(app)/pin')}
+            />
+          ) : null}
         </SettingsCard>
 
         {/* Legal */}

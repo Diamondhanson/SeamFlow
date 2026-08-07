@@ -27,8 +27,19 @@ export const canUsePushNotifications = isNative;
 export const canGenerateNativePdf = isNative;
 
 /** Hardware-backed secret storage (expo-secure-store). On web the session
- *  falls back to localStorage — weaker at rest; see lib/supabase.ts. */
+ *  falls back to localStorage — weaker at rest; see lib/supabase.ts.
+ *
+ *  Note this is a hard unavailability, not a soft one: expo-secure-store ships
+ *  `export default {}` as its web implementation, so every call throws a
+ *  TypeError in a browser rather than failing gracefully. Anything reaching for
+ *  it must check this flag first. */
 export const hasSecureStorage = isNative;
+
+/** App PIN lock. Native only — and deliberately not polyfilled. The PIN hash
+ *  has to live somewhere only the OS can read; in a browser the best available
+ *  store is localStorage, which any script on the page can read, so a "PIN
+ *  lock" there would be security theatre. Web hides the feature instead. */
+export const canUsePinLock = hasSecureStorage;
 
 /** The native spinner/calendar date picker. Web uses an <input type="date">. */
 export const hasNativeDatePicker = isNative;

@@ -65,14 +65,31 @@ export function LockProvider({ children }: { children: ReactNode }) {
   const lastBackgroundedAt = useRef<number | null>(null);
 
   // Initial probe: is a PIN configured? If yes, start locked.
+  //
+  // `ready` MUST end up true on every path. The (app) layout renders nothing
+  // but a spinner until it flips, so a rejection escaping this effect hangs the
+  // whole app behind that spinner with no way out — which is exactly what
+  // happened on the web build, where expo-secure-store's stub threw a
+  // TypeError and left every signed-in user staring at it. Same rule as
+  // auth-context's getSession(): never leave a loading flag true on failure.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const exists = await pinExists();
-      if (cancelled) return;
-      setPinSet(exists);
-      setLocked(exists); // cold start with PIN set → locked
-      setReady(true);
+      try {
+        const exists = await pinExists();
+        if (cancelled) return;
+        setPinSet(exists);
+        setLocked(exists); // cold start with PIN set → locked
+      } catch {
+        // Can't tell whether a PIN exists — fail open rather than trap the
+        // user. On native this is a genuine keychain fault worth surfacing
+        // eventually, but locking someone out of their own orders is worse.
+        if (cancelled) return;
+        setPinSet(false);
+        setLocked(false);
+      } finally {
+        if (!cancelled) setReady(true);
+      }
     })();
     return () => {
       cancelled = true;
@@ -109,7 +126,12 @@ export function LockProvider({ children }: { children: ReactNode }) {
   }, [pinSet]);
 
   const refreshPinState = useCallback(async () => {
-    const exists = await pinExists();
+    let exists = false;
+    try {
+      exists = await pinExists();
+    } catch {
+      exists = false; // same fail-open reasoning as the initial probe
+    }
     setPinSet(exists);
     if (!exists) setLocked(false);
   }, []);
