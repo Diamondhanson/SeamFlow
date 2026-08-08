@@ -893,11 +893,14 @@ export const SITE = {
 // Direct Android APK download. Empty string → not yet available (the Android
 // badge falls back to a "coming soon" state). Set to the built .apk URL to turn
 // on the real "Download for Android" button.
-// EAS build artifact (preview profile, points at the Render API). Note: EAS
-// free-tier artifacts are retained ~30 days — self-host the .apk (e.g. in
-// public/) once the web is deployed for a permanent link.
+// EAS build artifact (preview profile, points at the Render API).
+// Built 2026-08-08 — includes the discovery feed, My Designs, and in-app chat.
+//
+// WARNING: EAS free-tier artifacts are retained ~30 days, so this link dies
+// around 2026-09-07 and the download button will fail silently. Self-host the
+// .apk (drop it in apps/seamflow-web/public/) for a link that doesn't expire.
 export const ANDROID_APK_URL =
-  'https://expo.dev/artifacts/eas/O_M3nVOoDuJpG8b4__H8rxEibss5XFIqAwE6LKmjf7E.apk';
+  'https://expo.dev/artifacts/eas/3uTMYnvA5L7JmJ10JLSigliA0OpJHYOyNsF4pnz-7dU.apk';
 
 // The installable browser build of the tailor app (seamflow-app's web target,
 // `expo export --platform web`). Empty string → not deployed yet: the badge
