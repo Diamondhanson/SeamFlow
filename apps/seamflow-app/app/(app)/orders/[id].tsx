@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -29,6 +29,8 @@ import {
   useMe,
   useOrder,
   useOrderPhotos,
+  useWorks,
+  useUnpublishWork,
   useTransitionOrder,
   useUpdateOrder,
 } from '../../../lib/queries';
@@ -57,6 +59,21 @@ export default function OrderDetailScreen() {
   const photosQ = useOrderPhotos(id);
   const transitionM = useTransitionOrder(id);
   const deletePhotoM = useDeleteOrderPhoto(id);
+  // Which of this order's photos are in the portfolio (and whether they're
+  // live in the feed). Publishing from an order adopts the photo into
+  // tailor_works, so the portfolio — not feed_posts — is the source of truth.
+  const myWorksQ = useWorks({});
+  const unpublishM = useUnpublishWork();
+  const publishedByPhotoId = useMemo(
+    () =>
+      new Map(
+        (myWorksQ.data?.pages ?? [])
+          .flatMap((pg) => pg.items)
+          .filter((w) => w.orderPhotoId)
+          .map((w) => [w.orderPhotoId as string, w]),
+      ),
+    [myWorksQ.data],
+  );
   const deleteOrderM = useDeleteOrder(id);
   const updateOrderM = useUpdateOrder(id);
   const shareOrderHook = useShareOrder(id);
@@ -123,6 +140,53 @@ export default function OrderDetailScreen() {
     } finally {
       setUploading(false);
     }
+  };
+
+  /**
+   * Tapping a photo offers the feed actions. Publishing is deliberately not a
+   * long-press: making something public should be an obvious, discoverable
+   * choice, not a hidden gesture. Long-press stays as delete, unchanged.
+   */
+  const photoActions = async (photoId: string, previewUrl?: string) => {
+    const work = publishedByPhotoId.get(photoId);
+    const isPublished = !!work?.isPublished;
+
+    const action = await dialog.choose<'publish' | 'unpublish'>({
+      title: t('orders.photosCount', { count: photos.length }),
+      actions: isPublished
+        ? [{ label: t('feed.unpublishAction'), value: 'unpublish' }]
+        : [{ label: t('feed.publishAction'), value: 'publish' }],
+    });
+    if (!action) return;
+
+    if (action === 'publish') {
+      router.push({
+        pathname: '/(app)/feed/publish',
+        params: {
+          photoId,
+          orderId: id,
+          previewUrl: previewUrl ?? '',
+          // Prefill the garment from the order's first item — we already know it.
+          garmentType: order?.items?.[0]?.garmentType ?? '',
+        },
+      });
+      return;
+    }
+
+    const ok = await dialog.confirm({
+      title: t('feed.unpublishConfirmTitle'),
+      message: t('feed.unpublishConfirmBody'),
+      tone: 'warning',
+    });
+    if (!ok || !work) return;
+    unpublishM.mutate(
+      work.id,
+      {
+        onSuccess: () =>
+          void dialog.alert({ title: t('feed.unpublishedTitle'), tone: 'success' }),
+        onError: (err) => void dialog.error(err),
+      },
+    );
   };
 
   const deletePhoto = async (photoId: string) => {
@@ -320,9 +384,11 @@ export default function OrderDetailScreen() {
                 // somehow missing (legacy rows uploaded before the two-variant
                 // pipeline).
                 const previewUrl = p.thumbnailUrl ?? p.signedUrl;
+                const work = publishedByPhotoId.get(p.id);
                 return (
                   <Pressable
                     key={p.id}
+                    onPress={() => photoActions(p.id, previewUrl)}
                     onLongPress={() => deletePhoto(p.id)}
                     style={[styles.photoThumbWrap, { width: thumbSize }]}
                   >
@@ -344,6 +410,18 @@ export default function OrderDetailScreen() {
                         <ActivityIndicator color={colors.textMuted} />
                       </View>
                     )}
+                    {work?.isPublished ? (
+                      <View
+                        style={[
+                          styles.inFeedBadge,
+                          { backgroundColor: colors.accent, borderRadius: radii.lg },
+                        ]}
+                      >
+                        <Text variant="caption" style={{ color: colors.accentText }}>
+                          {t('feed.inFeedBadge')}
+                        </Text>
+                      </View>
+                    ) : null}
                     <Text variant="caption" tone="textMuted" style={styles.photoRole}>
                       {p.role}
                     </Text>
@@ -595,6 +673,13 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  inFeedBadge: {
+    position: 'absolute',
+    top: spacing.xs,
+    left: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
   },
   photoRole: {
     marginTop: 4,

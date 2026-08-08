@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
 import type {
   Client,
   ClientCreateInput,
@@ -29,6 +34,14 @@ import type {
   OrderUpdateInput,
   PromoteMemberToClientInput,
   TailorUpsertInput,
+  FeedPostCreateInput,
+  FeedPostUpdateInput,
+  TailorProfileUpdateInput,
+  ConversationQuoteInput,
+  WorkQuery,
+  WorkUpdateInput,
+  WorkPublishInput,
+  WorkAdoptInput,
 } from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
@@ -632,3 +645,182 @@ export function useIssueInvoiceLink(id: string) {
     },
   });
 }
+
+// ============================================================================
+// Discovery feed — the tailor's published work (ROADMAP D.4.1)
+// ============================================================================
+
+export const useMyFeedPosts = () =>
+  useQuery({
+    queryKey: qk.feedPostsMine(),
+    queryFn: () => api.feed.mine(),
+  });
+
+/** Opt a finished-order photo into the public feed. */
+export function usePublishOrderPhoto(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { orderPhotoId: string; input: FeedPostCreateInput }) =>
+      api.feed.publishOrderPhoto(vars.orderPhotoId, vars.input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.feedPostsMine() });
+      // The order's photo list carries the "In feed" badge, so it must refresh.
+      qc.invalidateQueries({ queryKey: qk.orderPhotos(orderId) });
+    },
+  });
+}
+
+/** Edit metadata, or unpublish by passing `status: 'hidden'`. */
+export function useUpdateFeedPost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { id: string; input: FeedPostUpdateInput }) =>
+      api.feed.update(vars.id, vars.input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.feedPostsMine() });
+      qc.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+}
+
+export function useDeleteFeedPost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.feed.remove(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.feedPostsMine() });
+      qc.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+}
+
+/** Storefront fields: bio, city, specialties, languages, accepts-remote. */
+export function useUpdateTailorProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: TailorProfileUpdateInput) => api.tailorProfile.update(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.me() }),
+  });
+}
+
+// ============================================================================
+// Chat (ROADMAP D.4.3)
+//
+// The list and the message pages are both infinite queries. Messages come back
+// newest-first from the API and are rendered in an inverted list, so "next
+// page" means "older" — which is why nothing here reverses the array.
+// ============================================================================
+
+export const useConversations = () =>
+  useInfiniteQuery({
+    queryKey: qk.conversations(),
+    queryFn: ({ pageParam }) =>
+      api.conversations.list({ cursor: pageParam as string | undefined }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    // A chat list is worthless when stale; refetch on focus like a mail app.
+    staleTime: 15_000,
+  });
+
+export const useConversation = (id: string) =>
+  useQuery({
+    queryKey: qk.conversation(id),
+    queryFn: () => api.conversations.get(id),
+    enabled: !!id,
+  });
+
+export const useMessages = (conversationId: string) =>
+  useInfiniteQuery({
+    queryKey: qk.conversationMessages(conversationId),
+    queryFn: ({ pageParam }) =>
+      api.conversations.messages(conversationId, {
+        cursor: pageParam as string | undefined,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled: !!conversationId,
+  });
+
+export function useMarkConversationRead(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.conversations.markRead(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.conversations() });
+      qc.invalidateQueries({ queryKey: qk.conversation(id) });
+    },
+  });
+}
+
+export function useCreateQuoteFromConversation(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ConversationQuoteInput) => api.conversations.quote(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.conversation(id) });
+      qc.invalidateQueries({ queryKey: qk.conversations() });
+      // A new order + draft invoice just appeared.
+      qc.invalidateQueries({ queryKey: ['orders'] });
+      qc.invalidateQueries({ queryKey: qk.invoices() });
+    },
+  });
+}
+
+// ============================================================================
+// My Designs — the tailor's own finished work
+//
+// Distinct from `useDesigns` (Design Studio = inspiration collected elsewhere).
+// A work is private until published; publishing copies a derivative into the
+// public feed bucket, unpublishing deletes it again.
+// ============================================================================
+
+export const useWorks = (filter: Partial<WorkQuery> = {}) =>
+  useInfiniteQuery({
+    queryKey: qk.works(filter as Record<string, string | undefined>),
+    queryFn: ({ pageParam }) =>
+      api.works.list({ ...filter, cursor: pageParam as string | undefined }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+
+/** Attribute values actually present — the filter bar renders from this. */
+export const useWorkFacets = () =>
+  useQuery({ queryKey: qk.workFacets(), queryFn: () => api.works.facets() });
+
+export const useWork = (id: string) =>
+  useQuery({ queryKey: qk.work(id), queryFn: () => api.works.get(id), enabled: !!id });
+
+/** Everything that changes a work invalidates the grid, facets and the feed. */
+function useWorkMutation<TVars>(fn: (vars: TVars) => Promise<unknown>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['works'] });
+      qc.invalidateQueries({ queryKey: qk.feedPostsMine() });
+      // The order-photo strip shows an "In feed" badge sourced from works.
+      qc.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+}
+
+export const useUpdateWork = () =>
+  useWorkMutation<{ id: string; input: WorkUpdateInput }>((v) =>
+    api.works.update(v.id, v.input),
+  );
+
+export const useDeleteWork = () => useWorkMutation<string>((id) => api.works.remove(id));
+
+export const usePublishWork = () =>
+  useWorkMutation<{ id: string; input?: WorkPublishInput }>((v) =>
+    api.works.publish(v.id, v.input ?? {}),
+  );
+
+export const useUnpublishWork = () =>
+  useWorkMutation<string>((id) => api.works.unpublish(id));
+
+/** Pull a finished order's photo into the portfolio. */
+export const useAdoptOrderPhoto = () =>
+  useWorkMutation<{ orderPhotoId: string; input?: WorkAdoptInput }>((v) =>
+    api.works.adoptOrderPhoto(v.orderPhotoId, v.input ?? {}),
+  );

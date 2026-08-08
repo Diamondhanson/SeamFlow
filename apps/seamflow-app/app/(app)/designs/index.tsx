@@ -17,7 +17,7 @@ import { SkeletonGrid } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { HelpCard } from '../../../components/HelpCard';
 import { useDesigns, useMe } from '../../../lib/queries';
-import { pickPhoto, uploadDesign } from '../../../lib/photo-upload';
+import { MAX_MULTI_SELECT, pickPhotos, uploadDesign } from '../../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
 import { qk } from '../../../lib/query-keys';
@@ -36,6 +36,11 @@ export default function DesignStudio() {
   const { data: me } = useMe();
   const designsQ = useDesigns();
   const [uploading, setUploading] = useState(false);
+  // Only set while a multi-image batch is in flight — drives the "Adding 3 of
+  // 7…" line. Null for a single pick, where the button spinner says enough.
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
 
   const items = designsQ.data?.items ?? [];
   const tailorId = me?.tailor?.id;
@@ -88,10 +93,40 @@ export default function DesignStudio() {
     }
     setUploading(true);
     try {
-      const asset = await pickPhoto(source);
-      if (!asset) return;
-      await uploadDesign({ tailorId, asset });
+      const assets = await pickPhotos(source, MAX_MULTI_SELECT);
+      if (assets.length === 0) return;
+
+      // Sequential, not Promise.all: each image is resized and encoded twice
+      // before upload, and doing ten of those at once spikes memory enough to
+      // stall (or kill) the app on a mid-range phone. One at a time is slower
+      // on paper but finishes more reliably — and it's what makes the progress
+      // counter meaningful.
+      let failed = 0;
+      let firstError: unknown = null;
+      for (let i = 0; i < assets.length; i++) {
+        setProgress({ done: i + 1, total: assets.length });
+        try {
+          await uploadDesign({ tailorId, asset: assets[i]! });
+        } catch (err) {
+          // One unreadable image must not discard the whole batch.
+          failed++;
+          firstError ??= err;
+        }
+      }
+
       qc.invalidateQueries({ queryKey: qk.designs() });
+
+      if (failed === assets.length) {
+        // Everything failed — the real error is more use than a tally.
+        throw firstError;
+      }
+      if (failed > 0) {
+        await dialog.alert({
+          title: t('designs.someFailedTitle'),
+          message: t('designs.someFailedBody', { failed, total: assets.length }),
+          tone: 'warning',
+        });
+      }
     } catch (err) {
       if (
         !(await alertIfOffline(err, dialog, t)) &&
@@ -101,6 +136,7 @@ export default function DesignStudio() {
       }
     } finally {
       setUploading(false);
+      setProgress(null);
     }
   };
 
@@ -108,8 +144,13 @@ export default function DesignStudio() {
     const action = await dialog.choose<'camera' | 'library'>({
       title: t('designs.addSourceTitle'),
       actions: [
+        // The camera stays single-shot; only the library multi-selects, so the
+        // "up to N" hint belongs on that row alone.
         { label: t('designs.takePhoto'), value: 'camera' },
-        { label: t('designs.chooseFromGallery'), value: 'library' },
+        {
+          label: t('designs.chooseFromGalleryMulti', { max: MAX_MULTI_SELECT }),
+          value: 'library',
+        },
       ],
     });
     if (action) add(action);
@@ -138,6 +179,21 @@ export default function DesignStudio() {
         <Text variant="bodySm" tone="textMuted">
           {t('designs.subtitle')}
         </Text>
+        {progress && progress.total > 1 ? (
+          // A batch can take a while with the picker already closed; without
+          // this the screen looks idle and people re-tap the + button.
+          <Text
+            variant="bodySm"
+            tone="primary"
+            style={styles.progress}
+            accessibilityLiveRegion="polite"
+          >
+            {t('designs.uploadingProgress', {
+              done: progress.done,
+              total: progress.total,
+            })}
+          </Text>
+        ) : null}
         <HelpCard
           guideKey="flow.designs"
           title={t('guides.designsTitle')}
@@ -233,6 +289,7 @@ const styles = StyleSheet.create({
   addBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   muted: { textAlign: 'center', marginTop: spacing.xl },
   skeletonWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  progress: { marginTop: spacing.xs },
   empty: { alignItems: 'center', marginTop: spacing.xl * 2, paddingHorizontal: spacing.xl, gap: spacing.md },
   emptyText: { textAlign: 'center' },
   grid: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 96 },

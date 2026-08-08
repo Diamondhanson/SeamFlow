@@ -25,6 +25,8 @@ import { invoices } from './locales/invoices';
 import { guides } from './locales/guides';
 import { misc } from './locales/misc';
 import { assistant } from './locales/assistant';
+import { feed } from './locales/feed';
+import { chat } from './locales/chat';
 
 export type LanguageCode = 'en' | 'fr';
 
@@ -50,6 +52,8 @@ export const translations = {
     guides: guides.en,
     misc: misc.en,
     assistant: assistant.en,
+    feed: feed.en,
+    chat: chat.en,
   },
   fr: {
     common: common.fr,
@@ -67,6 +71,8 @@ export const translations = {
     guides: guides.fr,
     misc: misc.fr,
     assistant: assistant.fr,
+    feed: feed.fr,
+    chat: chat.fr,
   },
 } as const;
 

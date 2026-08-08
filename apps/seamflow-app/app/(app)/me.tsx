@@ -294,6 +294,19 @@ export default function Me() {
             label={t('settings.notificationPreferences')}
             onPress={() => router.push('/(app)/notification-preferences')}
           />
+          {/* Discovery (ROADMAP D.4). Both work today without the client app:
+              publishing is live and the storefront is what a future browser
+              will see, so there's nothing to gate behind "coming soon". */}
+          <SettingsRow
+            icon="storefront-outline"
+            label={t('feed.storefrontTitle')}
+            onPress={() => router.push('/(app)/feed/storefront')}
+          />
+          <SettingsRow
+            icon="shirt-outline"
+            label={t('feed.worksTitle')}
+            onPress={() => router.push('/(app)/works')}
+          />
           {/* No keychain in a browser, so no PIN lock there — see
               lib/platform-capabilities. Hidden rather than shown-and-failing. */}
           {canUsePinLock ? (

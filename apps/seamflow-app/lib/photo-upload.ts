@@ -5,6 +5,8 @@ import { supabase } from './supabase';
 import { api } from './api';
 import type {
   Design,
+  Work,
+  WorkCreateInput,
   GroupOrderPhoto,
   OrderPhoto,
   OrderPhotoRole,
@@ -49,6 +51,8 @@ function getIM(): IMModule {
 const BUCKET = 'order-photos';
 const DESIGNS_BUCKET = 'designs';
 const AVATARS_BUCKET = 'avatars';
+/** Private. Holds the tailor's own finished work before it's published. */
+const WORKS_BUCKET = 'works';
 
 // A profile photo needs just one modest square-ish variant.
 const AVATAR_MAX_DIM = 512;
@@ -59,6 +63,12 @@ const FULL_QUALITY = 0.82;
 
 const THUMB_MAX_DIM = 400;
 const THUMB_QUALITY = 0.65;
+
+/** Attributes optionally set at upload time; the rest can be filled in later. */
+type WorkCreateMeta = Pick<
+  WorkCreateInput,
+  'title' | 'garmentType' | 'audience' | 'fabric' | 'occasion' | 'tags' | 'orderId'
+>;
 
 interface PickedAsset {
   uri: string;
@@ -91,6 +101,61 @@ async function ensurePermission(source: 'camera' | 'library'): Promise<void> {
   if (perm.status !== 'granted') {
     throw new PermissionDeniedError('photos', perm.canAskAgain);
   }
+}
+
+/**
+ * Ceiling on a single multi-select. Ten is a deliberate limit, not a technical
+ * one: each image is compressed into two variants and uploaded, so a bigger
+ * batch means a long wait with the picker closed and nothing to look at.
+ */
+export const MAX_MULTI_SELECT = 10;
+
+/**
+ * Multi-select sibling of `pickPhoto`. Returns every asset the user chose, in
+ * pick order, or an empty array if they cancelled.
+ *
+ * The camera is inherently one-shot — `launchCameraAsync` captures a single
+ * frame — so that source still yields at most one asset. Multi-select is a
+ * library idiom only.
+ */
+export async function pickPhotos(
+  source: 'camera' | 'library',
+  limit: number = MAX_MULTI_SELECT,
+): Promise<PickedAsset[]> {
+  if (!onlineManager.isOnline()) {
+    throw new PhotoOfflineError();
+  }
+  await ensurePermission(source);
+
+  const toAsset = (a: ImagePicker.ImagePickerAsset): PickedAsset => ({
+    uri: a.uri,
+    width: a.width,
+    height: a.height,
+  });
+
+  if (source === 'camera') {
+    const shot = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+      allowsEditing: false,
+    });
+    if (shot.canceled) return [];
+    return shot.assets[0] ? [toAsset(shot.assets[0])] : [];
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    quality: 1,
+    // `allowsEditing` is single-asset only — turning it on silently disables
+    // multi-select on both platforms.
+    allowsEditing: false,
+    allowsMultipleSelection: true,
+    selectionLimit: limit,
+  });
+  if (result.canceled) return [];
+  // `selectionLimit` isn't honoured by every Android picker implementation,
+  // so clamp here too rather than trusting the OS to have enforced it.
+  return result.assets.slice(0, limit).map(toAsset);
 }
 
 /** Open the camera or photo library and return the picked asset (or null if cancelled). */
@@ -351,6 +416,43 @@ export async function uploadFabricImage(args: {
   ]);
 
   return { photoKey, photoThumbKey, contentType: full.contentType };
+}
+
+/**
+ * Upload a piece of the tailor's own finished work into the PRIVATE `works`
+ * bucket, then register it in the portfolio ("My Designs").
+ *
+ * Private on purpose: a piece is not public until the tailor explicitly
+ * publishes it, at which point the server copies a derivative into the public
+ * `feed` bucket. Uploading straight to the public bucket would make every
+ * unpublished piece fetchable by anyone who guessed the URL.
+ */
+export async function uploadWork(args: {
+  tailorId: string;
+  asset: PickedAsset;
+  meta?: WorkCreateMeta;
+}): Promise<Work> {
+  const { tailorId, asset, meta } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const folder = `${tailorId}/works`;
+  const storagePath = `${folder}/${id}.${full.ext}`;
+  const thumbnailPath = `${folder}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(WORKS_BUCKET, storagePath, full),
+    uploadOne(WORKS_BUCKET, thumbnailPath, thumb),
+  ]);
+
+  return api.works.create({
+    storagePath,
+    thumbnailPath,
+    // Stored so the masonry grid can reserve space before the image loads.
+    width: asset.width,
+    height: asset.height,
+    ...(meta ?? {}),
+  });
 }
 
 /**

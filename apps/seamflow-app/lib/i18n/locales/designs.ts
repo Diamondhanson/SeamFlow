@@ -14,6 +14,13 @@ export const designs = {
     addSourceTitle: 'Add inspiration',
     takePhoto: 'Take photo',
     chooseFromGallery: 'Choose from gallery',
+    // Multi-select: the max is interpolated so the copy can't drift from
+    // MAX_MULTI_SELECT in lib/photo-upload.
+    chooseFromGalleryMulti: 'Choose from gallery (up to {max})',
+    uploadingProgress: 'Adding {done} of {total}…',
+    someFailedTitle: 'Some photos weren’t added',
+    someFailedBody:
+      '{failed} of {total} couldn’t be added — the rest are saved. Check your connection and try those again.',
     autoDescribe: 'Auto-describe',
     attachToOrder: 'Attach to order',
     captionLabel: 'Caption',
@@ -54,6 +61,11 @@ export const designs = {
     addSourceTitle: 'Ajouter une inspiration',
     takePhoto: 'Prendre une photo',
     chooseFromGallery: 'Choisir dans la galerie',
+    chooseFromGalleryMulti: 'Choisir dans la galerie (jusqu’à {max})',
+    uploadingProgress: 'Ajout de {done} sur {total}…',
+    someFailedTitle: 'Certaines photos n’ont pas été ajoutées',
+    someFailedBody:
+      '{failed} sur {total} n’ont pas pu être ajoutées — les autres sont enregistrées. Vérifiez votre connexion et réessayez.',
     autoDescribe: 'Décrire automatiquement',
     attachToOrder: 'Associer à une commande',
     captionLabel: 'Légende',

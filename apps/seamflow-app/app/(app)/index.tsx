@@ -216,6 +216,16 @@ export default function Home() {
       onPress: () => router.push('/(app)/designs'),
     },
     {
+      // Sits next to Design Studio deliberately: same "look at pictures" idea,
+      // opposite direction. Design Studio is inspiration you collected; this is
+      // work you made — and it's the only thing that can go public.
+      label: t('feed.worksTitle'),
+      icon: 'shirt',
+      tone: 'primary',
+      subtitle: t('feed.worksTileSubtitle'),
+      onPress: () => router.push('/(app)/works'),
+    },
+    {
       label: t('home.assistant'),
       icon: 'sparkles',
       tone: 'accent',

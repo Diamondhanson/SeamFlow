@@ -45,4 +45,20 @@ export const qk = {
   invoice: (id: string) => ['invoices', id] as const,
 
   notificationPreferences: () => ['notification-preferences'] as const,
+
+  // ── Discovery feed (ROADMAP D.4) ──────────────────────────────────────────
+  feedPostsMine: () => ['feed-posts', 'mine'] as const,
+
+  // ── My Designs: the tailor's own finished work ────────────────────────────
+  works: (filter?: Record<string, string | undefined>) =>
+    ['works', filter ?? {}] as const,
+  work: (id: string) => ['works', id] as const,
+  workFacets: () => ['works', 'facets'] as const,
+
+  // ── Chat (ROADMAP D.4.3) ──────────────────────────────────────────────────
+  // `conversations` is the list; `conversation` is one thread's header; the
+  // message pages hang off the thread so invalidating a thread drops both.
+  conversations: () => ['conversations'] as const,
+  conversation: (id: string) => ['conversations', id] as const,
+  conversationMessages: (id: string) => ['conversations', id, 'messages'] as const,
 } as const;

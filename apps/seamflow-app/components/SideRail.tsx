@@ -33,6 +33,7 @@ const ITEMS: RailItem[] = [
   { href: '/(app)/templates', icon: 'document-text', labelKey: 'home.templates' },
   { href: '/(app)/fabrics', icon: 'layers', labelKey: 'fabrics.tileLabel' },
   { href: '/(app)/designs', icon: 'color-palette', labelKey: 'home.designStudio' },
+  { href: '/(app)/works', icon: 'shirt', labelKey: 'feed.worksTitle' },
   { href: '/(app)/invoices', icon: 'receipt', labelKey: 'invoices.tileLabel' },
   { href: '/(app)/assistant', icon: 'sparkles', labelKey: 'home.assistant' },
 ];
