@@ -788,6 +788,14 @@ Long-horizon work. Don't plan these in detail today; this section is here so the
 
 This is the full feature list for the client-facing mobile app, which gets built in **Phase 3**. Reserved here so the data model in Phase 0/1 doesn't have to change later to accommodate it.
 
+> **▶ Direction update (2026-07-29):** the client app is being repositioned as
+> **discovery-first** — a Pinterest-style feed of tailors' real finished work with a
+> direct **Inquire → in-app chat** loop. **No feature below is removed;** each is
+> preserved and reframed. See **Appendix D** for the implementation-grade build spec
+> (data model, API, tailor-app changes, client-app moves, phased order) and
+> `docs/client-discovery-vision.md` for the plain-English mapping of every A.1–A.33
+> feature to the new vision.
+
 ### Core consumer features
 
 **A.1 Phone-OTP onboarding** — Same auth pattern as the tailor app. Optional email later. Pull existing data from any magic-link orders the user has interacted with.
@@ -1045,6 +1053,328 @@ A short list of decisions worth committing to early so they don't get re-litigat
 **C.7 Data export and portability.** Tailors should be able to export their clients to CSV at any time. Lock-in is a short-term win and long-term loss.
 
 **C.8 Regulatory.** Phone OTP and payments touch local financial and privacy regulations in every country. Get legal review per market before launching.
+
+---
+
+## Appendix D — Discovery-first client app: build spec (implementation-grade)
+
+Status: proposal · Last updated: 2026-07-29
+
+This appendix revises the **direction** of Appendix A (it does not delete any
+feature) and gives a coding agent concrete, buildable detail. The client app's
+front door becomes a **Pinterest-style feed of tailors' real finished work**;
+every design leads to a reachable tailor via an **Inquire** button that opens an
+**in-app chat**. Loop: **Discover → Inquire → Chat → Commission → delivered work
+re-enters the feed.**
+
+**Locked product decisions** (drive everything below):
+D-1 In-app chat (not WhatsApp handoff). · D-2 Feed shows real finished work. ·
+D-3 Discovery is the home screen. · D-4 Browse without an account; sign in only
+to inquire/save. · D-5 Feed photos come from completed order photos the tailor
+opts in to publish. · D-6 Light trust signals first (verified badge, response
+time, remote-friendly); full reviews later.
+
+**Cross-cutting conventions (apply to every task in this appendix):**
+- i18n mandatory in both apps: every user-facing string via `t()` with `en` + `fr`
+  values; `i18n:check` must pass (see `CLAUDE.md`).
+- Skeleton loaders mandatory for every data-fetched list/detail (feed grid,
+  conversation list, message thread, storefront) — mirror the loaded layout.
+- Every new table has **RLS**; migrations go in `supabase/migrations/` and are
+  recorded in the ledger.
+- After editing `packages/schemas` or `packages/api-client`, rebuild both
+  (`pnpm --filter @seamflow/schemas build`, `… @seamflow/api-client build`).
+- Reuse existing patterns: public endpoints follow
+  `apps/seamflow-api/src/public/` + `ShareLinksService.resolvePublic`; signed
+  image URLs follow `OrderPhotosService.attachSignedUrl`.
+
+---
+
+### D.1 Data model (new tables + columns)
+
+All Drizzle schema files in `apps/seamflow-api/src/db/schema/`, exported from
+`schema/index.ts`; one migration per table in `supabase/migrations/`.
+
+**D.1.1 `feed_posts`** — a tailor-approved public showcase image (derived from an
+order photo). Denormalized so the public feed query touches no private tables.
+
+| column | type | notes |
+|---|---|---|
+| id | uuid pk | |
+| tailor_id | uuid → tailors(id) cascade | owner |
+| order_photo_id | uuid → order_photos(id) set null | source photo (nullable for future standalone uploads) |
+| public_path | text | path in the **public** `feed` bucket (see D.5) |
+| public_thumb_path | text | thumbnail in `feed` bucket |
+| width / height | int | from the source photo; lets the grid lay out before load (no jumps) |
+| caption | text null | |
+| garment_type | text null | indexed; prefilled from the order item |
+| tags | jsonb default '[]' | text[] of lowercase tags |
+| fabric | text null | |
+| starting_price | numeric null | optional "from" price |
+| currency | char(3) null | |
+| city | text null | denormalized from tailor profile for location filter |
+| status | enum(`published`,`hidden`,`removed`) default `published` | `hidden` = tailor unpublished; `removed` = moderation |
+| embedding | vector null | reserved for 3.7 pgvector "more like this" (add later) |
+| created_at / updated_at | timestamptz | |
+
+Indexes: `(status, created_at desc)` (feed page), `garment_type`, `tailor_id`,
+GIN on `tags`. RLS: public **read** where `status = 'published'`; write only by
+the owning tailor.
+
+**D.1.2 Tailor public profile** — extend `tailors` (or add `tailor_profiles`) with
+storefront + trust fields: `business_name`, `bio`, `city`, `specialties jsonb`,
+`languages jsonb`, `avatar_path`, `is_verified bool default false`,
+`accepts_remote bool default false`, `follower_count int default 0`,
+`response_time_hours int null` (computed from message reply latency, nightly job).
+Expose a **public-safe projection** only (no phone/email) via the public feed/
+storefront endpoints.
+
+**D.1.3 `conversations`** — one thread between a client user and a tailor.
+
+| column | type | notes |
+|---|---|---|
+| id | uuid pk | |
+| client_user_id | uuid → auth.users | the consumer |
+| tailor_id | uuid → tailors(id) | the tailor |
+| origin | enum(`inquiry`,`order`) | how it started |
+| design_post_id | uuid → feed_posts(id) null | the design inquired about |
+| order_id | uuid → orders(id) null | set when it becomes/links an order |
+| last_message_at | timestamptz | sort key |
+| client_unread / tailor_unread | int default 0 | denormalized badges |
+| created_at | timestamptz | |
+
+RLS: a row is visible to `client_user_id = auth.uid()` OR to the user who owns
+`tailor_id`. Consider a partial unique index on
+`(client_user_id, tailor_id, design_post_id)` so re-inquiring the same design
+reuses the thread.
+
+**D.1.4 `messages`**
+
+| column | type | notes |
+|---|---|---|
+| id | uuid pk | |
+| conversation_id | uuid → conversations(id) cascade | |
+| sender_type | enum(`client`,`tailor`) | |
+| sender_user_id | uuid | |
+| body | text null | |
+| attachments | jsonb default '[]' | image storage paths and/or `{ designPostId }` |
+| created_at | timestamptz | |
+| read_at | timestamptz null | |
+
+RLS: readable/insertable only by the two participants of the parent conversation.
+Enable **Supabase Realtime** on `messages` (insert) for live threads.
+
+**D.1.5 Moderation (D-6 / A.33)** — `reports` (`reporter_user_id`, `target_type`
+enum(`post`,`message`,`user`), `target_id`, `reason`, `status`) and `blocks`
+(`blocker_user_id`, `blocked_user_id`). Reviewed in `seamflow-admin`.
+
+---
+
+### D.2 API (NestJS — new modules in `apps/seamflow-api/src/`)
+
+**D.2.1 Public feed (no auth — pattern from `public/`)**
+- `GET /feed` — query `{ cursor?, limit=24, garmentType?, city?, fabric?, tailorId?, q? }`
+  → `{ items: FeedPostPublic[], nextCursor }`. Keyset pagination on
+  `(created_at, id)`. Returns public image URLs (D.5) + a tailor mini-profile
+  (name, avatar, verified, response time, accepts_remote). Only `status='published'`.
+- `GET /feed/:id` — one post + tailor public profile + `moreLikeThis` (empty until
+  pgvector; then nearest embeddings).
+- `GET /tailors/:id/storefront` — public profile + that tailor's published posts.
+
+**D.2.2 Tailor-authenticated (tailor app, `requireTailorId`)**
+- `POST /order-photos/:id/publish` — opt-in publish; body
+  `{ caption?, garmentType?, tags?, fabric?, startingPrice?, currency? }`. Server
+  verifies the photo belongs to the tailor, copies thumb+medium into the `feed`
+  bucket (D.5), inserts `feed_posts`. Returns the post.
+- `PATCH /feed-posts/:id` / `DELETE /feed-posts/:id` — edit / unpublish
+  (`status='hidden'`).
+- `GET /feed-posts/mine` — manage published work.
+- `PATCH /me/tailor-profile` — storefront/trust fields (D.1.2) + avatar upload
+  registration.
+
+**D.2.3 Chat (both apps, authed; role resolved from token)**
+- `POST /conversations` — client-initiated inquiry:
+  `{ tailorId, designPostId?, firstMessage }` → creates/reuses the thread, inserts
+  the first message, notifies the tailor. Returns the conversation.
+- `GET /conversations` — role-aware list (client sees theirs; tailor sees theirs),
+  sorted by `last_message_at`, with unread counts + last message preview.
+- `GET /conversations/:id` — detail + paginated messages (keyset on `created_at`).
+- `POST /conversations/:id/messages` — `{ body?, attachments? }`; bumps
+  `last_message_at`, increments recipient unread, fires push.
+- `POST /conversations/:id/read` — reset caller's unread; stamp `read_at`.
+- `POST /conversations/:id/quote` — (tailor, N6) creates an order (`registered`) +
+  draft invoice from the chat, links `conversation.order_id`; reuses
+  `OrdersService` + `InvoicesService`. Client accepts by confirming/paying the
+  deposit → normal order lifecycle.
+
+**D.2.4 Moderation** — `POST /reports`, `POST /blocks`; admin review in
+`seamflow-admin`.
+
+**Realtime & push:** subscribe the open thread to Supabase Realtime; when the
+recipient is not subscribed, send an Expo push (reuse the existing
+`notifications` wiring in both apps). Provide a polling fallback for web.
+
+---
+
+### D.3 Contracts (`packages/schemas`) + api-client
+
+New schema files (Zod), each re-exported via `schemas/src/index.ts` (`export *`):
+- `feed.ts` — `FeedPost`, `FeedPostPublic`, `FeedPostCreate/Update`, `FeedQuery`,
+  `FeedPage`.
+- `tailor-profile.ts` — `TailorPublicProfile`, `TailorProfileUpdate`.
+- `chat.ts` — `Conversation`, `ConversationCreate`, `Message`, `MessageCreate`,
+  `ConversationList`.
+- `moderation.ts` — `Report`, `Block`.
+
+api-client resources (`packages/api-client/src/resources/`): `feed.ts` (incl. a
+`makePublicClient`-served public feed), `conversations.ts`, `tailor-profile.ts`,
+`reports.ts`; wire onto `api.*` and `api.consumer.*`. **Rebuild both packages.**
+
+---
+
+### D.4 Tailor app (`apps/seamflow-app`) — changes to accommodate discovery
+
+The tailor app is where feed content and inquiries are handled. Add:
+
+1. **Publish to feed.** On the order-photo viewer / order detail
+   (`app/(app)/orders/[id].tsx`), add a "Show in feed" action → a small form
+   (caption, garment type prefilled from the order item, tags, optional starting
+   price) → `POST /order-photos/:id/publish`. Show a "In feed" badge on published
+   photos; allow unpublish. New i18n keys in `locales/orders.ts` + a new
+   `locales/feed.ts`.
+2. **Storefront/profile editing.** Extend `profile-edit.tsx` / `me.tsx` with
+   business name, bio, city, specialties, languages, **accepts-remote** toggle,
+   avatar. Feeds the public storefront + trust signals.
+3. **Inquiries inbox + chat.** A new **Messages** tab: conversation list
+   (`SkeletonList`) → thread screen (bubbles, image attachments, the inquired
+   design pinned at top), Realtime + push, unread badges. Reuse the UI kit
+   (`Text`, `Card`, `ListRow`, `Input`, `Button`).
+4. **Inquiry → quote/order.** In a thread, "Create quote/order" →
+   prefilled `new-order` for that client (create the client from the inquiry if
+   new), design attached → `POST /conversations/:id/quote`. Bridges discovery into
+   the orders/invoices already built.
+5. **Push:** new-message notifications via existing `expo-notifications` wiring.
+
+> Keep this human client↔tailor chat **separate** from the tailor **copilot**
+> (AI assistant) chat specced elsewhere — different systems, different screens.
+
+---
+
+### D.5 Media & the public bucket (important architectural detail)
+
+Order photos are **private** (RLS + short-lived signed URLs). The feed is
+**public**, so publishing must not expose the private original. On publish, the
+server **copies the thumbnail + a medium size into a new public `feed` bucket**
+(public-read, CDN-fronted) and stores those paths on `feed_posts`. The public
+feed serves stable public URLs (no per-request signing); the private originals
+stay private. Store `width/height` on the post so the masonry grid lays out
+before images load (matches the media-handling plan; add a "medium" size there).
+
+---
+
+### D.6 Client app (`apps/seamflow-client`) — how to move ahead
+
+Reposition around discovery while preserving the built spine (home tiles → orders
+inbox → order detail → measurement locker → claim-by-link).
+
+1. **Feed = home.** Replace the pink-tiles home with the **discovery feed**:
+   masonry/"bantu" grid (FlashList masonry, or a two-column layout driven by the
+   stored `width/height`), infinite scroll (`useInfiniteQuery` over `GET /feed`),
+   filter chips (garment type, city, fabric). **Public — renders before sign-in.**
+   Grid skeleton while loading.
+2. **Design detail (full-screen).** Big image, tailor mini-profile + trust signals
+   (verified, "usually replies in a day", "remote-friendly"), **Inquire** button,
+   **Save** button, `moreLikeThis` row (later).
+
+   **Tailor attribution overlay → storefront (decided 2026-08-08).** The tailor
+   is not a footnote on this screen — they are the reason the screen exists. In
+   the full-screen view, overlay the tailor's **business name** (plus avatar,
+   verified tick, and city) in a **bottom-left card** above the image, with a
+   scrim behind it so it stays legible on any photo. Bottom-left rather than
+   top-left: the top corners collect the close button and the system status bar,
+   and the thumb rests near the bottom on a phone.
+
+   Tapping that overlay opens the **tailor storefront** (D.6.5) — their profile
+   header plus the rest of their published work, **ranked most-recently-published
+   first**. Nothing new is needed server-side for this:
+   `GET /tailors/:id/storefront` already returns the profile and posts ordered by
+   `created_at desc`, keyset-paginated, and `FeedPostPublic.tailor` already
+   carries `businessName`, `avatarUrl`, `isVerified`, `city`, `acceptsRemote` and
+   `responseTimeHours` on every feed item — so the overlay renders from data the
+   feed response already contains, with no extra request.
+
+   This closes the discovery loop: feed → a piece you like → the person who made
+   it → everything else they've made → Inquire.
+3. **Auth gate on action (D-4).** Inquire/Save when signed out → sign-in sheet
+   (reuse existing email+OTP+Google) → resume the action.
+4. **Inquiry → chat.** Inquire → `POST /conversations { tailorId, designPostId,
+   firstMessage }` (prefill "I'd like this in [fabric], for [date]") → thread
+   screen. Conversation list tab + unread badges + Realtime + push.
+5. **Tailor storefront screen** — from a design or search: posts grid + trust
+   signals + Inquire.
+6. **Save to inquire later** — reuse the moodboard/board concept as a shortlist
+   aimed at inquiring (not aimless saving).
+7. **Preserve the "manage" area** — orders inbox, locker, claim move behind the
+   feed (e.g. a "My orders" tab). Everything in Appendix A stays; the front door
+   changes.
+
+Move existing Appendix-A items per the mapping in `docs/client-discovery-vision.md`
+(A.7 absorbed into the feed; A.26 = the front door; A.11 pulled forward & broadened
+into the inquiry chat; A.28/A.33 pulled earlier; the rest kept/reframed).
+
+---
+
+### D.7 Build order (phased, with acceptance criteria)
+
+**Phase C1 — Publishing + read-only public feed.**
+Build: `feed_posts` + migration + RLS; `feed` public bucket + copy-on-publish
+(D.5); `POST /order-photos/:id/publish`, `GET /feed`, `GET /feed/:id`,
+`GET /tailors/:id/storefront`; `feed`/`tailor-profile` schemas + api-client
+(rebuild); tailor-app publish flow + storefront fields; client-app feed home +
+design detail + storefront (browse only). i18n + skeletons.
+✅ Done when: a tailor publishes a finished-order photo; it appears in the client
+feed within seconds; anyone (signed out) can browse, filter, open full-screen, and
+view the tailor's storefront; private originals remain private.
+
+**Phase C2 — Inquire + in-app chat (the core loop).**
+Build: `conversations` + `messages` + RLS + Realtime; chat endpoints (D.2.3);
+`chat` schemas + api-client (rebuild); Inquire button + auth gate + thread UI in
+**both** apps; new-message push. i18n + skeletons.
+✅ Done when: a signed-in client taps Inquire on a design → a thread opens with
+the design pinned → the tailor gets a push and replies → both see messages live;
+unread badges and read receipts work.
+
+**Phase C3 — Inquiry → quote → order.**
+Build: `POST /conversations/:id/quote` reusing Orders + Invoices; tailor "create
+quote/order" action; client accept/pay path (uses existing payments/invoice link).
+✅ Done when: a chat becomes an order + draft invoice linked to the conversation,
+and the order then flows through the normal lifecycle and appears in the client's
+orders inbox.
+
+**Phase C4 — Trust & safety (A.33 / N7).** `reports` + `blocks` + admin review;
+opt-in/private defaults enforced; report/block UI in both apps.
+✅ Done when: any post/message/user can be reported and blocked, and blocked users
+can't message each other; admin can hide/remove a post.
+
+**Phase C5 — Growth & polish (later).** Credited-looks loop (A.29: delivered
+garment re-enters the feed crediting both sides); `embedding` + pgvector
+"more like this" (3.7); follows (A.27); full reviews tied to completed orders
+(A.32); starting-price filters; collaborative boards (A.30).
+
+---
+
+### D.8 Watch-outs
+
+- **Chat is the biggest system** (Realtime + push + moderation) — budget for it;
+  it's the heart of the loop.
+- **Empty-feed cold start** — seed with your best early tailors before opening
+  discovery widely.
+- **Moderation is ongoing** — report/block + opt-in defaults from day one (C4 is
+  not optional once the feed is public at scale).
+- **Public vs private images** — never serve private order photos publicly; only
+  the copied `feed`-bucket derivative is public (D.5).
+- **Web synergy** — the installable web app (see `docs/web-app-plan.md`) is a
+  perfect no-login public shop window for this feed; build the feed responsive so
+  it doubles as the web storefront.
 
 ---
 
