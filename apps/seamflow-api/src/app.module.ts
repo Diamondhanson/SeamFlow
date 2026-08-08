@@ -6,6 +6,9 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { envSchema } from './config/env';
 import { SupabaseModule } from './supabase/supabase.module';
 import { DbModule } from './db/db.module';
+import { FeedModule } from './feed/feed.module';
+import { ChatModule } from './chat/chat.module';
+import { WorksModule } from './works/works.module';
 import { QueueModule } from './queue/queue.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
@@ -41,6 +44,9 @@ import { RemindersModule } from './notifications/reminders.module';
     ScheduleModule.forRoot(),
     SupabaseModule,
     DbModule,
+    FeedModule,
+    ChatModule,
+    WorksModule,
     QueueModule,
     AuthModule,
     HealthModule,

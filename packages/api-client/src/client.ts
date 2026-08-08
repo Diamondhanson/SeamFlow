@@ -60,6 +60,16 @@ import {
   makeNotificationPreferencesResource,
   type NotificationPreferencesResource,
 } from './resources/notification-preferences';
+import { makeFeedResource, type FeedResource } from './resources/feed';
+import {
+  makeConversationsResource,
+  type ConversationsResource,
+} from './resources/conversations';
+import {
+  makeTailorProfileResource,
+  type TailorProfileResource,
+} from './resources/tailor-profile';
+import { makeWorksResource, type WorksResource } from './resources/works';
 
 export interface ApiClient {
   health: HealthResource;
@@ -84,6 +94,10 @@ export interface ApiClient {
   invoices: InvoicesResource;
   notifications: NotificationsResource;
   notificationPreferences: NotificationPreferencesResource;
+  feed: FeedResource;
+  conversations: ConversationsResource;
+  tailorProfile: TailorProfileResource;
+  works: WorksResource;
 }
 
 export type ApiClientConfig = HttpConfig;
@@ -124,5 +138,9 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     invoices: makeInvoicesResource(http),
     notifications: makeNotificationsResource(http),
     notificationPreferences: makeNotificationPreferencesResource(http),
+    feed: makeFeedResource(http),
+    conversations: makeConversationsResource(http),
+    tailorProfile: makeTailorProfileResource(http),
+    works: makeWorksResource(http),
   };
 }

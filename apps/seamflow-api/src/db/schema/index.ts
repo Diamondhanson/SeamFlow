@@ -15,3 +15,6 @@ export * from './notification-preferences';
 export * from './order-reminder-log';
 export * from './share-links';
 export * from './order-claims';
+export * from './feed-posts';
+export * from './chat';
+export * from './tailor-works';

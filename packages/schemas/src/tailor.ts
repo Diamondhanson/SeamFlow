@@ -8,6 +8,23 @@ export const TailorSchema = z.object({
   location: z.string().nullable(),
   countryCode: z.string().length(2),
   currency: z.string().length(3),
+
+  // ── Public storefront + trust (ROADMAP D.1.2) ─────────────────────────────
+  // Present on the tailor's own /me response so the app can edit them. The
+  // PUBLIC projection is TailorPublicProfile in ./tailor-profile — use that
+  // anywhere an anonymous viewer is served, since this shape is owner-only.
+  bio: z.string().nullable().default(null),
+  city: z.string().nullable().default(null),
+  specialties: z.array(z.string()).default([]),
+  languages: z.array(z.string()).default([]),
+  avatarPath: z.string().nullable().default(null),
+  /** Admin-granted. Not settable through TailorProfileUpdate. */
+  isVerified: z.boolean().default(false),
+  acceptsRemote: z.boolean().default(false),
+  followerCount: z.number().int().default(0),
+  /** Computed nightly from real reply latency. Not self-settable. */
+  responseTimeHours: z.number().int().nullable().default(null),
+
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

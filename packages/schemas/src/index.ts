@@ -18,3 +18,7 @@ export * from './share-link';
 export * from './device-token';
 export * from './notification-preferences';
 export * from './consumer';
+export * from './tailor-profile';
+export * from './feed';
+export * from './chat';
+export * from './work';

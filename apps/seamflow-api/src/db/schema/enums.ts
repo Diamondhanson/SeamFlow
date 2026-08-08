@@ -39,3 +39,43 @@ export const paymentProviderEnum = pgEnum('payment_provider', [
 ]);
 
 export const invoiceStatusEnum = pgEnum('invoice_status', ['draft', 'sent']);
+
+// ── Discovery feed + chat (ROADMAP Appendix D) ──────────────────────────────
+
+/** 'hidden' = tailor unpublished it; 'removed' = taken down by moderation. */
+export const feedPostStatusEnum = pgEnum('feed_post_status', [
+  'published',
+  'hidden',
+  'removed',
+]);
+
+export const conversationOriginEnum = pgEnum('conversation_origin', [
+  'inquiry',
+  'order',
+]);
+
+export const messageSenderTypeEnum = pgEnum('message_sender_type', [
+  'client',
+  'tailor',
+]);
+
+// ── My Designs: the tailor's own finished work (ROADMAP: "My Designs") ──────
+// Structured rather than free text so filters stay reliable across tailors.
+
+export const workAudienceEnum = pgEnum('work_audience', [
+  'women',
+  'men',
+  'unisex',
+  'children',
+]);
+
+export const workOccasionEnum = pgEnum('work_occasion', [
+  'wedding',
+  'traditional',
+  'corporate',
+  'casual',
+  'party',
+]);
+
+/** Where the piece came from: uploaded directly, or adopted from an order photo. */
+export const workSourceEnum = pgEnum('work_source', ['upload', 'order_photo']);
