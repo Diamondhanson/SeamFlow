@@ -8,7 +8,7 @@
 
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAtelierTheme, spacing } from '@seamflow/ui';
+import { useAtelierTheme, spacing, useFieldFocus } from '@seamflow/ui';
 import { useTranslation } from '../lib/i18n';
 
 export function SearchField({
@@ -23,13 +23,16 @@ export function SearchField({
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
   const placeholderText = placeholder ?? t('misc.searchPlaceholder');
+  // The pill's own border is the focus indicator, which is what lets us drop
+  // the browser's inner ring on web (see useFieldFocus).
+  const { focused, focusProps, webReset } = useFieldFocus();
   return (
     <View
       style={[
         styles.wrap,
         {
           backgroundColor: colors.surface,
-          borderColor: colors.hairline,
+          borderColor: focused ? colors.primary : colors.hairline,
           borderRadius: radii.m,
         },
       ]}
@@ -41,7 +44,8 @@ export function SearchField({
         placeholder={placeholderText}
         placeholderTextColor={colors.textMuted}
         returnKeyType="search"
-        style={[styles.input, { color: colors.text }]}
+        {...focusProps}
+        style={[styles.input, { color: colors.text }, webReset]}
       />
     </View>
   );

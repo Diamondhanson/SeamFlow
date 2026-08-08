@@ -19,7 +19,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import type { CountryCode } from 'libphonenumber-js';
 import {
   ensureContactsPermission,
@@ -44,6 +44,9 @@ export function ContactPickerModal({
 }: Props) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
+  // The search pill's own border is the focus indicator, which is what lets
+  // us drop the browser's inner ring on web (see useFieldFocus).
+  const { focused, focusProps, webReset } = useFieldFocus();
   const [loading, setLoading] = useState(false);
   const [denied, setDenied] = useState(false);
   const [contacts, setContacts] = useState<DeviceContact[]>([]);
@@ -128,7 +131,7 @@ export function ContactPickerModal({
                   styles.searchWrap,
                   {
                     backgroundColor: colors.surface,
-                    borderColor: colors.hairline,
+                    borderColor: focused ? colors.primary : colors.hairline,
                     borderRadius: radii.m,
                   },
                 ]}
@@ -140,7 +143,8 @@ export function ContactPickerModal({
                   placeholder={t('misc.searchNameOrNumber')}
                   placeholderTextColor={colors.textMuted}
                   autoFocus
-                  style={[styles.searchInput, { color: colors.text }]}
+                  {...focusProps}
+                  style={[styles.searchInput, { color: colors.text }, webReset]}
                 />
               </View>
               <FlatList

@@ -31,7 +31,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Message, MessageAttachment } from '@seamflow/schemas';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SkeletonList } from '../../../components/Skeleton';
@@ -71,6 +71,9 @@ export default function Thread() {
   const { t } = useTranslation();
   const colors = useThemeColors();
   const { colors: atelier } = useAtelierTheme();
+  // The composer's top hairline doubles as its focus indicator, so the
+  // browser's own ring can be suppressed on web (see useFieldFocus).
+  const composerFocus = useFieldFocus();
   const dialog = useDialog();
   const online = useOnline();
   const qc = useQueryClient();
@@ -406,7 +409,15 @@ export default function Thread() {
         />
       )}
 
-      <View style={[styles.composer, { backgroundColor: colors.card, borderColor: colors.hairline }]}>
+      <View
+        style={[
+          styles.composer,
+          {
+            backgroundColor: colors.card,
+            borderColor: composerFocus.focused ? atelier.primary : colors.hairline,
+          },
+        ]}
+      >
         <Pressable onPress={promptAttach} disabled={attaching} style={styles.attachBtn}>
           {attaching ? (
             <ActivityIndicator size="small" color={colors.textMuted} />
@@ -423,7 +434,8 @@ export default function Thread() {
           placeholder={t('chat.composerPlaceholder')}
           placeholderTextColor={colors.textMuted}
           multiline
-          style={[styles.input, { color: colors.text }]}
+          {...composerFocus.focusProps}
+          style={[styles.input, { color: colors.text }, composerFocus.webReset]}
         />
         <Pressable
           onPress={send}

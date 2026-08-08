@@ -20,7 +20,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
 import type { AiDescribeMode } from '@seamflow/schemas';
 import { api } from '../lib/api';
 import { stripMarkdown } from './RichText';
@@ -53,6 +53,9 @@ export function AiDescribeSheet({
 }: Props) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
+  // The textarea's own border is the focus indicator, which is what lets us
+  // drop the browser's inner ring on web (see useFieldFocus).
+  const { focused, focusProps, webReset } = useFieldFocus();
   const [modes, setModes] = useState<Set<AiDescribeMode>>(new Set(['spec']));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -204,9 +207,16 @@ export function AiDescribeSheet({
                   value={text}
                   onChangeText={setText}
                   multiline
+                  {...focusProps}
                   style={[
                     styles.textArea,
-                    { color: colors.text, backgroundColor: colors.surface, borderColor: colors.hairline, borderRadius: radii.m },
+                    {
+                      color: colors.text,
+                      backgroundColor: colors.surface,
+                      borderColor: focused ? colors.primary : colors.hairline,
+                      borderRadius: radii.m,
+                    },
+                    webReset,
                   ]}
                 />
                 <View style={styles.actions}>

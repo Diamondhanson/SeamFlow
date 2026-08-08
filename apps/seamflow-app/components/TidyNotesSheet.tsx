@@ -19,7 +19,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
 import { useSummarizeNotes } from '../lib/ai';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
@@ -36,6 +36,9 @@ interface Props {
 export function TidyNotesSheet({ visible, onClose, notes, onAccept }: Props) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
+  // The textarea's own border is the focus indicator, which is what lets us
+  // drop the browser's inner ring on web (see useFieldFocus).
+  const { focused, focusProps, webReset } = useFieldFocus();
   const summarize = useSummarizeNotes();
   const [text, setText] = useState('');
 
@@ -123,12 +126,14 @@ export function TidyNotesSheet({ visible, onClose, notes, onAccept }: Props) {
                   value={text}
                   onChangeText={setText}
                   multiline
+                  {...focusProps}
                   style={[
                     styles.textArea,
+                    webReset,
                     {
                       color: colors.text,
                       backgroundColor: colors.surface,
-                      borderColor: colors.hairline,
+                      borderColor: focused ? colors.primary : colors.hairline,
                       borderRadius: radii.m,
                     },
                   ]}

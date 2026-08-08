@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { TIMEZONES } from '../lib/timezones';
 import { useTranslation } from '../lib/i18n';
 import { spacing } from '../lib/theme';
@@ -28,6 +28,9 @@ interface Props {
 export function TimezonePickerModal({ visible, current, onClose, onSelect }: Props) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
+  // The search pill's own border is the focus indicator, which is what lets
+  // us drop the browser's inner ring on web (see useFieldFocus).
+  const { focused, focusProps, webReset } = useFieldFocus();
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -66,7 +69,11 @@ export function TimezonePickerModal({ visible, current, onClose, onSelect }: Pro
           <View
             style={[
               styles.searchWrap,
-              { backgroundColor: colors.surface, borderColor: colors.hairline, borderRadius: radii.m },
+              {
+                backgroundColor: colors.surface,
+                borderColor: focused ? colors.primary : colors.hairline,
+                borderRadius: radii.m,
+              },
             ]}
           >
             <Ionicons name="search" size={16} color={colors.textMuted} />
@@ -76,7 +83,8 @@ export function TimezonePickerModal({ visible, current, onClose, onSelect }: Pro
               placeholder={t('common.search')}
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
-              style={[styles.searchInput, { color: colors.text }]}
+              {...focusProps}
+              style={[styles.searchInput, { color: colors.text }, webReset]}
             />
           </View>
           <FlatList

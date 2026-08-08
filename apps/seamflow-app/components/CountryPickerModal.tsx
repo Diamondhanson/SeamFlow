@@ -17,7 +17,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, spacing } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus, spacing } from '@seamflow/ui';
 import { ALL_COUNTRIES, flagEmoji } from '../lib/countries';
 
 export interface CountryPickerModalProps {
@@ -39,6 +39,9 @@ export function CountryPickerModal({
   searchPlaceholder,
 }: CountryPickerModalProps) {
   const { colors, radii } = useAtelierTheme();
+  // The search pill's own border is the focus indicator, which is what lets
+  // us drop the browser's inner ring on web (see useFieldFocus).
+  const { focused, focusProps, webReset } = useFieldFocus();
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -76,7 +79,7 @@ export function CountryPickerModal({
               styles.searchWrap,
               {
                 backgroundColor: colors.surface,
-                borderColor: colors.hairline,
+                borderColor: focused ? colors.primary : colors.hairline,
                 borderRadius: radii.m,
               },
             ]}
@@ -89,7 +92,8 @@ export function CountryPickerModal({
               placeholderTextColor={colors.textMuted}
               autoFocus
               autoCorrect={false}
-              style={[styles.searchInput, { color: colors.text }]}
+              {...focusProps}
+              style={[styles.searchInput, { color: colors.text }, webReset]}
             />
           </View>
 

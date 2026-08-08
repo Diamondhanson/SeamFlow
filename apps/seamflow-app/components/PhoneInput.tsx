@@ -28,7 +28,7 @@ import {
   getCountryCallingCode,
   type CountryCode,
 } from 'libphonenumber-js';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { useMe } from '../lib/queries';
 import { useTranslation } from '../lib/i18n';
 import { spacing } from '../lib/theme';
@@ -84,6 +84,9 @@ export function PhoneInput({
   const [country, setCountry] = useState<CountryCode>(initialCountry);
   const [raw, setRaw] = useState(''); // digits only
   const [focused, setFocused] = useState(false);
+  // Country-search pill inside the picker modal. The main phone field above
+  // already tracks focus by hand, so it reuses only `webReset`.
+  const { focused: searchFocused, focusProps: searchFocusProps, webReset } = useFieldFocus();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -160,7 +163,7 @@ export function PhoneInput({
           keyboardType="phone-pad"
           placeholder={placeholderText}
           placeholderTextColor={colors.textMuted}
-          style={[styles.input, { color: colors.text }]}
+          style={[styles.input, { color: colors.text }, webReset]}
         />
       </View>
 
@@ -181,7 +184,11 @@ export function PhoneInput({
             <View
               style={[
                 styles.searchWrap,
-                { backgroundColor: colors.surface, borderColor: colors.hairline, borderRadius: radii.m },
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: searchFocused ? colors.primary : colors.hairline,
+                  borderRadius: radii.m,
+                },
               ]}
             >
               <Ionicons name="search" size={16} color={colors.textMuted} />
@@ -191,7 +198,8 @@ export function PhoneInput({
                 placeholder={t('misc.searchCountryOrCode')}
                 placeholderTextColor={colors.textMuted}
                 autoFocus
-                style={[styles.searchInput, { color: colors.text }]}
+                {...searchFocusProps}
+                style={[styles.searchInput, { color: colors.text }, webReset]}
               />
             </View>
             <FlatList

@@ -46,7 +46,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ActionPreview } from '@seamflow/schemas';
-import { Text, Chip, IconButton, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import {
+  Text,
+  Chip,
+  IconButton,
+  useAtelierTheme,
+  useFieldFocus,
+  withAlpha,
+} from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { HelpCard } from '../../components/HelpCard';
@@ -91,6 +98,9 @@ const INPUT_MAX_H = INPUT_LINE_H * 5;
 export default function AssistantScreen() {
   const { t, language } = useTranslation();
   const { colors } = useAtelierTheme();
+  // The field's own border is the focus indicator, which is what lets us
+  // drop the browser's inner ring on web (see useFieldFocus).
+  const { focused, focusProps, webReset } = useFieldFocus();
   const dialog = useDialog();
   const qc = useQueryClient();
   const { data: me } = useMe();
@@ -528,7 +538,10 @@ export default function AssistantScreen() {
           <View
             style={[
               styles.inputWrap,
-              { backgroundColor: colors.surface, borderColor: colors.border },
+              {
+                backgroundColor: colors.surface,
+                borderColor: focused ? colors.primary : colors.border,
+              },
             ]}
           >
             <TextInput
@@ -543,8 +556,10 @@ export default function AssistantScreen() {
                 setInputContentH(e.nativeEvent.contentSize.height)
               }
               scrollEnabled={inputContentH > INPUT_MAX_H}
+              {...focusProps}
               style={[
                 styles.input,
+                webReset,
                 {
                   color: colors.text,
                   height: Math.min(
