@@ -27,3 +27,6 @@ export { ListRow } from './ListRow';
 export type { ListRowProps } from './ListRow';
 
 export { useFieldFocus } from './useFieldFocus';
+
+export { Toggle } from './Toggle';
+export type { ToggleProps } from './Toggle';

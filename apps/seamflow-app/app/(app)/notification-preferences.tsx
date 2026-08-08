@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { Text, Toggle, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { SkeletonForm } from '../../components/Skeleton';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -227,12 +227,7 @@ function ToggleRow({
       <Text variant="body" tone="text" style={styles.toggleLabel}>
         {label}
       </Text>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        trackColor={{ true: colors.primary, false: colors.border }}
-        thumbColor={colors.surface}
-      />
+      <Toggle value={value} onValueChange={onValueChange} />
     </View>
   );
 }

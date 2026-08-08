@@ -9,9 +9,9 @@
 // ============================================================================
 
 import { useEffect, useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { Text, Toggle, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { FormScroll } from '../../../components/FormScroll';
@@ -132,11 +132,7 @@ export default function Storefront() {
               {t('feed.acceptsRemoteHelp')}
             </Text>
           </View>
-          <Switch
-            value={acceptsRemote}
-            onValueChange={setAcceptsRemote}
-            trackColor={{ true: atelier.primary, false: colors.border }}
-          />
+          <Toggle value={acceptsRemote} onValueChange={setAcceptsRemote} />
         </View>
 
         {/* Read-only trust signals. */}

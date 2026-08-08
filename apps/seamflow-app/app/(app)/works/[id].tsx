@@ -8,10 +8,10 @@
 // ============================================================================
 
 import { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { WorkAudience, WorkOccasion } from '@seamflow/schemas';
-import { Text } from '@seamflow/ui';
+import { Text, Toggle } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { FormScroll } from '../../../components/FormScroll';
@@ -160,11 +160,10 @@ export default function EditWork() {
           <Text variant="body" style={{ flex: 1 }}>
             {t('feed.publishedToggle')}
           </Text>
-          <Switch
+          <Toggle
             value={!!work?.isPublished}
             onValueChange={togglePublished}
             disabled={publishM.isPending || unpublishM.isPending}
-            trackColor={{ true: colors.accent, false: colors.border }}
           />
         </View>
 
