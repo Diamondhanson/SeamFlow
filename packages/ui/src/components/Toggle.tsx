@@ -24,18 +24,43 @@ export interface ToggleProps extends Omit<SwitchProps, 'trackColor' | 'thumbColo
 }
 
 export function Toggle({ value, onValueChange, ...rest }: ToggleProps) {
-  const { colors } = useAtelierTheme();
+  const { colors, mode } = useAtelierTheme();
+
+  /**
+   * Knob colour.
+   *
+   * Light mode uses `surface` — already a light shade of the page behind it.
+   *
+   * Dark mode cannot: `surface` (#1A1A26) sits a hair off the #10101A
+   * background, so the knob reads as a hole punched in the track rather than a
+   * control sitting on it. `border` is the midnight palette's lightened neutral
+   * (clay, #2F2F40) — the same family as the background, a clear step up in
+   * lightness. Deliberately not `text`: a near-white knob is an iOS idiom that
+   * fights the muted Atelier palette.
+   */
+  const isDark = mode === 'midnight';
+  const knob = isDark ? colors.border : colors.surface;
+
+  /**
+   * Off-track must not equal the knob.
+   *
+   * The default off-track is `border`, which in dark mode is the very colour we
+   * just gave the knob — an OFF switch would render as one solid blob with no
+   * visible knob at all. Dropping the track to `surface` puts the knob a step
+   * lighter than the track it sits in, which is the whole point of the control.
+   */
+  const offTrack = isDark ? colors.surface : colors.border;
 
   const webOnly = Platform.OS === 'web'
-    ? ({ activeThumbColor: colors.surface, activeTrackColor: colors.primary } as object)
+    ? ({ activeThumbColor: knob, activeTrackColor: colors.primary } as object)
     : null;
 
   return (
     <Switch
       value={value}
       onValueChange={onValueChange}
-      trackColor={{ true: colors.primary, false: colors.border }}
-      thumbColor={colors.surface}
+      trackColor={{ true: colors.primary, false: offTrack }}
+      thumbColor={knob}
       {...webOnly}
       {...rest}
     />
