@@ -2,13 +2,23 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { and, desc, eq, gte, ilike, lte, type SQL } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { clients, fabrics, orderEvents, orderItems, orders, tailors } from '../db/schema';
+import {
+  clients,
+  fabrics,
+  orderClaims,
+  orderEvents,
+  orderItems,
+  orders,
+  tailors,
+} from '../db/schema';
 import {
   canTransitionOrderStatus,
+  type NotificationType,
   type OrderCreateInput,
   type OrderStatus,
   type OrderTransitionInput,
@@ -52,6 +62,8 @@ interface ListOptions {
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     private readonly dbService: DbService,
     private readonly notifications: NotificationsService,
@@ -314,8 +326,83 @@ export class OrdersService {
     // actor too (self-confirmation). Phase 2.1 staff support will widen
     // this to all subscribed staff via a preferences table.
     void this.notifyOwnerOfTransition(tailorId, id, row.orderName, current.status, data.to);
+    // …and the client, for the statuses that are theirs to care about.
+    void this.notifyClientsOfTransition(id, row.orderName, data.to);
 
     return row;
+  }
+
+  /**
+   * Which order statuses a CLIENT is told about.
+   *
+   * Deliberately not all of them. `registered`, `in_progress` and `on_pause`
+   * are the tailor's internal workflow — a client does not need a buzz when
+   * cutting starts, and forwarding every transition is the fastest way to get
+   * an app muted, after which the messages that DO matter are missed too.
+   *
+   * `on_pause` is excluded for a second reason: "your order is paused" with no
+   * explanation reads as bad news and invites a worried phone call. That is a
+   * conversation for the chat thread, not a push.
+   *
+   * Note there is no "ready for pickup" status in the enum today — the schema
+   * goes `testing` (fitting) → `delivered`. The notification type exists in the
+   * union for when one is added; nothing maps to it yet.
+   */
+  private static readonly CLIENT_VISIBLE_STATUS: Partial<
+    Record<OrderStatus, NotificationType>
+  > = {
+    testing: 'order.ready_for_fitting',
+    delivered: 'order.delivered',
+  };
+
+  /**
+   * Tell the client their order moved — if there is a client account to tell.
+   *
+   * Recipients come from `order_claims`, which is the canonical order↔account
+   * link (it is what `consumer.listOrders` reads and `getOrder` authorises
+   * against). An order the tailor typed in for a walk-in has no claim and no
+   * account behind it, so this correctly does nothing.
+   */
+  private async notifyClientsOfTransition(
+    orderId: string,
+    orderName: string,
+    to: OrderStatus,
+  ): Promise<void> {
+    const type = OrdersService.CLIENT_VISIBLE_STATUS[to];
+    if (!type) return;
+
+    try {
+      const claimants = await this.dbService.db
+        .select({ userId: orderClaims.userId })
+        .from(orderClaims)
+        .where(eq(orderClaims.orderId, orderId));
+
+      const body =
+        to === 'delivered'
+          ? `“${orderName}” has been delivered`
+          : `“${orderName}” is ready for fitting`;
+
+      await Promise.all(
+        claimants.map((c) =>
+          this.notifications.emit(c.userId, {
+            type,
+            // Snapshot the name: the row must still read correctly if the
+            // order is later renamed or deleted.
+            params: { orderName },
+            entity: { type: 'order', id: orderId },
+            push: {
+              title: orderName,
+              body,
+              data: { type, entityType: 'order', entityId: orderId },
+            },
+          }),
+        ),
+      );
+    } catch (err) {
+      this.logger.warn(
+        `Client status notification for order ${orderId} failed: ${String(err)}`,
+      );
+    }
   }
 
   private async notifyOwnerOfTransition(

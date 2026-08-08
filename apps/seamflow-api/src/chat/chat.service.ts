@@ -28,6 +28,7 @@ import {
   feedPosts,
   invoices,
   messages,
+  orderClaims,
   tailors,
   users,
 } from '../db/schema';
@@ -786,6 +787,18 @@ export class ChatService {
       .update(conversations)
       .set({ orderId: order.id, origin: 'order' })
       .where(eq(conversations.id, convo.id));
+
+    // Give the client a claim on the order they just commissioned.
+    //
+    // `order_claims` is THE order↔account link — `consumer.listOrders` reads
+    // from it and `getOrder` authorises against it. Without this row the client
+    // could be quoted, be notified about it, and then find the order missing
+    // from their app and the notification's deep link 403ing. Idempotent, so
+    // re-quoting an existing thread is safe.
+    await db
+      .insert(orderClaims)
+      .values({ userId: convo.clientUserId, orderId: order.id, tailorId })
+      .onConflictDoNothing();
 
     // Tell the CLIENT. Until now this endpoint turned an enquiry into a real
     // commission and told nobody — the client had to happen to reopen the

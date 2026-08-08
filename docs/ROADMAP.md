@@ -1378,6 +1378,120 @@ garment re-enters the feed crediting both sides); `embedding` + pgvector
 
 ---
 
+## Appendix E — Notifications between the two apps (implemented 2026-08-08)
+
+### The model
+
+Push is **best-effort by design**: it fails silently, arrives while the phone is
+off, or gets swiped away, and then it is gone. That is survivable for a nudge
+aimed at a tailor who opens the app daily. It is not survivable for "your dress
+is ready" sent to a client who installed the app once.
+
+So there are now two layers. **Push is the doorbell; the inbox is the message.**
+
+`notifications` (migration `20260808210000`) stores **events, not states**:
+
+| Rule | Why |
+| --- | --- |
+| Chat messages are pushed but **never** stored | The conversation list is already their inbox. Listing each message makes the screen 90% rows the user has read — which is how a notification screen gets ignored |
+| Due / overdue reminders are pushed but **never** stored | A *state*, already a chip on the orders list. Snapshotting it goes stale the moment the order ships and creates two sources of truth |
+| Typing / presence / read receipts are neither | Realtime only, worthless a second later |
+| Opening the screen does **not** mark all read | Per-tap plus explicit "Mark all read". Auto-clearing destroys the ability to come back, which is the whole point |
+
+Rows store `type` + `params`, **never rendered text**. A rendered title would
+freeze the notification in whatever language the server picked (this repo
+enforces EN/FR parity with a lint guard) and go stale on rename. `params`
+carries a display snapshot; `entity_id` drives navigation — so a deleted order
+still reads sensibly, it just stops being tappable.
+
+`NotificationsService.emit()` is the **single write path**. `persist` and `push`
+are independent flags and mutes are checked in one place, so it is not possible
+to ship a push that leaves no record, or a record nobody hears.
+
+### What fires today
+
+| Event | Direction | Inbox | Push |
+| --- | --- | --- | --- |
+| `enquiry.received` | client → tailor | ✅ | via the message push (not doubled) |
+| `quote.received` | tailor → client | ✅ | ✅ |
+| `order.ready_for_fitting` (status `testing`) | tailor → client | ✅ | ✅ |
+| `order.delivered` (status `delivered`) | tailor → client | ✅ | ✅ |
+| chat message | both ways | ✖ by design | ✅ + Realtime |
+| order status change | tailor → **tailor** | ✖ | ✅ (pre-existing) |
+| order due / overdue | → tailor | ✖ by design | ✅ (pre-existing) |
+
+**Client-visible statuses are deliberately only two.** `registered`,
+`in_progress` and `on_pause` are the tailor's internal workflow. A client does
+not need a buzz when cutting starts, and forwarding every transition is the
+fastest way to get muted — after which the notifications that *do* matter are
+missed too. `on_pause` is doubly excluded: "your order is paused" with no
+explanation reads as bad news and invites a worried phone call. That is a chat
+message, not a push.
+
+There is no `ready_for_pickup` **status** in the enum (`testing` → `delivered`).
+The notification type exists for when one is added; nothing maps to it yet.
+
+### Two defects fixed along the way
+
+- **Tapping a chat notification did nothing, in both apps.** The handlers read
+  only `data.orderId`; chat pushes carried `conversationId`. Both now route on
+  `entityType`/`entityId`, with the legacy `orderId` path kept for notifications
+  already sitting in a tray.
+- **A quoted order never reached the client's app.** `order_claims` is the
+  canonical order↔account link (`consumer.listOrders` reads it, `getOrder`
+  authorises against it) and `quoteFromThread` never wrote one — so a client
+  could be quoted, be notified, and find the order missing. It now creates the
+  claim.
+
+### ⚠️ Required before this is production-grade
+
+**1. The client app cannot send push at all yet.** Verified in `app.json`:
+
+| | tailor app | client app |
+| --- | --- | --- |
+| EAS `projectId` | `da3ea415-…` | `REPLACE_WITH_EAS_PROJECT_ID` |
+| `googleServicesFile` | `./google-services.json` | *missing* |
+
+To fix: create the EAS project (`eas init` in `apps/seamflow-client`), create a
+**separate Firebase project** for package `com.bambothanson.seamflowclient`,
+download its `google-services.json` into the app directory, add
+`android.googleServicesFile` to `app.json`, upload the FCM V1 service-account key
+to Expo credentials, then **run a native build** — `expo-notifications` cannot
+register a token in Expo Go or over OTA.
+The **inbox works without any of this**, because it is plain HTTP. That is
+precisely why it is the right fallback.
+
+**2. Neither app has an iOS push path.** APNs keys still need uploading to EAS
+(see Phase 1.8 notes), and that is gated on the Apple Developer Program.
+
+**3. Nothing prunes the table.** `notifications` grows unbounded. Add a scheduled
+delete of rows older than ~90 days, or the screen becomes a graveyard.
+
+**4. No Realtime subscription on the inbox.** The badge refreshes on focus and
+on a 30s stale time. A `postgres_changes` subscription on `notifications`
+filtered to `user_id` would make it live — the mechanism already exists in
+`chat-realtime.ts`.
+
+**5. Mute UI is unbuilt.** `GET`/`POST /notifications/settings` and the
+`notification_settings.muted_types` column exist and work; no screen calls them.
+An inbox without per-type mute is exactly what annoys people.
+
+**6. Not exercised end to end.** Everything typechecks, the API boots with all
+six routes mapped, and the schema was round-trip tested against production. But
+no notification has actually travelled: both screens sit behind auth, and no
+design has been published or quote sent. Verify before trusting.
+
+### Still unwired (needs product decisions, not plumbing)
+
+`invoice.issued`, `payment.confirmed`, `payment.received` (blocked on Phase 1.7),
+`quote.accepted` / `quote.declined` (**no endpoint exists** — a client cannot
+accept or decline a quote yet), `order.delivery_date_moved`,
+`order.cancelled_by_tailor`, `order.claimed`, `moderation.outcome`,
+`security.new_device`. All have types reserved in `NotificationTypeSchema` and
+EN/FR copy already written in both apps.
+
+---
+
 ## Quick implementation order cheat-sheet
 
 If you only read one section, read this one. The literal next 12 things to build, in order, once Phase 0 is done:
