@@ -190,16 +190,32 @@ export default function Notifications() {
             </Text>
           </View>
         ) : (
-          items.map((n) => (
+          items.map((n, i) => (
             <Pressable
               key={n.id}
               onPress={() => open(n)}
               style={[
                 styles.row,
-                {
-                  backgroundColor: n.readAt ? 'transparent' : colors.card,
-                  borderRadius: radii.md,
-                },
+                // An unread row is a raised card, and the card itself separates
+                // it from its neighbours. A read row drops that background and
+                // would otherwise float with nothing between it and the next —
+                // so it becomes a plain list row divided by a hairline.
+                //
+                // The radius goes to 0 with it: a bottom border on a rounded box
+                // curves away at both ends and reads as a smile, not a divider.
+                // The bottom margin goes too, so the line sits against the next
+                // row instead of hanging in space above the gap.
+                n.readAt
+                  ? { backgroundColor: 'transparent', borderRadius: 0, marginBottom: 0 }
+                  : { backgroundColor: colors.card, borderRadius: radii.md },
+                // Skipped on the last row: a trailing rule under the final item
+                // divides it from nothing and reads as an unfinished list.
+                n.readAt && i < items.length - 1
+                  ? {
+                      borderBottomWidth: StyleSheet.hairlineWidth,
+                      borderBottomColor: colors.hairline,
+                    }
+                  : null,
               ]}
             >
               <View
