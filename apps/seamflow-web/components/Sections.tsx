@@ -1,8 +1,9 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Dict, Lang } from '../lib/i18n';
 import { withLang } from '../lib/i18n';
 import { Icon } from './icons';
-import { PhoneFrame } from './PhoneFrame';
+import { PhoneFrame, TabletFrame } from './DeviceFrame';
 import { StoreBadges } from './StoreBadges';
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
@@ -18,7 +19,22 @@ export function Problem({ d }: { d: Dict }) {
   return (
     <section className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 sm:py-20">
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-4xl border border-brand-hairline bg-brand-surface/60 p-8 sm:p-10">
+        <div className="relative isolate overflow-hidden rounded-4xl border border-brand-hairline bg-brand-surface/60 p-8 sm:p-10">
+          {/* Texture, not subject. Held right back so the card still reads as a
+              cream surface with words on it — the photo is atmosphere here. */}
+          <Image
+            src="/photos/threads-shelf.jpg"
+            alt="Spools of ribbon and thread on a tailor's shelf"
+            aria-hidden="true"
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="-z-20 object-cover object-center opacity-[0.22]"
+            style={{ filter: 'saturate(0.5) sepia(0.3)' }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 bg-gradient-to-br from-brand-bg/96 via-brand-bg/90 to-brand-surface/45"
+          />
           <Eyebrow>{d.problem.eyebrow}</Eyebrow>
           <h2 className="mt-3 font-display text-2xl font-bold leading-tight text-brand-ink sm:text-3xl">
             {d.problem.title}
@@ -172,19 +188,43 @@ export function Steps({ d }: { d: Dict }) {
 // ── Vision ──────────────────────────────────────────────────────────────────
 export function Vision({ d }: { d: Dict }) {
   return (
-    <section className="mx-auto max-w-4xl scroll-mt-24 px-5 py-20 text-center sm:py-24">
-      <Eyebrow>{d.vision.eyebrow}</Eyebrow>
-      <h2 className="mx-auto mt-4 max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-brand-ink sm:text-[2.5rem]">
-        {d.vision.title}
-      </h2>
-      <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-brand-muted">
-        {d.vision.body}
-      </p>
+    <section className="relative isolate scroll-mt-24 overflow-hidden py-24 sm:py-32">
+      {/* The photograph. Warmed and desaturated so it belongs to the cream +
+          purple palette instead of reading as a stock photo dropped into a
+          slot — untreated stock arrives cold and blue. */}
+      <Image
+        src="/photos/workshop-bench.jpg"
+        alt={d.vision.photoAlt}
+        fill
+        sizes="100vw"
+        className="-z-20 object-cover object-center"
+        style={{ filter: 'saturate(0.6) sepia(0.16) brightness(0.66)' }}
+      />
+      {/* Brand scrim: dark enough for white text to pass contrast, purple enough
+          that the image reads as ours. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-gradient-to-br from-[#160C22]/80 via-[#2A1450]/72 to-[#41109B]/68"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(10,6,18,0.62)_0%,rgba(10,6,18,0.28)_55%,transparent_78%)]"
+      />
+      <div className="mx-auto max-w-4xl px-5 text-center">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/75">
+          {d.vision.eyebrow}
+        </span>
+        <h2 className="mx-auto mt-4 max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-[2.5rem]">
+          {d.vision.title}
+        </h2>
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/85">
+          {d.vision.body}
+        </p>
+      </div>
     </section>
   );
 }
 
-// ── Gallery ─────────────────────────────────────────────────────────────────
 export function Gallery({ d }: { d: Dict }) {
   return (
     <section className="relative overflow-hidden py-8">
@@ -197,10 +237,15 @@ export function Gallery({ d }: { d: Dict }) {
             {d.gallery.subheading}
           </p>
         </div>
+        {/* The same home screen in both themes. Light/dark is a real shipped
+            feature, and it's the honest way to fill this row: every other
+            screenshot shows client names we won't publish. */}
         <div className="mt-12 flex flex-wrap items-end justify-center gap-8">
-          <PhoneFrame variant="order" className="translate-y-4 opacity-95" />
-          <PhoneFrame variant="home" className="z-10 scale-105" />
-          <PhoneFrame variant="order" className="hidden translate-y-4 opacity-95 sm:block" />
+          <PhoneFrame alt={d.gallery.altPhone} className="z-10" />
+          <TabletFrame
+            alt={d.gallery.altTablet}
+            className="hidden translate-y-4 lg:block"
+          />
         </div>
       </div>
     </section>

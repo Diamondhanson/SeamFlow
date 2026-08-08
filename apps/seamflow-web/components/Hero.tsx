@@ -1,7 +1,7 @@
 import type { Dict } from '../lib/i18n';
 import { WEB_APP_URL } from '../lib/i18n';
 import { Icon } from './icons';
-import { PhoneFrame, TabletFrame } from './PhoneFrame';
+import { PhoneFrame, TabletFrame } from './DeviceFrame';
 import { StoreBadges } from './StoreBadges';
 
 export function Hero({ d }: { d: Dict }) {
@@ -61,11 +61,11 @@ export function Hero({ d }: { d: Dict }) {
                 />
                 {/* Phone — behind, shifted right */}
                 <div className="absolute left-[380px] top-[6px] z-0 animate-floaty">
-                  <PhoneFrame variant="order" />
+                  <PhoneFrame alt={d.gallery.altPhone} />
                 </div>
                 {/* Tablet (landscape) — in front */}
                 <div className="absolute left-[10px] top-[150px] z-10">
-                  <TabletFrame />
+                  <TabletFrame alt={d.gallery.altTablet} />
                 </div>
               </div>
             </div>

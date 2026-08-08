@@ -7,6 +7,17 @@ const nextConfig = {
   // Photos come back from Supabase Storage as signed URLs on the
   // <project>.supabase.co host. Allow them through next/image when we add it.
   images: {
+    // Cap the generated srcset at 1920 (default is 3840).
+    //
+    // Next returns 400 for any width larger than the source image, so the
+    // ceiling has to stay at or below the smallest thing we ship large. 1920
+    // covers the full-bleed vision band on a retina laptop, and drops two
+    // variants nothing on this site is big enough to serve.
+    //
+    // If you add a photograph, make sure it is at least 1920 px wide — or lower
+    // this number. The screenshots are exempt: they're rendered at 260/560 CSS
+    // px, so the browser never picks a large candidate for them.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co' },
     ],

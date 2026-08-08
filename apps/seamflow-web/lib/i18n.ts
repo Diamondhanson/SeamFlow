@@ -223,10 +223,17 @@ export const copy = {
       eyebrow: 'Why we built it',
       title: 'The business companion for a craft that deserves one.',
       body: 'Independent tailors run real businesses on notebooks and memory. SeamFlow gives that craft modern tools: an assistant in your pocket, bilingual from day one, built offline-first, and growing toward every language and market where great clothes are still made by hand.',
+      photoAlt:
+        'A tailor’s workbench: an old Singer sewing machine, shears and dark cloth, in a working shop.',
     },
     gallery: {
       heading: 'A look inside',
-      subheading: 'A calm, considered interface, with the same care you put into the work.',
+      subheading:
+        'The real app, on a real phone. Light or dark — it follows whatever your device is set to.',
+      altPhone:
+        'SeamFlow home screen on an Android phone in dark mode, showing orders, clients, groups, calendar, templates, fabrics, Design Studio and the assistant.',
+      altTablet:
+        'SeamFlow home screen on a tablet in light mode, with the same tiles laid out across a wider screen.',
     },
     faq: {
       heading: 'Questions, answered',
@@ -625,10 +632,17 @@ export const copy = {
       eyebrow: 'Pourquoi nous l’avons créé',
       title: 'Le compagnon d’affaires d’un métier qui le mérite.',
       body: 'Les tailleurs indépendants font tourner de vraies entreprises avec un carnet et leur mémoire. SeamFlow offre à ce métier des outils modernes : un assistant dans la poche, bilingue dès le départ, pensé hors-ligne, et s’ouvrant à chaque langue et marché où l’on crée encore de beaux vêtements à la main.',
+      photoAlt:
+        'L’établi d’un tailleur : une vieille machine à coudre Singer, des ciseaux et du tissu sombre, dans un atelier en activité.',
     },
     gallery: {
       heading: 'Un aperçu de l’intérieur',
-      subheading: 'Une interface calme et soignée, avec le même soin que vous mettez au travail.',
+      subheading:
+        'La vraie application, sur un vrai téléphone. Clair ou sombre — elle suit le réglage de votre appareil.',
+      altPhone:
+        'Écran d’accueil de SeamFlow sur un téléphone Android en mode sombre, avec les commandes, clients, groupes, calendrier, modèles, tissus, le studio de création et l’assistant.',
+      altTablet:
+        'Écran d’accueil de SeamFlow sur une tablette en mode clair, avec les mêmes tuiles réparties sur un écran plus large.',
     },
     faq: {
       heading: 'Vos questions, nos réponses',
