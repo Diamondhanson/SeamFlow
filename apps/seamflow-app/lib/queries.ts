@@ -8,13 +8,13 @@ import type {
   Client,
   ClientCreateInput,
   ClientUpdateInput,
+  ConversationQuoteInput,
   DesignUpdateInput,
   FabricCreateInput,
   FabricResponse,
   FabricUpdateInput,
-  InvoiceWithContext,
-  NotificationPreferences,
-  NotificationPreferencesUpdateInput,
+  FeedPostCreateInput,
+  FeedPostUpdateInput,
   GroupOrder,
   GroupOrderCreateInput,
   GroupOrderMemberCreateInput,
@@ -23,25 +23,26 @@ import type {
   GroupOrderWithMembers,
   GroupOrderWithMembersCreateInput,
   InvoiceUpdateInput,
+  InvoiceWithContext,
   MeasurementSetCreateInput,
   MeasurementSetUpdateInput,
   MeasurementTemplateCreateInput,
   MeasurementTemplateUpdateInput,
+  NotificationPreferences,
+  NotificationPreferencesUpdateInput,
+  NotificationType,
   Order,
   OrderCreateInput,
   OrderStatus,
   OrderTransitionInput,
   OrderUpdateInput,
   PromoteMemberToClientInput,
-  TailorUpsertInput,
-  FeedPostCreateInput,
-  FeedPostUpdateInput,
   TailorProfileUpdateInput,
-  ConversationQuoteInput,
+  TailorUpsertInput,
+  WorkAdoptInput,
+  WorkPublishInput,
   WorkQuery,
   WorkUpdateInput,
-  WorkPublishInput,
-  WorkAdoptInput,
 } from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
@@ -876,5 +877,38 @@ export function useMarkAllNotificationsRead() {
   return useMutation({
     mutationFn: () => api.notifications.markAllRead(),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.notifications() }),
+  });
+}
+
+/**
+ * Per-type mutes (role-neutral, keyed by user).
+ *
+ * Distinct from useNotificationPreferences, which is the tailor-only reminder
+ * SCHEDULE (lead days, reminder hour, timezone). These two look similar in the
+ * UI and are deliberately different tables — see migration 20260808210000.
+ */
+export const useNotificationSettings = () =>
+  useQuery({
+    queryKey: [...qk.notifications(), 'settings'],
+    queryFn: () => api.notifications.getSettings(),
+  });
+
+export function useUpdateNotificationSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { mutedTypes: NotificationType[] }) =>
+      api.notifications.updateSettings(input),
+    // Optimistic: a toggle that waits for a round trip feels broken.
+    onMutate: async (input) => {
+      const key = [...qk.notifications(), 'settings'];
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData(key);
+      qc.setQueryData(key, input);
+      return { prev, key };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx) qc.setQueryData(ctx.key, ctx.prev);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: qk.notifications() }),
   });
 }

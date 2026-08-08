@@ -20,6 +20,11 @@ export const notifications = {
     unreadOne: '1 unread',
     unreadMany: '{count} unread',
     justNow: 'Just now',
+    loadFailed: "We couldn't load your notifications. Check your connection and try again.",
+    inboxSection: 'In your inbox',
+    inboxSectionHint:
+      'What gets recorded here. Turning one off stops both the notification and the inbox entry.',
+    type_enquiry_received_label: 'New enquiries',
 
     // ── to the client ──────────────────────────────────────────────────────
     type_quote_received: '{tailorName} sent you a quote for “{orderName}”',
@@ -52,6 +57,12 @@ export const notifications = {
     unreadOne: '1 non lue',
     unreadMany: '{count} non lues',
     justNow: "À l'instant",
+    loadFailed:
+      'Impossible de charger vos notifications. Vérifiez votre connexion et réessayez.',
+    inboxSection: 'Dans votre boîte',
+    inboxSectionHint:
+      'Ce qui est enregistré ici. En désactiver un arrête à la fois la notification et l’entrée.',
+    type_enquiry_received_label: 'Nouvelles demandes',
 
     type_quote_received: '{tailorName} vous a envoyé un devis pour « {orderName} »',
     type_invoice_issued: 'Facture prête pour « {orderName} »',

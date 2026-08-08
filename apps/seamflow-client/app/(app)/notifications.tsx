@@ -68,11 +68,19 @@ export default function Notifications() {
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
+  // Depend on `refetch`, NOT on `q`.
+  //
+  // `q` is a fresh object every render, so a [q] dependency makes this effect
+  // re-run on every render — and since refetch() causes a render, that is an
+  // infinite request loop. It fired 236 requests on a single screen visit and
+  // pinned the screen on its skeleton forever, because isLoading never settled.
+  // TanStack guarantees `refetch` is stable, which breaks the cycle.
+  const { refetch } = q;
   useFocusEffect(
     useCallback(() => {
-      void q.refetch();
+      void refetch();
       // Intentionally NOT marking everything read here — see the header note.
-    }, [q]),
+    }, [refetch]),
   );
 
   const items = useMemo(
@@ -91,18 +99,49 @@ export default function Notifications() {
     else if (n.entityType === 'invoice') router.push(`/(app)/orders/${n.entityId}`);
   };
 
+  // Same header (including the settings action) as the loaded screen, so the
+  // frame doesn't shift when data arrives.
+  // No settings action here yet: the client app has no notification-preferences
+  // screen, and a gear that navigates nowhere is worse than no gear. The mute
+  // endpoints (GET/POST /notifications/settings) are role-neutral and already
+  // work — this side just needs a screen built for them.
+  const header = <ScreenHeader title={t('notifications.title')} />;
+
   if (q.isLoading) {
     return (
       <Screen>
-        <ScreenHeader title={t('notifications.title')} />
+        {header}
         <SkeletonList leading="circle" />
+      </Screen>
+    );
+  }
+
+  // A failed fetch must NOT fall through to the empty state. "Nothing yet" and
+  // "we couldn't reach the server" look identical to a user but mean opposite
+  // things — one is fine, the other needs them to retry or check connectivity.
+  if (q.isError) {
+    return (
+      <Screen>
+        {header}
+        <View style={styles.empty}>
+          <Ionicons name="cloud-offline-outline" size={40} color={colors.textMuted} />
+          <Text variant="h3" style={{ marginTop: spacing.md }}>
+            {t('common.error')}
+          </Text>
+          <Text variant="bodySm" tone="textMuted" style={styles.emptyBody}>
+            {t('notifications.loadFailed')}
+          </Text>
+          <Pressable onPress={() => void q.refetch()} hitSlop={8} style={{ marginTop: spacing.md }}>
+            <Text variant="body" tone="primary">{t('common.retry')}</Text>
+          </Pressable>
+        </View>
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <ScreenHeader title={t('notifications.title')} />
+      {header}
 
       {unread > 0 ? (
         <View style={styles.bar}>

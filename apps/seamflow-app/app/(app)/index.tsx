@@ -230,20 +230,6 @@ export default function Home() {
       onPress: () => router.push('/(app)/works'),
     },
     {
-      // The durable record. Push is best-effort — this is where a missed
-      // notification can still be found.
-      label: t('notifications.title'),
-      icon: 'notifications',
-      tone: unreadNotifications > 0 ? 'primary' : 'textMuted',
-      subtitle:
-        unreadNotifications > 0
-          ? unreadNotifications === 1
-            ? t('notifications.unreadOne')
-            : t('notifications.unreadMany', { count: unreadNotifications })
-          : t('notifications.empty'),
-      onPress: () => router.push('/(app)/notifications'),
-    },
-    {
       // Human enquiries. Sits apart from the Assistant tile on purpose — that
       // one is the AI copilot, this one is a real person waiting for a reply.
       label: t('chat.tabLabel'),
@@ -292,6 +278,7 @@ export default function Home() {
 
         {/* Greeting hero — the whole banner opens Settings; the avatar + gear
             in the corner signal that affordance. */}
+        <View style={styles.heroWrap}>
         <Pressable
           onPress={() => router.push('/(app)/me')}
           accessibilityRole="button"
@@ -350,6 +337,61 @@ export default function Home() {
             </Text>
           </View>
         </Pressable>
+
+          {/*
+            Notification bell.
+
+            A SIBLING of the hero, not a child: the whole hero banner is itself
+            a Pressable that opens Settings, and nesting one pressable inside
+            another makes which-one-fired depend on gesture-responder ordering.
+            Kept outside, the two targets are unambiguous.
+
+            Bottom-right rather than beside the avatar: the avatar already owns
+            the top-right, and a bell next to it would push the business name's
+            marginRight from 80 to ~128 — which truncates a two-line name like
+            "LYZMA CREATIONS". This corner is empty and still above the fold.
+          */}
+          <Pressable
+            onPress={() => router.push('/(app)/notifications')}
+            accessibilityRole="button"
+            accessibilityLabel={
+              unreadNotifications > 0
+                ? `${t('notifications.title')}, ${
+                    unreadNotifications === 1
+                      ? t('notifications.unreadOne')
+                      : t('notifications.unreadMany', { count: unreadNotifications })
+                  }`
+                : t('notifications.title')
+            }
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.bell,
+              {
+                backgroundColor: colors.surface,
+                borderColor: unreadNotifications > 0 ? colors.primary : colors.hairline,
+              },
+              pressed && { opacity: 0.7 },
+            ]}
+          >
+            <Ionicons
+              name={unreadNotifications > 0 ? 'notifications' : 'notifications-outline'}
+              size={20}
+              color={unreadNotifications > 0 ? colors.primary : colors.textMuted}
+            />
+            {unreadNotifications > 0 ? (
+              <View style={[styles.bellBadge, { backgroundColor: colors.primary }]}>
+                <Text
+                  variant="caption"
+                  style={{ color: colors.textOnPrimary, fontSize: 10, lineHeight: 14 }}
+                >
+                  {/* Past 9 the exact number stops being useful and starts
+                      breaking the circle. */}
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </Text>
+              </View>
+            ) : null}
+          </Pressable>
+        </View>
 
         {/* Primary CTA */}
         <View style={styles.cta}>
@@ -445,6 +487,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   heroPressed: { opacity: 0.9 },
+  heroWrap: { position: 'relative' },
+  bell: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   heroCircle: {
     position: 'absolute',
     top: -40,

@@ -10,13 +10,26 @@ import { TimezonePickerModal } from '../../components/TimezonePickerModal';
 import { useFloatingScroll } from '../../lib/floating-scroll';
 import {
   useNotificationPreferences,
+  useNotificationSettings,
   useUpdateNotificationPreferences,
+  useUpdateNotificationSettings,
 } from '../../lib/queries';
+import type { NotificationType } from '@seamflow/schemas';
 import { defaultNotificationPreferences } from '../../lib/notification-defaults';
 import { spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 
 const LEAD_OPTIONS = [7, 3, 2, 1, 0]; // days before due; label keys lead_<n>
+
+/**
+ * Inbox types a TAILOR can mute.
+ *
+ * Only types that can actually fire today are listed. A settings screen full of
+ * switches for events that never happen teaches people the screen is fiction,
+ * and it's the one place they'll come to when they DO want to turn something
+ * off. Add an entry here the same commit you wire the emit() call.
+ */
+const MUTABLE_TYPES: NotificationType[] = ['enquiry.received'];
 
 export default function NotificationPreferences() {
   const { t, language } = useTranslation();
@@ -25,6 +38,15 @@ export default function NotificationPreferences() {
   const prefsQ = useNotificationPreferences();
   const update = useUpdateNotificationPreferences();
   const [tzOpen, setTzOpen] = useState(false);
+  const settingsQ = useNotificationSettings();
+  const updateSettings = useUpdateNotificationSettings();
+  const muted = settingsQ.data?.mutedTypes ?? [];
+
+  /** Mutes are an opt-OUT list, so "on" means absent from it. */
+  const setMuted = (type: NotificationType, enabled: boolean) => {
+    const next = enabled ? muted.filter((m) => m !== type) : [...muted, type];
+    updateSettings.mutate({ mutedTypes: next });
+  };
 
   // Forgiving fallback: if the request failed and we have nothing cached, show
   // sensible defaults so the controls stay usable. Edits apply optimistically
@@ -155,6 +177,26 @@ export default function NotificationPreferences() {
             </Pressable>
           </View>
         )}
+
+        {/* Inbox mutes. Separate card because these are a different thing from
+            the reminder schedule above: that decides WHEN we nudge you about
+            your own orders, this decides WHAT gets recorded in your inbox. */}
+        <View style={[styles.card, { borderColor: colors.hairline }]}>
+          <Text variant="label" tone="textMuted" style={styles.sectionLabel}>
+            {t('notifications.inboxSection')}
+          </Text>
+          <Text variant="bodySm" tone="textMuted" style={styles.notifHint}>
+            {t('notifications.inboxSectionHint')}
+          </Text>
+          {MUTABLE_TYPES.map((type) => (
+            <ToggleRow
+              key={type}
+              label={t(`notifications.type_${type.replace(/\./g, '_')}_label`)}
+              value={!muted.includes(type)}
+              onValueChange={(v) => setMuted(type, v)}
+            />
+          ))}
+        </View>
       </ScrollView>
 
       <TimezonePickerModal
@@ -196,6 +238,13 @@ function ToggleRow({
 }
 
 const styles = StyleSheet.create({
+  card: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  sectionLabel: { marginBottom: 2 },
   notifError: {
     flexDirection: 'row',
     alignItems: 'center',
