@@ -8,9 +8,11 @@ import {
   APPLE_SIGN_IN_ENABLED,
   AppleCancelledError,
   EmailNotConfirmedError,
+  MIN_FULL_NAME_LEN,
   REQUIRE_EMAIL_VERIFICATION,
   SOCIAL_SIGN_IN_ENABLED,
   GoogleCancelledError,
+  normaliseFullName,
   useAuth,
 } from '../lib/auth-context';
 import { spacing } from '../lib/theme';
@@ -36,6 +38,7 @@ export default function SignIn() {
   const { t, language } = useTranslation();
   const dialog = useDialog();
   const [mode, setMode] = useState<Mode>('signIn');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +47,10 @@ export default function SignIn() {
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isValidPassword = password.length >= MIN_PASSWORD_LEN;
-  const canSubmit = isValidEmail && isValidPassword;
+  // Name is required to sign UP only — signing in has one already.
+  const isValidName = normaliseFullName(fullName).length >= MIN_FULL_NAME_LEN;
+  const canSubmit =
+    isValidEmail && isValidPassword && (mode === 'signIn' || isValidName);
 
   const onGoogle = async () => {
     if (googleBusy) return;
@@ -96,7 +102,7 @@ export default function SignIn() {
         await signInWithPassword(normalisedEmail, password);
         router.replace('/(app)');
       } else {
-        await signUpWithPassword(normalisedEmail, password);
+        await signUpWithPassword(normalisedEmail, password, fullName);
         // With REQUIRE_EMAIL_VERIFICATION off, signUpWithPassword has already
         // signed them in. The OTP screen is only reached via the
         // EmailNotConfirmedError path below, i.e. when the Supabase project
@@ -208,6 +214,23 @@ export default function SignIn() {
         <View style={[styles.dividerLine, { backgroundColor: theme.colors.hairline }]} />
       </View>
 
+      {/* Sign-up only. This is what a tailor sees in their inbox, so without it
+          the chat list falls back to the client's raw email address. */}
+      {mode === 'signUp' ? (
+        <>
+          <Input
+            label={t('auth.fullName')}
+            value={fullName}
+            onChangeText={setFullName}
+            autoCapitalize="words"
+            autoComplete="name"
+          />
+          <Text variant="caption" tone="textMuted" style={styles.fieldHint}>
+            {t('auth.fullNameHint')}
+          </Text>
+        </>
+      ) : null}
+
       <Input
         label={t('auth.email')}
         value={email}
@@ -305,4 +328,5 @@ const styles = StyleSheet.create({
   },
   dividerLine: { flex: 1, height: 1 },
   dividerText: { marginHorizontal: spacing.md },
+  fieldHint: { marginTop: -spacing.xs, marginBottom: spacing.sm },
 });

@@ -203,8 +203,14 @@ export class ChatService {
       const u = rows[0];
       counterparty = {
         id: convo.clientUserId,
-        // Fall back to something human rather than a bare uuid.
-        name: u?.fullName?.trim() || u?.phone || u?.email || 'Client',
+        // NEVER fall back to phone or email here. This string is rendered in the
+        // tailor's conversation list, and public.users.full_name defaults to ''
+        // — so falling through to a contact field silently disclosed the
+        // client's email address to the tailor for every email/password signup
+        // (Google supplies full_name, so this only ever bit one signup path).
+        // The client app now requires a name at sign-up; '' can still reach us
+        // from accounts created before that, hence the generic fallback.
+        name: u?.fullName?.trim() || 'Client',
         avatarUrl: null,
       };
     }

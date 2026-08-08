@@ -85,6 +85,21 @@ export const REQUIRE_EMAIL_VERIFICATION = false;
  */
 export const SOCIAL_SIGN_IN_ENABLED = false;
 
+/** Minimum length of a usable display name, after normalisation. */
+export const MIN_FULL_NAME_LEN = 2;
+
+/**
+ * Tidy a typed name into something safe to show in a tailor's inbox.
+ *
+ * Collapses runs of whitespace (including the newlines a paste can carry) and
+ * caps the length. This is a DISPLAY name, not an identity claim — we don't
+ * police character sets, because names here are legitimately accented,
+ * hyphenated, apostrophed, or written in a non-Latin script.
+ */
+export function normaliseFullName(raw: string): string {
+  return raw.replace(/\s+/g, ' ').trim().slice(0, 60);
+}
+
 interface AuthState {
   session: Session | null;
   loading: boolean;
@@ -95,7 +110,11 @@ interface AuthState {
    * verifyOtpSignup() with the code before they're signed in. Throws on
    * already-existing-email or other validation errors.
    */
-  signUpWithPassword: (email: string, password: string) => Promise<void>;
+  signUpWithPassword: (
+    email: string,
+    password: string,
+    fullName: string,
+  ) => Promise<void>;
   /** Verify the 6-digit signup OTP. On success, session is created. */
   verifyOtpSignup: (email: string, token: string) => Promise<void>;
   /** Re-send the signup OTP. Rate-limited by Supabase server-side. */
@@ -178,27 +197,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const signUpWithPassword = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+  const signUpWithPassword = useCallback(
+    async (email: string, password: string, fullName: string) => {
+      // `full_name` goes in as auth metadata rather than a follow-up API call:
+      // the `handle_new_user` trigger (migration 20260518220000_init.sql) reads
+      // `raw_user_meta_data->>'full_name'` when it creates the public.users row,
+      // so the name is present from the very first insert. Google supplies the
+      // same key on its own — this puts email/password signup on equal footing.
+      //
+      // Without it public.users.full_name stays '' and the tailor's chat list
+      // falls through to showing the client's raw email address.
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: normaliseFullName(fullName) } },
+      });
+      if (error) throw error;
     // When email confirmation is required (our setting), `session` comes
     // back null and `user.identities` is empty if the email is already
     // taken. Supabase doesn't surface that as an error to avoid leaking
     // account existence — we mirror that here (no special path) and the
     // user just won't receive an OTP for an account they can't claim.
-    if (data.session) {
-      // Supabase issued a session immediately (email confirmation off): the
-      // user is already signed in and the auth listener has them.
-      return;
-    }
-    // No session and we're not demanding verification — try an immediate
-    // password sign-in. This succeeds when the account exists and is usable,
-    // and throws EmailNotConfirmedError when the project really does require
-    // confirmation, which the caller turns into the OTP screen.
-    if (!REQUIRE_EMAIL_VERIFICATION) {
-      await signInWithPassword(email, password);
-    }
-  }, []);
+      if (data.session) {
+        // Supabase issued a session immediately (email confirmation off): the
+        // user is already signed in and the auth listener has them.
+        return;
+      }
+      // No session and we're not demanding verification — try an immediate
+      // password sign-in. This succeeds when the account exists and is usable,
+      // and throws EmailNotConfirmedError when the project really does require
+      // confirmation, which the caller turns into the OTP screen.
+      if (!REQUIRE_EMAIL_VERIFICATION) {
+        await signInWithPassword(email, password);
+      }
+    },
+    [signInWithPassword],
+  );
 
   const verifyOtpSignup = useCallback(async (email: string, token: string) => {
     const { error } = await supabase.auth.verifyOtp({

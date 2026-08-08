@@ -20,6 +20,14 @@ export const users = pgTable(
     email: text('email'),
     role: userRoleEnum('role').notNull().default('tailor'),
     fullName: text('full_name').notNull().default(''),
+    /**
+     * Set once the user completed an OTP challenge for `phone`.
+     *
+     * `phone` on its own is self-asserted — Supabase Auth records whatever was
+     * supplied at signup. Gate anything that matters (delivery, payouts, the
+     * verified badge) on this timestamp, never on `phone` being non-null.
+     */
+    phoneVerifiedAt: timestamp('phone_verified_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

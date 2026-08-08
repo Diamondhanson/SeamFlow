@@ -79,3 +79,11 @@ export const workOccasionEnum = pgEnum('work_occasion', [
 
 /** Where the piece came from: uploaded directly, or adopted from an order photo. */
 export const workSourceEnum = pgEnum('work_source', ['upload', 'order_photo']);
+
+// ── Phone verification (migration 20260808200000) ───────────────────────────
+/**
+ * Delivery route for a phone OTP. WhatsApp is the intended default; SMS exists
+ * because a number without a WhatsApp account can't receive the first, and we
+ * need to record which route an attempt actually took.
+ */
+export const otpChannelEnum = pgEnum('otp_channel', ['whatsapp', 'sms']);

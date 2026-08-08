@@ -13,6 +13,7 @@ import { QueueModule } from './queue/queue.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { MeModule } from './me/me.module';
+import { PhoneVerificationModule } from './phone-verification/phone-verification.module';
 import { TailorsModule } from './tailors/tailors.module';
 import { ClientsModule } from './clients/clients.module';
 import { MeasurementSetsModule } from './measurement-sets/measurement-sets.module';
@@ -51,6 +52,7 @@ import { RemindersModule } from './notifications/reminders.module';
     AuthModule,
     HealthModule,
     MeModule,
+    PhoneVerificationModule,
     TailorsModule,
     ClientsModule,
     MeasurementSetsModule,

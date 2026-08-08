@@ -32,6 +32,25 @@ export const envSchema = z.object({
   // links never accidentally point at localhost; override locally if you're
   // testing the web app on http://localhost:3000.
   WEB_BASE_URL: z.string().url().default('https://www.seamflowtech.com'),
+
+  // ── Phone verification (WhatsApp-first) ───────────────────────────────────
+  // Which OTP delivery adapter to use. Unset (the default) means phone
+  // verification is INACTIVE and /me/phone/* returns 503 — chosen over a silent
+  // no-op so a half-configured server can never mark a number "verified"
+  // without having contacted it.
+  //
+  //   unset      → disabled, endpoints 503
+  //   'console'  → dev only; logs the code instead of sending it. Refuses to
+  //                run when NODE_ENV=production.
+  //   (future)   → add the real provider slug here and a case in
+  //                phone-verification/otp-provider.ts
+  OTP_PROVIDER: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+
+  // Key for HMAC-hashing OTP codes at rest. Falls back to SHARE_LINK_JWT_SECRET
+  // when unset, so there's one fewer secret to provision. Set it separately if
+  // you ever want to rotate OTP hashing without invalidating share links —
+  // rotating it only invalidates codes that are in flight, which is harmless.
+  OTP_HASH_SECRET: z.string().min(32).optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
 });
 
 export type Env = z.infer<typeof envSchema>;
