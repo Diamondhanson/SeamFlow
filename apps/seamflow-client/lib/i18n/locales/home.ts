@@ -21,7 +21,12 @@ export const home = {
   fr: {
     // ----- greeting -----
     goodMorning: 'Bonjour',
-    goodAfternoon: 'Bon après-midi',
+    // 'Bon après-midi' is a FAREWELL in French — what you say when leaving
+    // someone, not when greeting them. French greets with 'Bonjour' right
+    // through the afternoon and only switches at dusk, so morning and
+    // afternoon deliberately share a value here. Do not "fix" the
+    // duplication by inventing a distinct afternoon greeting.
+    goodAfternoon: 'Bonjour',
     goodEvening: 'Bonsoir',
     welcome: 'Bienvenue',
     // ----- home shell -----
