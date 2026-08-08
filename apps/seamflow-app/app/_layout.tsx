@@ -25,6 +25,7 @@ import { AtelierThemeProvider, semanticForMode } from '@seamflow/ui';
 import { api } from '../lib/api';
 import { installWebStyles } from '../lib/web-styles';
 import { installPwa } from '../lib/pwa';
+import { installOutboxFlusher } from '../lib/chat-outbox';
 import { AuthProvider } from '../lib/auth-context';
 import {
   installOfflineListeners,
@@ -60,12 +61,16 @@ function ThemedRoot() {
     installWebStyles();
     // Manifest + iOS meta tags + app-shell service worker (no-op native).
     installPwa();
+    // Drains any chat messages queued before the app was last closed.
+    const stopOutbox = installOutboxFlusher();
     // Wake the API immediately — the free-tier host spins down when idle and
     // takes ~30-60s to boot. Firing a throwaway ping at launch means the
     // server warms up WHILE the user types their credentials / reads the
     // home screen, instead of after their first real request. Fire-and-forget:
     // failures (offline, timeout) are irrelevant here.
     void api.health.check().catch(() => {});
+
+    return () => stopOutbox();
   }, []);
 
   // Load the Atelier font stack. The app delays its first paint until

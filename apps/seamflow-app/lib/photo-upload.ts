@@ -7,6 +7,7 @@ import type {
   Design,
   Work,
   WorkCreateInput,
+  MessageAttachment,
   GroupOrderPhoto,
   OrderPhoto,
   OrderPhotoRole,
@@ -53,6 +54,8 @@ const DESIGNS_BUCKET = 'designs';
 const AVATARS_BUCKET = 'avatars';
 /** Private. Holds the tailor's own finished work before it's published. */
 const WORKS_BUCKET = 'works';
+/** Private. Chat attachments, readable only by the two participants. */
+const CHAT_BUCKET = 'chat-media';
 
 // A profile photo needs just one modest square-ish variant.
 const AVATAR_MAX_DIM = 512;
@@ -416,6 +419,39 @@ export async function uploadFabricImage(args: {
   ]);
 
   return { photoKey, photoThumbKey, contentType: full.contentType };
+}
+
+/**
+ * Compress and upload a chat attachment into the PRIVATE `chat-media` bucket.
+ *
+ * Namespaced by conversation id, which is what the storage policy checks: only
+ * the two participants of that conversation can read or write under it. The
+ * returned descriptor is what goes in the message's `attachments` array — the
+ * API swaps the paths for short-lived signed URLs on read.
+ */
+export async function uploadChatImage(args: {
+  conversationId: string;
+  asset: PickedAsset;
+}): Promise<MessageAttachment> {
+  const { conversationId, asset } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const storagePath = `${conversationId}/${id}.${full.ext}`;
+  const thumbnailPath = `${conversationId}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(CHAT_BUCKET, storagePath, full),
+    uploadOne(CHAT_BUCKET, thumbnailPath, thumb),
+  ]);
+
+  return {
+    kind: 'image',
+    storagePath,
+    thumbnailPath,
+    width: asset.width,
+    height: asset.height,
+  };
 }
 
 /**

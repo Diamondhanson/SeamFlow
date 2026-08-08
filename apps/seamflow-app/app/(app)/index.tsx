@@ -226,6 +226,15 @@ export default function Home() {
       onPress: () => router.push('/(app)/works'),
     },
     {
+      // Human enquiries. Sits apart from the Assistant tile on purpose — that
+      // one is the AI copilot, this one is a real person waiting for a reply.
+      label: t('chat.tabLabel'),
+      icon: 'chatbubbles',
+      tone: 'primary',
+      subtitle: t('chat.tabSubtitle'),
+      onPress: () => router.push('/(app)/messages'),
+    },
+    {
       label: t('home.assistant'),
       icon: 'sparkles',
       tone: 'accent',
