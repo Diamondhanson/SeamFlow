@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { Button, Input, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
@@ -45,12 +45,52 @@ export default function SignIn() {
   const [googleBusy, setGoogleBusy] = useState(false);
   const [appleBusy, setAppleBusy] = useState(false);
 
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const isValidPassword = password.length >= MIN_PASSWORD_LEN;
-  // Name is required to sign UP only — signing in has one already.
-  const isValidName = normaliseFullName(fullName).length >= MIN_FULL_NAME_LEN;
-  const canSubmit =
-    isValidEmail && isValidPassword && (mode === 'signIn' || isValidName);
+  // ── Validation: slow to complain, fast to forgive ─────────────────────────
+  //
+  // A field says nothing while it is being typed for the first time — flagging
+  // "invalid email" after someone has typed "d" is hostile. It speaks on BLUR
+  // (they've finished, judging it is fair) or once submit has been attempted.
+  // After that it re-validates live, so the error clears the instant it is
+  // fixed rather than making them leave the field again to find out.
+  const [touched, setTouched] = useState<{
+    fullName?: boolean;
+    email?: boolean;
+    password?: boolean;
+  }>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const nameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
+
+  const trimmedEmail = email.trim();
+  // Deliberately loose. This catches "forgot the @", it does not try to prove
+  // deliverability — only sending the code does that. Stricter patterns reject
+  // real addresses (plus-addressing, long TLDs, non-Latin domains).
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
+
+  // Both of these are sign-UP rules. Enforcing the length on sign-in would lock
+  // out anyone whose existing password is shorter than today's minimum —
+  // Supabase's own default is 6 — with no way to recover from this screen.
+  const isSignUp = mode === 'signUp';
+  const passwordTooShort = isSignUp && password.length < MIN_PASSWORD_LEN;
+  const nameTooShort =
+    isSignUp && normaliseFullName(fullName).length < MIN_FULL_NAME_LEN;
+
+  const nameError = nameTooShort ? t('auth.fullNameTooShort') : undefined;
+  const emailError = !trimmedEmail
+    ? t('auth.emailRequired')
+    : !isValidEmail
+      ? t('auth.emailInvalid')
+      : undefined;
+  const passwordError = !password
+    ? t('auth.passwordRequired')
+    : passwordTooShort
+      ? t('auth.passwordTooShort', { min: MIN_PASSWORD_LEN })
+      : undefined;
+
+  const showNameError = (touched.fullName || submitAttempted) && nameError;
+  const showEmailError = (touched.email || submitAttempted) && emailError;
+  const showPasswordError = (touched.password || submitAttempted) && passwordError;
 
   const onGoogle = async () => {
     if (googleBusy) return;
@@ -94,8 +134,14 @@ export default function SignIn() {
   };
 
   const submit = async () => {
-    if (!canSubmit) return;
-    const normalisedEmail = email.trim().toLowerCase();
+    setSubmitAttempted(true);
+    // Focus the first offending field rather than just painting it red — on a
+    // phone the bad field may well be scrolled out of view.
+    if (nameError) return nameRef.current?.focus();
+    if (emailError) return emailRef.current?.focus();
+    if (passwordError) return passwordRef.current?.focus();
+
+    const normalisedEmail = trimmedEmail.toLowerCase();
     setSubmitting(true);
     try {
       if (mode === 'signIn') {
@@ -148,7 +194,10 @@ export default function SignIn() {
             styles.tab,
             mode === 'signIn' && { borderBottomColor: theme.colors.primary },
           ]}
-          onPress={() => setMode('signIn')}
+          onPress={() => {
+            setMode('signIn');
+            setSubmitAttempted(false);
+          }}
         >
           <Text
             variant="label"
@@ -162,7 +211,12 @@ export default function SignIn() {
             styles.tab,
             mode === 'signUp' && { borderBottomColor: theme.colors.primary },
           ]}
-          onPress={() => setMode('signUp')}
+          onPress={() => {
+            setMode('signUp');
+            // Sign-up adds a name rule and a password length rule — drop any
+            // error raised under the old mode rather than showing it stale.
+            setSubmitAttempted(false);
+          }}
         >
           <Text
             variant="label"
@@ -219,11 +273,16 @@ export default function SignIn() {
       {mode === 'signUp' ? (
         <>
           <Input
+            ref={nameRef}
             label={t('auth.fullName')}
             value={fullName}
             onChangeText={setFullName}
+            onBlur={() => setTouched((prev) => ({ ...prev, fullName: true }))}
+            error={showNameError || undefined}
             autoCapitalize="words"
             autoComplete="name"
+            returnKeyType="next"
+            onSubmitEditing={() => emailRef.current?.focus()}
           />
           <Text variant="caption" tone="textMuted" style={styles.fieldHint}>
             {t('auth.fullNameHint')}
@@ -232,24 +291,40 @@ export default function SignIn() {
       ) : null}
 
       <Input
+        ref={emailRef}
         label={t('auth.email')}
         value={email}
         onChangeText={setEmail}
+        onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+        error={showEmailError || undefined}
         autoCapitalize="none"
         autoComplete="email"
         keyboardType="email-address"
+        returnKeyType="next"
+        onSubmitEditing={() => passwordRef.current?.focus()}
       />
       <PasswordInput
+        ref={passwordRef}
         label={mode === 'signUp' ? t('auth.passwordWithMin', { min: MIN_PASSWORD_LEN }) : t('auth.password')}
         value={password}
         onChangeText={setPassword}
+        onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+        error={showPasswordError || undefined}
+        returnKeyType="go"
+        onSubmitEditing={() => void submit()}
       />
 
+      {/*
+        Never disabled for validation reasons — only while a request is in
+        flight. A greyed-out button with no message is a dead end: people can't
+        tell whether the app is broken or they are. Let them press it, then say
+        what's wrong.
+      */}
       <Button
         label={mode === 'signIn' ? t('auth.signIn') : t('auth.sendVerificationCode')}
         onPress={submit}
         loading={submitting}
-        disabled={!canSubmit}
+        disabled={submitting || googleBusy || appleBusy}
       />
 
       {mode === 'signIn' ? (
