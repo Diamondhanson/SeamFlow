@@ -30,6 +30,8 @@ import { DialogProvider } from '../lib/dialog';
 import { GuidesProvider } from '../lib/guides';
 import { LanguageProvider } from '../lib/i18n';
 import { clientTheme } from '../lib/client-theme';
+import { installPwa } from '../lib/pwa';
+import { installOutboxFlusher } from '../lib/chat-outbox';
 
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -50,6 +52,12 @@ function ThemedRoot() {
   // Hook NetInfo + AppState into TanStack Query exactly once (offline-first).
   useEffect(() => {
     installOfflineListeners();
+    // Manifest + iOS meta tags + app-shell service worker (no-op native).
+    installPwa();
+    // Drains chat messages queued before the app was last closed.
+    const stopOutbox = installOutboxFlusher();
+
+    return () => stopOutbox();
   }, []);
 
   // Load the Atelier font stack; delay first paint until ready to avoid a

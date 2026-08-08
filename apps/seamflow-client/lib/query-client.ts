@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState, type AppStateStatus } from 'react-native';
 import { registerMutationDefaults } from './mutation-defaults';
+import { isWeb } from './platform-capabilities';
 
 // ============================================================================
 // Offline-first wiring
@@ -101,6 +102,22 @@ export function installOfflineListeners(): void {
   void AsyncStorage.multiRemove(STALE_PERSIST_KEYS).catch(() => {});
 
   onlineManager.setEventListener((setOnline) => {
+    // Web: the browser already knows. NetInfo's web build decides
+    // `isInternetReachable` with a HEAD probe that aborts in practice, so it
+    // reports unreachable on a perfectly good connection — which pauses every
+    // query and renders empty states over real data.
+    if (isWeb) {
+      const on = () => setOnline(true);
+      const off = () => setOnline(false);
+      window.addEventListener('online', on);
+      window.addEventListener('offline', off);
+      setOnline(navigator.onLine);
+      return () => {
+        window.removeEventListener('online', on);
+        window.removeEventListener('offline', off);
+      };
+    }
+
     const sub = NetInfo.addEventListener((state) => {
       // `isInternetReachable` is more accurate but can be null on first event;
       // fall back to `isConnected`.

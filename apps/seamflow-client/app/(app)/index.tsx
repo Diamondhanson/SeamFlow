@@ -36,6 +36,8 @@ export default function ClientHome() {
     dialog.alert({ title: t('home.comingSoon'), message: t('home.tagline'), tone: 'info' });
 
   const tiles: HomeTile[] = [
+    { key: 'discover', label: t('discover.tabDiscover'), sub: t('discover.subtitle'), icon: 'sparkles-outline', live: true, go: () => router.push('/discover') },
+    { key: 'messages', label: t('discover.tabMessages'), sub: t('chat.listSubtitle'), icon: 'chatbubbles-outline', live: true, go: () => router.push('/(app)/messages') },
     { key: 'orders', label: t('home.ordersTile'), sub: t('home.ordersTileSub'), icon: 'shirt-outline', live: true, go: () => router.push('/(app)/orders') },
     { key: 'measurements', label: t('home.measurementsTile'), sub: t('home.measurementsTileSub'), icon: 'body-outline', live: true, go: () => router.push('/(app)/measurements') },
     { key: 'lookbook', label: t('home.lookbookTile'), sub: t('home.lookbookTileSub'), icon: 'images-outline', go: comingSoon },

@@ -64,6 +64,27 @@ export class AppleCancelledError extends Error {
  */
 export const APPLE_SIGN_IN_ENABLED = false;
 
+/**
+ * Whether a new client must verify their email before they can use the app.
+ *
+ * OFF for now so the discovery loop can be tested in a browser without waiting
+ * on email delivery. Flip to `true` before real launch — that is the only
+ * change needed on the app side.
+ *
+ * NOTE: this flag governs the APP's behaviour. Whether Supabase itself issues a
+ * session at signup is a project setting ("Confirm email" under Authentication
+ * → Providers). If that is on, Supabase returns no session and the app falls
+ * back to the OTP screen regardless of this flag.
+ */
+export const REQUIRE_EMAIL_VERIFICATION = false;
+
+/**
+ * Social sign-in is hidden in the client app for now: Google needs redirect
+ * URLs configured per platform and Apple needs the paid developer program,
+ * and neither is required to test the discovery loop.
+ */
+export const SOCIAL_SIGN_IN_ENABLED = false;
+
 interface AuthState {
   session: Session | null;
   loading: boolean;
@@ -166,10 +187,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // account existence — we mirror that here (no special path) and the
     // user just won't receive an OTP for an account they can't claim.
     if (data.session) {
-      // If email confirmation is disabled in the dashboard the session is
-      // returned immediately — supported but not the path we want. Sign
-      // them in directly in that case.
+      // Supabase issued a session immediately (email confirmation off): the
+      // user is already signed in and the auth listener has them.
       return;
+    }
+    // No session and we're not demanding verification — try an immediate
+    // password sign-in. This succeeds when the account exists and is usable,
+    // and throws EmailNotConfirmedError when the project really does require
+    // confirmation, which the caller turns into the OTP screen.
+    if (!REQUIRE_EMAIL_VERIFICATION) {
+      await signInWithPassword(email, password);
     }
   }, []);
 

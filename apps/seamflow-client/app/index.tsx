@@ -3,9 +3,15 @@ import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../lib/auth-context';
 import { useThemeColors } from '../lib/theme';
 
-// Entry gate: send signed-in users into the app, everyone else to sign-in.
+/**
+ * Entry gate.
+ *
+ * Everyone lands on Discover — signed in or not. That's decision D-4: browsing
+ * needs no account, and sending people to a sign-in wall before they've seen
+ * any work asks for commitment before showing them the reason for it.
+ */
 export default function Index() {
-  const { session, loading } = useAuth();
+  const { loading } = useAuth();
   const colors = useThemeColors();
 
   if (loading) {
@@ -16,5 +22,5 @@ export default function Index() {
     );
   }
 
-  return <Redirect href={session ? '/(app)' : '/sign-in'} />;
+  return <Redirect href="/discover" />;
 }

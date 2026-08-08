@@ -8,6 +8,8 @@ import {
   APPLE_SIGN_IN_ENABLED,
   AppleCancelledError,
   EmailNotConfirmedError,
+  REQUIRE_EMAIL_VERIFICATION,
+  SOCIAL_SIGN_IN_ENABLED,
   GoogleCancelledError,
   useAuth,
 } from '../lib/auth-context';
@@ -95,7 +97,15 @@ export default function SignIn() {
         router.replace('/(app)');
       } else {
         await signUpWithPassword(normalisedEmail, password);
-        router.replace(`/verify-otp?email=${encodeURIComponent(normalisedEmail)}`);
+        // With REQUIRE_EMAIL_VERIFICATION off, signUpWithPassword has already
+        // signed them in. The OTP screen is only reached via the
+        // EmailNotConfirmedError path below, i.e. when the Supabase project
+        // itself insists on confirmation.
+        router.replace(
+          REQUIRE_EMAIL_VERIFICATION
+            ? `/verify-otp?email=${encodeURIComponent(normalisedEmail)}`
+            : '/(app)',
+        );
       }
     } catch (err: unknown) {
       if (err instanceof EmailNotConfirmedError) {
@@ -157,6 +167,12 @@ export default function SignIn() {
         </Pressable>
       </View>
 
+      {/* Social sign-in is off in the client app for now
+          (SOCIAL_SIGN_IN_ENABLED): Google needs per-platform redirect URLs and
+          Apple needs the paid developer program, and neither is needed to use
+          the app. Email + password is the whole story here. */}
+      {SOCIAL_SIGN_IN_ENABLED ? (
+        <>
       <Button
         label={googleBusy ? t('auth.openingGoogle') : t('auth.continueWithGoogle')}
         variant="secondary"
@@ -181,6 +197,8 @@ export default function SignIn() {
           disabled={googleBusy || appleBusy || submitting}
         />
       </View>
+        </>
+      ) : null}
 
       <View style={styles.dividerRow}>
         <View style={[styles.dividerLine, { backgroundColor: theme.colors.hairline }]} />

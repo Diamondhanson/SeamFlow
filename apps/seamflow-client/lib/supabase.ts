@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import { config } from './config';
 
 /**
@@ -7,17 +8,69 @@ import { config } from './config';
  * Android Keystore via expo-secure-store. Survives app restarts and OS
  * unlock cycles.
  */
-const SecureStoreAdapter = {
-  getItem(key: string) {
-    return SecureStore.getItemAsync(key);
+/**
+ * Session storage adapter.
+ *
+ * Native: the iOS Keychain / Android Keystore via expo-secure-store — survives
+ * app restarts and OS unlock cycles.
+ *
+ * Web: expo-secure-store does NOT exist in the browser; calling it rejects,
+ * which used to leave `getSession()` unresolved and hang the app on its splash
+ * spinner forever. There we fall back to `localStorage` — weaker at rest, but
+ * it's the standard browser session store and the only option. Every method is
+ * defensive so a storage failure degrades to "signed out", never a hang.
+ */
+const isWeb = Platform.OS === 'web';
+
+const webStorage = {
+  async getItem(key: string) {
+    try {
+      return globalThis.localStorage?.getItem(key) ?? null;
+    } catch {
+      return null;
+    }
   },
-  setItem(key: string, value: string) {
-    return SecureStore.setItemAsync(key, value);
+  async setItem(key: string, value: string) {
+    try {
+      globalThis.localStorage?.setItem(key, value);
+    } catch {
+      // Private mode / quota — session simply won't persist.
+    }
   },
-  removeItem(key: string) {
-    return SecureStore.deleteItemAsync(key);
+  async removeItem(key: string) {
+    try {
+      globalThis.localStorage?.removeItem(key);
+    } catch {
+      // ignore
+    }
   },
 };
+
+const nativeStorage = {
+  async getItem(key: string) {
+    try {
+      return await SecureStore.getItemAsync(key);
+    } catch {
+      return null;
+    }
+  },
+  async setItem(key: string, value: string) {
+    try {
+      await SecureStore.setItemAsync(key, value);
+    } catch {
+      // ignore — treated as a lost session, not a crash
+    }
+  },
+  async removeItem(key: string) {
+    try {
+      await SecureStore.deleteItemAsync(key);
+    } catch {
+      // ignore
+    }
+  },
+};
+
+const SecureStoreAdapter = isWeb ? webStorage : nativeStorage;
 
 export const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey, {
   auth: {

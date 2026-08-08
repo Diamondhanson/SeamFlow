@@ -68,11 +68,20 @@ export function LockProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const exists = await pinExists();
-      if (cancelled) return;
-      setPinSet(exists);
-      setLocked(exists); // cold start with PIN set → locked
-      setReady(true);
+      try {
+        const exists = await pinExists();
+        if (cancelled) return;
+        setPinSet(exists);
+        setLocked(exists); // cold start with PIN set → locked
+      } catch {
+        // Can't tell whether a PIN exists — fail open rather than trap the
+        // user behind a spinner with no way out.
+        if (cancelled) return;
+        setPinSet(false);
+        setLocked(false);
+      } finally {
+        if (!cancelled) setReady(true);
+      }
     })();
     return () => {
       cancelled = true;

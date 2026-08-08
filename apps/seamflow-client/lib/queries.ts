@@ -2,7 +2,13 @@
 // Consumer data hooks — TanStack Query over the /consumer/* API.
 // ============================================================================
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
+import type { ConversationCreateInput, FeedQuery } from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
 
@@ -44,4 +50,84 @@ export function extractShareCode(input: string): string {
   if (match) return match[1];
   // Otherwise assume they pasted just the code.
   return trimmed.replace(/^.*\//, '');
+}
+
+// ============================================================================
+// Discovery — the public feed, one design, and a tailor's storefront.
+//
+// These reads work signed-out (decision D-4: browse without an account, sign in
+// only to inquire or save), so none of them is gated on a session.
+// ============================================================================
+
+export const useFeed = (filter: Partial<FeedQuery> = {}) =>
+  useInfiniteQuery({
+    queryKey: qk.feed(filter as Record<string, string | undefined>),
+    queryFn: ({ pageParam }) =>
+      api.feed.list({ ...filter, cursor: pageParam as string | undefined }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+
+export const useFeedPost = (id: string) =>
+  useQuery({ queryKey: qk.feedPost(id), queryFn: () => api.feed.get(id), enabled: !!id });
+
+export const useStorefront = (tailorId: string) =>
+  useQuery({
+    queryKey: qk.storefront(tailorId),
+    queryFn: () => api.feed.storefront(tailorId),
+    enabled: !!tailorId,
+  });
+
+// ============================================================================
+// Chat — the client half. Same endpoints as the tailor app; the API resolves
+// which side you are from the token, so nothing here is role-specific.
+// ============================================================================
+
+export const useConversations = () =>
+  useInfiniteQuery({
+    queryKey: qk.conversations(),
+    queryFn: ({ pageParam }) =>
+      api.conversations.list({ cursor: pageParam as string | undefined }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    staleTime: 15_000,
+  });
+
+export const useConversation = (id: string) =>
+  useQuery({
+    queryKey: qk.conversation(id),
+    queryFn: () => api.conversations.get(id),
+    enabled: !!id,
+  });
+
+export const useMessages = (conversationId: string) =>
+  useInfiniteQuery({
+    queryKey: qk.conversationMessages(conversationId),
+    queryFn: ({ pageParam }) =>
+      api.conversations.messages(conversationId, {
+        cursor: pageParam as string | undefined,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled: !!conversationId,
+  });
+
+/** The Inquire action: creates or reuses the thread for this design. */
+export function useCreateConversation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ConversationCreateInput) => api.conversations.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.conversations() }),
+  });
+}
+
+export function useMarkConversationRead(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.conversations.markRead(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.conversations() });
+      qc.invalidateQueries({ queryKey: qk.conversation(id) });
+    },
+  });
 }

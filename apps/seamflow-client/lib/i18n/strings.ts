@@ -15,6 +15,8 @@ import { measurements } from './locales/measurements';
 import { claim } from './locales/claim';
 import { guides } from './locales/guides';
 import { misc } from './locales/misc';
+import { discover } from './locales/discover';
+import { chat } from './locales/chat';
 
 export type LanguageCode = 'en' | 'fr';
 
@@ -33,6 +35,8 @@ export const translations = {
     claim: claim.en,
     guides: guides.en,
     misc: misc.en,
+    discover: discover.en,
+    chat: chat.en,
   },
   fr: {
     common: common.fr,
@@ -43,6 +47,8 @@ export const translations = {
     claim: claim.fr,
     guides: guides.fr,
     misc: misc.fr,
+    discover: discover.fr,
+    chat: chat.fr,
   },
 } as const;
 
