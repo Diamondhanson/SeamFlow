@@ -16,10 +16,13 @@ import Image from 'next/image';
 //     one number to adjust if a future screenshot has a taller status bar.
 //
 //  2. Each frame's screen area takes its ASPECT RATIO from the source image
-//     (minus the status bar), rather than a hardcoded height. Get this wrong
-//     and object-fit:cover silently eats the sides — which is exactly what made
-//     the tablet's "Start new order" button run edge to edge with no margin.
-//     Derive it, don't guess it.
+//     (minus the status bar), rather than a hardcoded height. The frame is then
+//     the real shape of the real device — nothing is stretched.
+//
+//     Zoom is a SEPARATE control (`crop`). Don't merge the two: a wrong aspect
+//     ratio also zooms, via object-fit:cover eating the sides, and then you have
+//     one number doing two jobs and no way to tune either. That is how the
+//     tablet's "Start new order" button ended up running edge to edge.
 //
 //  3. next/image, not <img>. It serves WebP/AVIF at the right size for the
 //     viewport; the source PNGs are ~190 KB each and would otherwise be shipped
@@ -34,19 +37,46 @@ interface Source {
   h: number;
   /** Fraction of the screenshot height taken by the OS status bar. */
   statusBar: number;
+  /**
+   * Fraction of the screenshot width to slice off EACH side (and, to scale, the
+   * bottom). This is a zoom, not a reshape — the frame keeps the device's true
+   * proportions either way.
+   *
+   * Why crop at all: the app screenshots carry the app's own screen padding —
+   * 13.3% a side on the phone, 9.2% on the tablet. Shown whole at 260/560 px
+   * those margins become a 33 px and 50 px band of empty background inside the
+   * bezel, and the mockup reads as a picture in a mat rather than a running
+   * device. These values leave roughly 13 px (phone) and 17 px (tablet) —
+   * enough that the "Start new order" button clears the bezel, little enough
+   * that the screen looks full.
+   *
+   * Retune by eye if a screenshot with different padding replaces these.
+   */
+  crop: number;
 }
 
 const SOURCES = {
-  phone: { w: 1350, h: 2400, statusBar: 0.05 },
-  tablet: { w: 2000, h: 1125, statusBar: 0.042 },
+  phone: { w: 1350, h: 2400, statusBar: 0.05, crop: 0.09 },
+  tablet: { w: 2000, h: 1125, statusBar: 0.042, crop: 0.065 },
 } as const satisfies Record<string, Source>;
 
-/** Screen aspect + the offsets that hide the status bar, derived from the source. */
-function screenGeometry({ w, h, statusBar }: Source) {
+/**
+ * Screen aspect, plus the image size/offsets that hide the status bar and apply
+ * the crop.
+ *
+ * The aspect ratio is the device's real screen; the image is then oversized by
+ * 1/(1-2·crop) and pulled left/up so the wanted region lands in the box. Both
+ * axes scale by the same factor, so nothing is squashed.
+ */
+function screenGeometry({ w, h, statusBar, crop }: Source) {
+  const zoom = 1 / (1 - 2 * crop);
+  const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
   return {
     aspectRatio: `${w} / ${h * (1 - statusBar)}`,
-    imageHeight: `${(100 / (1 - statusBar)).toFixed(2)}%`,
-    imageTop: `-${((statusBar / (1 - statusBar)) * 100).toFixed(2)}%`,
+    imageWidth: pct(zoom),
+    imageHeight: pct(zoom / (1 - statusBar)),
+    imageLeft: `-${(crop * zoom * 100).toFixed(2)}%`,
+    imageTop: `-${((statusBar / (1 - statusBar)) * zoom * 100).toFixed(2)}%`,
   };
 }
 
@@ -86,15 +116,18 @@ export function PhoneFrame({
           alt={alt}
           width={SOURCES.phone.w}
           height={SOURCES.phone.h}
-          sizes="260px"
+          sizes="320px"
           style={{
             position: 'absolute',
             top: g.imageTop,
-            left: 0,
-            width: '100%',
+            left: g.imageLeft,
+            width: g.imageWidth,
             height: g.imageHeight,
-            objectFit: 'cover',
-            objectPosition: 'top center',
+            // Tailwind preflight sets `img { max-width: 100% }`. The crop makes
+            // this image deliberately WIDER than its box, so the clamp would cap
+            // the width while leaving the height alone — squashing the screen.
+            maxWidth: 'none',
+            objectFit: 'fill',
           }}
         />
         {/* Speaker slot, over the screenshot so the device reads as one object. */}
@@ -152,15 +185,18 @@ export function TabletFrame({
           alt={alt}
           width={SOURCES.tablet.w}
           height={SOURCES.tablet.h}
-          sizes="560px"
+          sizes="640px"
           style={{
             position: 'absolute',
             top: g.imageTop,
-            left: 0,
-            width: '100%',
+            left: g.imageLeft,
+            width: g.imageWidth,
             height: g.imageHeight,
-            objectFit: 'cover',
-            objectPosition: 'top center',
+            // Tailwind preflight sets `img { max-width: 100% }`. The crop makes
+            // this image deliberately WIDER than its box, so the clamp would cap
+            // the width while leaving the height alone — squashing the screen.
+            maxWidth: 'none',
+            objectFit: 'fill',
           }}
         />
         <div
