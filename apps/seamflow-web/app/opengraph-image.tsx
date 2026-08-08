@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const alt =
-  'SeamFlow — the AI tailor assistant: clients, measurements, orders and invoices in one place.';
+  'SeamFlow: the AI tailor assistant. Clients, measurements, orders and invoices in one place.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

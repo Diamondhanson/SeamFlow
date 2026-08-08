@@ -35,7 +35,7 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.seamflowtech.com'),
   title: {
-    default: 'SeamFlow — the AI tailor assistant for measurements, orders & invoices',
+    default: 'SeamFlow: the AI tailor assistant for measurements, orders & invoices',
     template: '%s',
   },
   description:

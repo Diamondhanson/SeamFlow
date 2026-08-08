@@ -70,7 +70,7 @@ export const copy = {
     // on-page hero copy — a title tag has to say what the product *is*.
     seo: {
       title:
-        'SeamFlow — the AI tailor assistant for measurements, orders & invoices',
+        'SeamFlow: the AI tailor assistant for measurements, orders & invoices',
       description:
         'SeamFlow is a tailor assistant app for tailors and fashion designers. Scan measurements from paper, track orders, send invoices, and ask an AI assistant about your business. Bilingual, offline-first, free in early access.',
       keywords: [
@@ -101,7 +101,7 @@ export const copy = {
       eyebrow: 'The AI tailor assistant for workshops',
       title: 'Your whole workshop, in one calm place.',
       subtitle:
-        'SeamFlow is the tailor assistant that keeps your clients, measurements, orders and deadlines together — with an AI assistant that answers questions about your business and files the work for you.',
+        'SeamFlow is the tailor assistant that keeps your clients, measurements, orders and deadlines together, with an AI assistant that answers questions about your business and files the work for you.',
       ctaPrimary: 'Use on browser',
       ctaSecondary: 'See how it works',
       note: 'Works offline · English & French · Free in early access',
@@ -119,7 +119,7 @@ export const copy = {
       body: 'When everything lives in different places, a due date slips, a measurement gets re-taken, and a client asks "is it ready?" for the tenth time. It’s a lot to hold.',
       solutionTitle: 'SeamFlow holds it for you.',
       solutionBody:
-        'One place for every client, order, fitting and invoice — with an assistant you can simply ask, reminders before every deadline, a shareable order page, and it all keeps working even when the network doesn’t.',
+        'One place for every client, order, fitting and invoice. An assistant you can simply ask, reminders before every deadline, a shareable order page, and it all keeps working even when the network doesn’t.',
     },
     features: {
       heading: 'Everything the craft needs',
@@ -192,7 +192,7 @@ export const copy = {
     spotlight: {
       eyebrow: 'New',
       title: 'A tailor assistant you can actually talk to.',
-      body: 'Most tailoring software makes you go and find the answer. SeamFlow’s assistant knows your clients, orders, measurements and invoices — so you can just ask, in English or French, by typing or by speaking.',
+      body: 'Most tailoring software makes you go and find the answer. SeamFlow’s assistant knows your clients, orders, measurements and invoices, so you can just ask, in English or French, by typing or by speaking.',
       examples: [
         'What’s due this week?',
         'Who still owes me money?',
@@ -207,7 +207,7 @@ export const copy = {
       items: [
         {
           title: 'Add a client',
-          body: 'Name, phone, measurements — type them, import from your contacts, or scan a filled measurement sheet with the camera.',
+          body: 'Name, phone, measurements: type them, import from your contacts, or scan a filled measurement sheet with the camera.',
         },
         {
           title: 'Create an order',
@@ -229,7 +229,7 @@ export const copy = {
     gallery: {
       heading: 'A look inside',
       subheading:
-        'The real app, on a real phone. Light or dark — it follows whatever your device is set to.',
+        'The real app, on a real phone. Light or dark, it follows whatever your device is set to.',
       altPhone:
         'SeamFlow home screen on an Android phone in dark mode, showing orders, clients, groups, calendar, templates, fabrics, Design Studio and the assistant.',
       altTablet:
@@ -240,7 +240,7 @@ export const copy = {
       items: [
         {
           q: 'Is there an AI assistant for tailors inside SeamFlow?',
-          a: 'Yes. SeamFlow includes a built-in AI tailor assistant you can type to or speak to. It answers questions about your own business — what’s due, who owes you, how the month is going — and it can create clients, orders, measurements and invoices for you. It always shows you exactly what it’s about to save and waits for your confirmation first.',
+          a: 'Yes. SeamFlow includes a built-in AI tailor assistant you can type to or speak to. It answers questions about your own business: what’s due, who owes you, how the month is going. It can also create clients, orders, measurements and invoices for you. It always shows you exactly what it’s about to save and waits for your confirmation first.',
           href: '/tailor-assistant',
           linkLabel: 'More about the assistant',
         },
@@ -266,7 +266,7 @@ export const copy = {
         },
         {
           q: 'What languages does it support?',
-          a: 'English and French today, fully — every screen, not just the menus. More on the way.',
+          a: 'English and French today, fully. Every screen, not just the menus. More on the way.',
         },
         {
           q: 'Does it work offline?',
@@ -278,7 +278,7 @@ export const copy = {
         },
         {
           q: 'Can I lock the app so nobody else can open it?',
-          a: 'Yes. You can set a four-digit PIN, and SeamFlow locks itself after a few minutes in the background — so your client list stays yours even if someone else picks up the phone.',
+          a: 'Yes. You can set a four-digit PIN, and SeamFlow locks itself after a few minutes in the background, so your client list stays yours even if someone else picks up the phone.',
         },
         {
           q: 'Is my data private?',
@@ -336,16 +336,16 @@ export const copy = {
 
     // ── /tailor-assistant — the dedicated keyword landing page ──────────────
     assistantPage: {
-      metaTitle: 'AI tailor assistant — ask about your workshop, by text or voice | SeamFlow',
+      metaTitle: 'AI tailor assistant: ask about your workshop, by text or voice | SeamFlow',
       metaDescription:
         'SeamFlow’s AI tailor assistant answers questions about your own orders, clients and invoices, and creates records for you on confirmation. Type or speak, in English or French. Free in early access.',
       eyebrow: 'Inside SeamFlow',
       title: 'The AI tailor assistant for your workshop.',
       subtitle:
-        'Every tailoring app can store your orders. SeamFlow’s assistant can answer questions about them — and do the filing for you, in your own language, by typing or by speaking.',
+        'Every tailoring app can store your orders. SeamFlow’s assistant can answer questions about them, and do the filing for you, in your own language, by typing or by speaking.',
       askHeading: 'Ask it about your business',
       askBody:
-        'The assistant reads your live data before it answers, so these aren’t canned replies — they’re about your workshop, today.',
+        'The assistant reads your live data before it answers, so these aren’t canned replies. They’re about your workshop, today.',
       askItems: [
         'What’s due this week?',
         'Who still owes me money?',
@@ -356,10 +356,10 @@ export const copy = {
       ],
       doHeading: 'Tell it what to do',
       doBody:
-        'The assistant can create and update records — but it never writes anything silently. It builds the change, shows you a confirmation card with every field spelled out, and nothing is saved until you tap Confirm.',
+        'The assistant can create and update records, but it never writes anything silently. It builds the change, shows you a confirmation card with every field spelled out, and nothing is saved until you tap Confirm.',
       doItems: [
         'Create a client called Amina, number 6xx xx xx xx.',
-        'New order for Amina — agbada, due the 20th.',
+        'New order for Amina, agbada, due the 20th.',
         'Move order #14 to fitting.',
         'Save these measurements against Joseph.',
         'Draft an invoice for the wedding order.',
@@ -379,12 +379,12 @@ export const copy = {
         {
           key: 'globe',
           title: 'Answers in your language',
-          body: 'Ask in English or French and it replies in the same language. It understands the vocabulary of the trade in both — poitrine and chest are the same measurement to it.',
+          body: 'Ask in English or French and it replies in the same language. It understands the vocabulary of the trade in both: poitrine and chest are the same measurement to it.',
         },
         {
           key: 'offline',
           title: 'Private by default',
-          body: 'Your conversation lives on your device, not on our servers — we store none of it. Older messages drop away as the thread grows, and you can wipe it whenever you like. The assistant only ever reads your own workshop’s data.',
+          body: 'Your conversation lives on your device, not on our servers. We store none of it. Older messages drop away as the thread grows, and you can wipe it whenever you like. The assistant only ever reads your own workshop’s data.',
         },
       ] as Feature[],
       ctaTitle: 'Put an assistant in your workshop.',
@@ -405,11 +405,11 @@ export const copy = {
       eyebrow: 'Comparison',
       title: 'Looking for a Tailor Assist alternative?',
       subtitle:
-        'Tailor Assist and SeamFlow set out to solve the same problem: a tailoring business run on notebooks and memory. They go about it differently. Here is a straight comparison — including the parts where we come off worse.',
+        'Tailor Assist and SeamFlow set out to solve the same problem: a tailoring business run on notebooks and memory. They go about it differently. Here is a straight comparison, including the parts where we come off worse.',
 
       disclosureTitle: 'Who wrote this',
       disclosureBody:
-        'We did — we make SeamFlow, so read this the way you would read any comparison written by one of the two sides. What we can promise is accuracy: everything below about Tailor Assist comes from their own public website, and everything about SeamFlow is a feature you can use today, not a roadmap item. Try both; they are both free.',
+        'We did. We make SeamFlow, so read this the way you would read any comparison written by one of the two sides. What we can promise is accuracy: everything below about Tailor Assist comes from their own public website, and everything about SeamFlow is a feature you can use today, not a roadmap item. Try both; they are both free.',
       updatedLabel: 'Compared against publicly available information in {date}.',
 
       strengthsHeading: 'Where SeamFlow is different',
@@ -429,22 +429,22 @@ export const copy = {
         {
           key: 'design',
           title: 'A design studio, not just a photo field',
-          body: 'Collect style and fabric references into a mood board, open any image full-screen, and let AI turn a reference photo into structured garment notes — cut, neckline, sleeve, finish — that you edit before saving. Then attach it to the order it belongs to.',
+          body: 'Collect style and fabric references into a mood board, open any image full-screen, and let AI turn a reference photo into structured garment notes (cut, neckline, sleeve, finish) that you edit before saving. Then attach it to the order it belongs to.',
         },
         {
           key: 'groups',
           title: 'Group orders as a first-class thing',
-          body: 'Weddings, aso-ebi and uniforms are one order with an owner, a shared fabric and per-member measurements — not a dozen loose orders you have to remember belong together.',
+          body: 'Weddings, aso-ebi and uniforms are one order with an owner, a shared fabric and per-member measurements, not a dozen loose orders you have to remember belong together.',
         },
       ] as Feature[],
 
       theirsHeading: 'Where Tailor Assist may suit you better',
       theirsBody:
-        'Genuinely — if any of these is how your shop runs, they are the better tool today, and we would rather tell you now than waste your evening.',
+        'Genuinely. If any of these is how your shop runs, they are the better tool today, and we would rather tell you now than waste your evening.',
       theirs: [
         {
           title: 'You have staff',
-          body: 'Tailor Assist offers staff accounts, role-based access and task assignment across a production pipeline. SeamFlow today is built for one tailor and their own records — there is no way to invite an employee or hand a job to someone else.',
+          body: 'Tailor Assist offers staff accounts, role-based access and task assignment across a production pipeline. SeamFlow today is built for one tailor and their own records. There is no way to invite an employee or hand a job to someone else.',
         },
         {
           title: 'You need Arabic or Spanish',
@@ -452,7 +452,7 @@ export const copy = {
         },
         {
           title: 'You want payment tracking',
-          body: 'They advertise mobile money payment tracking. SeamFlow records a deposit and works out the balance on an invoice, but it does not connect to a payment provider — you reconcile money yourself. Payments are on our roadmap, and a roadmap is not a feature.',
+          body: 'They advertise mobile money payment tracking. SeamFlow records a deposit and works out the balance on an invoice, but it does not connect to a payment provider. You reconcile money yourself. Payments are on our roadmap, and a roadmap is not a feature.',
         },
         {
           title: 'You want dashboards and reports',
@@ -480,7 +480,7 @@ export const copy = {
   fr: {
     seo: {
       title:
-        'SeamFlow — l’assistant tailleur IA pour mesures, commandes et factures',
+        'SeamFlow : l’assistant tailleur IA pour mesures, commandes et factures',
       description:
         'SeamFlow est une application d’assistant tailleur pour tailleurs et créateurs de mode. Scannez les mesures sur papier, suivez les commandes, envoyez des factures et interrogez un assistant IA sur votre activité. Bilingue, hors ligne, gratuit en accès anticipé.',
       keywords: [
@@ -511,7 +511,7 @@ export const copy = {
       eyebrow: 'L’assistant tailleur IA pour les ateliers',
       title: 'Tout votre atelier, en un seul endroit serein.',
       subtitle:
-        'SeamFlow est l’assistant tailleur qui réunit vos clients, mesures, commandes et échéances — avec un assistant IA qui répond à vos questions et enregistre le travail à votre place.',
+        'SeamFlow est l’assistant tailleur qui réunit vos clients, mesures, commandes et échéances, avec un assistant IA qui répond à vos questions et enregistre le travail à votre place.',
       ctaPrimary: 'Utiliser sur navigateur',
       ctaSecondary: 'Voir comment ça marche',
       note: 'Fonctionne hors ligne · Français et anglais · Gratuit en accès anticipé',
@@ -529,7 +529,7 @@ export const copy = {
       body: 'Quand tout est éparpillé, une échéance passe, une mesure est reprise, et un client demande « c’est prêt ? » pour la dixième fois. Ça fait beaucoup à retenir.',
       solutionTitle: 'SeamFlow retient tout pour vous.',
       solutionBody:
-        'Un seul endroit pour chaque client, commande, essayage et facture — avec un assistant à qui il suffit de demander, des rappels avant chaque échéance, une page de commande partageable, et tout continue de fonctionner même sans réseau.',
+        'Un seul endroit pour chaque client, commande, essayage et facture. Un assistant à qui il suffit de demander, des rappels avant chaque échéance, une page de commande partageable, et tout continue de fonctionner même sans réseau.',
     },
     features: {
       heading: 'Tout ce dont le métier a besoin',
@@ -601,7 +601,7 @@ export const copy = {
     spotlight: {
       eyebrow: 'Nouveau',
       title: 'Un assistant tailleur à qui vous pouvez vraiment parler.',
-      body: 'La plupart des logiciels de couture vous obligent à aller chercher la réponse. L’assistant de SeamFlow connaît vos clients, commandes, mesures et factures — il suffit de demander, en français ou en anglais, à l’écrit ou à la voix.',
+      body: 'La plupart des logiciels de couture vous obligent à aller chercher la réponse. L’assistant de SeamFlow connaît vos clients, commandes, mesures et factures, il suffit de demander, en français ou en anglais, à l’écrit ou à la voix.',
       examples: [
         'Qu’est-ce qui est dû cette semaine ?',
         'Qui me doit encore de l’argent ?',
@@ -616,7 +616,7 @@ export const copy = {
       items: [
         {
           title: 'Ajoutez un client',
-          body: 'Nom, téléphone, mesures — saisissez-les, importez depuis vos contacts, ou scannez une fiche de mesures remplie avec l’appareil photo.',
+          body: 'Nom, téléphone, mesures : saisissez-les, importez depuis vos contacts, ou scannez une fiche de mesures remplie avec l’appareil photo.',
         },
         {
           title: 'Créez une commande',
@@ -638,7 +638,7 @@ export const copy = {
     gallery: {
       heading: 'Un aperçu de l’intérieur',
       subheading:
-        'La vraie application, sur un vrai téléphone. Clair ou sombre — elle suit le réglage de votre appareil.',
+        'La vraie application, sur un vrai téléphone. Clair ou sombre, elle suit le réglage de votre appareil.',
       altPhone:
         'Écran d’accueil de SeamFlow sur un téléphone Android en mode sombre, avec les commandes, clients, groupes, calendrier, modèles, tissus, le studio de création et l’assistant.',
       altTablet:
@@ -649,7 +649,7 @@ export const copy = {
       items: [
         {
           q: 'Y a-t-il un assistant IA pour tailleurs dans SeamFlow ?',
-          a: 'Oui. SeamFlow intègre un assistant tailleur IA auquel vous pouvez écrire ou parler. Il répond aux questions sur votre propre activité — ce qui est dû, qui vous doit de l’argent, comment se passe le mois — et il peut créer clients, commandes, mesures et factures. Il vous montre toujours exactement ce qu’il va enregistrer et attend votre confirmation.',
+          a: 'Oui. SeamFlow intègre un assistant tailleur IA auquel vous pouvez écrire ou parler. Il répond aux questions sur votre propre activité : ce qui est dû, qui vous doit de l’argent, comment se passe le mois. Il peut aussi créer clients, commandes, mesures et factures. Il vous montre toujours exactement ce qu’il va enregistrer et attend votre confirmation.',
           href: '/tailor-assistant',
           linkLabel: 'En savoir plus sur l’assistant',
         },
@@ -675,7 +675,7 @@ export const copy = {
         },
         {
           q: 'Quelles langues sont prises en charge ?',
-          a: 'Le français et l’anglais aujourd’hui, entièrement — chaque écran, pas seulement les menus. D’autres à venir.',
+          a: 'Le français et l’anglais aujourd’hui, entièrement. Chaque écran, pas seulement les menus. D’autres à venir.',
         },
         {
           q: 'Est-ce que ça marche hors ligne ?',
@@ -687,7 +687,7 @@ export const copy = {
         },
         {
           q: 'Puis-je verrouiller l’app pour que personne d’autre ne l’ouvre ?',
-          a: 'Oui. Vous pouvez définir un code PIN à quatre chiffres, et SeamFlow se verrouille après quelques minutes en arrière-plan — pour que votre fichier client reste le vôtre même si quelqu’un prend votre téléphone.',
+          a: 'Oui. Vous pouvez définir un code PIN à quatre chiffres, et SeamFlow se verrouille après quelques minutes en arrière-plan, pour que votre fichier client reste le vôtre même si quelqu’un prend votre téléphone.',
         },
         {
           q: 'Mes données sont-elles privées ?',
@@ -745,13 +745,13 @@ export const copy = {
 
     assistantPage: {
       metaTitle:
-        'Assistant tailleur IA — interrogez votre atelier, à l’écrit ou à la voix | SeamFlow',
+        'Assistant tailleur IA : interrogez votre atelier, à l’écrit ou à la voix | SeamFlow',
       metaDescription:
         'L’assistant tailleur IA de SeamFlow répond aux questions sur vos propres commandes, clients et factures, et crée les fiches pour vous après confirmation. Écrivez ou parlez, en français ou en anglais. Gratuit en accès anticipé.',
       eyebrow: 'Dans SeamFlow',
       title: 'L’assistant tailleur IA de votre atelier.',
       subtitle:
-        'Toutes les applications savent stocker vos commandes. L’assistant de SeamFlow sait y répondre — et fait le classement à votre place, dans votre langue, à l’écrit ou à la voix.',
+        'Toutes les applications savent stocker vos commandes. L’assistant de SeamFlow sait y répondre, et fait le classement à votre place, dans votre langue, à l’écrit ou à la voix.',
       askHeading: 'Interrogez-le sur votre activité',
       askBody:
         'L’assistant lit vos données en direct avant de répondre : ce ne sont pas des réponses toutes faites, elles parlent de votre atelier, aujourd’hui.',
@@ -765,10 +765,10 @@ export const copy = {
       ],
       doHeading: 'Dites-lui quoi faire',
       doBody:
-        'L’assistant peut créer et modifier des fiches — mais il n’écrit jamais en silence. Il prépare la modification, affiche une carte de confirmation détaillant chaque champ, et rien n’est enregistré tant que vous n’avez pas touché Confirmer.',
+        'L’assistant peut créer et modifier des fiches, mais il n’écrit jamais en silence. Il prépare la modification, affiche une carte de confirmation détaillant chaque champ, et rien n’est enregistré tant que vous n’avez pas touché Confirmer.',
       doItems: [
         'Crée une cliente Amina, numéro 6xx xx xx xx.',
-        'Nouvelle commande pour Amina — agbada, pour le 20.',
+        'Nouvelle commande pour Amina, agbada, pour le 20.',
         'Passe la commande n°14 en essayage.',
         'Enregistre ces mesures pour Joseph.',
         'Prépare une facture pour la commande de mariage.',
@@ -788,12 +788,12 @@ export const copy = {
         {
           key: 'globe',
           title: 'Des réponses dans votre langue',
-          body: 'Demandez en français ou en anglais, il répond dans la même langue. Il comprend le vocabulaire du métier dans les deux — poitrine et chest désignent la même mesure pour lui.',
+          body: 'Demandez en français ou en anglais, il répond dans la même langue. Il comprend le vocabulaire du métier dans les deux : poitrine et chest désignent la même mesure pour lui.',
         },
         {
           key: 'offline',
           title: 'Privé par défaut',
-          body: 'Votre conversation reste sur votre appareil, pas sur nos serveurs — nous n’en conservons rien. Les messages les plus anciens disparaissent à mesure que la discussion s’allonge, et vous pouvez tout effacer quand vous voulez. L’assistant ne lit jamais que les données de votre propre atelier.',
+          body: 'Votre conversation reste sur votre appareil, pas sur nos serveurs. Nous n’en conservons rien. Les messages les plus anciens disparaissent à mesure que la discussion s’allonge, et vous pouvez tout effacer quand vous voulez. L’assistant ne lit jamais que les données de votre propre atelier.',
         },
       ] as Feature[],
       ctaTitle: 'Mettez un assistant dans votre atelier.',
@@ -810,11 +810,11 @@ export const copy = {
       eyebrow: 'Comparatif',
       title: 'Vous cherchez une alternative à Tailor Assist ?',
       subtitle:
-        'Tailor Assist et SeamFlow s’attaquent au même problème : une activité de couture qui tourne au carnet et à la mémoire. Les approches diffèrent. Voici une comparaison franche — y compris là où nous sommes en retard.',
+        'Tailor Assist et SeamFlow s’attaquent au même problème : une activité de couture qui tourne au carnet et à la mémoire. Les approches diffèrent. Voici une comparaison franche, y compris là où nous sommes en retard.',
 
       disclosureTitle: 'Qui a écrit ceci',
       disclosureBody:
-        'Nous — nous faisons SeamFlow. Lisez donc ces lignes comme n’importe quel comparatif écrit par l’une des deux parties. Ce que nous pouvons promettre, c’est l’exactitude : tout ce qui concerne Tailor Assist provient de leur site public, et tout ce qui concerne SeamFlow est une fonctionnalité disponible aujourd’hui, pas une promesse. Essayez les deux ; elles sont gratuites.',
+        'Nous, qui faisons SeamFlow. Lisez donc ces lignes comme n’importe quel comparatif écrit par l’une des deux parties. Ce que nous pouvons promettre, c’est l’exactitude : tout ce qui concerne Tailor Assist provient de leur site public, et tout ce qui concerne SeamFlow est une fonctionnalité disponible aujourd’hui, pas une promesse. Essayez les deux ; elles sont gratuites.',
       updatedLabel:
         'Comparaison établie à partir des informations publiques disponibles en {date}.',
 
@@ -835,12 +835,12 @@ export const copy = {
         {
           key: 'design',
           title: 'Un studio de création, pas un simple champ photo',
-          body: 'Rassemblez styles et tissus sur un tableau d’inspiration, ouvrez une image en plein écran, et laissez l’IA transformer une photo de référence en notes structurées — coupe, encolure, manche, finitions — que vous modifiez avant d’enregistrer. Puis associez-la à la commande concernée.',
+          body: 'Rassemblez styles et tissus sur un tableau d’inspiration, ouvrez une image en plein écran, et laissez l’IA transformer une photo de référence en notes structurées (coupe, encolure, manche, finitions) que vous modifiez avant d’enregistrer. Puis associez-la à la commande concernée.',
         },
         {
           key: 'groups',
           title: 'Les commandes de groupe, vraiment intégrées',
-          body: 'Mariages, aso-ebi et uniformes forment une seule commande, avec un responsable, un tissu partagé et les mesures de chaque membre — au lieu d’une dizaine de commandes éparses dont vous devez vous rappeler qu’elles vont ensemble.',
+          body: 'Mariages, aso-ebi et uniformes forment une seule commande, avec un responsable, un tissu partagé et les mesures de chaque membre, au lieu d’une dizaine de commandes éparses dont vous devez vous rappeler qu’elles vont ensemble.',
         },
       ] as Feature[],
 
@@ -862,7 +862,7 @@ export const copy = {
         },
         {
           title: 'Vous voulez des tableaux de bord',
-          body: 'Ils proposent des écrans d’analyse et de reporting. SeamFlow n’a pas de section statistiques ; le plus proche est de demander à l’assistant comment vont les affaires — une bonne réponse à une question, mais pas un graphique à étudier.',
+          body: 'Ils proposent des écrans d’analyse et de reporting. SeamFlow n’a pas de section statistiques ; le plus proche est de demander à l’assistant comment vont les affaires, une bonne réponse à une question, mais pas un graphique à étudier.',
         },
       ],
 
