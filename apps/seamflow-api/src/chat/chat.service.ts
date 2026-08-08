@@ -582,6 +582,56 @@ export class ChatService {
     return { unreadCount: 0 };
   }
 
+  // ── Development only ──────────────────────────────────────────────────────
+
+  /**
+   * Seed a fake inbound enquiry so the chat can be exercised end to end before
+   * the client app exists — there is otherwise no way for a conversation to
+   * come into being, and an inbox that can never fill is untestable.
+   *
+   * Refuses outright in production. It creates a synthetic consumer account,
+   * and a real one arriving through the front door must never collide with it.
+   */
+  async simulateEnquiry(actor: ChatActor): Promise<Conversation> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('Simulated enquiries are disabled in production');
+    }
+    if (!actor.tailorId) {
+      throw new ForbiddenException('Only a tailor can simulate an enquiry');
+    }
+    const db = this.dbService.db;
+
+    // One reusable synthetic consumer per tailor, so repeated simulations land
+    // in the same thread instead of littering the inbox.
+    const fakeEmail = `sim-client+${actor.tailorId}@seamflow.local`;
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, fakeEmail))
+      .limit(1);
+
+    let clientUserId = existingUser[0]?.id;
+    if (!clientUserId) {
+      const created = await db
+        .insert(users)
+        .values({
+          id: crypto.randomUUID(),
+          email: fakeEmail,
+          fullName: 'Simulated client',
+          role: 'client',
+        })
+        .returning();
+      clientUserId = created[0]!.id;
+    }
+
+    const fakeActor: ChatActor = { userId: clientUserId, tailorId: null };
+    return this.createConversation(fakeActor, {
+      tailorId: actor.tailorId,
+      firstMessage:
+        'Hi! I saw your work and I love it. Could you make something similar for me?',
+    });
+  }
+
   // ── Quote: chat → order → invoice (ROADMAP D.2.3, phase C3) ───────────────
 
   /**

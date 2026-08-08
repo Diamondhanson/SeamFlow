@@ -83,6 +83,17 @@ export class ChatController {
     return this.chat.markRead(actor, id);
   }
 
+  /**
+   * Development only — seeds a fake inbound enquiry. Returns 403 in production.
+   * Exists because nothing can create a conversation until the client app
+   * ships, which would otherwise leave the whole chat path untestable.
+   */
+  @Post('simulate-enquiry')
+  async simulate(@CurrentUser() user: AuthedUser) {
+    const actor = await this.chat.resolveActor(user.id);
+    return this.chat.simulateEnquiry(actor);
+  }
+
   /** Tailor-only (C3): turn a thread into an order + draft invoice. */
   @Post(':id/quote')
   async quote(

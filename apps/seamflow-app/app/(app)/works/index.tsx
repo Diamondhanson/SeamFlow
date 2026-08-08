@@ -159,10 +159,12 @@ export default function MyDesigns() {
       return;
     }
     if (action === 'toggle') {
-      const m = work.isPublished ? unpublishM : publishM;
-      const vars = work.isPublished ? work.id : { id: work.id, input: {} };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (m.mutate as any)(vars, { onError: (err: unknown) => void dialog.error(err) });
+      const onError = (err: unknown) => void dialog.error(err);
+      if (work.isPublished) {
+        unpublishM.mutate(work.id, { onError });
+      } else {
+        publishM.mutate({ id: work.id, input: {} }, { onError });
+      }
       return;
     }
 

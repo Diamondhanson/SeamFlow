@@ -69,6 +69,14 @@ export function makeConversationsResource(http: HttpClient) {
     },
 
     /**
+     * Development only. Seeds a fake inbound enquiry so the chat loop can be
+     * exercised before the client app exists. 403s in production.
+     */
+    simulateEnquiry(): Promise<Conversation> {
+      return http.post<Conversation>('/conversations/simulate-enquiry', {});
+    },
+
+    /**
      * Tailor-only (phase C3). Turn the thread into a real commission: creates
      * the client if new, an order, and a draft invoice, then links them to the
      * conversation.

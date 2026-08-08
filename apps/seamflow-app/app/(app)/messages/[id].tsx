@@ -17,7 +17,7 @@
 // does and what makes "scroll up for history" natural.
 // ============================================================================
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -51,8 +51,7 @@ import {
   subscribeOutbox,
   type PendingMessage,
 } from '../../../lib/chat-outbox';
-import { uploadChatImage } from '../../../lib/photo-upload';
-import { pickPhotos } from '../../../lib/photo-upload';
+import { pickPhotos, uploadChatImage } from '../../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
 import { useOnline } from '../../../lib/use-online';

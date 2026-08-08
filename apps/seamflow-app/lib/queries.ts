@@ -824,3 +824,15 @@ export const useAdoptOrderPhoto = () =>
   useWorkMutation<{ orderPhotoId: string; input?: WorkAdoptInput }>((v) =>
     api.works.adoptOrderPhoto(v.orderPhotoId, v.input ?? {}),
   );
+
+/**
+ * Development only. Seeds a fake inbound enquiry so the chat loop is testable
+ * before the client app ships. The endpoint 403s in production.
+ */
+export function useSimulateEnquiry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.conversations.simulateEnquiry(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.conversations() }),
+  });
+}

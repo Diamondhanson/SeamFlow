@@ -20,10 +20,11 @@ import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SkeletonList } from '../../../components/Skeleton';
 import { Button } from '../../../components/Button';
-import { useConversations } from '../../../lib/queries';
+import { useConversations, useSimulateEnquiry } from '../../../lib/queries';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { useDialog } from '../../../lib/dialog';
 
 /** "14:32" today, "Yesterday", else a short date. */
 function whenLabel(iso: string, t: (k: string) => string): string {
@@ -44,6 +45,8 @@ export default function Messages() {
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
   const q = useConversations();
+  const simulate = useSimulateEnquiry();
+  const dialog = useDialog();
 
   // Coming back from a thread should show the cleared unread count straight
   // away rather than after the next background refetch.
@@ -88,6 +91,22 @@ export default function Messages() {
               onPress={() => router.push('/(app)/works')}
             />
           </View>
+          {/* Dev builds only. Nothing can create a conversation until the
+              client app ships, so without this the chat path is untestable. */}
+          {__DEV__ ? (
+            <View style={styles.emptyCta}>
+              <Button
+                label={t('chat.devSimulate')}
+                variant="secondary"
+                onPress={() =>
+                  simulate.mutate(undefined, {
+                    onError: (err) => void dialog.error(err),
+                  })
+                }
+                loading={simulate.isPending}
+              />
+            </View>
+          ) : null}
         </View>
       ) : (
         <ScrollView
