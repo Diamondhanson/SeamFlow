@@ -19,6 +19,7 @@
 
 import { forwardRef, useEffect, useState } from 'react';
 import {
+  Platform,
   StyleSheet,
   TextInput,
   type TextInputProps,
@@ -199,6 +200,16 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
               paddingBottom: 0,
               textAlignVertical: multiline ? 'top' : 'center',
             },
+            // Web only. react-native-web renders this as a real <input>, so the
+            // browser draws its own focus ring INSIDE our field — a second,
+            // differently-shaped box around the text that native never shows.
+            //
+            // Safe to remove here specifically because this component already
+            // draws its own focus indicator (the border switches to
+            // colors.primary while `focused`). Don't copy this onto a bare
+            // TextInput that has no such affordance — that would leave keyboard
+            // users with no visible focus at all.
+            Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null,
             style,
           ]}
           {...rest}
