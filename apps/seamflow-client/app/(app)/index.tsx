@@ -5,6 +5,7 @@ import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { useAuth } from '../../lib/auth-context';
 import { useDialog } from '../../lib/dialog';
+import { useUnreadNotificationCount } from '../../lib/queries';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 
@@ -31,6 +32,7 @@ export default function ClientHome() {
   const { signOut } = useAuth();
 
   const greeting = t(`home.${greetingKey(new Date().getHours())}`);
+  const unreadNotifications = useUnreadNotificationCount().data?.count ?? 0;
 
   const comingSoon = () =>
     dialog.alert({ title: t('home.comingSoon'), message: t('home.tagline'), tone: 'info' });
@@ -40,6 +42,15 @@ export default function ClientHome() {
     { key: 'messages', label: t('discover.tabMessages'), sub: t('chat.listSubtitle'), icon: 'chatbubbles-outline', live: true, go: () => router.push('/(app)/messages') },
     { key: 'orders', label: t('home.ordersTile'), sub: t('home.ordersTileSub'), icon: 'shirt-outline', live: true, go: () => router.push('/(app)/orders') },
     { key: 'measurements', label: t('home.measurementsTile'), sub: t('home.measurementsTileSub'), icon: 'body-outline', live: true, go: () => router.push('/(app)/measurements') },
+    // Durable record of what happened — push is best-effort, this isn't.
+    { key: 'notifications', label: t('notifications.title'),
+      sub: unreadNotifications > 0
+        ? (unreadNotifications === 1
+            ? t('notifications.unreadOne')
+            : t('notifications.unreadMany', { count: unreadNotifications }))
+        : t('notifications.empty'),
+      icon: 'notifications-outline', live: true,
+      go: () => router.push('/(app)/notifications') },
     { key: 'lookbook', label: t('home.lookbookTile'), sub: t('home.lookbookTileSub'), icon: 'images-outline', go: comingSoon },
     { key: 'tailors', label: t('home.tailorsTile'), sub: t('home.tailorsTileSub'), icon: 'people-outline', go: comingSoon },
   ];

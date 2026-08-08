@@ -61,4 +61,7 @@ export const qk = {
   conversations: () => ['conversations'] as const,
   conversation: (id: string) => ['conversations', id] as const,
   conversationMessages: (id: string) => ['conversations', id, 'messages'] as const,
+
+  // ── Notification inbox ────────────────────────────────────────────────────
+  notifications: () => ['notifications'] as const,
 } as const;

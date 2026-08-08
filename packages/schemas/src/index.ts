@@ -23,3 +23,4 @@ export * from './feed';
 export * from './chat';
 export * from './work';
 export * from './phone-verification';
+export * from './notification';

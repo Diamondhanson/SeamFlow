@@ -304,6 +304,7 @@ export class ChatService {
       .limit(1);
 
     let convo = existing[0];
+    const isNewThread = !convo;
     if (!convo) {
       const inserted = await db
         .insert(conversations)
@@ -321,6 +322,13 @@ export class ChatService {
       body: input.firstMessage,
       clientId: input.clientId,
     });
+
+    // A NEW enquiry is an event worth keeping; the messages inside it are not.
+    // postMessage already pushed "you have a message" — this adds the durable
+    // inbox row, and only for a genuinely new thread, so re-inquiring about the
+    // same design doesn't stack duplicates. persist-only (no second push) so
+    // the tailor's phone buzzes once, not twice.
+    if (isNewThread) void this.recordEnquiry(convo);
 
     const fresh = await this.loadConversation(convo.id);
     return this.toConversation(fresh, 'client');
@@ -512,6 +520,42 @@ export class ChatService {
   }
 
   /**
+   * Record a new enquiry in the tailor's inbox.
+   *
+   * Inbox-only: `postMessage` has already pushed the message itself, and two
+   * buzzes for one event is exactly the noise that gets an app muted.
+   */
+  private async recordEnquiry(convo: ConversationRow): Promise<void> {
+    try {
+      const db = this.dbService.db;
+      const [t] = await db
+        .select({ userId: tailors.userId })
+        .from(tailors)
+        .where(eq(tailors.id, convo.tailorId))
+        .limit(1);
+      if (!t) return;
+
+      const [client] = await db
+        .select({ fullName: users.fullName })
+        .from(users)
+        .where(eq(users.id, convo.clientUserId))
+        .limit(1);
+
+      await this.notifications.emit(t.userId, {
+        type: 'enquiry.received',
+        // Snapshot the name so the row still reads correctly if the account
+        // is later deleted — entityId below is what navigation uses.
+        params: { clientName: client?.fullName?.trim() || 'Client' },
+        entity: { type: 'conversation', id: convo.id },
+        push: null,
+        persist: true,
+      });
+    } catch (err) {
+      this.logger.warn(`Enquiry inbox record failed for ${convo.id}: ${String(err)}`);
+    }
+  }
+
+  /**
    * Push to whoever didn't send. Fire-and-forget: a failed push must never
    * fail the send — the message is already durably stored, and Realtime will
    * deliver it if the recipient has the thread open.
@@ -553,7 +597,16 @@ export class ChatService {
       await this.notifications.sendToUser(recipientUserId, {
         title,
         body: preview || 'New message',
-        data: { type: 'chat.message', conversationId: convo.id },
+        data: {
+          type: 'chat.message',
+          conversationId: convo.id,
+          // entityType/entityId are what the apps' tap handlers route on. The
+          // old payload carried only `conversationId`, which both handlers
+          // ignored (they looked for `orderId`), so tapping a chat notification
+          // silently did nothing.
+          entityType: 'conversation',
+          entityId: convo.id,
+        },
       });
     } catch (err) {
       this.logger.warn(`Chat push failed for conversation ${convo.id}: ${String(err)}`);
@@ -733,6 +786,30 @@ export class ChatService {
       .update(conversations)
       .set({ orderId: order.id, origin: 'order' })
       .where(eq(conversations.id, convo.id));
+
+    // Tell the CLIENT. Until now this endpoint turned an enquiry into a real
+    // commission and told nobody — the client had to happen to reopen the
+    // thread to discover they'd been quoted. Persisted AND pushed: this is
+    // consequential, and money is exactly what someone comes back to re-read.
+    const [tailorRow] = await db
+      .select({ businessName: tailors.businessName })
+      .from(tailors)
+      .where(eq(tailors.id, tailorId))
+      .limit(1);
+    const shopName = tailorRow?.businessName ?? 'Your tailor';
+
+    void this.notifications.emit(convo.clientUserId, {
+      type: 'quote.received',
+      params: { tailorName: shopName, orderName: input.orderName },
+      entity: { type: 'order', id: order.id },
+      push: {
+        title: shopName,
+        body: `Quote for “${input.orderName}”`,
+        // entityType/entityId mirror the inbox row so tapping the push and
+        // tapping the inbox row land in the same place.
+        data: { type: 'quote.received', entityType: 'order', entityId: order.id },
+      },
+    });
 
     return { conversationId: convo.id, orderId: order.id, invoiceId, clientId };
   }

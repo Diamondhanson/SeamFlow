@@ -19,3 +19,4 @@ export * from './feed-posts';
 export * from './chat';
 export * from './tailor-works';
 export * from './phone-verifications';
+export * from './notifications';

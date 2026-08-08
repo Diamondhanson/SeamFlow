@@ -131,3 +131,45 @@ export function useMarkConversationRead(id: string) {
     },
   });
 }
+
+// ============================================================================
+// Notification inbox
+//
+// One query key for the whole list. Marking read invalidates it rather than
+// patching the cache: the server returns the authoritative unreadCount with
+// every page, and hand-decrementing a badge is how badges end up lying.
+// ============================================================================
+
+export const useNotifications = () =>
+  useInfiniteQuery({
+    queryKey: qk.notifications(),
+    queryFn: ({ pageParam }) =>
+      api.notifications.list({ cursor: pageParam as string | undefined }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    staleTime: 15_000,
+  });
+
+/** Unread badge. Cheap enough to poll on focus; no realtime dependency. */
+export const useUnreadNotificationCount = () =>
+  useQuery({
+    queryKey: [...qk.notifications(), 'unread'],
+    queryFn: () => api.notifications.unreadCount(),
+    staleTime: 30_000,
+  });
+
+export function useMarkNotificationRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.notifications.markRead(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.notifications() }),
+  });
+}
+
+export function useMarkAllNotificationsRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.notifications.markAllRead(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.notifications() }),
+  });
+}

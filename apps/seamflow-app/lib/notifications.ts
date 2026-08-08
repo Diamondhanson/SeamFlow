@@ -179,7 +179,28 @@ export function useNotificationTapHandler(): void {
     if (!N) return;
 
     const routeTo = (data: unknown) => {
-      const orderId = (data as { orderId?: unknown } | null | undefined)?.orderId;
+      const d = data as
+        | { orderId?: unknown; entityType?: unknown; entityId?: unknown }
+        | null
+        | undefined;
+
+      // entityType/entityId is the current shape and mirrors the inbox row, so
+      // tapping a push and tapping its inbox entry land in the same place.
+      const entityId = d?.entityId;
+      const entityType = d?.entityType;
+      if (typeof entityId === 'string' && entityId) {
+        if (entityType === 'conversation') {
+          router.push(`/(app)/messages/${entityId}`);
+          return;
+        }
+        // 'order' and 'invoice' both resolve to the order screen.
+        router.push(`/(app)/orders/${entityId}`);
+        return;
+      }
+
+      // Legacy payload. Reminder and status pushes still send a bare orderId,
+      // and notifications already sitting in a tray predate the new shape.
+      const orderId = d?.orderId;
       if (typeof orderId === 'string' && orderId) {
         router.push(`/(app)/orders/${orderId}`);
       }

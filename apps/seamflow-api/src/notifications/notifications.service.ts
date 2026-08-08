@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { and, eq, inArray } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { deviceTokens } from '../db/schema';
-import type { DevicePlatform } from '@seamflow/schemas';
+import { deviceTokens, notificationSettings, notifications } from '../db/schema';
+import type {
+  DevicePlatform,
+  NotificationEntityType,
+  NotificationType,
+} from '@seamflow/schemas';
 
 // ============================================================================
 // Expo push protocol primer
@@ -119,6 +123,81 @@ export class NotificationsService {
         `Push fan-out to user ${userId} failed: ${(err as Error).message}`,
       );
     });
+  }
+
+  // ── The choke point ────────────────────────────────────────────────────────
+
+  /**
+   * Emit a notification: record it in the inbox and/or push it to devices.
+   *
+   * FEATURE CODE SHOULD CALL THIS, not sendToUser/fireAndForget directly.
+   * Having one entry point is what stops the two halves drifting apart — it is
+   * otherwise very easy to ship a push that leaves no record (so a missed
+   * notification is gone forever), or write an inbox row that never reaches
+   * anyone. Mutes are checked here too, in one place.
+   *
+   * The two flags are independent on purpose:
+   *
+   *   persist + push   the default for consequential events
+   *   push only        chat messages (the thread is already the record) and
+   *                    due/overdue nudges (a STATE, already on the orders list)
+   *   persist only     low-value items worth listing but not worth buzzing for
+   *
+   * Never awaits delivery. A push failure must not fail the request that caused
+   * it — the inbox row is already durable by then.
+   */
+  async emit(
+    userId: string,
+    input: {
+      type: NotificationType;
+      /** Interpolation values. Include a display snapshot (e.g. order name). */
+      params?: Record<string, string | number>;
+      entity?: { type: NotificationEntityType; id: string } | null;
+      /**
+       * Rendered push copy, or null for inbox-only.
+       *
+       * Rendered by the CALLER because only it knows the recipient's language
+       * (see reminders.service's `reminderMessage`). The inbox row stores
+       * `type` + `params` instead and renders in-app, so history follows the
+       * reader's language rather than whatever we picked at write time.
+       */
+      push?: PushPayload | null;
+      persist?: boolean;
+    },
+  ): Promise<void> {
+    const { type, params = {}, entity = null, push = null, persist = true } = input;
+
+    try {
+      if (await this.isMuted(userId, type)) return;
+
+      if (persist) {
+        await this.dbService.db.insert(notifications).values({
+          userId,
+          type,
+          params,
+          entityType: entity?.type ?? null,
+          entityId: entity?.id ?? null,
+        });
+      }
+
+      if (push) this.fireAndForget(userId, push);
+    } catch (err) {
+      // A notification is never the point of the request that triggered it.
+      this.logger.warn(`emit(${type}) for user ${userId} failed: ${String(err)}`);
+    }
+  }
+
+  /**
+   * Mutes are opt-OUT, so a user with no settings row receives everything and
+   * a newly added type ships live without a backfill.
+   */
+  private async isMuted(userId: string, type: NotificationType): Promise<boolean> {
+    const [row] = await this.dbService.db
+      .select({ mutedTypes: notificationSettings.mutedTypes })
+      .from(notificationSettings)
+      .where(eq(notificationSettings.userId, userId))
+      .limit(1);
+    return row?.mutedTypes?.includes(type) ?? false;
   }
 
   private async sendBatch(tokens: string[], payload: PushPayload): Promise<void> {

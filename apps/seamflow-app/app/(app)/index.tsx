@@ -35,6 +35,7 @@ import {
   useFabrics,
   useGroupOrders,
   useInvoices,
+  useUnreadNotificationCount,
 } from '../../lib/queries';
 import { ApiError } from '../../lib/api';
 import { daysUntil } from '../../lib/order-status';
@@ -76,6 +77,7 @@ export default function Home() {
   // 401 arrives right after a successful refresh (the session really is
   // dead server-side).
   const qc = useQueryClient();
+  const unreadQ = useUnreadNotificationCount();
   const authRecovery = useRef<'idle' | 'tried'>('idle');
   useEffect(() => {
     if (!(error instanceof ApiError && error.isUnauthorized())) {
@@ -165,6 +167,8 @@ export default function Home() {
   const templatesCount = templatesData?.items.length ?? 0;
   const fabricsCount = fabricsData?.items.length ?? 0;
 
+  const unreadNotifications = unreadQ.data?.count ?? 0;
+
   const tiles: HomeTile[] = [
     {
       label: t('home.orders'),
@@ -224,6 +228,20 @@ export default function Home() {
       tone: 'primary',
       subtitle: t('feed.worksTileSubtitle'),
       onPress: () => router.push('/(app)/works'),
+    },
+    {
+      // The durable record. Push is best-effort — this is where a missed
+      // notification can still be found.
+      label: t('notifications.title'),
+      icon: 'notifications',
+      tone: unreadNotifications > 0 ? 'primary' : 'textMuted',
+      subtitle:
+        unreadNotifications > 0
+          ? unreadNotifications === 1
+            ? t('notifications.unreadOne')
+            : t('notifications.unreadMany', { count: unreadNotifications })
+          : t('notifications.empty'),
+      onPress: () => router.push('/(app)/notifications'),
     },
     {
       // Human enquiries. Sits apart from the Assistant tile on purpose — that
