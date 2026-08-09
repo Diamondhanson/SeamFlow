@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { onlineManager } from '@tanstack/react-query';
 import { PermissionDeniedError, PhotoOfflineError } from './permissions';
@@ -82,8 +83,8 @@ interface PickedAsset {
 interface CompressedOutput {
   uri: string;
   base64: string;
-  contentType: 'image/webp' | 'image/jpeg';
-  ext: 'webp' | 'jpg';
+  contentType: 'image/webp' | 'image/jpeg' | 'image/png';
+  ext: 'webp' | 'jpg' | 'png';
 }
 
 /**
@@ -190,8 +191,58 @@ export async function pickPhoto(
 }
 
 /**
- * Encode one variant. Tries WebP first; falls back to JPEG if the platform
- * doesn't accept WebP encoding for this image.
+ * Can this platform actually ENCODE WebP?
+ *
+ * Asking matters because failure here is silent. On web the manipulator ends up
+ * at `canvas.toBlob(cb, 'image/webp')`, and the HTML spec requires a browser
+ * that doesn't support the requested type to substitute `image/png` instead of
+ * failing. iOS Safari has no WebP encoder (it decodes fine), so it returned PNG
+ * bytes, nothing threw, and we labelled them `image/webp` — which later made
+ * Claude reject the measurement scan with a media-type mismatch.
+ *
+ * Probing once up front means iOS gets a real JPEG rather than a PNG, which
+ * also matters for size: a PNG of a photograph is roughly 3x the JPEG.
+ *
+ * Native platforms have real encoders; only web needs the probe.
+ */
+let webpEncodable: boolean | null = null;
+function canEncodeWebp(): boolean {
+  if (Platform.OS !== 'web') return true;
+  if (webpEncodable !== null) return webpEncodable;
+  try {
+    const c = document.createElement('canvas');
+    c.width = 1;
+    c.height = 1;
+    webpEncodable = c.toDataURL('image/webp').startsWith('data:image/webp');
+  } catch {
+    webpEncodable = false;
+  }
+  return webpEncodable;
+}
+
+/**
+ * Label an encoded buffer from its ACTUAL bytes, not from what we asked for.
+ *
+ * Belt and braces behind the probe: whatever the encoder decided to hand back,
+ * the stored contentType and extension describe it truthfully. Mislabelled
+ * objects are invisible in the UI (browsers sniff images and ignore the
+ * declared type) and only blow up much later, when something forwards the
+ * declared type to a service that validates it.
+ *
+ * These are the base64 renderings of each format's magic bytes.
+ */
+function labelFromBytes(
+  base64: string,
+): { contentType: CompressedOutput['contentType']; ext: CompressedOutput['ext'] } | null {
+  if (base64.startsWith('iVBORw0KGgo')) return { contentType: 'image/png', ext: 'png' };
+  if (base64.startsWith('/9j/')) return { contentType: 'image/jpeg', ext: 'jpg' };
+  if (base64.startsWith('UklGR')) return { contentType: 'image/webp', ext: 'webp' };
+  return null; // unrecognised — keep whatever the caller intended
+}
+
+/**
+ * Encode one variant. Prefers WebP where the platform can genuinely produce it,
+ * JPEG otherwise, and labels the result from the bytes that come back.
  */
 async function encodeVariant(
   asset: PickedAsset,
@@ -206,21 +257,39 @@ async function encodeVariant(
     actions.push({ resize: isLandscape ? { width: maxDim } : { height: maxDim } });
   }
 
+  const encode = async (
+    format: ExpoImageManipulator.SaveFormat,
+    intended: CompressedOutput,
+  ): Promise<CompressedOutput> => {
+    const out = await IM.manipulateAsync(asset.uri, actions, {
+      compress: quality,
+      format,
+      base64: true,
+    });
+    const base64 = out.base64 ?? '';
+    return { ...intended, uri: out.uri, base64, ...(labelFromBytes(base64) ?? {}) };
+  };
+
+  const asJpeg = () =>
+    encode(IM.SaveFormat.JPEG, {
+      uri: '',
+      base64: '',
+      contentType: 'image/jpeg',
+      ext: 'jpg',
+    });
+
+  if (!canEncodeWebp()) return asJpeg();
+
   try {
-    const out = await IM.manipulateAsync(asset.uri, actions, {
-      compress: quality,
-      format: IM.SaveFormat.WEBP,
-      base64: true,
+    return await encode(IM.SaveFormat.WEBP, {
+      uri: '',
+      base64: '',
+      contentType: 'image/webp',
+      ext: 'webp',
     });
-    return { uri: out.uri, base64: out.base64 ?? '', contentType: 'image/webp', ext: 'webp' };
   } catch {
-    // WebP unsupported on this device for this source — fall back to JPEG.
-    const out = await IM.manipulateAsync(asset.uri, actions, {
-      compress: quality,
-      format: IM.SaveFormat.JPEG,
-      base64: true,
-    });
-    return { uri: out.uri, base64: out.base64 ?? '', contentType: 'image/jpeg', ext: 'jpg' };
+    // Encoder rejected this particular source even though it advertises WebP.
+    return asJpeg();
   }
 }
 

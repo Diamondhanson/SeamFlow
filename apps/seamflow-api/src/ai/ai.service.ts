@@ -290,15 +290,52 @@ export class AiService {
       );
     }
     const buf = Buffer.from(await dl.data.arrayBuffer());
-    const ext = storagePath.split('.').pop()?.toLowerCase();
-    const mediaType =
-      ext === 'png'
-        ? 'image/png'
-        : ext === 'gif'
-          ? 'image/gif'
-          : ext === 'jpg' || ext === 'jpeg'
-            ? 'image/jpeg'
-            : 'image/webp';
-    return { base64: buf.toString('base64'), mediaType };
+    return { base64: buf.toString('base64'), mediaType: sniffImageType(buf, storagePath) };
   }
 }
+
+/**
+ * Determine an image's real type from its magic bytes.
+ *
+ * This used to read the file EXTENSION, defaulting to `image/webp`. That is a
+ * trap, because the extension is chosen by the client and clients get it wrong:
+ * iOS Safari has no WebP encoder, and `canvas.toBlob(cb, 'image/webp')` is
+ * required by spec to silently substitute PNG rather than fail. The app then
+ * stored PNG bytes under a `.webp` name, we declared `image/webp` to Claude,
+ * and Claude rejected the mismatch — a 500 on iOS web only.
+ *
+ * Sniffing also repairs the objects already written that way: nothing needs
+ * renaming, because the bytes were always the truth.
+ */
+function sniffImageType(
+  buf: Buffer,
+  storagePath: string,
+): 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' {
+  // PNG  \x89 P N G \r \n \x1a \n
+  if (buf.length >= 8 && buf.subarray(0, 8).equals(PNG_MAGIC)) return 'image/png';
+  // JPEG  FF D8 FF
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  // GIF  "GIF8"
+  if (buf.length >= 4 && buf.toString('ascii', 0, 4) === 'GIF8') return 'image/gif';
+  // WebP  "RIFF" .... "WEBP"  (size field sits between the two)
+  if (
+    buf.length >= 12 &&
+    buf.toString('ascii', 0, 4) === 'RIFF' &&
+    buf.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+
+  // Anything else — HEIC being the likely one from an iPhone — cannot be sent
+  // to Claude at all. Fail with something a human can act on rather than
+  // guessing a type and letting the upstream 400 surface as an opaque 500.
+  const head = buf.subarray(0, 12).toString('hex');
+  throw new BadRequestException(
+    `Unsupported image format for ${storagePath} (magic ${head}). ` +
+      'Claude accepts JPEG, PNG, GIF and WebP.',
+  );
+}
+
+const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
