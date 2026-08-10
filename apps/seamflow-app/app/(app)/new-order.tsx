@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { CountryCode } from 'libphonenumber-js';
 import type {
@@ -780,19 +780,17 @@ function StepDot({
 /**
  * Manual measurements, when no template is chosen.
  *
- * The old version was a single box whose ONLY commit path was the keyboard's
- * Enter key — no button, no hint. A tailor saw one empty field, typed a name,
- * and nothing appeared to happen; the value box only materialised after a
- * submit they had no reason to guess at. Test users got stuck here.
+ * Two earlier attempts got this wrong in the same way: the value field only
+ * existed AFTER you had committed a name, so the first thing a tailor saw was
+ * one lone box with no clue what came next. The original required a hidden
+ * keyboard Enter to advance; the second added a button but still hid the value.
  *
- * Now there are three obvious ways in, in order of effort:
- *   1. tap a chip for a common measurement (one tap, zero typing)
- *   2. type a name and tap a visible Add button
- *   3. edit or remove anything already added
+ * Now the draft row shows BOTH inputs from the start — attribute and value,
+ * side by side — with an "Add attribute" button under them. Nothing is hidden
+ * and nothing depends on a keystroke you have to guess.
  *
- * The chip list is deliberately the short QUICK_MEASUREMENT_KEYS set rather
- * than the full grouped palette — that belongs on the template editor, where
- * building a complete sheet is the job. Here it would bury the step.
+ * The chips underneath stay as an accelerator: one tap fills the attribute for
+ * the measurements almost every order needs.
  */
 function FreeMeasurements({
   values,
@@ -803,14 +801,16 @@ function FreeMeasurements({
 }) {
   const { t } = useTranslation();
   const colors = useThemeColors();
-  const [newKey, setNewKey] = useState('');
+  const [draftName, setDraftName] = useState('');
+  const [draftValue, setDraftValue] = useState('');
+  const valueRef = useRef<TextInput>(null);
 
-  const add = (name: string) => {
-    const key = name.trim();
+  const commit = () => {
+    const key = draftName.trim();
     if (!key) return;
-    // Don't clobber a value already entered under this name.
-    setValues((cur) => (key in cur ? cur : { ...cur, [key]: '' }));
-    setNewKey('');
+    setValues((cur) => ({ ...cur, [key]: draftValue.trim() }));
+    setDraftName('');
+    setDraftValue('');
   };
 
   const remove = (key: string) =>
@@ -831,16 +831,22 @@ function FreeMeasurements({
         {t('orders.manualMeasurementsHint')}
       </Text>
 
-      {/* Already added — editable, with a way back out. */}
+      {/* Already added — still editable, with a way back out. */}
       {entries.map(([k, v]) => (
         <View key={k} style={styles.measureRow}>
-          <View style={styles.measureInput}>
+          <View style={styles.measureName}>
             <Input
-              label={k}
+              label={t('orders.attributeLabel')}
+              value={k}
+              editable={false}
+            />
+          </View>
+          <View style={styles.measureValue}>
+            <Input
+              label={t('orders.valueLabel')}
               value={v}
               onChangeText={(val) => setValues((cur) => ({ ...cur, [k]: val }))}
               keyboardType="numeric"
-              placeholder={t('orders.measurementValuePlaceholder')}
             />
           </View>
           <Pressable
@@ -855,31 +861,45 @@ function FreeMeasurements({
         </View>
       ))}
 
-      {/* Type your own. The button is the point — Enter still works, but it is
-          no longer the only way to discover the feature. */}
+      {/* The draft row. Both boxes visible before you type anything. */}
       <View style={styles.measureRow}>
-        <View style={styles.measureInput}>
+        <View style={styles.measureName}>
           <Input
-            label={t('orders.addFieldLabel')}
-            value={newKey}
-            onChangeText={setNewKey}
+            label={t('orders.attributeLabel')}
+            value={draftName}
+            onChangeText={setDraftName}
             autoCapitalize="words"
-            onSubmitEditing={() => add(newKey)}
+            placeholder={t('orders.attributePlaceholder')}
+            returnKeyType="next"
+            onSubmitEditing={() => valueRef.current?.focus()}
+          />
+        </View>
+        <View style={styles.measureValue}>
+          <Input
+            ref={valueRef}
+            label={t('orders.valueLabel')}
+            value={draftValue}
+            onChangeText={setDraftValue}
+            keyboardType="numeric"
+            placeholder={t('orders.measurementValuePlaceholder')}
             returnKeyType="done"
+            onSubmitEditing={commit}
           />
         </View>
-        <View style={styles.measureAdd}>
-          <Button
-            label={t('common.add')}
-            variant="secondary"
-            onPress={() => add(newKey)}
-            disabled={!newKey.trim()}
-          />
-        </View>
+        {/* Spacer keeps the draft row's inputs aligned with the rows above,
+            which each carry a remove button in this column. */}
+        {entries.length > 0 ? <View style={styles.measureRemoveSpacer} /> : null}
       </View>
 
-      {/* One tap for the ones almost every order needs. */}
-      <Text variant="bodySm" tone="textMuted" style={styles.measureHint}>
+      <Button
+        label={t('orders.addAttribute')}
+        variant="secondary"
+        onPress={commit}
+        disabled={!draftName.trim()}
+      />
+
+      {/* One tap fills the attribute for the usual suspects. */}
+      <Text variant="bodySm" tone="textMuted" style={styles.measureQuickHint}>
         {t('orders.quickAddMeasurements')}
       </Text>
       <View style={styles.measureChips}>
@@ -891,7 +911,13 @@ function FreeMeasurements({
               key={mkey}
               label={added ? `✓ ${name}` : `+ ${name}`}
               tone={added ? 'success' : 'primary'}
-              onPress={() => (added ? remove(name) : add(name))}
+              onPress={() => {
+                if (added) return remove(name);
+                // Fill the draft rather than committing blind, so the tailor
+                // lands on the value box with the attribute already set.
+                setDraftName(name);
+                valueRef.current?.focus();
+              }}
             />
           );
         })}
@@ -929,10 +955,12 @@ const styles = StyleSheet.create({
   },
   measureHint: { marginBottom: spacing.sm },
   measureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  measureInput: { flex: 1 },
+  measureName: { flex: 3 },
+  measureValue: { flex: 2 },
+  measureRemoveSpacer: { width: 22 },
+  measureQuickHint: { marginTop: spacing.md, marginBottom: spacing.sm },
   // Nudged down so the icon sits against the field, not its floating label.
   measureRemove: { paddingTop: 18 },
-  measureAdd: { paddingTop: 4 },
   // marginBottom, or the last chip row sits flush against the Quantity field
   // below it — the same missing-gap problem as the fabric card.
   measureChips: {

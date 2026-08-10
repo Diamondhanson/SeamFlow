@@ -68,7 +68,10 @@ export const orders = {
     measurementsCm: 'Measurements (cm)',
     manualMeasurementsCm: 'Manual measurements (cm)',
     measurementPlaceholder: 'e.g. 88',
-    addFieldLabel: 'Measurement name',
+    attributeLabel: 'Attribute',
+    attributePlaceholder: 'e.g. chest',
+    valueLabel: 'Value',
+    addAttribute: '+ Add attribute',
     manualMeasurementsHint:
       'Add only what this garment needs. Everything is optional.',
     measurementValuePlaceholder: 'cm',
@@ -199,7 +202,10 @@ export const orders = {
     measurementsCm: 'Mesures (cm)',
     manualMeasurementsCm: 'Mesures manuelles (cm)',
     measurementPlaceholder: 'ex. 88',
-    addFieldLabel: 'Nom de la mesure',
+    attributeLabel: 'Attribut',
+    attributePlaceholder: 'ex. poitrine',
+    valueLabel: 'Valeur',
+    addAttribute: '+ Ajouter un attribut',
     manualMeasurementsHint:
       'N’ajoutez que ce dont ce vêtement a besoin. Tout est facultatif.',
     measurementValuePlaceholder: 'cm',

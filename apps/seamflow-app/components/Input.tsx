@@ -7,10 +7,17 @@
 // skip this shim.
 // ============================================================================
 
+import { forwardRef } from 'react';
+import type { TextInput } from 'react-native';
 import { Input as AtelierInput, type InputProps } from '@seamflow/ui';
 
 export type { InputProps };
 
-export function Input(props: InputProps) {
-  return <AtelierInput {...props} />;
-}
+/**
+ * Ref-forwarding, like the primitive it wraps. Without it a `ref` passed to
+ * this shim silently lands nowhere, so `.focus()` does nothing — which is how
+ * a form loses its ability to move focus between fields.
+ */
+export const Input = forwardRef<TextInput, InputProps>(function Input(props, ref) {
+  return <AtelierInput ref={ref} {...props} />;
+});
