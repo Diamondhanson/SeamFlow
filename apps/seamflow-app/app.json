@@ -109,6 +109,9 @@
         {
           "androidIntentFilters": [
             "image/*"
+          ],
+          "androidMultiIntentFilters": [
+            "image/*"
           ]
         }
       ]
