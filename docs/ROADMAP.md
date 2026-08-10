@@ -1825,24 +1825,39 @@ account can obtain. Work through it top-down the day enrolment completes.
 
 ### Push notifications on iOS
 
+The `.p8` key is necessary but NOT sufficient. Push needs four separate things,
+and missing any one of them fails the same way: `getExpoPushTokenAsync()` throws
+or returns nothing, and no notification ever arrives.
+
 | # | Item | What it needs | Notes |
 | --- | --- | --- | --- |
-| 3 | **APNs key for the tailor app** | `.p8` APNs key uploaded via `eas credentials` | Same key also serves Apple Sign-In. Android already works via FCM |
-| 4 | **APNs key for the client app** | Same, plus the client app's own EAS project | The client app additionally needs a Firebase project and `google-services.json` even for **Android** — see Appendix E |
+| 3 | **Push Notifications capability** | Enable it on the App ID for `com.bambothanson.FashionApp` in the Apple Developer portal | Separate from the key. This is what puts the `aps-environment` entitlement in the binary; without it the key is useless |
+| 4 | **APNs authentication key** | Create a `.p8` key with APNs enabled, upload via `eas credentials` | ONE key covers every app on the team, and the same key also enables Apple Sign-In. Download it once — Apple never lets you download it again |
+| 5 | **A native build after both** | `eas build -p ios` | The entitlement is baked in at build time. Enabling the capability on an already-built binary changes nothing |
+| 6 | **A physical iPhone** | TestFlight or a provisioning profile | The iOS **simulator cannot receive push at all** — it has no APNs connection, so a token can't even be issued. This is the step people lose a day to |
+
+Same four again for the **client app** (`com.bambothanson.seamflowclient`), plus
+its own EAS project. Note the client app is separately blocked on **Android**
+too: it has a placeholder `projectId` and no `google-services.json`. See
+Appendix E.
+
+**Not blocked by Apple:** the tailor app's Android push already works end to end
+(FCM key uploaded, `google-services.json` in place). Both bundle identifiers are
+already configured in `app.json`, so nothing needs renaming.
 
 ### Sharing into the app
 
 | # | Item | What it needs | Notes |
 | --- | --- | --- | --- |
-| 5 | **iOS Share Extension** | An App Group entitlement (shared container between the app and its extension), plus a second target in the native project | Android share target and the PWA Web Share Target both ship today without Apple. `expo-share-intent` is already installed and its plugin config just needs the `iosActivationRules` / App Group added |
+| 7 | **iOS Share Extension** | An App Group entitlement (shared container between the app and its extension), plus a second target in the native project | Android share target and the PWA Web Share Target both ship today without Apple. `expo-share-intent` is already installed and its plugin config just needs the `iosActivationRules` / App Group added |
 
 ### Smaller, easier to forget
 
 | # | Item | What it needs | Notes |
 | --- | --- | --- | --- |
-| 6 | **Native Google sign-in on iOS** | An iOS OAuth client ID under the enrolled team | Works today via the in-app browser; native is only smoother |
-| 7 | **Universal Links** (`app.seamflowtech.com` → app) | `apple-app-site-association` signed against the team ID | Android App Links need no equivalent payment |
-| 8 | **Physical-device iOS testing** | TestFlight, or a provisioning profile for a real device | Simulator covers most, but camera, contacts and push all need real hardware |
+| 8 | **Native Google sign-in on iOS** | An iOS OAuth client ID under the enrolled team | Works today via the in-app browser; native is only smoother |
+| 9 | **Universal Links** (`app.seamflowtech.com` → app) | `apple-app-site-association` signed against the team ID | Android App Links need no equivalent payment |
+| 10 | **Physical-device iOS testing** | TestFlight, or a provisioning profile for a real device | Beyond push (item 6): camera, contacts and the share extension also need real hardware |
 
 ### What is NOT blocked, so don't wait for it
 
@@ -1854,9 +1869,9 @@ entitlements and real-device testing need the account.
 ### Order I would do it in
 
 1. Enrol (allow 24–48 h; occasionally longer for a company account, which needs a D-U-N-S number).
-2. Generate the `.p8` key once — it serves **both** APNs and Apple Sign-In (items 1 and 3).
+2. Generate the `.p8` key once — it serves **both** APNs and Apple Sign-In (items 1 and 4). Download it immediately; Apple offers it exactly once.
 3. Apple Sign-In, because it is the hard review blocker.
-4. APNs for the tailor app, then the client app.
+4. Push: enable the capability, upload the key, rebuild, then test on a real iPhone. Tailor app first, then the client app.
 5. Share Extension and Universal Links, which are polish rather than gates.
 
 ---
