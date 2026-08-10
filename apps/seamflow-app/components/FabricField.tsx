@@ -169,7 +169,10 @@ export function FabricField({
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: spacing.sm },
+  // marginBottom matters: the picked-fabric card sits directly above the
+  // "Meters used" input on the order screen, and Atelier's Input carries only
+  // a bottom margin — so without this the two boxes share an edge.
+  wrap: { marginTop: spacing.sm, marginBottom: spacing.md },
   label: { marginBottom: spacing.xs },
   swatchPlaceholder: {
     alignItems: 'center',

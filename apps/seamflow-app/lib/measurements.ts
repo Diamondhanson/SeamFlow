@@ -186,6 +186,25 @@ export function matchMeasurementLabel(
   return { label: t('measurements.' + mkey), matched: true };
 }
 
+/**
+ * The handful a tailor reaches for on almost every order.
+ *
+ * The full grouped palette lives in MEASUREMENT_GROUPS and belongs on the
+ * template editor, where building a complete sheet is the whole job. Inside the
+ * new-order flow it would bury the step, so the order screen offers these as
+ * one-tap chips and lets anything else be typed by hand.
+ */
+export const QUICK_MEASUREMENT_KEYS = [
+  'shoulder',
+  'chest',
+  'waist',
+  'hips',
+  'sleeveLength',
+  'topLength',
+  'trouserLength',
+  'neck',
+] as const;
+
 export const MEASUREMENT_GROUPS: MeasurementGroup[] = [
   {
     titleKey: 'templates.groupUpperBody',

@@ -8,7 +8,7 @@ import type {
   MeasurementTemplate,
   MeasurementValues,
 } from '@seamflow/schemas';
-import { Text } from '@seamflow/ui';
+import { Chip, Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { FormScroll } from '../../components/FormScroll';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -31,6 +31,7 @@ import { useDialog } from '../../lib/dialog';
 import { useGuides } from '../../lib/guides';
 import { useTranslation } from '../../lib/i18n';
 import { canPickContacts } from '../../lib/platform-capabilities';
+import { QUICK_MEASUREMENT_KEYS } from '../../lib/measurements';
 
 /** A person chosen for the order who isn't a saved client yet (picked from
  *  phone contacts). Materialized into a client on the server at submit. */
@@ -344,18 +345,13 @@ export default function NewOrderWizard() {
         });
         return;
       }
-      if (g.template) {
-        for (const f of g.template.fields) {
-          if (f.required && !g.values[f.key]) {
-            await dialog.alert({
-              title: t('orders.requiredFieldTitle'),
-              message: t('orders.requiredFieldMessage', { label: f.label }),
-              tone: 'warning',
-            });
-            return;
-          }
-        }
-      }
+      // No per-field measurement check here, deliberately.
+      //
+      // Every measurement is optional, including the ones a template marks
+      // "required". A tailor half-way through taking measurements should be
+      // able to save and come back, and a garment that genuinely doesn't need
+      // a field shouldn't be blocked by a template written for a different
+      // one. Templates suggest a sheet; they don't gate it.
     }
     // Kill the "name it twice" confusion: suggest the order's title from the
     // garments + client so the tailor usually just confirms it. Never
@@ -494,6 +490,10 @@ export default function NewOrderWizard() {
           />
 
           {showNewClientForm ? (
+            <>
+              {/* Card has padding but no margin, so without this the form
+                  butts straight into the button that opened it. */}
+              <View style={{ height: spacing.md }} />
             <Card>
               <Input
                 label={t('orders.fullNameLabel')}
@@ -524,6 +524,7 @@ export default function NewOrderWizard() {
                 onPress={() => setShowNewClientForm(false)}
               />
             </Card>
+            </>
           ) : null}
 
           <View style={{ height: spacing.md }} />
@@ -629,7 +630,9 @@ export default function NewOrderWizard() {
                   {g.template.fields.map((f) => (
                     <Input
                       key={f.key}
-                      label={`${f.label}${f.required ? ' *' : ''}`}
+                      // No asterisk: nothing here is required any more, and a
+                      // marker that doesn't gate anything just misleads.
+                      label={f.label}
                       value={g.values[f.key] ?? ''}
                       onChangeText={(v) => setGarmentField(g.id, f.key, v)}
                       keyboardType="numeric"
@@ -774,6 +777,23 @@ function StepDot({
   );
 }
 
+/**
+ * Manual measurements, when no template is chosen.
+ *
+ * The old version was a single box whose ONLY commit path was the keyboard's
+ * Enter key — no button, no hint. A tailor saw one empty field, typed a name,
+ * and nothing appeared to happen; the value box only materialised after a
+ * submit they had no reason to guess at. Test users got stuck here.
+ *
+ * Now there are three obvious ways in, in order of effort:
+ *   1. tap a chip for a common measurement (one tap, zero typing)
+ *   2. type a name and tap a visible Add button
+ *   3. edit or remove anything already added
+ *
+ * The chip list is deliberately the short QUICK_MEASUREMENT_KEYS set rather
+ * than the full grouped palette — that belongs on the template editor, where
+ * building a complete sheet is the job. Here it would bury the step.
+ */
 function FreeMeasurements({
   values,
   setValues,
@@ -782,31 +802,100 @@ function FreeMeasurements({
   setValues: (cb: (cur: Record<string, string>) => Record<string, string>) => void;
 }) {
   const { t } = useTranslation();
+  const colors = useThemeColors();
   const [newKey, setNewKey] = useState('');
+
+  const add = (name: string) => {
+    const key = name.trim();
+    if (!key) return;
+    // Don't clobber a value already entered under this name.
+    setValues((cur) => (key in cur ? cur : { ...cur, [key]: '' }));
+    setNewKey('');
+  };
+
+  const remove = (key: string) =>
+    setValues((cur) => {
+      const next = { ...cur };
+      delete next[key];
+      return next;
+    });
+
+  const entries = Object.entries(values);
+
   return (
     <View>
-      <Text variant="bodySm" tone="textMuted" style={styles.section}>{t('orders.manualMeasurementsCm')}</Text>
-      {Object.entries(values).map(([k, v]) => (
-        <Input
-          key={k}
-          label={k}
-          value={v}
-          onChangeText={(val) => setValues((cur) => ({ ...cur, [k]: val }))}
-          keyboardType="numeric"
-        />
+      <Text variant="label" tone="textMuted" style={styles.section}>
+        {t('orders.manualMeasurementsCm')}
+      </Text>
+      <Text variant="bodySm" tone="textMuted" style={styles.measureHint}>
+        {t('orders.manualMeasurementsHint')}
+      </Text>
+
+      {/* Already added — editable, with a way back out. */}
+      {entries.map(([k, v]) => (
+        <View key={k} style={styles.measureRow}>
+          <View style={styles.measureInput}>
+            <Input
+              label={k}
+              value={v}
+              onChangeText={(val) => setValues((cur) => ({ ...cur, [k]: val }))}
+              keyboardType="numeric"
+              placeholder={t('orders.measurementValuePlaceholder')}
+            />
+          </View>
+          <Pressable
+            onPress={() => remove(k)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t('orders.removeMeasurement', { name: k })}
+            style={styles.measureRemove}
+          >
+            <Ionicons name="close-circle-outline" size={22} color={colors.textMuted} />
+          </Pressable>
+        </View>
       ))}
-      <Input
-        label={t('orders.addFieldLabel')}
-        value={newKey}
-        onChangeText={setNewKey}
-        autoCapitalize="none"
-        onSubmitEditing={() => {
-          if (!newKey) return;
-          setValues((cur) => ({ ...cur, [newKey]: '' }));
-          setNewKey('');
-        }}
-        returnKeyType="done"
-      />
+
+      {/* Type your own. The button is the point — Enter still works, but it is
+          no longer the only way to discover the feature. */}
+      <View style={styles.measureRow}>
+        <View style={styles.measureInput}>
+          <Input
+            label={t('orders.addFieldLabel')}
+            value={newKey}
+            onChangeText={setNewKey}
+            autoCapitalize="words"
+            onSubmitEditing={() => add(newKey)}
+            returnKeyType="done"
+          />
+        </View>
+        <View style={styles.measureAdd}>
+          <Button
+            label={t('common.add')}
+            variant="secondary"
+            onPress={() => add(newKey)}
+            disabled={!newKey.trim()}
+          />
+        </View>
+      </View>
+
+      {/* One tap for the ones almost every order needs. */}
+      <Text variant="bodySm" tone="textMuted" style={styles.measureHint}>
+        {t('orders.quickAddMeasurements')}
+      </Text>
+      <View style={styles.measureChips}>
+        {QUICK_MEASUREMENT_KEYS.map((mkey) => {
+          const name = t(`measurements.${mkey}`);
+          const added = name in values;
+          return (
+            <Chip
+              key={mkey}
+              label={added ? `✓ ${name}` : `+ ${name}`}
+              tone={added ? 'success' : 'primary'}
+              onPress={() => (added ? remove(name) : add(name))}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -837,6 +926,20 @@ const styles = StyleSheet.create({
   section: {
     marginTop: spacing.md,
     marginBottom: spacing.sm,
+  },
+  measureHint: { marginBottom: spacing.sm },
+  measureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  measureInput: { flex: 1 },
+  // Nudged down so the icon sits against the field, not its floating label.
+  measureRemove: { paddingTop: 18 },
+  measureAdd: { paddingTop: 4 },
+  // marginBottom, or the last chip row sits flush against the Quantity field
+  // below it — the same missing-gap problem as the fabric card.
+  measureChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
   garmentHead: {
     flexDirection: 'row',
