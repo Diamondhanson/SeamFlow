@@ -74,7 +74,7 @@ type WorkCreateMeta = Pick<
   'title' | 'garmentType' | 'audience' | 'fabric' | 'occasion' | 'tags' | 'orderId'
 >;
 
-interface PickedAsset {
+export interface PickedAsset {
   uri: string;
   width: number;
   height: number;

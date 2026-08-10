@@ -28,6 +28,7 @@ import { assistant } from './locales/assistant';
 import { feed } from './locales/feed';
 import { chat } from './locales/chat';
 import { notifications } from './locales/notifications';
+import { share } from './locales/share';
 
 export type LanguageCode = 'en' | 'fr';
 
@@ -56,6 +57,7 @@ export const translations = {
     feed: feed.en,
     chat: chat.en,
     notifications: notifications.en,
+    share: share.en,
   },
   fr: {
     common: common.fr,
@@ -76,6 +78,7 @@ export const translations = {
     feed: feed.fr,
     chat: chat.fr,
     notifications: notifications.fr,
+    share: share.fr,
   },
 } as const;
 

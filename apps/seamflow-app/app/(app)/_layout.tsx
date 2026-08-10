@@ -5,6 +5,7 @@ import { LockProvider, useLock } from '../../lib/lock-context';
 import { PinLockScreen } from '../../components/PinLockScreen';
 import { FloatingScrollProvider } from '../../lib/floating-scroll';
 import { useNotificationTapHandler } from '../../lib/notifications';
+import { useShareListener } from '../../lib/use-share-listener';
 import { useThemeColors } from '../../lib/theme';
 import { SideRail } from '../../components/SideRail';
 import { useBreakpoint } from '../../lib/use-breakpoint';
@@ -46,6 +47,11 @@ function GatedStack() {
 
   // Route to the relevant order when a reminder / status push is tapped.
   useNotificationTapHandler();
+
+  // Catch photos shared into SeamFlow from the OS share sheet. Inside the
+  // authed layout on purpose: landing a share on the sign-in screen would
+  // strand the photos behind it.
+  useShareListener();
 
   // Block the first paint until we've checked whether a PIN is configured.
   // Without this we'd flash the home screen for ~50 ms on cold start before

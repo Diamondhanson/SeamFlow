@@ -61,6 +61,7 @@
     "expo-print": "~55.0.16",
     "expo-router": "~55.0.14",
     "expo-secure-store": "~55.0.14",
+    "expo-share-intent": "6.1.1",
     "expo-sharing": "~55.0.21",
     "expo-speech": "~55.0.14",
     "expo-speech-recognition": "^56.0.1",

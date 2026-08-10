@@ -273,6 +273,8 @@ Some work was pulled forward from later phases or added during implementation. W
 
 ### 1.7 Deposit collection ⏸ PAUSED — decisions parked
 
+> **▶ Updated (2026-07-29):** the payment model is now concretized in **Appendix F**. Key changes to the parked decisions below: launch provider is **Fapshi** (MTN MoMo + Orange Money, XAF) — Flutterwave/cards come later behind one interface; the flow is **in-app** (on the order in the client app) in addition to the web magic-link page; and a **tailor wallet + withdrawals** model is added (the provider holds the funds, we keep a ledger; we earn a fee at withdrawal; free for clients). Read Appendix F as the current source of truth for payments; the notes below are retained for history.
+
 **Status:** Paused 2026-05-19. User wants to work on other Phase 1 items first. Decisions already made (when picked back up, don't re-ask):
 
 - **Provider:** Flutterwave (sole provider, hosted checkout). Covers cards + MTN MoMo CM + Orange Money CM in one integration.
@@ -1481,6 +1483,24 @@ six routes mapped, and the schema was round-trip tested against production. But
 no notification has actually travelled: both screens sit behind auth, and no
 design has been published or quote sent. Verify before trusting.
 
+### Share into SeamFlow (implemented 2026-08-10)
+
+The OS share sheet can now send photos into the app. Android uses an
+`ACTION_SEND` intent filter plus `expo-share-intent` (the filter alone only
+makes us appear in the sheet — the image lives in `EXTRA_STREAM`, which
+expo-linking does not surface). The PWA uses the manifest's `share_target`,
+POSTed to a service-worker handler because a static SPA cannot receive a POST.
+
+Both land on `/(app)/share-receive`, which asks where the photos go (Design
+Studio or My Designs) and remembers the answer. Orders are deliberately not a
+destination: choosing WHICH order needs a searchable list, and the share sheet
+is the wrong moment to make someone hunt.
+
+iOS needs a Share Extension — see Appendix G.
+
+Worth knowing: **Instagram shares a link, not an image.** The realistic sources
+are the gallery, WhatsApp, and browsers (long-press → share image).
+
 ### Still unwired (needs product decisions, not plumbing)
 
 `invoice.issued`, `payment.confirmed`, `payment.received` (blocked on Phase 1.7),
@@ -1489,6 +1509,355 @@ accept or decline a quote yet), `order.delivery_date_moved`,
 `order.cancelled_by_tailor`, `order.claimed`, `moderation.outcome`,
 `security.new_device`. All have types reserved in `NotificationTypeSchema` and
 EN/FR copy already written in both apps.
+
+---
+
+## Appendix F — Payments: tailor wallet, deposits & withdrawals (build spec)
+
+Status: proposal · Last updated: 2026-07-29
+
+This concretizes payments (roadmap **1.7**, **A.8**, **A.23**) into a buildable
+plan. It **updates the parked 1.7 decisions**: the launch provider is now
+**Fapshi** (Cameroon-local, MTN MoMo + Orange Money) instead of Flutterwave; the
+pay flow is **in-app** (in the client app, on the order) as well as on the web
+magic-link page; and it adds a **tailor wallet + withdrawals** model that 1.7 did
+not have. Flutterwave (for **cards**) comes later, behind the same interface.
+
+### F.0 The money model — the provider holds the money, we keep the scoreboard
+
+Read this first; everything else depends on it.
+
+- **Money flows one way only:** client → tailor. No client-to-client, no
+  tailor-to-client in-app. Refunds are arranged between the two people **outside
+  the app** for now (card chargebacks are the one exception the system must still
+  handle — see F.5 / F.10; another reason cards come later).
+- **We do NOT hold the money.** The cash sits in **SeamFlow's account at the
+  payment provider (Fapshi)**. Our database keeps a **ledger** — a running
+  scoreboard of how much each tailor has earned and withdrawn. The "wallet
+  balance" a tailor sees is that scoreboard number, not money we custody like a
+  bank.
+- **Withdrawal = a payout instruction.** When a tailor withdraws, we tell Fapshi
+  "send X to this MoMo/Orange number," subtract our fee, and record it in the
+  ledger. The provider (the licensed party) moves the money.
+- **Free for clients forever.** Clients pay the exact order price, no surcharge.
+- **We earn at withdrawal.** One clear fee is taken when the tailor withdraws;
+  premium feature-gating comes later (roadmap 2.10).
+- **Regulatory guardrails (do before launch):** get a quick local legal check
+  (holding third-party balances can trigger CEMAC/BEAC e-money rules); make sure
+  the **provider is the licensed fund-holder**; and register the business +
+  complete provider KYC (Fapshi will require company docs similar to the
+  RCCM / NIU / director-ID / bank-account set already noted in 1.7).
+
+### F.1 Locked decisions
+
+- **Launch provider:** Fapshi (MTN MoMo + Orange Money, **XAF**). Cards later via
+  Flutterwave, behind one `PaymentProvider` interface (roadmap **B.4**).
+- **Payments:** deposit (partial) ✓ · multiple payments per order ✓ · pay-in-full ✓.
+- **Currency at launch:** XAF only (MoMo/Orange are XAF rails). Keep the existing
+  multi-currency columns; when USD/EUR are added later, hide MoMo/Orange for
+  non-XAF orders (carried over from 1.7).
+- **Money precision:** keep the existing exact-decimal columns
+  (`numeric(12,2)`) everywhere — **never floats**. Do all math in exact decimals.
+- **Refunds:** out-of-app for now (deferred, per 1.7 / A.23).
+
+### F.2 Data model (backend — `apps/seamflow-api/src/db/schema/`, migrations in `supabase/migrations/`, RLS on every table)
+
+**F.2.1 Extend `enums.ts`**
+- `paymentProviderEnum`: add `fapshi` (keep `flutterwave` for cards later).
+- New `paymentMethodEnum`: `mtn_momo`, `orange_money`, `card`.
+- New `paymentKindEnum`: `deposit`, `balance`, `full`.
+- New `withdrawalStatusEnum`: `requested`, `processing`, `paid`, `failed`, `cancelled`.
+- New `ledgerEntryEnum`: `payment_credit`, `withdrawal_debit`, `fee_debit`, `reversal`, `adjustment`.
+
+**F.2.2 Extend `payments` table** (already exists: id, order_id, amount
+`numeric(12,2)`, currency, status, provider, provider_payment_id, timestamps).
+Add columns:
+- `tailor_id uuid → tailors(id)` (denormalized, for wallet crediting)
+- `payer_user_id uuid` (the consumer who paid; nullable for web magic-link guest)
+- `method paymentMethodEnum` · `kind paymentKindEnum`
+- `payer_phone text null` (MoMo/Orange number used)
+- `idempotency_key text unique` (stops double-charging)
+- `failure_reason text null` · `paid_at timestamptz null`
+Keep the `amount > 0` check. Index `(tailor_id, status)`.
+
+**F.2.3 `wallets`** — one per tailor (a cached view of the ledger).
+`id`, `tailor_id uuid unique → tailors(id)`, `currency char(3) default 'XAF'`,
+`available numeric(12,2) default 0`, `pending numeric(12,2) default 0`,
+`updated_at`. **Balance source of truth = the ledger; `available`/`pending` are
+cached and recomputed inside the same DB transaction that writes a ledger row.**
+Add a DB check so `available >= 0` (never negative).
+
+**F.2.4 `wallet_ledger`** — append-only, never edited/deleted.
+`id`, `wallet_id → wallets`, `tailor_id`, `entry ledgerEntryEnum`,
+`amount numeric(12,2)` (positive number; the `entry` says credit/debit),
+`balance_after numeric(12,2)`, `currency`, `ref_type text` (`payment` |
+`withdrawal` | `adjustment`), `ref_id uuid`, `description text`, `created_at`.
+Index `(tailor_id, created_at desc)`.
+
+**F.2.5 `withdrawals`**
+`id`, `tailor_id`, `wallet_id`, `amount_requested numeric(12,2)`,
+`fee numeric(12,2)`, `amount_sent numeric(12,2)` (= requested − fee),
+`destination_type` (`mtn_momo` | `orange_money` | `bank`),
+`destination_masked text` (e.g. `*** 6789` — never store full secrets in the
+clear beyond what's needed), `status withdrawalStatusEnum default 'requested'`,
+`provider`, `provider_transfer_id text null`, `idempotency_key text unique`,
+`requested_at`, `completed_at null`, `failure_reason null`. RLS: a tailor sees
+only their own.
+
+**F.2.6 Order payment summary (derived, not a table).** Compute from the order's
+`total_amount` (or its invoice `total`) minus the sum of **succeeded** payments:
+`{ amountDue, amountPaid, amountRemaining, state: 'unpaid' | 'partial' | 'paid' }`.
+Return it on `GET /orders/:id` (tailor app) and `GET /consumer/orders/:id`
+(client app). Optionally cache `amount_paid` on the order for list badges.
+
+**RLS summary:** clients see only payments they made; tailors see only their own
+payments, wallet, ledger, and withdrawals. Belt-and-suspenders API guards on top.
+
+### F.3 The provider interface (roadmap B.4) + Fapshi adapter
+
+Define one interface so providers are swappable; implement Fapshi now,
+Flutterwave (cards) later.
+
+```
+interface PaymentProvider {
+  initiateCollection(input: {
+    amount; currency; method;         // mtn_momo | orange_money | card
+    phone?; orderId; idempotencyKey;
+    returnUrl?;                       // for web/card hosted checkout
+  }): Promise<{ providerPaymentId; status; checkoutUrl? }>;
+
+  getCollectionStatus(providerPaymentId): Promise<PaymentStatus>;
+
+  initiatePayout(input: {
+    amount; currency; destinationType; destination; idempotencyKey;
+  }): Promise<{ providerTransferId; status }>;
+
+  getPayoutStatus(providerTransferId): Promise<WithdrawalStatus>;
+
+  verifyWebhook(signature, rawBody): boolean;   // reject forged callbacks
+}
+```
+
+- **Fapshi adapter** (`apps/seamflow-api/src/payments/providers/fapshi.ts`):
+  collection via MoMo/Orange (direct charge / payment link), payout via Fapshi's
+  payout/bulk API, webhook signature verification, and a balance read used by the
+  daily reconciliation job (F.5). Fapshi supports collection **and** payout,
+  webhooks, a wallet/balance, and AML/KYC — the exact match for this model.
+- **Config/env (server only, never in the app):** `FAPSHI_API_USER`,
+  `FAPSHI_API_KEY`, `FAPSHI_BASE_URL` (sandbox/live), `FAPSHI_WEBHOOK_SECRET`,
+  `PLATFORM_WITHDRAWAL_FEE_PERCENT`, `PLATFORM_WITHDRAWAL_FEE_FLAT`,
+  `MIN_WITHDRAWAL_XAF`. Ship behind a **feature flag** (roadmap B.9).
+- **Flutterwave adapter (later):** implements the same interface for `card`
+  (hosted checkout); no changes to callers.
+
+### F.4 API (new `payments` module — `apps/seamflow-api/src/payments/`)
+
+**Pay-in (client app / web, authed or magic-link guest):**
+- `POST /orders/:id/payments` — body `{ kind, amount?, method, phone? }`.
+  Server: validate `amount` (defaults to remaining for `full`; must be
+  `> 0` and `<= amountRemaining` for `deposit`), create a `pending` payment with a
+  fresh `idempotency_key`, call `initiateCollection`, return
+  `{ paymentId, status, checkoutUrl? }`. For MoMo/Orange the payer approves a
+  prompt on their phone; the app then polls.
+- `GET /payments/:id` — poll status (pending → succeeded/failed).
+- `GET /orders/:id/payments` — list (client sees theirs; tailor sees the order's).
+
+**Webhook (public, signature-verified — pattern from `public/`):**
+- `POST /payments/webhook/fapshi` — `verifyWebhook` first; then **idempotently**
+  mark the payment succeeded/failed. On success, in **one DB transaction**: set
+  `paid_at`, write a `payment_credit` ledger row, bump the wallet `available`,
+  update the order's paid total, and call
+  `NotificationsService.fireAndForget(tailorUserId, …)` + post a message into the
+  order's conversation ("Ama paid 10,000 — 15,000 left"). Never trust the app's
+  word that a payment happened — only the webhook (or a confirmed status poll)
+  credits the wallet.
+
+**Wallet + withdrawals (tailor app, `requireTailorId`):**
+- `GET /me/wallet` — `{ available, pending, currency }`.
+- `GET /me/wallet/ledger?cursor` — paginated history (credits, debits, fees).
+- `POST /me/wallet/withdrawals` — body `{ amount, destinationType, destination }`.
+  Validate `amount <= available` and `>= MIN_WITHDRAWAL_XAF`; require a **PIN/OTP
+  confirm** (reuse the app's existing PIN); compute `fee`; in one transaction move
+  `amount` from `available` → `pending`, write a `withdrawal_debit` + `fee_debit`
+  ledger row, create the `withdrawals` row, call `initiatePayout`. Return status.
+- `GET /me/wallet/withdrawals` / `GET /me/wallet/withdrawals/:id`.
+- **Payout result** (webhook or status poll) → set the withdrawal `paid`/`failed`.
+  On `failed`, **reverse** it: move `pending` back to `available` with a `reversal`
+  ledger row, so a failed payout never loses the tailor's money.
+
+**Order summary:** extend `OrderDetail` (tailor) and the consumer order detail
+with the `paymentSummary` object from F.2.6.
+
+### F.5 Money rules & safety (security)
+
+- **Idempotency everywhere.** Every collection and payout carries an
+  `idempotency_key`; webhooks are processed once even if delivered twice.
+- **Server is the source of truth.** The app can *ask* to pay, but only a verified
+  webhook/confirmed status credits anything. Amounts are validated server-side
+  against the order — the client can't set what they "owe."
+- **Append-only ledger + cached balance in one transaction** → the books always
+  balance; `available` can never go negative (DB check).
+- **Withdrawal protection:** identity/KYC before first payout, destination
+  confirmation, PIN/OTP step, velocity/rate limits, and a minimum amount.
+- **Secrets:** provider keys and webhook secret live in server env only; never in
+  the mobile bundle. Verify webhook signatures; reject unsigned/forged calls.
+- **Who bears provider fees:** the client always pays face value. The single
+  **withdrawal fee must be ≥ the provider's collection + payout costs** you
+  already paid, or you lose money quietly — set the fee config with that floor in
+  mind.
+- **Pending vs available:** a just-received payment may sit `pending` until the
+  webhook confirms, then becomes `available`; a withdrawal moves `available →
+  pending` until the payout settles.
+- **Daily reconciliation job:** compare the sum of the ledger against Fapshi's
+  reported balance; alert on any mismatch (money bug = stop-the-line).
+
+### F.6 Front-end — client app (`apps/seamflow-client`) screens
+
+1. **Order detail — payment card (modify existing).** A simple bar: *Price ·
+   Paid · Remaining* with a progress fill, and a **Make a payment** button.
+   Shows "Paid in full" when done.
+2. **Payment method sheet (new).** Choose **Deposit** or **Pay in full**; if
+   deposit, an amount field with **25% / 50%** quick presets and validation
+   (`≤ remaining`); choose **MTN MoMo** or **Orange Money**; phone number
+   (prefilled from profile, editable). **Pay** button.
+3. **Processing screen (new).** "Check your phone to approve the payment" +
+   spinner; poll `GET /payments/:id`; clear **success / failed-try-again**
+   states; never fake success; no offline payments.
+4. **Receipt (new).** Amount, order, tailor, date, reference; **Done** returns to
+   the order with the updated bar. A gentle line: *"Payments go directly to your
+   tailor. Refunds are arranged with them."*
+
+All strings via `t()` (en + fr); skeletons for any list; the "payment received"
+message appears in the order's chat thread.
+
+### F.7 Front-end — tailor app (`apps/seamflow-app`) screens
+
+1. **Orders list + order detail (modify).** Payment badges: *Unpaid /
+   Deposit paid / Paid*, plus the paid/remaining amounts on the detail.
+2. **Wallet screen (new).** Calm layout: **Available**, **Pending**, a
+   **Withdraw** button, and recent activity. Skeleton while loading.
+3. **Withdraw screen (new).** Amount (`≤ available`, `≥ minimum`); destination
+   (MoMo/Orange number; bank later); **show the fee before confirming**
+   ("You'll receive 9,700 · 300 fee"); PIN confirm; submit.
+4. **Withdrawal status (new).** Requested → processing → paid/failed, with a
+   support hint if it fails.
+5. **Wallet history / ledger (new).** Credits (payments in), debits
+   (withdrawals), and fees, with dates. Skeleton list.
+6. **Profile — payout setup + KYC (modify).** Default payout number, and a
+   one-time identity step required before the first withdrawal.
+7. **Chat + push.** "Payment received" message in the conversation + a push (via
+   the already-wired `NotificationsService`).
+
+All strings via `t()` (en + fr); `i18n:check` green; skeletons on all data lists.
+
+### F.8 Contracts (`packages/schemas`) + api-client
+
+- Extend `payment.ts` (method, kind, payer, idempotency). New `wallet.ts`
+  (`Wallet`, `WalletLedgerEntry`), `withdrawal.ts` (`Withdrawal`,
+  `WithdrawalCreate`), and payment DTOs (`PaymentCreate`). Add `paymentSummary`
+  to the order detail schema. Re-export via the index; **rebuild schemas +
+  api-client**.
+- api-client resources: `payments`, `wallet`, `withdrawals` on `api.*` /
+  `api.consumer.*`.
+
+### F.9 Build order (phased, with acceptance criteria)
+
+**Phase P1 — Pay-in on an order (deposits + full), MoMo/Orange.**
+Payments table extensions + enums; Fapshi adapter (collection + webhook);
+`POST /orders/:id/payments`, `GET /payments/:id`, webhook; order `paymentSummary`;
+client-app payment card + method sheet + processing + receipt; tailor-app payment
+badges + chat/push on receipt.
+✅ Done when: a client pays a deposit by MoMo; the phone prompt approves; the
+webhook marks it paid; the order shows updated paid/remaining in both apps; the
+tailor gets a push + chat note. (Money is accumulating at the provider; no
+withdrawal yet.)
+
+**Phase P2 — Wallet + ledger (tailor sees earnings).**
+`wallets` + `wallet_ledger`; credit on successful payment inside the webhook
+transaction; `GET /me/wallet` + ledger; tailor Wallet + history screens.
+✅ Done when: each succeeded payment increases the tailor's available balance by
+the right amount and shows in history; balance always equals the ledger.
+
+**Phase P3 — Withdrawals (payout to MoMo/Orange) + fee + KYC.**
+`withdrawals`; payout via Fapshi; fee config; PIN-confirmed withdraw flow; payout
+result handling + failure reversal; profile payout setup + KYC gate.
+✅ Done when: a tailor withdraws to their MoMo; the fee is shown and applied; the
+money arrives; the ledger + balance update; a failed payout reverses cleanly with
+no lost funds.
+
+**Phase P4 — Ops hardening.** Daily reconciliation job; admin views in
+`seamflow-admin`; a simple written dispute/support policy; velocity/fraud limits.
+✅ Done when: a mismatch between ledger and provider balance raises an alert, and
+support can trace any payment/withdrawal end to end.
+
+**Phase P5 — Later.** Cards via the Flutterwave adapter (same interface) + web
+magic-link pay page; premium feature-gating (2.10); optional buyer protection /
+held-until-delivery (A.23).
+
+### F.10 Watch-outs / ops
+
+- **Chargebacks** apply to cards (P5), not MoMo/Orange — another reason to launch
+  mobile-money-only and add cards deliberately.
+- **Payouts fail or delay** — always keep the retry + reversal path and a way to
+  help a stuck tailor.
+- **Reconcile daily** — the ledger and the provider balance must match; a gap is
+  a money bug, not a rounding quirk.
+- **Disputes still reach you** even though refunds are "out-of-app" — have a short
+  policy ready before launch.
+- **Keep the soul:** payment is always an action *on an order inside the
+  relationship*, announced *in the chat*; the wallet is a quiet back-room where a
+  tailor's earnings collect — not a new front door.
+
+---
+
+## Appendix G — Blocked on the Apple Developer Program ($99/yr)
+
+One payment unblocks all of this. Nothing below is a code problem; each item is
+waiting on an Apple entitlement, certificate or review that only an enrolled
+account can obtain. Work through it top-down the day enrolment completes.
+
+### Blocks shipping to the App Store at all
+
+| # | Item | What it needs | Notes |
+| --- | --- | --- | --- |
+| 1 | **Apple Sign-In** (1.9.3) | App ID with the Sign-in-with-Apple capability, a Services ID, and a `.p8` key (Key ID + Team ID); Apple provider enabled in Supabase; a native rebuild for the `ios.usesAppleSignIn` entitlement | **Hard blocker for review** — App Store policy 4.8 requires it wherever Google sign-in is offered. Steps already written up in `docs/apple-sign-in.md`; flip `APPLE_SIGN_IN_ENABLED` in `lib/auth-context.tsx` |
+| 2 | **App Store distribution** | Enrolled team, bundle ID, provisioning, App Store Connect record | TestFlight also needs this |
+
+### Push notifications on iOS
+
+| # | Item | What it needs | Notes |
+| --- | --- | --- | --- |
+| 3 | **APNs key for the tailor app** | `.p8` APNs key uploaded via `eas credentials` | Same key also serves Apple Sign-In. Android already works via FCM |
+| 4 | **APNs key for the client app** | Same, plus the client app's own EAS project | The client app additionally needs a Firebase project and `google-services.json` even for **Android** — see Appendix E |
+
+### Sharing into the app
+
+| # | Item | What it needs | Notes |
+| --- | --- | --- | --- |
+| 5 | **iOS Share Extension** | An App Group entitlement (shared container between the app and its extension), plus a second target in the native project | Android share target and the PWA Web Share Target both ship today without Apple. `expo-share-intent` is already installed and its plugin config just needs the `iosActivationRules` / App Group added |
+
+### Smaller, easier to forget
+
+| # | Item | What it needs | Notes |
+| --- | --- | --- | --- |
+| 6 | **Native Google sign-in on iOS** | An iOS OAuth client ID under the enrolled team | Works today via the in-app browser; native is only smoother |
+| 7 | **Universal Links** (`app.seamflowtech.com` → app) | `apple-app-site-association` signed against the team ID | Android App Links need no equivalent payment |
+| 8 | **Physical-device iOS testing** | TestFlight, or a provisioning profile for a real device | Simulator covers most, but camera, contacts and push all need real hardware |
+
+### What is NOT blocked, so don't wait for it
+
+Android APK distribution, the whole PWA, Android push, the Android share target,
+the PWA Web Share Target, contacts on Android, and every server-side feature.
+iOS in the **simulator** also runs without enrolment — only distribution,
+entitlements and real-device testing need the account.
+
+### Order I would do it in
+
+1. Enrol (allow 24–48 h; occasionally longer for a company account, which needs a D-U-N-S number).
+2. Generate the `.p8` key once — it serves **both** APNs and Apple Sign-In (items 1 and 3).
+3. Apple Sign-In, because it is the hard review blocker.
+4. APNs for the tailor app, then the client app.
+5. Share Extension and Universal Links, which are polish rather than gates.
 
 ---
 

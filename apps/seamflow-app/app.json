@@ -29,6 +29,30 @@
       "permissions": [
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS"
+      ],
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "category": [
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/*"
+            }
+          ]
+        },
+        {
+          "action": "SEND_MULTIPLE",
+          "category": [
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "image/*"
+            }
+          ]
+        }
       ]
     },
     "web": {
@@ -79,7 +103,15 @@
           "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition so your voice can be turned into text for the assistant."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": [
+            "image/*"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

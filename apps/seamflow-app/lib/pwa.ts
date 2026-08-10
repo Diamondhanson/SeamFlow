@@ -46,11 +46,18 @@ export function installPwa(): void {
     const loc = globalThis.location;
     const secure = loc?.protocol === 'https:' || loc?.hostname === 'localhost';
     if (nav?.serviceWorker && secure) {
-      globalThis.addEventListener?.('load', () => {
+      const register = () =>
         nav.serviceWorker.register('/sw.js').catch(() => {
           // Registration blocked (private mode, unsupported) — ignore.
         });
-      });
+
+      // installPwa() is called from a React effect, and by then the document
+      // has almost always finished loading. Waiting on the 'load' event alone
+      // meant the listener was attached AFTER the event fired, so it never ran
+      // and the worker was never registered — no offline shell, and no Web
+      // Share Target. Register straight away when the page is already up.
+      if (document.readyState === 'complete') register();
+      else globalThis.addEventListener?.('load', register);
     }
   } catch {
     // Non-DOM environment — nothing to do.
