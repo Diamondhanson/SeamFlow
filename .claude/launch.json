@@ -50,6 +50,16 @@
       ],
       "cwd": "apps/seamflow-client",
       "port": 4400
+    },
+    {
+      "name": "seamflow-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "cwd": "apps/seamflow-admin",
+      "port": 3200
     }
   ]
 }
