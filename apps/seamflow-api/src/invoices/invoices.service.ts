@@ -27,7 +27,7 @@ import type {
   InvoiceWithContext,
   PublicInvoiceResponse,
 } from '@seamflow/schemas';
-import { currencyForCountry } from '@seamflow/utils';
+import { currencyForCountry, roundToCurrency } from '@seamflow/utils';
 
 const DEFAULT_TTL_DAYS = 60;
 
@@ -155,7 +155,12 @@ export class InvoicesService {
     const fabricLine = await this.buildFabricLine(order);
     if (fabricLine) lineItems.push(fabricLine);
 
-    const total = this.subtotal(lineItems);
+    const invoiceCurrency =
+      order.currency ??
+      tailor?.currency ??
+      currencyForCountry(tailor?.countryCode) ??
+      null;
+    const total = this.subtotal(lineItems, invoiceCurrency);
     const number = `INV-${String(count + 1).padStart(4, '0')}`;
 
     const [row] = await this.dbService.db
@@ -168,11 +173,7 @@ export class InvoicesService {
         // Order's own currency → tailor's saved currency → currency of the
         // tailor's country (so it's never wrongly Naira for, say, a Cameroon
         // tailor). The tailor can still change it on the invoice.
-        currency:
-          order.currency ??
-          tailor?.currency ??
-          currencyForCountry(tailor?.countryCode) ??
-          null,
+        currency: invoiceCurrency,
         lineItems,
         deposit: '0',
         total: String(total),
@@ -191,7 +192,12 @@ export class InvoicesService {
     const patch: Partial<typeof invoices.$inferInsert> = { updatedAt: new Date() };
     if (data.lineItems !== undefined) {
       patch.lineItems = data.lineItems;
-      patch.total = String(this.subtotal(data.lineItems));
+      // Round against the currency the invoice will HAVE after this update, not
+      // the one it had before — otherwise switching currency and editing lines
+      // in one save rounds to the wrong unit.
+      patch.total = String(
+        this.subtotal(data.lineItems, data.currency ?? current.currency),
+      );
     }
     if (data.deposit !== undefined) patch.deposit = String(data.deposit);
     if (data.notes !== undefined) patch.notes = data.notes;
@@ -291,8 +297,21 @@ export class InvoicesService {
 
   // --------------------------------------------------------------------------
 
-  private subtotal(lines: InvoiceLineItem[]): number {
-    return lines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
+  /**
+   * Sum the lines, rounded to the currency's own minor unit.
+   *
+   * The rounding is not cosmetic — this figure is what gets STORED. XAF has no
+   * minor unit, so an un-rounded sum persisted 9065.7 while every surface
+   * printed "FCFA 9,066": a stored total that was not the total on the bill.
+   * Each line is rounded first, then the sum, so the stored figure equals the
+   * column a client can add up by hand.
+   */
+  private subtotal(lines: InvoiceLineItem[], currency?: string | null): number {
+    const summed = lines.reduce(
+      (sum, l) => sum + roundToCurrency(l.quantity * l.unitPrice, currency),
+      0,
+    );
+    return roundToCurrency(summed, currency);
   }
 
   /**

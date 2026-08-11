@@ -127,8 +127,10 @@ export default function InvoiceEditor() {
   const currency = currencyInput.trim() ? currencyInput.trim().toUpperCase() : null;
   const money = (amt: number) => (currency ? formatCurrency(amt, currency) : String(amt));
 
-  const subtotal = useMemo(() => subtotalOf(lines), [lines]);
-  const balance = balanceOf(subtotal, deposit);
+  // Every figure rounds to the currency's own minor unit — XAF has none, so a
+  // total must not carry centimes that the printed bill will never show.
+  const subtotal = useMemo(() => subtotalOf(lines, currency), [lines, currency]);
+  const balance = balanceOf(subtotal, deposit, currency);
 
   const setLine = (lid: string, patch: Partial<EditLine>) =>
     setLines((ls) => ls.map((l) => (l.id === lid ? { ...l, ...patch } : l)));
@@ -160,12 +162,35 @@ export default function InvoiceEditor() {
       category: l.category,
       description: l.description,
       quantity: parsePositive(l.qty) ?? 1,
-      unitPrice: roundMoney(Math.max(0, num(l.price))),
+      unitPrice: roundMoney(Math.max(0, num(l.price)), currency),
     })),
-    deposit: roundMoney(Math.max(0, num(deposit))),
+    deposit: roundMoney(Math.max(0, num(deposit)), currency),
     notes: notes.trim() ? notes : null,
     currency: currency && currency.length === 3 ? currency : undefined,
   });
+
+  /**
+   * Changing the currency does NOT convert anything — it relabels. On an
+   * invoice that already carries amounts that means the numbers now mean
+   * something entirely different, so make it a decision rather than a typo.
+   */
+  const confirmCurrencyChange = async () => {
+    const next = currencyInput.trim().toUpperCase();
+    const prev = invoice?.currency ?? null;
+    if (!next || next === prev) return;
+    const hasAmounts = subtotal > 0 || num(deposit) > 0;
+    if (!hasAmounts) return;
+    const ok = await dialog.confirm({
+      title: t('invoices.currencyChangeTitle'),
+      message: t('invoices.currencyChangeBody', {
+        from: prev ?? '—',
+        to: next,
+        amount: String(subtotal),
+      }),
+      tone: 'warning',
+    });
+    if (!ok) setCurrencyInput(prev ?? '');
+  };
 
   const save = async () => {
     try {
@@ -314,7 +339,7 @@ export default function InvoiceEditor() {
                 </View>
               </View>
               <Text variant="bodySm" tone="textMuted" style={styles.lineTotal}>
-                {money(lineTotal(l.qty, l.price))}
+                {money(lineTotal(l.qty, l.price, currency))}
               </Text>
             </Card>
           ))
@@ -335,12 +360,24 @@ export default function InvoiceEditor() {
           <Text variant="body" tone="textMuted">{t('invoices.subtotal')}</Text>
           <Text variant="body" numeric>{money(subtotal)}</Text>
         </View>
+        {/*
+          Currency is per-invoice on purpose: it is a property of THAT deal, not
+          of the business. Two guards, because changing it converts nothing —
+          only the label moves, so 10,000 XAF silently becomes 10,000 USD.
+        */}
         <Input
           label={t('invoices.currencyLabel')}
           value={currencyInput}
           onChangeText={setCurrencyInput}
+          onBlur={confirmCurrencyChange}
           autoCapitalize="characters"
           maxLength={3}
+          editable={invoice.status === 'draft'}
+          helper={
+            invoice.status === 'draft'
+              ? t('invoices.currencyHelp')
+              : t('invoices.currencyLockedHelp')
+          }
         />
         <Input
           label={t('invoices.depositLabel')}

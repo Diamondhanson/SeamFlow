@@ -33,6 +33,11 @@ export const invoices = {
     noLines: 'No lines yet — add one below.',
     subtotal: 'Subtotal',
     currencyLabel: 'Currency (ISO 3)',
+    currencyHelp: 'Applies to this invoice only. Defaults to your profile currency.',
+    currencyLockedHelp: 'Locked once the invoice is sent.',
+    currencyChangeTitle: 'Change currency?',
+    currencyChangeBody:
+      'Amounts are NOT converted — only the currency label changes. {amount} in {from} will become {amount} in {to}.',
     depositLabel: 'Deposit / amount paid',
     balanceDue: 'Balance due',
     notesLabel: 'Notes',
@@ -84,6 +89,11 @@ export const invoices = {
     noLines: 'Aucune ligne — ajoutez-en une ci-dessous.',
     subtotal: 'Sous-total',
     currencyLabel: 'Devise (ISO 3)',
+    currencyHelp: 'S’applique à cette facture uniquement. Par défaut, la devise de votre profil.',
+    currencyLockedHelp: 'Verrouillée une fois la facture envoyée.',
+    currencyChangeTitle: 'Changer la devise ?',
+    currencyChangeBody:
+      'Les montants ne sont PAS convertis — seule l’étiquette change. {amount} en {from} deviendra {amount} en {to}.',
     depositLabel: 'Acompte / montant payé',
     balanceDue: 'Solde dû',
     notesLabel: 'Notes',

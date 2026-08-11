@@ -388,6 +388,12 @@ export class AssistantToolsService {
           return !Number.isNaN(t) && t < now;
         });
 
+        // Each row carries its OWN currency and there is deliberately no
+        // grand total here. Invoices are denominated per-invoice, and this
+        // tailor may legitimately have one in XAF and one in EUR — adding
+        // those produces a number that means nothing. If a total is ever
+        // wanted, group by currency or convert through a real rate; do not
+        // reduce these into a single figure.
         const owed = invoices
           .filter((i) => i.status === 'sent' && i.total - i.deposit > 0)
           .slice(0, 10)

@@ -14,13 +14,19 @@
 // at the point it is computed, not merely where it is displayed.
 // ============================================================================
 
+import { roundToCurrency } from '@seamflow/utils';
 import { parseDecimal } from './numeric';
 
-/** Round to 2dp, killing binary-float noise. `+ Number.EPSILON` fixes the
- *  classic 1.005 case that would otherwise round down. */
-export function roundMoney(n: number): number {
-  if (!Number.isFinite(n)) return 0;
-  return Math.round((n + Number.EPSILON) * 100) / 100;
+/**
+ * Round to the currency's smallest real unit, killing binary-float noise.
+ *
+ * Was hardcoded to 2dp, which is wrong for XAF/XOF — this product's home
+ * currencies have NO minor unit. That stored 999.90 and printed "FCFA 1,000":
+ * a bill whose stored figure was not the figure on the paper. Omitting the
+ * currency keeps the old 2dp behaviour for call sites that genuinely have none.
+ */
+export function roundMoney(n: number, currency?: string | null): number {
+  return roundToCurrency(n, currency);
 }
 
 /** A number from a text field, treating blank/garbage as 0. */
@@ -33,16 +39,26 @@ export function amount(input: string | null | undefined): number {
  * than allowed to subtract from the bill — a negative line is always a typo,
  * and a credit belongs in the deposit field.
  */
-export function lineTotal(qty: string, price: string): number {
-  return roundMoney(Math.max(0, amount(qty)) * Math.max(0, amount(price)));
+export function lineTotal(qty: string, price: string, currency?: string | null): number {
+  return roundMoney(Math.max(0, amount(qty)) * Math.max(0, amount(price)), currency);
 }
 
 /** Sum of every line, rounded once at the end. */
-export function subtotalOf(lines: { qty: string; price: string }[]): number {
-  return roundMoney(lines.reduce((sum, l) => sum + lineTotal(l.qty, l.price), 0));
+export function subtotalOf(
+  lines: { qty: string; price: string }[],
+  currency?: string | null,
+): number {
+  return roundMoney(
+    lines.reduce((sum, l) => sum + lineTotal(l.qty, l.price, currency), 0),
+    currency,
+  );
 }
 
 /** What's still owed after the deposit. Can be negative if over-paid. */
-export function balanceOf(subtotal: number, deposit: string): number {
-  return roundMoney(subtotal - Math.max(0, amount(deposit)));
+export function balanceOf(
+  subtotal: number,
+  deposit: string,
+  currency?: string | null,
+): number {
+  return roundMoney(subtotal - Math.max(0, amount(deposit)), currency);
 }
