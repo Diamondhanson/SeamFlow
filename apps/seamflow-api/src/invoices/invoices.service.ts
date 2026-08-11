@@ -175,10 +175,7 @@ export class InvoicesService {
           currencyForCountry(tailor?.countryCode) ??
           null,
         lineItems,
-        // Carry the deposit across rather than restarting at zero. The tailor
-        // recorded it on the order when the job was agreed; making them retype
-        // it here is how the two numbers drift apart.
-        deposit: order.deposit ?? '0',
+        deposit: '0',
         total: String(total),
       })
       .returning();

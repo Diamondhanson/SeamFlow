@@ -63,12 +63,6 @@ const makeGarment = (): GarmentDraft => ({
   quantity: '1',
 });
 
-/** Lenient money parser — accepts a comma decimal separator, never NaN. */
-function money(v: string): number {
-  const n = Number(v.replace(',', '.').trim());
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
-
 export default function NewOrderWizard() {
   const { t } = useTranslation();
   const colors = useThemeColors();
@@ -110,9 +104,6 @@ export default function NewOrderWizard() {
 
   // Step 3: order
   const [orderName, setOrderName] = useState('');
-  // Commercial terms, agreed with the client at the same moment as the job.
-  const [orderPrice, setOrderPrice] = useState('');
-  const [orderDeposit, setOrderDeposit] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   const [fabricId, setFabricId] = useState<string | null>(null);
@@ -407,8 +398,6 @@ export default function NewOrderWizard() {
         dateDelivery: orderDate ? orderDate.toISOString() : null,
         fabricId,
         fabricYardageUsed: fabricYardage.trim() ? Number(fabricYardage) : null,
-        totalAmount: orderPrice.trim() ? money(orderPrice) : null,
-        deposit: orderDeposit.trim() ? money(orderDeposit) : null,
         items: items.length ? items : undefined,
       });
 
@@ -705,33 +694,6 @@ export default function NewOrderWizard() {
             </Pressable>
           ) : null}
 
-          <View style={styles.moneyRow}>
-            <View style={styles.moneyCol}>
-              <Input
-                label={t('orders.priceLabel')}
-                value={orderPrice}
-                onChangeText={setOrderPrice}
-                keyboardType="decimal-pad"
-                placeholder={t('common.optional')}
-              />
-            </View>
-            <View style={styles.moneyCol}>
-              <Input
-                label={t('orders.depositLabel')}
-                value={orderDeposit}
-                onChangeText={setOrderDeposit}
-                keyboardType="decimal-pad"
-                placeholder={t('common.optional')}
-              />
-            </View>
-          </View>
-          {orderPrice.trim() ? (
-            <Text variant="bodySm" tone="textMuted" style={styles.balanceHint}>
-              {t('orders.balanceLabel')}:{' '}
-              {Math.max(0, money(orderPrice) - money(orderDeposit))}
-            </Text>
-          ) : null}
-
           <FabricField value={fabricId} onChange={setFabricId} />
           {fabricId ? (
             <Input
@@ -829,9 +791,6 @@ const styles = StyleSheet.create({
     marginTop: -4,
     marginBottom: spacing.md,
   },
-  moneyRow: { flexDirection: 'row', gap: spacing.sm },
-  moneyCol: { flex: 1 },
-  balanceHint: { marginTop: -spacing.xs, marginBottom: spacing.sm },
   section: {
     marginTop: spacing.md,
     marginBottom: spacing.sm,

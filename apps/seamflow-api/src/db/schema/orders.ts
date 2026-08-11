@@ -109,13 +109,6 @@ export const orders = pgTable(
     status: orderStatusEnum('status').notNull().default('registered'),
     notes: text('notes'),
     totalAmount: numeric('total_amount', { precision: 12, scale: 2 }),
-    /**
-     * Money already taken up front. Recorded on the ORDER because a deposit is
-     * agreed when the job is, often long before an invoice exists. Seeds
-     * invoices.deposit when one is created; after that the invoice is the
-     * document of record. See migration 20260811120000.
-     */
-    deposit: numeric('deposit', { precision: 12, scale: 2 }).notNull().default('0'),
     currency: char('currency', { length: 3 }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

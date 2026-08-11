@@ -11,7 +11,6 @@ import {
   clients,
   fabrics,
   orderClaims,
-  invoices,
   orderEvents,
   orderItems,
   orders,
@@ -215,7 +214,6 @@ export class OrdersService {
         status: 'registered',
         notes: data.notes ?? null,
         totalAmount: data.totalAmount != null ? String(data.totalAmount) : null,
-        deposit: data.deposit != null ? String(data.deposit) : '0',
         currency: data.currency ?? null,
       })
       .returning();
@@ -266,10 +264,6 @@ export class OrdersService {
       patch.fabricYardageUsed =
         data.fabricYardageUsed != null ? String(data.fabricYardageUsed) : null;
     }
-    // Set when the caller changes the deposit, so we can mirror it onto an
-    // existing invoice below.
-    let depositChangedTo: string | null = null;
-
     if (data.orderName !== undefined) patch.orderName = data.orderName;
     if (data.dateOrdered !== undefined) {
       patch.dateOrdered = data.dateOrdered ? new Date(data.dateOrdered) : new Date();
@@ -278,12 +272,6 @@ export class OrdersService {
       patch.dateDelivery = data.dateDelivery ? new Date(data.dateDelivery) : null;
     }
     if (data.notes !== undefined) patch.notes = data.notes;
-    if (data.deposit !== undefined) {
-      // NOT NULL with a 0 default — clearing the field means "no deposit", not
-      // "unknown", so null collapses to zero rather than failing the write.
-      patch.deposit = data.deposit != null ? String(data.deposit) : '0';
-      depositChangedTo = patch.deposit;
-    }
     if (data.totalAmount !== undefined) {
       patch.totalAmount = data.totalAmount != null ? String(data.totalAmount) : null;
     }
@@ -295,27 +283,6 @@ export class OrdersService {
       .where(and(eq(orders.tailorId, tailorId), eq(orders.id, id)))
       .returning();
     if (!row) throw new NotFoundException(`Order ${id} not found`);
-
-    // Keep the invoice's deposit in step with the order's.
-    //
-    // Without this the two drift the moment a tailor records a deposit, later
-    // generates an invoice (which seeds from the order), then corrects the
-    // deposit on the order — the invoice would keep the stale figure and the
-    // balance printed for the client would be wrong.
-    //
-    // Only the deposit mirrors. `total` is derived from the invoice's line
-    // items, so once an invoice is itemised IT is the authority on price and
-    // the order's totalAmount is just the original quote.
-    if (depositChangedTo !== null) {
-      try {
-        await this.dbService.db
-          .update(invoices)
-          .set({ deposit: depositChangedTo, updatedAt: new Date() })
-          .where(and(eq(invoices.tailorId, tailorId), eq(invoices.orderId, id)));
-      } catch (err) {
-        this.logger.warn(`Invoice deposit sync failed for order ${id}: ${String(err)}`);
-      }
-    }
 
     return row;
   }
