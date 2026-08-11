@@ -28,6 +28,12 @@ import {
   shareInvoicePdf,
   type InvoicePdfLabels,
 } from '../../../lib/invoice-pdf';
+import {
+  balanceOf,
+  lineTotal,
+  roundMoney,
+  subtotalOf,
+} from '../../../lib/invoice-math';
 import { parseDecimal, parsePositive } from '../../../lib/numeric';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
@@ -121,11 +127,8 @@ export default function InvoiceEditor() {
   const currency = currencyInput.trim() ? currencyInput.trim().toUpperCase() : null;
   const money = (amt: number) => (currency ? formatCurrency(amt, currency) : String(amt));
 
-  const subtotal = useMemo(
-    () => lines.reduce((s, l) => s + Math.max(0, num(l.qty)) * num(l.price), 0),
-    [lines],
-  );
-  const balance = subtotal - num(deposit);
+  const subtotal = useMemo(() => subtotalOf(lines), [lines]);
+  const balance = balanceOf(subtotal, deposit);
 
   const setLine = (lid: string, patch: Partial<EditLine>) =>
     setLines((ls) => ls.map((l) => (l.id === lid ? { ...l, ...patch } : l)));
@@ -157,9 +160,9 @@ export default function InvoiceEditor() {
       category: l.category,
       description: l.description,
       quantity: parsePositive(l.qty) ?? 1,
-      unitPrice: Math.max(0, num(l.price)),
+      unitPrice: roundMoney(Math.max(0, num(l.price))),
     })),
-    deposit: Math.max(0, num(deposit)),
+    deposit: roundMoney(Math.max(0, num(deposit))),
     notes: notes.trim() ? notes : null,
     currency: currency && currency.length === 3 ? currency : undefined,
   });
@@ -311,7 +314,7 @@ export default function InvoiceEditor() {
                 </View>
               </View>
               <Text variant="bodySm" tone="textMuted" style={styles.lineTotal}>
-                {money(Math.max(0, num(l.qty)) * num(l.price))}
+                {money(lineTotal(l.qty, l.price))}
               </Text>
             </Card>
           ))
