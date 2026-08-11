@@ -908,12 +908,12 @@ export const SITE = {
 // badge falls back to a "coming soon" state). Set to the built .apk URL to turn
 // on the real "Download for Android" button.
 // EAS build artifact (preview profile, points at the Render API).
-// Built 2026-08-09 — adds the notification inbox + bell, sign-in/sign-up field
-// validation, and the dark-mode switch fix, on top of the discovery feed, My
-// Designs, and in-app chat.
+// Built 2026-08-10 — adds "share a photo into SeamFlow" from the OS share
+// sheet, on top of the notification inbox + bell, sign-in field validation and
+// the discovery feed.
 //
 // WARNING: EAS free-tier artifacts are retained ~30 days, so this link dies
-// around 2026-09-08 and the download button will fail silently.
+// around 2026-09-09 and the download button will fail silently.
 //
 // The permanent fix is NOT to drop the .apk in public/ — it is 102 MB, and a
 // binary that size in git bloats every clone forever and pushes the Vercel
@@ -921,7 +921,7 @@ export const SITE = {
 // Release asset (free, permanent, no repo weight) or a public Supabase Storage
 // bucket, which this project already runs.
 export const ANDROID_APK_URL =
-  'https://expo.dev/artifacts/eas/MbBbKhxR6aqVF6hWLILBHQskzsP-O9t1ZN8ukEGD16c.apk';
+  'https://expo.dev/artifacts/eas/_ZJ7LEEdgN9ZzG2zOVwhrPKXldAR2sob7YCS8xZw_Ws.apk';
 
 // The installable browser build of the tailor app (seamflow-app's web target,
 // `expo export --platform web`). Empty string → not deployed yet: the badge

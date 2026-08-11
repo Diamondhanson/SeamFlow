@@ -33,6 +33,8 @@ import type {
   NotificationType,
   Order,
   OrderCreateInput,
+  OrderItem,
+  OrderItemUpdateInput,
   OrderStatus,
   OrderTransitionInput,
   OrderUpdateInput,
@@ -47,16 +49,7 @@ import type {
 import { api } from './api';
 import { qk } from './query-keys';
 import { defaultNotificationPreferences } from './notification-defaults';
-import {
-  mk,
-  type ByIdVars,
-  type DeleteOrderVars,
-  type TransitionOrderVars,
-  type UpdateClientVars,
-  type UpdateFabricVars,
-  type UpdateInvoiceVars,
-  type UpdateOrderVars,
-} from './mutation-defaults';
+import { mk, type ByIdVars, type DeleteOrderVars, type TransitionOrderVars, type UpdateClientVars, type UpdateFabricVars, type UpdateInvoiceVars, type UpdateOrderItemVars, type UpdateOrderVars } from './mutation-defaults';
 
 // Re-export qk so existing imports of `qk` from './queries' continue to work
 // without churning every screen.
@@ -911,4 +904,21 @@ export function useUpdateNotificationSettings() {
     },
     onSettled: () => qc.invalidateQueries({ queryKey: qk.notifications() }),
   });
+}
+
+/**
+ * Edit one garment's measurements from the order screen.
+ *
+ * `orderId` is carried alongside the item id purely so the mutation default
+ * knows which order to refetch — the item is nested inside the order detail
+ * payload, so invalidating an item key alone would leave stale values on screen.
+ */
+export function useUpdateOrderItem(orderId: string) {
+  const m = useMutation<OrderItem, Error, UpdateOrderItemVars>({
+    mutationKey: mk.updateOrderItem,
+  });
+  return wrapWithId<OrderItem, { id: string; input: OrderItemUpdateInput }, UpdateOrderItemVars>(
+    m,
+    (v) => ({ id: v.id, orderId, input: v.input }),
+  );
 }

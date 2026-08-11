@@ -31,13 +31,14 @@ import type {
   Client,
   ClientCreateInput,
   ClientUpdateInput,
-  FabricResponse,
   FabricCreateInput,
+  FabricResponse,
   FabricUpdateInput,
-  InvoiceWithContext,
   InvoiceUpdateInput,
+  InvoiceWithContext,
   Order,
   OrderCreateInput,
+  OrderItemUpdateInput,
   OrderTransitionInput,
   OrderUpdateInput,
 } from '@seamflow/schemas';
@@ -50,6 +51,7 @@ import { qk } from './query-keys';
 export const mk = {
   createOrder: ['createOrder'] as const,
   updateOrder: ['updateOrder'] as const,
+  updateOrderItem: ['updateOrderItem'] as const,
   transitionOrder: ['transitionOrder'] as const,
   deleteOrder: ['deleteOrder'] as const,
   createClient: ['createClient'] as const,
@@ -68,6 +70,13 @@ export const mk = {
 export interface ByIdVars {
   id: string;
 }
+/** orderId rides along so onSuccess knows which order to refetch. */
+export interface UpdateOrderItemVars {
+  id: string;
+  orderId: string;
+  input: OrderItemUpdateInput;
+}
+
 export interface UpdateOrderVars {
   id: string;
   input: OrderUpdateInput;
@@ -112,6 +121,19 @@ export function registerMutationDefaults(qc: QueryClient): void {
     onSuccess: (_data, vars: UpdateOrderVars) => {
       qc.invalidateQueries({ queryKey: qk.order(vars.id) });
       qc.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+
+  // -----------------
+  // updateOrderItem — edits a garment's measurements from the order screen
+  // -----------------
+  qc.setMutationDefaults(mk.updateOrderItem, {
+    mutationFn: ({ id, input }: UpdateOrderItemVars) => api.orderItems.update(id, input),
+    onSuccess: (_data, vars: UpdateOrderItemVars) => {
+      // The item lives inside the order detail payload, so the order is what
+      // has to be refetched — invalidating an item key alone would leave the
+      // screen showing stale measurements.
+      qc.invalidateQueries({ queryKey: qk.order(vars.orderId) });
     },
   });
 

@@ -20,6 +20,7 @@ import { Card, CardLine, CardTitle } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PhoneInput } from '../../components/PhoneInput';
+import { MeasurementsEditor, numericMeasurements } from '../../components/MeasurementsEditor';
 import { DateField } from '../../components/DateField';
 import { ContactPickerModal } from '../../components/ContactPickerModal';
 import { FabricField } from '../../components/FabricField';
@@ -62,14 +63,10 @@ const makeGarment = (): GarmentDraft => ({
   quantity: '1',
 });
 
-/** Extract the positive-numeric measurement values from a garment's raw inputs. */
-function numericMeasurements(values: Record<string, string>): MeasurementValues {
-  const out: MeasurementValues = {};
-  for (const [k, v] of Object.entries(values)) {
-    const n = Number(v);
-    if (Number.isFinite(n) && n > 0) out[k] = n;
-  }
-  return out;
+/** Lenient money parser — accepts a comma decimal separator, never NaN. */
+function money(v: string): number {
+  const n = Number(v.replace(',', '.').trim());
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 export default function NewOrderWizard() {
@@ -113,6 +110,9 @@ export default function NewOrderWizard() {
 
   // Step 3: order
   const [orderName, setOrderName] = useState('');
+  // Commercial terms, agreed with the client at the same moment as the job.
+  const [orderPrice, setOrderPrice] = useState('');
+  const [orderDeposit, setOrderDeposit] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   const [fabricId, setFabricId] = useState<string | null>(null);
@@ -407,6 +407,8 @@ export default function NewOrderWizard() {
         dateDelivery: orderDate ? orderDate.toISOString() : null,
         fabricId,
         fabricYardageUsed: fabricYardage.trim() ? Number(fabricYardage) : null,
+        totalAmount: orderPrice.trim() ? money(orderPrice) : null,
+        deposit: orderDeposit.trim() ? money(orderDeposit) : null,
         items: items.length ? items : undefined,
       });
 
@@ -643,7 +645,7 @@ export default function NewOrderWizard() {
               ) : null}
 
               {!g.template ? (
-                <FreeMeasurements
+                <MeasurementsEditor
                   values={g.values}
                   setValues={(cb) => updateGarment(g.id, { values: cb(g.values) })}
                 />
@@ -701,6 +703,33 @@ export default function NewOrderWizard() {
               <Ionicons name="sparkles-outline" size={15} color={colors.accent} />
               <Text variant="caption" tone="primary">{t('orders.tidyUp')}</Text>
             </Pressable>
+          ) : null}
+
+          <View style={styles.moneyRow}>
+            <View style={styles.moneyCol}>
+              <Input
+                label={t('orders.priceLabel')}
+                value={orderPrice}
+                onChangeText={setOrderPrice}
+                keyboardType="decimal-pad"
+                placeholder={t('common.optional')}
+              />
+            </View>
+            <View style={styles.moneyCol}>
+              <Input
+                label={t('orders.depositLabel')}
+                value={orderDeposit}
+                onChangeText={setOrderDeposit}
+                keyboardType="decimal-pad"
+                placeholder={t('common.optional')}
+              />
+            </View>
+          </View>
+          {orderPrice.trim() ? (
+            <Text variant="bodySm" tone="textMuted" style={styles.balanceHint}>
+              {t('orders.balanceLabel')}:{' '}
+              {Math.max(0, money(orderPrice) - money(orderDeposit))}
+            </Text>
           ) : null}
 
           <FabricField value={fabricId} onChange={setFabricId} />
@@ -777,155 +806,6 @@ function StepDot({
   );
 }
 
-/**
- * Manual measurements, when no template is chosen.
- *
- * Two earlier attempts got this wrong in the same way: the value field only
- * existed AFTER you had committed a name, so the first thing a tailor saw was
- * one lone box with no clue what came next. The original required a hidden
- * keyboard Enter to advance; the second added a button but still hid the value.
- *
- * Now the draft row shows BOTH inputs from the start — attribute and value,
- * side by side — with an "Add attribute" button under them. Nothing is hidden
- * and nothing depends on a keystroke you have to guess.
- *
- * The chips underneath stay as an accelerator: one tap fills the attribute for
- * the measurements almost every order needs.
- */
-function FreeMeasurements({
-  values,
-  setValues,
-}: {
-  values: Record<string, string>;
-  setValues: (cb: (cur: Record<string, string>) => Record<string, string>) => void;
-}) {
-  const { t } = useTranslation();
-  const colors = useThemeColors();
-  const [draftName, setDraftName] = useState('');
-  const [draftValue, setDraftValue] = useState('');
-  const valueRef = useRef<TextInput>(null);
-
-  const commit = () => {
-    const key = draftName.trim();
-    if (!key) return;
-    setValues((cur) => ({ ...cur, [key]: draftValue.trim() }));
-    setDraftName('');
-    setDraftValue('');
-  };
-
-  const remove = (key: string) =>
-    setValues((cur) => {
-      const next = { ...cur };
-      delete next[key];
-      return next;
-    });
-
-  const entries = Object.entries(values);
-
-  return (
-    <View>
-      <Text variant="label" tone="textMuted" style={styles.section}>
-        {t('orders.manualMeasurementsCm')}
-      </Text>
-      <Text variant="bodySm" tone="textMuted" style={styles.measureHint}>
-        {t('orders.manualMeasurementsHint')}
-      </Text>
-
-      {/* Already added — still editable, with a way back out. */}
-      {entries.map(([k, v]) => (
-        <View key={k} style={styles.measureRow}>
-          <View style={styles.measureName}>
-            <Input
-              label={t('orders.attributeLabel')}
-              value={k}
-              editable={false}
-            />
-          </View>
-          <View style={styles.measureValue}>
-            <Input
-              label={t('orders.valueLabel')}
-              value={v}
-              onChangeText={(val) => setValues((cur) => ({ ...cur, [k]: val }))}
-              keyboardType="numeric"
-            />
-          </View>
-          <Pressable
-            onPress={() => remove(k)}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel={t('orders.removeMeasurement', { name: k })}
-            style={styles.measureRemove}
-          >
-            <Ionicons name="close-circle-outline" size={22} color={colors.textMuted} />
-          </Pressable>
-        </View>
-      ))}
-
-      {/* The draft row. Both boxes visible before you type anything. */}
-      <View style={styles.measureRow}>
-        <View style={styles.measureName}>
-          <Input
-            label={t('orders.attributeLabel')}
-            value={draftName}
-            onChangeText={setDraftName}
-            autoCapitalize="words"
-            placeholder={t('orders.attributePlaceholder')}
-            returnKeyType="next"
-            onSubmitEditing={() => valueRef.current?.focus()}
-          />
-        </View>
-        <View style={styles.measureValue}>
-          <Input
-            ref={valueRef}
-            label={t('orders.valueLabel')}
-            value={draftValue}
-            onChangeText={setDraftValue}
-            keyboardType="numeric"
-            placeholder={t('orders.measurementValuePlaceholder')}
-            returnKeyType="done"
-            onSubmitEditing={commit}
-          />
-        </View>
-        {/* Spacer keeps the draft row's inputs aligned with the rows above,
-            which each carry a remove button in this column. */}
-        {entries.length > 0 ? <View style={styles.measureRemoveSpacer} /> : null}
-      </View>
-
-      <Button
-        label={t('orders.addAttribute')}
-        variant="secondary"
-        onPress={commit}
-        disabled={!draftName.trim()}
-      />
-
-      {/* One tap fills the attribute for the usual suspects. */}
-      <Text variant="bodySm" tone="textMuted" style={styles.measureQuickHint}>
-        {t('orders.quickAddMeasurements')}
-      </Text>
-      <View style={styles.measureChips}>
-        {QUICK_MEASUREMENT_KEYS.map((mkey) => {
-          const name = t(`measurements.${mkey}`);
-          const added = name in values;
-          return (
-            <Chip
-              key={mkey}
-              label={added ? `✓ ${name}` : `+ ${name}`}
-              tone={added ? 'success' : 'primary'}
-              onPress={() => {
-                if (added) return remove(name);
-                // Fill the draft rather than committing blind, so the tailor
-                // lands on the value box with the attribute already set.
-                setDraftName(name);
-                valueRef.current?.focus();
-              }}
-            />
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   prefilledNote: { marginTop: spacing.sm },
   nameHelp: { marginTop: 4, marginBottom: spacing.sm },
@@ -949,6 +829,9 @@ const styles = StyleSheet.create({
     marginTop: -4,
     marginBottom: spacing.md,
   },
+  moneyRow: { flexDirection: 'row', gap: spacing.sm },
+  moneyCol: { flex: 1 },
+  balanceHint: { marginTop: -spacing.xs, marginBottom: spacing.sm },
   section: {
     marginTop: spacing.md,
     marginBottom: spacing.sm,

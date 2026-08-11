@@ -11,6 +11,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { OrderStatus } from '@seamflow/schemas';
 import { nextOrderStatuses } from '@seamflow/schemas';
+import { formatCurrency } from '@seamflow/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { Text, Chip, type ChipTone, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -18,6 +19,10 @@ import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
+import {
+  MeasurementsEditor,
+  numericMeasurements,
+} from '../../../components/MeasurementsEditor';
 import { Input } from '../../../components/Input';
 import { FabricField } from '../../../components/FabricField';
 import { SkeletonDetail } from '../../../components/Skeleton';
@@ -33,6 +38,7 @@ import {
   useUnpublishWork,
   useTransitionOrder,
   useUpdateOrder,
+  useUpdateOrderItem,
 } from '../../../lib/queries';
 import { useShareOrder } from '../../../lib/share-order';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
@@ -94,12 +100,41 @@ export default function OrderDetailScreen() {
 
   // Local mirror of the meters-used field, re-seeded when the order loads.
   const [yardage, setYardage] = useState('');
+  // Commercial terms live on the ORDER until an invoice exists; the invoice
+  // then seeds from them. Kept as strings so a half-typed "12." doesn't get
+  // coerced to NaN mid-keystroke.
+  const [price, setPrice] = useState('');
+  const [deposit, setDeposit] = useState('');
+  /** Which garment's measurements are open for editing (one at a time). */
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   useEffect(() => {
     setYardage(order?.fabricYardageUsed ?? '');
   }, [order?.fabricYardageUsed]);
+  useEffect(() => {
+    setPrice(order?.totalAmount != null ? String(order.totalAmount) : '');
+    // 0 shows as empty rather than a literal "0" — an untouched deposit field
+    // reading 0 looks like a decision the tailor made.
+    const d = Number(order?.deposit ?? 0);
+    setDeposit(d > 0 ? String(d) : '');
+  }, [order?.totalAmount, order?.deposit]);
 
   const setFabric = (fabricId: string | null) =>
     updateOrderM.mutate({ fabricId }, { onError: (err) => void dialog.error(err) });
+
+  const num = (v: string) => {
+    const n = Number(v.replace(',', '.').trim());
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  };
+  const savePrice = () => {
+    const next = price.trim() ? num(price) : null;
+    if (String(next ?? '') === String(order?.totalAmount ?? '')) return;
+    updateOrderM.mutate({ totalAmount: next }, { onError: (err) => void dialog.error(err) });
+  };
+  const saveDeposit = () => {
+    const next = num(deposit);
+    if (String(next) === String(order?.deposit ?? 0)) return;
+    updateOrderM.mutate({ deposit: next }, { onError: (err) => void dialog.error(err) });
+  };
 
   const saveYardage = () => {
     const next = yardage.trim() ? Number(yardage) : null;
@@ -338,6 +373,43 @@ export default function OrderDetailScreen() {
           ) : null}
         </Section>
 
+        <Section title={t('orders.moneySection')}>
+          <View style={styles.moneyRow}>
+            <View style={styles.moneyCol}>
+              <Input
+                label={t('orders.priceLabel')}
+                value={price}
+                onChangeText={setPrice}
+                onEndEditing={savePrice}
+                onBlur={savePrice}
+                keyboardType="decimal-pad"
+                placeholder="0"
+              />
+            </View>
+            <View style={styles.moneyCol}>
+              <Input
+                label={t('orders.depositLabel')}
+                value={deposit}
+                onChangeText={setDeposit}
+                onEndEditing={saveDeposit}
+                onBlur={saveDeposit}
+                keyboardType="decimal-pad"
+                placeholder="0"
+              />
+            </View>
+          </View>
+          {/* Balance is derived, never stored — one number to be wrong instead
+              of two that can disagree. */}
+          <View style={styles.balanceRow}>
+            <Text variant="bodySm" tone="textMuted">{t('orders.balanceLabel')}</Text>
+            <Text variant="h3">
+              {order.currency
+                ? formatCurrency(Math.max(0, num(price) - num(deposit)), order.currency)
+                : String(Math.max(0, num(price) - num(deposit)))}
+            </Text>
+          </View>
+        </Section>
+
         <Section
           title={t('orders.photosCount', { count: photos.length })}
           right={uploading ? <ActivityIndicator color={colors.accent} /> : undefined}
@@ -455,23 +527,47 @@ export default function OrderDetailScreen() {
                     </Text>
                   </View>
                 </View>
-                {it.measurements && Object.keys(it.measurements).length > 0 ? (
-                  <View style={styles.measWrap}>
-                    {Object.entries(it.measurements).map(([k, v]) => (
-                      <View
-                        key={k}
-                        style={[
-                          styles.measTag,
-                          { backgroundColor: withAlpha(s.primary, 0.06) },
-                        ]}
-                      >
-                        <Text variant="bodySm">
-                          {t('orders.measurementLine', { key: k, value: String(v) })}
-                        </Text>
+                {editingItemId === it.id ? (
+                  <ItemMeasurementsEditor
+                    item={it}
+                    onDone={() => setEditingItemId(null)}
+                    orderId={id}
+                  />
+                ) : (
+                  <>
+                    {it.measurements && Object.keys(it.measurements).length > 0 ? (
+                      <View style={styles.measWrap}>
+                        {Object.entries(it.measurements).map(([k, v]) => (
+                          <View
+                            key={k}
+                            style={[
+                              styles.measTag,
+                              { backgroundColor: withAlpha(s.primary, 0.06) },
+                            ]}
+                          >
+                            <Text variant="bodySm">
+                              {t('orders.measurementLine', { key: k, value: String(v) })}
+                            </Text>
+                          </View>
+                        ))}
                       </View>
-                    ))}
-                  </View>
-                ) : null}
+                    ) : (
+                      <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>
+                        {t('orders.noMeasurementsYet')}
+                      </Text>
+                    )}
+                    <Pressable
+                      onPress={() => setEditingItemId(it.id)}
+                      hitSlop={8}
+                      style={styles.editMeasBtn}
+                    >
+                      <Ionicons name="create-outline" size={16} color={colors.accent} />
+                      <Text variant="bodySm" tone="primary">
+                        {t('orders.editMeasurements')}
+                      </Text>
+                    </Pressable>
+                  </>
+                )}
                 {it.notes ? (
                   <View style={{ marginTop: spacing.sm }}>
                     <CardLine>{it.notes}</CardLine>
@@ -567,6 +663,59 @@ function Section({
   );
 }
 
+/**
+ * Edit one garment's measurements in place on the order screen.
+ *
+ * Local draft, explicit save. Measurements get corrected mid-fitting with the
+ * client standing there, so a half-typed value must not be written on every
+ * keystroke — and an accidental edit must be discardable.
+ *
+ * Reuses the same <MeasurementsEditor> as the new-order flow, so adding an
+ * attribute works identically in both places.
+ */
+function ItemMeasurementsEditor({
+  item,
+  orderId,
+  onDone,
+}: {
+  item: { id: string; measurements?: Record<string, unknown> | null };
+  orderId: string;
+  onDone: () => void;
+}) {
+  const { t } = useTranslation();
+  const dialog = useDialog();
+  const updateItem = useUpdateOrderItem(orderId);
+  const [draft, setDraft] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      Object.entries(item.measurements ?? {}).map(([k, v]) => [k, String(v ?? '')]),
+    ),
+  );
+
+  const save = () => {
+    // Same rule the new-order flow uses: blanks and non-positive values are
+    // dropped rather than sent, because the wire format is positive numbers.
+    const cleaned = numericMeasurements(draft);
+    updateItem.mutate(
+      { id: item.id, input: { measurements: cleaned } },
+      { onSuccess: onDone, onError: (err) => void dialog.error(err) },
+    );
+  };
+
+  return (
+    <View style={{ marginTop: spacing.sm }}>
+      <MeasurementsEditor values={draft} setValues={(cb) => setDraft((cur) => cb(cur))} />
+      <View style={styles.itemEditActions}>
+        <View style={styles.itemEditAction}>
+          <Button label={t('common.save')} onPress={save} loading={updateItem.isPending} />
+        </View>
+        <View style={styles.itemEditAction}>
+          <Button label={t('common.cancel')} variant="secondary" onPress={onDone} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Summary card
   hero: {
@@ -647,6 +796,24 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
     borderRadius: radii.md,
   },
+  editMeasBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  itemEditActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  itemEditAction: { flex: 1 },
+  moneyRow: { flexDirection: 'row', gap: spacing.sm },
+  moneyCol: { flex: 1 },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+  },
+  moneyNote: { marginTop: spacing.sm },
   photoActions: {
     flexDirection: 'row',
     marginBottom: spacing.md,

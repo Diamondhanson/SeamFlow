@@ -53,6 +53,8 @@ export const OrderSchema = z.object({
   status: OrderStatusSchema,
   notes: z.string().nullable(),
   totalAmount: z.string().nullable(),
+  /** Numeric column — serialised as a string, like totalAmount. */
+  deposit: z.string(),
   currency: z.string().length(3).nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
@@ -138,6 +140,8 @@ const OrderCreateBaseSchema = z.object({
   dateDelivery: z.string().datetime().nullable().optional(),
   notes: z.string().nullable().optional(),
   totalAmount: z.number().nonnegative().nullable().optional(),
+  /** Paid up front. Seeds the invoice's deposit when one is generated. */
+  deposit: z.number().nonnegative().nullable().optional(),
   currency: z.string().length(3).nullable().optional(),
   items: z.array(OrderItemCreateSchema).optional(),
 });
