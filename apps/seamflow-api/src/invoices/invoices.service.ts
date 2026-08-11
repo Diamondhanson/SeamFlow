@@ -150,9 +150,8 @@ export class InvoicesService {
     }));
 
     // Pre-fill a fabric line from the order's fabric (or its group's shared
-    // fabric). Invoice quantity is an integer, so we fold yardage into the unit
-    // price: unitPrice = costPerMeter × metersUsed (or one meter's cost when no
-    // yardage was recorded). Fully editable afterwards.
+    // fabric): quantity = metres used, unitPrice = cost per metre. Fully
+    // editable afterwards.
     const fabricLine = await this.buildFabricLine(order);
     if (fabricLine) lineItems.push(fabricLine);
 
@@ -328,15 +327,12 @@ export class InvoicesService {
 
     const costPerMeter =
       fabric.costPerMeter != null ? Number(fabric.costPerMeter) : 0;
-    const unitPrice =
-      yardage != null && yardage > 0
-        ? Math.round(costPerMeter * yardage * 100) / 100
-        : costPerMeter;
-    const description = [
-      fabric.name,
-      fabric.color ? `— ${fabric.color}` : '',
-      yardage != null && yardage > 0 ? `(${yardage} m)` : '',
-    ]
+    // Quantity carries the yardage now that it isn't restricted to whole
+    // numbers, so the line reads "2.5 × 3,000" — the two figures a client can
+    // actually check. It used to multiply them together into unitPrice and
+    // show "1 × 7,500", which hid the rate and the length.
+    const metres = yardage != null && yardage > 0 ? yardage : null;
+    const description = [fabric.name, fabric.color ? `— ${fabric.color}` : '']
       .filter(Boolean)
       .join(' ');
 
@@ -344,8 +340,8 @@ export class InvoicesService {
       id: randomUUID(),
       category: 'fabric',
       description,
-      quantity: 1,
-      unitPrice,
+      quantity: metres ?? 1,
+      unitPrice: costPerMeter,
     };
   }
 

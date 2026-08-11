@@ -14,6 +14,7 @@ import { Chip, Text } from '@seamflow/ui';
 import { Input } from './Input';
 import { Button } from './Button';
 import { QUICK_MEASUREMENT_KEYS } from '../lib/measurements';
+import { parsePositive } from '../lib/numeric';
 import { spacing, useThemeColors } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import type { MeasurementValues } from '@seamflow/schemas';
@@ -30,8 +31,8 @@ import type { MeasurementValues } from '@seamflow/schemas';
 export function numericMeasurements(values: Record<string, string>): MeasurementValues {
   const out: MeasurementValues = {};
   for (const [k, v] of Object.entries(values)) {
-    const n = Number(String(v).replace(',', '.'));
-    if (Number.isFinite(n) && n > 0) out[k] = n;
+    const n = parsePositive(v);
+    if (n != null) out[k] = n;
   }
   return out;
 }
@@ -105,7 +106,7 @@ export function MeasurementsEditor({
               label={t('orders.valueLabel')}
               value={v}
               onChangeText={(val) => setValues((cur) => ({ ...cur, [k]: val }))}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
             />
           </View>
           <Pressable
@@ -139,7 +140,7 @@ export function MeasurementsEditor({
             label={t('orders.valueLabel')}
             value={draftValue}
             onChangeText={setDraftValue}
-            keyboardType="numeric"
+            keyboardType="decimal-pad"
             placeholder={t('orders.measurementValuePlaceholder')}
             returnKeyType="done"
             onSubmitEditing={commit}

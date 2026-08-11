@@ -21,6 +21,7 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PhoneInput } from '../../components/PhoneInput';
 import { MeasurementsEditor, numericMeasurements } from '../../components/MeasurementsEditor';
+import { parseDecimal } from '../../lib/numeric';
 import { DateField } from '../../components/DateField';
 import { ContactPickerModal } from '../../components/ContactPickerModal';
 import { FabricField } from '../../components/FabricField';
@@ -352,8 +353,11 @@ export default function NewOrderWizard() {
       const base = types
         .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
         .join(' + ');
-      const firstName = pickedName.trim().split(/\s+/)[0] ?? '';
-      if (base) setOrderName(firstName ? `${base} — ${firstName}` : base);
+      // Use the client's full name. This used to take only the first word,
+      // which mangles any name whose first token is a courtesy title or a
+      // family name — "Mme Bambot" became "Mme", identifying nobody.
+      const client = pickedName.trim();
+      if (base) setOrderName(client ? `${base} — ${client}` : base);
     }
     setStep('order');
   };
@@ -397,7 +401,7 @@ export default function NewOrderWizard() {
         notes: orderNotes || null,
         dateDelivery: orderDate ? orderDate.toISOString() : null,
         fabricId,
-        fabricYardageUsed: fabricYardage.trim() ? Number(fabricYardage) : null,
+        fabricYardageUsed: parseDecimal(fabricYardage),
         items: items.length ? items : undefined,
       });
 
@@ -626,7 +630,7 @@ export default function NewOrderWizard() {
                       label={f.label}
                       value={g.values[f.key] ?? ''}
                       onChangeText={(v) => setGarmentField(g.id, f.key, v)}
-                      keyboardType="numeric"
+                      keyboardType="decimal-pad"
                       placeholder={t('orders.measurementPlaceholder')}
                     />
                   ))}

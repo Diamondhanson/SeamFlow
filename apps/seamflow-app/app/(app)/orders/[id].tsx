@@ -24,6 +24,7 @@ import {
 } from '../../../components/MeasurementsEditor';
 import { Input } from '../../../components/Input';
 import { FabricField } from '../../../components/FabricField';
+import { parseDecimal } from '../../../lib/numeric';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import {
   qk,
@@ -109,7 +110,7 @@ export default function OrderDetailScreen() {
     updateOrderM.mutate({ fabricId }, { onError: (err) => void dialog.error(err) });
 
   const saveYardage = () => {
-    const next = yardage.trim() ? Number(yardage) : null;
+    const next = parseDecimal(yardage);
     if ((order?.fabricYardageUsed ?? null) === (next != null ? String(next) : null)) return;
     updateOrderM.mutate(
       { fabricYardageUsed: next },

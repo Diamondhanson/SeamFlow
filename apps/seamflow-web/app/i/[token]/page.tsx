@@ -71,7 +71,7 @@ export default async function PublicInvoicePage({ params }: PageProps) {
         </div>
 
         <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-hairline bg-hairline">
-          <Cell label="Billed to" value={inv.client.fullName} />
+          <Cell label="Billed to" value={inv.client.fullName} emphasis />
           <Cell label="For" value={inv.order.orderName} />
         </dl>
 
@@ -93,8 +93,8 @@ export default async function PublicInvoicePage({ params }: PageProps) {
                   </p>
                   <p className="mt-0.5 text-xs text-muted">
                     {CATEGORY_LABEL[l.category] ?? l.category}
-                    {l.quantity > 1
-                      ? ` · ${l.quantity} × ${formatMoney(l.unitPrice, inv.currency)}`
+                    {l.quantity !== 1
+                      ? ` · ${formatQty(l.quantity)} × ${formatMoney(l.unitPrice, inv.currency)}`
                       : ''}
                   </p>
                 </div>
@@ -163,13 +163,34 @@ export default async function PublicInvoicePage({ params }: PageProps) {
   );
 }
 
-function Cell({ label, value }: { label: string; value: string }) {
+// Quantities can be fractional (2.5 m of fabric). Trim float noise and any
+// trailing zeros so a whole number still reads as "3".
+function formatQty(n: number): string {
+  return String(Math.round(n * 1000) / 1000);
+}
+
+function Cell({
+  label,
+  value,
+  emphasis,
+}: {
+  label: string;
+  value: string;
+  /** For the client's name: the subject of the bill, never truncated. */
+  emphasis?: boolean;
+}) {
   return (
     <div className="bg-surface px-4 py-3.5">
       <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
         {label}
       </p>
-      <p className="mt-1 text-[15px] font-medium text-ink">{value}</p>
+      <p
+        className={`mt-1 break-words font-medium text-ink ${
+          emphasis ? 'text-[17px] leading-snug sm:text-lg' : 'text-[15px]'
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

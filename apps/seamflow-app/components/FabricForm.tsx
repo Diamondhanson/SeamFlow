@@ -10,6 +10,7 @@ import type { FabricCreateInput } from '@seamflow/schemas';
 import { Input } from './Input';
 import { Button } from './Button';
 import { FabricPhotoField, type FabricPhotoValue } from './FabricPhotoField';
+import { decimalString } from '../lib/numeric';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
@@ -63,8 +64,10 @@ export function FabricForm({
       supplier: clean(supplier),
       color: clean(color),
       composition: clean(composition),
-      yardageMeters: clean(yardage),
-      costPerMeter: clean(cost),
+      // Numeric-as-string, straight into a Postgres numeric column — a comma
+      // decimal ("2,5") would be rejected there, so canonicalise it here.
+      yardageMeters: decimalString(yardage),
+      costPerMeter: decimalString(cost),
       photoKey: photo.photoKey,
       photoThumbKey: photo.photoThumbKey,
     });

@@ -19,7 +19,10 @@ export const InvoiceLineItemSchema = z.object({
   id: z.string().min(1),
   category: InvoiceLineCategorySchema,
   description: z.string(),
-  quantity: z.number().int().positive(),
+  // Not an integer: a fabric line is priced per metre and 2.5 m is ordinary.
+  // Forcing whole numbers here is what pushed the API into folding yardage
+  // into unitPrice (see invoices.service.ts buildFabricLine).
+  quantity: z.number().positive(),
   unitPrice: z.number().nonnegative(),
 });
 export type InvoiceLineItem = z.infer<typeof InvoiceLineItemSchema>;

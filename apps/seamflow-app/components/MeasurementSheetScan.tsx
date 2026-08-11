@@ -33,6 +33,7 @@ import { useCreateMeasurementSet, qk } from '../lib/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../lib/api';
 import { alertIfOffline, alertIfPermissionDenied } from '../lib/permissions';
+import { parseDecimal } from '../lib/numeric';
 import { spacing, radii } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import { useDialog } from '../lib/dialog';
@@ -232,7 +233,7 @@ export function MeasurementSheetScan({
     // derived from labels exactly like templates derive theirs, so a set and
     // a template built from the same page line up.
     const withNums = rows
-      .map((r) => ({ ...r, num: parseFloat(r.value.replace(',', '.')) }))
+      .map((r) => ({ ...r, num: parseDecimal(r.value) ?? NaN }))
       .filter((r) => r.label.trim() && Number.isFinite(r.num) && r.num > 0);
     if (withNums.length === 0) {
       await dialog.alert({

@@ -42,6 +42,9 @@ const esc = (s: string) =>
 
 export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels): string {
   const money = (n: number) => (data.currency ? formatCurrency(n, data.currency) : String(n));
+  // Quantities can be fractional (2.5 m of fabric). Round off float noise
+  // and drop trailing zeros so a whole number still reads as "3", not "3.00".
+  const qty = (n: number) => String(Math.round(n * 1000) / 1000);
   const subtotal = data.lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
   const balance = subtotal - data.deposit;
   const date = new Date(data.dateIso).toLocaleDateString(undefined, {
@@ -54,7 +57,7 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
     .map((l) => {
       const desc = esc(l.description || labels.category[l.category] || '');
       const sub =
-        l.quantity > 1 ? `${l.quantity} × ${esc(money(l.unitPrice))}` : '';
+        l.quantity !== 1 ? `${qty(l.quantity)} × ${esc(money(l.unitPrice))}` : '';
       return `
         <tr>
           <td>
@@ -94,7 +97,11 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
   .num { font-family: Georgia, "Times New Roman", serif; font-size: 46px; font-weight: 700; }
   .date { color: #5B554F; font-size: 20px; }
   .meta { display: flex; gap: 24px; margin: 20px 0 8px; }
-  .meta div { flex: 1; }
+  .meta div { flex: 1; min-width: 0; }
+  /* The client's full name, at the weight its prominence deserves.
+     overflow-wrap lets a long or multi-part name break rather than
+     run past the card edge — names are never truncated here. */
+  .client { font-size: 26px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
   table { width: 100%; border-collapse: collapse; margin-top: 18px; }
   th { text-align: left; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: #8A8178; padding: 8px 0; border-bottom: 1px solid #E1D9CB; }
   th.r, td.amt { text-align: right; }
@@ -133,7 +140,7 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
     <div class="meta">
       <div>
         <div class="eyebrow">${esc(labels.billedTo)}</div>
-        <div>${esc(data.clientName ?? '—')}</div>
+        <div class="client">${esc(data.clientName ?? '—')}</div>
       </div>
     </div>
 

@@ -28,6 +28,7 @@ import {
   shareInvoicePdf,
   type InvoicePdfLabels,
 } from '../../../lib/invoice-pdf';
+import { parseDecimal, parsePositive } from '../../../lib/numeric';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
@@ -49,10 +50,7 @@ const toEdit = (l: InvoiceLineItem): EditLine => ({
   qty: String(l.quantity),
   price: String(l.unitPrice),
 });
-const num = (s: string) => {
-  const n = parseFloat(s.replace(',', '.'));
-  return Number.isFinite(n) ? n : 0;
-};
+const num = (s: string) => parseDecimal(s) ?? 0;
 
 export default function InvoiceEditor() {
   // Two entry modes: an existing invoice (`id` is the invoice id) or a fresh
@@ -124,7 +122,7 @@ export default function InvoiceEditor() {
   const money = (amt: number) => (currency ? formatCurrency(amt, currency) : String(amt));
 
   const subtotal = useMemo(
-    () => lines.reduce((s, l) => s + Math.max(0, Math.round(num(l.qty))) * num(l.price), 0),
+    () => lines.reduce((s, l) => s + Math.max(0, num(l.qty)) * num(l.price), 0),
     [lines],
   );
   const balance = subtotal - num(deposit);
@@ -135,18 +133,20 @@ export default function InvoiceEditor() {
   const addLine = (category: InvoiceLineCategory) =>
     setLines((ls) => {
       // A Fabric line pre-fills from the order's attached fabric: description
-      // from its name/colour, price from cost/m × meters used (folded into the
-      // unit price since quantity is a whole number). Editable afterwards.
+      // from its name/colour, quantity from metres used, price from cost/m.
+      // Quantity used to be whole-number only, so the yardage had to be folded
+      // into unitPrice — the line read "1 × 7500" instead of "2.5 × 3000",
+      // which is not what the client should see on a bill. Now it says both.
       if (category === 'fabric' && orderFabric) {
-        const yards = orderQ.data?.fabricYardageUsed
-          ? Number(orderQ.data.fabricYardageUsed)
-          : null;
-        const cost = orderFabric.costPerMeter != null ? Number(orderFabric.costPerMeter) : 0;
-        const price = yards && yards > 0 ? Math.round(cost * yards * 100) / 100 : cost;
+        const yards = parsePositive(orderQ.data?.fabricYardageUsed ?? null);
+        const cost = parseDecimal(orderFabric.costPerMeter) ?? 0;
         const description = [orderFabric.name, orderFabric.color ? `— ${orderFabric.color}` : '']
           .filter(Boolean)
           .join(' ');
-        return [...ls, { id: uid(), category, description, qty: '1', price: String(price) }];
+        return [
+          ...ls,
+          { id: uid(), category, description, qty: String(yards ?? 1), price: String(cost) },
+        ];
       }
       return [...ls, { id: uid(), category, description: '', qty: '1', price: '0' }];
     });
@@ -156,7 +156,7 @@ export default function InvoiceEditor() {
       id: l.id,
       category: l.category,
       description: l.description,
-      quantity: Math.max(1, Math.round(num(l.qty)) || 1),
+      quantity: parsePositive(l.qty) ?? 1,
       unitPrice: Math.max(0, num(l.price)),
     })),
     deposit: Math.max(0, num(deposit)),
@@ -298,7 +298,7 @@ export default function InvoiceEditor() {
                     label={t('invoices.qtyLabel')}
                     value={l.qty}
                     onChangeText={(v) => setLine(l.id, { qty: v })}
-                    keyboardType="number-pad"
+                    keyboardType="decimal-pad"
                   />
                 </View>
                 <View style={styles.priceCol}>
@@ -311,7 +311,7 @@ export default function InvoiceEditor() {
                 </View>
               </View>
               <Text variant="bodySm" tone="textMuted" style={styles.lineTotal}>
-                {money(Math.max(0, Math.round(num(l.qty))) * num(l.price))}
+                {money(Math.max(0, num(l.qty)) * num(l.price))}
               </Text>
             </Card>
           ))
