@@ -13,8 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Chip, Text } from '@seamflow/ui';
 import { Input } from './Input';
 import { Button } from './Button';
-import { QUICK_MEASUREMENT_KEYS } from '../lib/measurements';
-import { parsePositive } from '../lib/numeric';
+import { MeasurementValueInput } from './MeasurementValueInput';
+import { parseMeasurementValue, QUICK_MEASUREMENT_KEYS } from '../lib/measurements';
 import { spacing, useThemeColors } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import type { MeasurementValues } from '@seamflow/schemas';
@@ -22,17 +22,20 @@ import type { MeasurementValues } from '@seamflow/schemas';
 /**
  * Turn the editor's raw string inputs into storable measurements.
  *
- * The wire format is Record<string, positive number>, so anything blank,
- * non-numeric or <= 0 is dropped rather than sent — a blank attribute is one
- * the tailor chose not to record, not a measurement of zero.
+ * A value is a positive number, or a compound of numbers like "32-42-12" for
+ * the attributes that genuinely have several parts. Anything blank or
+ * unparseable is dropped rather than sent — a blank attribute is one the
+ * tailor chose not to record, not a measurement of zero.
  *
  * Lives here so the new-order flow and the order screen apply the same rule.
  */
 export function numericMeasurements(values: Record<string, string>): MeasurementValues {
   const out: MeasurementValues = {};
   for (const [k, v] of Object.entries(values)) {
-    const n = parsePositive(v);
-    if (n != null) out[k] = n;
+    // Keeps compound values like "32-42-12" intact; a lone number still
+    // stores as a number. Anything unparseable is dropped, as before.
+    const parsed = parseMeasurementValue(v);
+    if (parsed != null) out[k] = parsed;
   }
   return out;
 }
@@ -102,11 +105,10 @@ export function MeasurementsEditor({
             />
           </View>
           <View style={styles.measureValue}>
-            <Input
+            <MeasurementValueInput
               label={t('orders.valueLabel')}
               value={v}
               onChangeText={(val) => setValues((cur) => ({ ...cur, [k]: val }))}
-              keyboardType="decimal-pad"
             />
           </View>
           <Pressable
@@ -135,12 +137,11 @@ export function MeasurementsEditor({
           />
         </View>
         <View style={styles.measureValue}>
-          <Input
-            ref={valueRef}
+          <MeasurementValueInput
+            inputRef={valueRef}
             label={t('orders.valueLabel')}
             value={draftValue}
             onChangeText={setDraftValue}
-            keyboardType="decimal-pad"
             placeholder={t('orders.measurementValuePlaceholder')}
             returnKeyType="done"
             onSubmitEditing={commit}

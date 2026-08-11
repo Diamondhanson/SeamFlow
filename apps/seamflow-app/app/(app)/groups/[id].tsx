@@ -1,3 +1,4 @@
+import type { MeasurementValues } from '@seamflow/schemas';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -425,7 +426,7 @@ function MemberCard({
     fullName: string;
     clientId: string | null;
     roleLabel: string | null;
-    measurements: Record<string, number>;
+    measurements: MeasurementValues;
   };
 }) {
   const { t } = useTranslation();

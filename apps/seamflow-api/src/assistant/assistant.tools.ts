@@ -22,9 +22,11 @@ import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import {
   canTransitionOrderStatus,
+  COMPOUND_MEASUREMENT_RE,
   nextOrderStatuses,
   OrderStatusSchema,
   type ActionPreview,
+  type MeasurementValues,
   type OrderStatus,
 } from '@seamflow/schemas';
 import { ClientsService } from '../clients/clients.service';
@@ -605,7 +607,7 @@ export class AssistantToolsService {
     {
       name: 'add_measurements',
       description:
-        'Propose saving a measurement set to a client (by clientId). values is an object of measurement name → positive number. unit is cm or in.',
+        'Propose saving a measurement set to a client (by clientId). values is an object of measurement name → a positive number, or a compound of numbers joined by - / or a space when the attribute has several parts (e.g. "32-42-12"). unit is cm or in.',
       kind: 'write',
       inputSchema: {
         type: 'object',
@@ -614,8 +616,9 @@ export class AssistantToolsService {
           label: { type: 'string' },
           values: {
             type: 'object',
-            additionalProperties: { type: 'number' },
-            description: 'e.g. {"chest": 96, "waist": 78}',
+            additionalProperties: { type: ['number', 'string'] },
+            description:
+              'e.g. {"chest": 96, "waist": 78.5, "dart": "32-42-12"}. Strings are only for compound values — digits joined by - / or a space.',
           },
           unit: { enum: ['cm', 'in'] },
         },
@@ -625,16 +628,28 @@ export class AssistantToolsService {
         const clientId = reqId(args, 'clientId');
         const client = await this.clients.getById(ctx.tailorId, clientId);
         const raw = args.values;
-        const values: Record<string, number> = {};
+        const values: MeasurementValues = {};
         if (raw && typeof raw === 'object') {
           for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-            if (k.trim() && typeof v === 'number' && Number.isFinite(v) && v > 0) {
+            if (!k.trim()) continue;
+            if (typeof v === 'number' && Number.isFinite(v) && v > 0) {
               values[k.trim()] = v;
+            } else if (
+              // A compound like "32-42-12". Validated against the same pattern
+              // the app and the schema use, so the model can't slip prose into
+              // a measurement field.
+              typeof v === 'string' &&
+              v.trim().length <= 40 &&
+              COMPOUND_MEASUREMENT_RE.test(v.trim())
+            ) {
+              values[k.trim()] = v.trim();
             }
           }
         }
         if (Object.keys(values).length === 0) {
-          throw new ToolArgError('values must contain at least one positive number.');
+          throw new ToolArgError(
+            'values must contain at least one positive number, or a compound like "32-42-12".',
+          );
         }
         const unit = optStr(args, 'unit') === 'in' ? 'in' : 'cm';
         const label = optStr(args, 'label') ?? 'default';

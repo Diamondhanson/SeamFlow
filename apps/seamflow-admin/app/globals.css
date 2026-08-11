@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Squared edges everywhere, including elements Tailwind does not reach
+   (native form controls, focus rings). Stated once here so no component has
+   to remember it. */
+* { border-radius: 0 !important; }
+
+html, body { background: #FAF7F2; color: #1A1714; }
+
+/* Tabular figures for every number on the page. Proportional digits make
+   columns of figures ragged and genuinely harder to compare down a column. */
+.tnum { font-variant-numeric: tabular-nums; }

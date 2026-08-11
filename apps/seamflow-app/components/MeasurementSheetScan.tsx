@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Image, Modal, StyleSheet, View } from 'react-native';
+import type { MeasurementValues } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from './Screen';
 import { Card } from './Card';
@@ -28,12 +29,13 @@ import {
 import {
   finalizeTemplateFields,
   matchMeasurementLabel,
+  parseMeasurementValue,
 } from '../lib/measurements';
 import { useCreateMeasurementSet, qk } from '../lib/queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '../lib/api';
 import { alertIfOffline, alertIfPermissionDenied } from '../lib/permissions';
-import { parseDecimal } from '../lib/numeric';
+import { MeasurementValueInput } from './MeasurementValueInput';
 import { spacing, radii } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import { useDialog } from '../lib/dialog';
@@ -229,12 +231,13 @@ export function MeasurementSheetScan({
   };
 
   const save = async () => {
-    // Keep only rows with a name and a usable positive number; keys are
-    // derived from labels exactly like templates derive theirs, so a set and
-    // a template built from the same page line up.
+    // Keep only rows with a name and a usable value; keys are derived from
+    // labels exactly like templates derive theirs, so a set and a template
+    // built from the same page line up. The value may be a single number or a
+    // compound the reviewer typed in, e.g. "32-42-12".
     const withNums = rows
-      .map((r) => ({ ...r, num: parseDecimal(r.value) ?? NaN }))
-      .filter((r) => r.label.trim() && Number.isFinite(r.num) && r.num > 0);
+      .map((r) => ({ ...r, parsed: parseMeasurementValue(r.value) }))
+      .filter((r) => r.label.trim() && r.parsed != null);
     if (withNums.length === 0) {
       await dialog.alert({
         title: t('clients.scanNoValuesTitle'),
@@ -246,9 +249,9 @@ export function MeasurementSheetScan({
     const fields = finalizeTemplateFields(
       withNums.map((r) => ({ label: r.label, unit })),
     );
-    const values: Record<string, number> = {};
+    const values: MeasurementValues = {};
     fields.forEach((f, i) => {
-      values[f.key] = withNums[i].num;
+      values[f.key] = withNums[i].parsed!;
     });
 
     createSet.mutate(
@@ -334,11 +337,10 @@ export function MeasurementSheetScan({
                     />
                   </View>
                   <View style={styles.rowValue}>
-                    <Input
+                    <MeasurementValueInput
                       label={t('clients.scanValueLabel')}
                       value={row.value}
                       onChangeText={(v) => updateRow(i, { value: v, lowConfidence: false })}
-                      keyboardType="decimal-pad"
                     />
                   </View>
                 </View>

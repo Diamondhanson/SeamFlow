@@ -12,8 +12,10 @@
 // `measurements.*` i18n namespace.
 // ============================================================================
 
-import type { TemplateField } from '@seamflow/schemas';
+import type { MeasurementValue, TemplateField } from '@seamflow/schemas';
+import { COMPOUND_MEASUREMENT_RE } from '@seamflow/schemas';
 import { measurements as measurementNames } from './i18n/locales/measurements';
+import { parseDecimal } from './numeric';
 
 /** What the field editor works with — the tailor edits a name + toggles.
  *  `lowConfidence` is set on fields pre-filled from a photo scan the AI
@@ -148,6 +150,40 @@ function getLabelLookup(): Map<string, string> {
  * The stored key is never changed — this is presentation only, so existing
  * measurement sets keep working.
  */
+/**
+ * Turn what the tailor typed into what we store.
+ *
+ * Most values are one number. Some are genuinely several — a tailor writes
+ * "32-42-12" for an attribute with three parts, separating them with a hyphen,
+ * a slash or a space depending on habit. Those are kept verbatim (normalised
+ * to single separators) rather than mangled into one figure.
+ *
+ * Returns `null` for anything that isn't a measurement, so a stray letter is
+ * dropped at the door instead of being saved and shown to a client.
+ */
+export function parseMeasurementValue(raw: string): MeasurementValue | null {
+  // Collapse padding around separators so "32 - 42" and "32-42" store alike.
+  const text = String(raw ?? '')
+    .trim()
+    .replace(/\s*([-/])\s*/g, '$1')
+    .replace(/\s+/g, ' ');
+  if (!text) return null;
+  if (!COMPOUND_MEASUREMENT_RE.test(text)) return null;
+
+  // A lone number stays a number: existing rows are numbers, and keeping the
+  // common case numeric means nothing downstream has to learn a new shape.
+  if (!/[-/ ]/.test(text)) {
+    const n = parseDecimal(text);
+    return n != null && n > 0 ? n : null;
+  }
+  return text;
+}
+
+/** True when a value holds more than one figure (e.g. "32-42-12"). */
+export function isCompoundMeasurement(v: MeasurementValue): boolean {
+  return typeof v === 'string' && /[-/ ]/.test(v);
+}
+
 export function prettyMeasurementLabel(key: string): string {
   // Drop a leading abbreviation code ("B /", "LT DOS /", "HBP /") — short,
   // all-caps/punctuation shorthand before a slash, never a real word phrase.

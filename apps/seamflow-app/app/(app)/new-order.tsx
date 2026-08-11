@@ -21,6 +21,7 @@ import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PhoneInput } from '../../components/PhoneInput';
 import { MeasurementsEditor, numericMeasurements } from '../../components/MeasurementsEditor';
+import { MeasurementValueInput } from '../../components/MeasurementValueInput';
 import { parseDecimal } from '../../lib/numeric';
 import { DateField } from '../../components/DateField';
 import { ContactPickerModal } from '../../components/ContactPickerModal';
@@ -623,14 +624,13 @@ export default function NewOrderWizard() {
                     {t('orders.measurementsCm')}
                   </Text>
                   {g.template.fields.map((f) => (
-                    <Input
+                    <MeasurementValueInput
                       key={f.key}
                       // No asterisk: nothing here is required any more, and a
                       // marker that doesn't gate anything just misleads.
                       label={f.label}
                       value={g.values[f.key] ?? ''}
                       onChangeText={(v) => setGarmentField(g.id, f.key, v)}
-                      keyboardType="decimal-pad"
                       placeholder={t('orders.measurementPlaceholder')}
                     />
                   ))}

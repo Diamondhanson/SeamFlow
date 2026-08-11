@@ -2,10 +2,28 @@
   "name": "seamflow-admin",
   "version": "0.1.0",
   "private": true,
-  "description": "Internal admin dashboard for support, ops, payments, and content moderation.",
+  "description": "Internal ops dashboard: platform-wide view across the tailor and client apps.",
   "scripts": {
-    "dev": "echo \"Not implemented yet\" && exit 0",
-    "build": "echo \"Not implemented yet\" && exit 0",
-    "lint": "echo \"Not implemented yet\" && exit 0"
+    "dev": "next dev -p 3200",
+    "build": "next build",
+    "start": "next start -p 3200",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.36.0",
+    "next": "^15.0.3",
+    "postgres": "^3.4.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5.6.0"
   }
 }

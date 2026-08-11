@@ -1,3 +1,4 @@
+import type { MeasurementValues } from '@seamflow/schemas';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -233,7 +234,7 @@ function MeasurementSetCard({
 }: {
   setId: string;
   clientId: string;
-  set: { label: string; values: Record<string, number>; unitPreference: string };
+  set: { label: string; values: MeasurementValues; unitPreference: string };
 }) {
   const { t } = useTranslation();
   const dialog = useDialog();

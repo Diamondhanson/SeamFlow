@@ -3,6 +3,12 @@
 // label + key, so these are what a tailor/client sees on orders.
 export const measurements = {
   en: {
+    // Compound values: some attributes are several figures, e.g. "32-42-12".
+    // The keypad can't be relied on for these characters, so buttons insert them.
+    separatorHint: 'Add:',
+    insertDash: 'Insert a dash separator',
+    insertSlash: 'Insert a slash separator',
+    insertSpace: 'Insert a space separator',
     // Upper body
     neck: 'Neck',
     collar: 'Collar',
@@ -61,6 +67,12 @@ export const measurements = {
     gele: 'Gele',
   },
   fr: {
+    // Valeurs composées : certains attributs comptent plusieurs chiffres,
+    // par ex. « 32-42-12 ». Des boutons insèrent ces caractères.
+    separatorHint: 'Ajouter :',
+    insertDash: 'Insérer un tiret de séparation',
+    insertSlash: 'Insérer une barre oblique de séparation',
+    insertSpace: 'Insérer une espace de séparation',
     // Upper body
     neck: 'Cou',
     collar: 'Col',
