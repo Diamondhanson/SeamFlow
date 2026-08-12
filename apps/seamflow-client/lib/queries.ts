@@ -8,7 +8,12 @@ import {
   useQueryClient,
   useInfiniteQuery,
 } from '@tanstack/react-query';
-import type { ConversationCreateInput, FeedQuery } from '@seamflow/schemas';
+import type {
+  ConversationCreateInput,
+  FeedQuery,
+  RequestCreateInput,
+  RequestUpdateInput,
+} from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
 
@@ -171,5 +176,79 @@ export function useMarkAllNotificationsRead() {
   return useMutation({
     mutationFn: () => api.notifications.markAllRead(),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.notifications() }),
+  });
+}
+
+// ============================================================================
+// Requests — "Can you make this?" (ROADMAP appendix H)
+//
+// The client's side: post a brief, watch the offers come in, pick one. The
+// mirror of browsing the feed — and the direction that works even when no
+// tailor has published anything yet.
+// ============================================================================
+
+export const useMyRequests = () =>
+  useQuery({ queryKey: qk.myRequests(), queryFn: () => api.requests.listMine() });
+
+export const useMyRequest = (id: string) =>
+  useQuery({
+    queryKey: qk.myRequest(id),
+    queryFn: () => api.requests.get(id),
+    enabled: !!id,
+  });
+
+export const useRequestOffers = (id: string) =>
+  useQuery({
+    queryKey: qk.requestOffers(id),
+    queryFn: () => api.requests.offers(id),
+    enabled: !!id,
+  });
+
+export function useCreateRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: RequestCreateInput) => api.requests.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.myRequests() }),
+  });
+}
+
+export function useUpdateRequest(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: RequestUpdateInput) => api.requests.update(id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.myRequests() });
+      qc.invalidateQueries({ queryKey: qk.myRequest(id) });
+    },
+  });
+}
+
+export function useCloseRequest(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.requests.close(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.myRequests() });
+      qc.invalidateQueries({ queryKey: qk.myRequest(id) });
+    },
+  });
+}
+
+/**
+ * Pick a tailor.
+ *
+ * Invalidates conversations too: accepting opens (or revives) the thread the
+ * two of them continue in, and the inbox has to know about it immediately —
+ * that thread is where the client is sent next.
+ */
+export function useAcceptOffer(requestId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (offerId: string) => api.requests.acceptOffer(offerId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.myRequest(requestId) });
+      qc.invalidateQueries({ queryKey: qk.requestOffers(requestId) });
+      qc.invalidateQueries({ queryKey: qk.conversations() });
+    },
   });
 }

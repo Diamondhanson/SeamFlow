@@ -39,6 +39,9 @@ export default function ClientHome() {
 
   const tiles: HomeTile[] = [
     { key: 'discover', label: t('discover.tabDiscover'), sub: t('discover.subtitle'), icon: 'sparkles-outline', live: true, go: () => router.push('/discover') },
+    // Second, right after Discover. Browsing is one way in; asking is the
+    // other, and asking works even when nothing has been published yet.
+    { key: 'requests', label: t('requests.tileLabel'), sub: t('requests.tileSubtitle'), icon: 'megaphone-outline', live: true, go: () => router.push('/(app)/requests') },
     { key: 'messages', label: t('discover.tabMessages'), sub: t('chat.listSubtitle'), icon: 'chatbubbles-outline', live: true, go: () => router.push('/(app)/messages') },
     { key: 'orders', label: t('home.ordersTile'), sub: t('home.ordersTileSub'), icon: 'shirt-outline', live: true, go: () => router.push('/(app)/orders') },
     { key: 'measurements', label: t('home.measurementsTile'), sub: t('home.measurementsTileSub'), icon: 'body-outline', live: true, go: () => router.push('/(app)/measurements') },

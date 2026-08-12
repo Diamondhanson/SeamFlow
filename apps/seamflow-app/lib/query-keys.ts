@@ -16,6 +16,12 @@ export const qk = {
   measurementSets: (clientId: string) =>
     ['clients', clientId, 'measurement-sets'] as const,
 
+  // Requests & offers — "Can you make this?" (ROADMAP appendix H).
+  openRequests: (filter?: Record<string, string | number | undefined>) =>
+    ['requests', 'open', filter ?? {}] as const,
+  openRequest: (id: string) => ['requests', 'open', id] as const,
+  myOffers: () => ['offers', 'mine'] as const,
+
   templates: () => ['templates'] as const,
   template: (id: string) => ['templates', id] as const,
 

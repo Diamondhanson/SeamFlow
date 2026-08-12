@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { onlineManager } from '@tanstack/react-query';
 import { PermissionDeniedError, PhotoOfflineError } from './permissions';
 import { supabase } from './supabase';
-import type { MessageAttachment } from '@seamflow/schemas';
+import type { RequestPhoto, MessageAttachment } from '@seamflow/schemas';
 
 // Lazy-load image-manipulator so the auth/onboarding screens still load on
 // dev APKs that pre-date the photos feature. If the native module is
@@ -45,6 +45,7 @@ function getIM(): IMModule {
 /** Private. Holds the tailor's own finished work before it's published. */
 /** Private. Chat attachments, readable only by the two participants. */
 const CHAT_BUCKET = 'chat-media';
+const REQUESTS_BUCKET = 'requests';
 
 
 const FULL_MAX_DIM = 2048;
@@ -362,4 +363,31 @@ function cryptoRandom(): string {
     '-' +
     Math.random().toString(36).slice(2, 10)
   );
+}
+
+/**
+ * Upload a photo for a "Can you make this?" request.
+ *
+ * Private bucket, filed under the poster's own user id — the storage policy
+ * only allows a write into a folder named with `auth.uid()`, so a client
+ * cannot drop a photo into someone else's request. The API hands out
+ * short-lived signed URLs on read; nothing here is publicly addressable.
+ */
+export async function uploadRequestPhoto(args: {
+  userId: string;
+  asset: PickedAsset;
+}): Promise<RequestPhoto> {
+  const { userId, asset } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const path = `${userId}/${id}.${full.ext}`;
+  const thumbPath = `${userId}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(REQUESTS_BUCKET, path, full),
+    uploadOne(REQUESTS_BUCKET, thumbPath, thumb),
+  ]);
+
+  return { path, thumbPath, width: asset.width ?? null, height: asset.height ?? null };
 }

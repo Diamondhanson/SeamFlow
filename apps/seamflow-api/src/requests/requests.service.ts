@@ -25,6 +25,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { and, count, desc, eq, gte, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import {
@@ -411,10 +412,15 @@ export class RequestsService {
   /**
    * Close requests nobody dealt with in time.
    *
+   * Hourly rather than daily: the cost is one indexed UPDATE over a partial
+   * index, and a request that expired at 9am should not still be collecting
+   * offers at 11pm.
+   *
    * Expiry is what keeps this board honest — a tailor should never spend
    * effort on a brief the client forgot about, and a client should not receive
    * an offer on something they had made elsewhere a fortnight ago.
    */
+  @Cron('30 * * * *')
   async expireOverdue(): Promise<number> {
     const rows = await this.dbService.db
       .update(requests)

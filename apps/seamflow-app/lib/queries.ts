@@ -39,6 +39,8 @@ import type {
   OrderTransitionInput,
   OrderUpdateInput,
   CopyMemberMeasurementsInput,
+  OfferCreateInput,
+  RequestQuery,
   PromoteMemberToClientInput,
   SaveMemberMeasurementsInput,
   TailorProfileUpdateInput,
@@ -950,4 +952,53 @@ export function useUpdateOrderItem(orderId: string) {
     m,
     (v) => ({ id: v.id, orderId, input: v.input }),
   );
+}
+
+// ============================================================================
+// Requests — "Can you make this?" (ROADMAP appendix H)
+//
+// The tailor's side of the board: browse what clients are asking for, answer
+// one, track the answers. Eligibility is decided server-side; this is just the
+// window onto it.
+// ============================================================================
+
+export const useOpenRequests = (filter: RequestQuery = {}) =>
+  useQuery({
+    queryKey: qk.openRequests(filter as Record<string, string | number | undefined>),
+    queryFn: () => api.requests.listOpen(filter),
+  });
+
+export const useOpenRequest = (id: string) =>
+  useQuery({
+    queryKey: qk.openRequest(id),
+    queryFn: () => api.requests.getForTailor(id),
+    enabled: !!id,
+  });
+
+export const useMyOffers = () =>
+  useQuery({ queryKey: qk.myOffers(), queryFn: () => api.requests.myOffers() });
+
+/** Answer a request. The server enforces one-per-request and the daily cap. */
+export function useMakeOffer(requestId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: OfferCreateInput) => api.requests.makeOffer(requestId, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.myOffers() });
+      // The board carries "how many offers already" and whether it is still
+      // accepting, both of which just changed.
+      qc.invalidateQueries({ queryKey: ['requests', 'open'] });
+    },
+  });
+}
+
+export function useWithdrawOffer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (offerId: string) => api.requests.withdrawOffer(offerId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.myOffers() });
+      qc.invalidateQueries({ queryKey: ['requests', 'open'] });
+    },
+  });
 }

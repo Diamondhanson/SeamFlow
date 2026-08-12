@@ -1876,6 +1876,318 @@ entitlements and real-device testing need the account.
 
 ---
 
+## Appendix H — Requests ("Can you make this?"): client briefs + tailor offers (build spec)
+
+Status: **H-P1 + H-P2 shipped 2026-08-12** · H-P3 partial · Last updated: 2026-08-12
+
+**What is built:** the garment taxonomy (H.1) with tailor specialities as the
+first onboarding task; `requests` / `request_targets` / `request_recipients` /
+`offers`; the full client and tailor API; both apps' screens; expiry (hourly
+cron); and every cap in H.9 — offers-per-request, open-requests-per-client,
+post cooldown, offers-per-tailor-per-day. `pnpm test:requests` covers the arc.
+
+**What is deliberately NOT built:** the fan-out RANKING of H.3. Recipients are
+recorded for every eligible tailor rather than a scored top-N, because a
+scoring function written against a board with no traffic would be tuned against
+nothing and wrong invisibly. `MAX_REQUEST_FANOUT` is applied as a hard ceiling,
+so switching it on is one function, not a migration.
+
+**Still outstanding:** H.4 (AI auto-tag), the moderation half of H-P4
+(`reports`/`blocks` do not exist yet — H.2.5 calls this a reuse, and it is not),
+verified-phone gates (blocked on choosing a WhatsApp provider), and the deposit
+link on accept (blocked on appendix F).
+
+The mirror of **Appendix D**. Appendix D is "tailors post work → clients come to
+them." This is the reverse: a **client posts a request** (a photo + details of a
+garment they want made), **tailors see matching requests and make offers**, and
+the client **compares the offers and picks one** — which turns into a normal
+conversation and commission. Together, D and G cover both ways a commission can
+start.
+
+**Reuses what's already planned — this is mostly a new "request + offer" layer:**
+the chat system (D.N3), tailor profiles + trust signals (D.N5), payments
+(Appendix F), moderation (A.33 / D.N7), the garment vocabulary (below), the
+`notification-preferences` module, and the AI vision model (Appendix on the
+measurement scanner) for auto-tagging a request photo.
+
+### H.0 Locked decisions
+
+- **Name:** feature = **Requests**; friendly label = **"Can you make this?"**;
+  FR = **Demandes**.
+- **Visibility (client chooses):** (a) **specific tailors** they pick, or
+  (b) a **location scope** — town, region, or country.
+- **Match, don't broadcast.** A location request is *notified* only to a capped,
+  best-matched set of tailors (garment tags + proximity + good standing); but any
+  eligible tailor in the area can still *browse* open requests. **Tags guide
+  notifications and ranking — they are not a hard wall.** If too few match, widen
+  automatically (broaden the garment category, then the location).
+- **Offer shape:** an optional **price or price-range** + a short **message** +
+  an optional **sample of past work**; if no price is given, it's "open to
+  discuss." Accepting an offer **opens a conversation** (D) and can lead to a
+  **deposit** (F).
+- **Money stays one-directional;** refunds off-app (per F).
+- **Anti-spam is part of the design, not an afterthought** (H.3, H.9).
+
+### H.1 Shared garment taxonomy (the thing that makes matching work)
+
+Matching only works if both sides describe the garment in the **same words**. So
+introduce **one canonical garment list**, used everywhere, stored as **stable
+keys** with **EN + FR labels** (same pattern as the measurement vocabulary).
+
+- **Structure:** two levels — **category** (e.g. traditional/occasion wear, men's
+  tailoring, women's dresses, bridal, kids) → **type** (e.g. agbada, kaftan,
+  gown, suit, shirt, trouser, skirt…). Seed from the garment types already in
+  `lib/measurements.ts` (MEASUREMENT_GROUPS) + existing `garmentType` on templates
+  and `garment_type` on feed posts. Provide as a shared constant (in
+  `packages/config` or `packages/schemas`) and optionally a `garment_types` table
+  for admin editing.
+- **Used by:** measurement templates (`garmentType`), feed posts (D), **tailor
+  specialties**, **requests**, and **offers** — all referencing the same keys.
+- **Tailor specialties** = an array of these keys, set by the tailor **and**
+  inferred from their real work (the garment types on their past orders + their
+  published feed posts). "They told us" + "we can see it" → better matching.
+- **Request** carries one primary `garment_type` key + optional `style_tags`.
+
+### H.2 Data model (`apps/seamflow-api/src/db/schema/`, migrations in `supabase/migrations/`, RLS on every table)
+
+**H.2.1 `requests`**
+
+| column | type | notes |
+|---|---|---|
+| id | uuid pk | |
+| client_user_id | uuid → auth.users | poster |
+| title / description | text | short brief; description required |
+| garment_type | text | a taxonomy key (H.1); required |
+| style_tags | jsonb default '[]' | extra keys |
+| photos | jsonb default '[]' | public-bucket derivatives (copy-on-post, same as feed D.5) |
+| budget_min / budget_max | numeric(12,2) null | optional; single value or range |
+| currency | char(3) null | |
+| deadline | date null | |
+| visibility | enum(`selected`,`location`) | |
+| location_scope | enum(`town`,`region`,`country`) null | for `location` |
+| location_value | text null | the town/region/country |
+| status | enum(`open`,`closed`,`fulfilled`,`expired`,`removed`) | |
+| accepting_offers | bool default true | flips false at the offer cap |
+| offers_count | int default 0 | denormalized |
+| expires_at | timestamptz | auto-close (H.3) |
+| created_at / updated_at | timestamptz | |
+
+Indexes: `(status, expires_at)`, `garment_type`, `(location_scope, location_value)`.
+RLS: client sees own; tailors read only requests they're eligible for (targeted or
+location-eligible + `status='open'`).
+
+**H.2.2 `request_targets`** (for `visibility='selected'`): `request_id`,
+`tailor_id`. The only tailors who see/are notified of that request.
+
+**H.2.3 `request_recipients`** (for `visibility='location'`): `request_id`,
+`tailor_id`, `reason` (why matched), `notified_at`. Records the capped matched set
+that was notified (H.3) — drives digests + analytics. (Browsing eligibility is
+broader than this set; see H.3.)
+
+**H.2.4 `offers`**
+
+| column | type | notes |
+|---|---|---|
+| id | uuid pk | |
+| request_id | uuid → requests(id) cascade | |
+| tailor_id | uuid → tailors(id) | |
+| price / price_max | numeric(12,2) null | firm or range; both null = "open to discuss" |
+| currency | char(3) null | |
+| message | text | required |
+| sample_post_id | uuid → feed_posts(id) null | show a relevant past piece |
+| status | enum(`sent`,`shortlisted`,`accepted`,`declined`,`withdrawn`) | |
+| conversation_id | uuid → conversations(id) null | set on accept |
+| created_at / updated_at | timestamptz | |
+
+**Unique(`request_id`, `tailor_id`)** → one offer per tailor per request. RLS:
+the offering tailor and the request's client see it; nobody else.
+
+**H.2.5 Reuse:** `conversations` (add `origin` values `request`/`offer` and
+nullable `request_id`/`offer_id`) + `messages` (D). Moderation `reports`/`blocks`
+(add target types `request`, `offer`). **Standing** for progressive trust (H.3):
+reuse/compute `completed_orders_count`, `ghost_count`, and a derived `tier`
+(`new`/`established`/`trusted`) per user.
+
+### H.3 Matching & anti-spam engine (the core of "no overwhelm")
+
+**Fan-out on a location request (the master lever — match, don't broadcast):**
+1. Find candidate tailors whose `specialties` include the request's `garment_type`
+   (or its category), within the `location_scope`, in good standing, recently
+   active.
+2. Rank by match quality + proximity + standing; **cap to `MAX_REQUEST_FANOUT`**
+   (e.g. 20). Insert `request_recipients`; queue a **digest** notification (not one
+   push per request).
+3. **Auto-widen** if matches `< MIN_MATCHES_BEFORE_WIDEN`: relax garment→category,
+   then drop the tag and use location only, so a request is never seen by nobody.
+
+**Browsing vs notifying:** tags/standing decide **who gets notified and how things
+rank**. **Any** location-eligible tailor can still *open the Requests feed and
+answer* something outside their usual work — tags never hard-block browsing.
+
+**Caps & fairness (all tunable — H.9):**
+- **Offer cap per request:** after `MAX_OFFERS_PER_REQUEST` (e.g. 8), set
+  `accepting_offers=false` ("enough offers"). Protects the client from a flood and
+  tailors from wasting time on a saturated request.
+- **Open-requests cap per client:** `MAX_OPEN_REQUESTS_PER_CLIENT` (by tier) +
+  a post cooldown. Stops flooding.
+- **Offer cap per tailor:** `MAX_OFFERS_PER_TAILOR_PER_DAY` (by tier); plus the
+  one-offer-per-request rule. Stops offer spam.
+- **Expiry:** requests auto-close after `DEFAULT_REQUEST_TTL_DAYS` (e.g. 10) via a
+  scheduled job (reuse `queue`/cron). Keeps the board fresh; no answering stale posts.
+- **Must-have to post:** ≥1 photo + a description + a garment type (validation).
+- **Progressive trust:** new accounts (both sides) get smaller caps + smaller
+  fan-out reach; limits loosen as `completed_orders_count` grows and standing is
+  good. Repeated **ghosting** (posting then never replying/picking) lowers a
+  client's standing → less reach + lower ranking. Bad actors stay small without
+  punishing good users.
+- **Verified gates:** posting to the **country** scope (client) and making offers
+  broadly (tailor) require a **verified phone** / **verified tailor (KYC from F)** —
+  kills throwaway-account spam.
+
+### H.4 AI auto-tag (reuse the vision model)
+
+When the client adds a request photo, call the existing `ai` module (same infra as
+the measurement scanner / `describe-image`) in a **"suggest garment type + style
+tags"** mode → prefill the tag picker; the client just confirms. Degrades
+gracefully to manual selection if AI is unconfigured (503). Makes tagging almost
+effortless and keeps both sides' tags clean.
+
+### H.5 API (new `requests` module — `apps/seamflow-api/src/requests/`)
+
+**Client (consumer app, authed):**
+- `POST /requests` — create; validate photo+description+garment_type; set
+  visibility + targets/location; enforce open-request cap + cooldown + verified
+  gate. Copies photos into the public bucket (D.5).
+- `GET /requests/mine` — my requests + offer counts + expiry.
+- `GET /requests/:id` — detail + its offers (client view).
+- `PATCH /requests/:id` / `POST /requests/:id/close` — edit / close / mark fulfilled.
+- `POST /offers/:id/accept` — pick a tailor → open/link a `conversation` (D) and
+  optionally start a draft order/quote (F); mark others `declined` (notify them).
+- `POST /offers/:id/shortlist` (optional).
+
+**Tailor (tailor app, `requireTailorId`):**
+- `GET /requests/open` — requests visible to me (targeted + location-eligible),
+  filters: garment, budget, deadline, distance; matched-first ranking.
+- `GET /requests/:id` — tailor detail view.
+- `POST /requests/:id/offers` — `{ price?, priceMax?, message, samplePostId? }`;
+  enforce one-per-request, daily cap, standing, `accepting_offers`.
+- `GET /offers/mine` — my offers + status.
+- `POST /offers/:id/withdraw`.
+
+**Profile:** `PATCH /me/tailor-profile` — specialties (garment keys), service
+location, and request-notification preferences (reuse `notification-preferences`).
+
+**AI:** `POST /ai/suggest-garment-tags` (or a new mode on `describe-image`) — from
+a request photo.
+
+**Moderation:** reuse `POST /reports`, `POST /blocks` (targets `request`, `offer`).
+
+**Scheduled:** an expiry job closes `open` requests past `expires_at`.
+
+### H.6 Front-end — client app (`apps/seamflow-client`) screens
+
+1. **Post a request — entry points:** a button on home, from a **saved image**,
+   from a feed design ("request something like this"), or by uploading a photo
+   (e.g. a Pinterest screenshot).
+2. **Create request screen:** add photo(s) → **AI-suggested garment tag** to
+   confirm/edit + optional style tags → description → optional **budget** (single
+   or range) → optional **deadline** → **visibility**: *Choose tailors* (pick from
+   followed/known) or *Open to a location* (town / region / country) → **Post**.
+   Validation: photo + description + garment type required. Clear message if the
+   open-request cap/cooldown is hit.
+3. **My requests list:** status, offer count, expiry countdown. Skeleton.
+4. **Request detail + compare offers:** each offer shows the tailor's profile,
+   a sample of their work, price/range (or "open to discuss"), trust signals
+   (verified, reply time), and message; **sorted best-fit first**. Actions: chat,
+   shortlist, **accept**. Skeleton.
+5. **Accept → commission:** opens the conversation (D) and optionally the deposit
+   flow (F). Other tailors are politely declined/notified.
+
+All strings via `t()` (en + fr); skeletons on every data list.
+
+### H.7 Front-end — tailor app (`apps/seamflow-app`) screens
+
+1. **Requests feed (new "Requests" tab):** matched-first list; filters (garment,
+   budget, deadline, distance). Each card: photo, garment tag, budget, location,
+   deadline, and how many offers already exist. Skeleton.
+2. **Request detail + Make an offer:** view the brief → **"I can make this"** →
+   price or range (or "discuss") + message + optionally attach a **sample from my
+   feed posts** → send. Enforce one-per-request + daily cap with clear messaging.
+3. **My offers list:** pending / accepted / declined. Skeleton.
+4. **Profile / onboarding:** pick **specialties** (garment chips) + **service
+   location**; set **request notifications** (which garments + distance to hear
+   about) — reuse `notification-preferences`.
+5. **Notifications:** a **digest** of new matching requests; an alert when picked.
+
+All strings via `t()` (en + fr); `i18n:check` green; skeletons on data lists.
+
+### H.8 Contracts (`packages/schemas`) + api-client
+
+- New: `request.ts` (`Request`, `RequestCreate/Update`, `RequestSummary`,
+  `RequestQuery`), `offer.ts` (`Offer`, `OfferCreate`), a shared
+  `garment-taxonomy` (keys + EN/FR labels). Extend `tailor-profile` (specialties,
+  service location) and `conversation` (origin `request`/`offer` + ids). Re-export
+  via index; **rebuild schemas + api-client**.
+- api-client resources: `requests`, `offers`, `garmentTaxonomy`, plus the
+  tailor-profile extensions; wire onto `api.*` / `api.consumer.*`.
+
+### H.9 Anti-spam / fairness config (all tunable; behind a feature flag)
+
+`MAX_REQUEST_FANOUT`, `MIN_MATCHES_BEFORE_WIDEN`, `MAX_OFFERS_PER_REQUEST`,
+`MAX_OPEN_REQUESTS_PER_CLIENT` (per tier), `REQUEST_POST_COOLDOWN`,
+`MAX_OFFERS_PER_TAILOR_PER_DAY` (per tier), `DEFAULT_REQUEST_TTL_DAYS`,
+verified-gate thresholds, and the progressive-trust tier thresholds. Ship behind a
+feature flag (B.9) so it can be rolled out city by city.
+
+### H.10 Build order (phased, with acceptance criteria)
+
+**H-P1 — Taxonomy + posting + browsing (no notifications yet).**
+Garment taxonomy (keys + EN/FR); tailor specialties on the profile; `requests`
+table + `POST /requests` + validation + public-bucket photo copy; tailor
+`GET /requests/open` with tag+location matching for *browsing*; client "My
+requests"; schemas + api-client (rebuild).
+✅ Done when: a client posts a valid request; tailors in the right area/garment can
+find and open it; a client sees their own requests.
+
+**H-P2 — Offers + compare + accept → conversation.**
+`offers` table (one-per-tailor) + caps; tailor make-offer screen; client
+request-detail compare view; `POST /offers/:id/accept` opening a conversation (D).
+✅ Done when: a tailor offers (with or without a price); the client compares offers
+and accepts one; a chat opens between them; other offers are marked declined.
+
+**H-P3 — Matching fan-out + notifications + expiry + trust caps.**
+`request_recipients` + fan-out ranking + `MAX_REQUEST_FANOUT` + auto-widen; digest
+notifications (reuse `notification-preferences`); expiry job; per-tier caps +
+cooldowns + progressive trust.
+✅ Done when: posting a location request notifies only a capped, well-matched set;
+tailors get a digest (not a flood); requests auto-expire; caps/cooldowns enforce.
+
+**H-P4 — AI auto-tag + payments + moderation + verified gates.**
+`suggest-garment-tags` prefill; accept → deposit (F); report/block on
+requests/offers; verified-phone/KYC gates for broad scopes.
+✅ Done when: a photo auto-suggests a tag; accepting can start a deposit; abusive
+requests/offers can be reported/blocked; country-scope posting requires verification.
+
+**H-P5 — Later.** Smarter ranking / "requests that match your style" (pgvector,
+3.7); reputation surfacing; analytics on fill rate + response time.
+
+### H.11 Watch-outs
+
+- **Liquidity / cold start:** launch **city by city**; seed tailors first. This
+  board actually *helps* new tailors (they can win work without a big portfolio) —
+  turning the empty-feed weakness into a strength.
+- **Off-platform leakage (WhatsApp):** keep in-app chat + payment genuinely useful;
+  accept some early leakage.
+- **Race to the bottom on price:** show work + trust in each offer, sort by fit,
+  keep budget optional — don't make it a lowest-bid auction.
+- **Ghosting:** expiry + standing handle it quietly.
+- **Photo rights + privacy:** same opt-in + moderation as the feed, from day one.
+- **Stay garment-focused** — not a generic gig board.
+- **Keep the soul:** a request always leads to a real conversation and commission
+  with a real, reachable tailor — the marketplace serves the relationship.
+
+---
+
 ## Quick implementation order cheat-sheet
 
 If you only read one section, read this one. The literal next 12 things to build, in order, once Phase 0 is done:

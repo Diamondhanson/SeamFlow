@@ -18,6 +18,7 @@ import { misc } from './locales/misc';
 import { discover } from './locales/discover';
 import { chat } from './locales/chat';
 import { notifications } from './locales/notifications';
+import { requests } from './locales/requests';
 
 export type LanguageCode = 'en' | 'fr';
 
@@ -39,6 +40,7 @@ export const translations = {
     discover: discover.en,
     chat: chat.en,
     notifications: notifications.en,
+    requests: requests.en,
   },
   fr: {
     common: common.fr,
@@ -52,6 +54,7 @@ export const translations = {
     discover: discover.fr,
     chat: chat.fr,
     notifications: notifications.fr,
+    requests: requests.fr,
   },
 } as const;
 

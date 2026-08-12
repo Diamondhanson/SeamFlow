@@ -16,6 +16,11 @@ export const qk = {
   feedPost: (id: string) => ['feed', id] as const,
   storefront: (tailorId: string) => ['storefront', tailorId] as const,
 
+  // ── Requests: "Can you make this?" (ROADMAP appendix H) ───────────────────
+  myRequests: () => ['requests', 'mine'] as const,
+  myRequest: (id: string) => ['requests', 'mine', id] as const,
+  requestOffers: (id: string) => ['requests', id, 'offers'] as const,
+
   // ── Chat ──────────────────────────────────────────────────────────────────
   conversations: () => ['conversations'] as const,
   conversation: (id: string) => ['conversations', id] as const,

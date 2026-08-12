@@ -213,6 +213,16 @@ export default function Home() {
       onPress: () => router.push('/(app)/fabrics'),
     },
     {
+      // The reverse of the feed: clients asking for work rather than tailors
+      // showing it. Sits above Design Studio because it is the one that can
+      // put money in front of a tailor who has published nothing.
+      label: t('requests.boardTitle'),
+      icon: 'megaphone',
+      tone: 'accent',
+      subtitle: t('requests.tileSubtitle'),
+      onPress: () => router.push('/(app)/requests'),
+    },
+    {
       label: t('home.designStudio'),
       icon: 'color-palette',
       tone: 'accent',
