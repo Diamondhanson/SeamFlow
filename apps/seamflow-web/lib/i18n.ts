@@ -922,7 +922,7 @@ export const SITE = {
 // Release asset (free, permanent, no repo weight) or a public Supabase Storage
 // bucket, which this project already runs.
 export const ANDROID_APK_URL =
-  'https://expo.dev/artifacts/eas/fuVQVpERqwnKkcmPUD4mSq8JD86YFWAzrPw4W2TDzWs.apk';
+  'https://expo.dev/artifacts/eas/pm9oy69u2sCuoYf3IKJLjb8718g6T_z3Mv1Z3Hb5A-E.apk';
 
 // The installable browser build of the tailor app (seamflow-app's web target,
 // `expo export --platform web`). Empty string → not deployed yet: the badge
