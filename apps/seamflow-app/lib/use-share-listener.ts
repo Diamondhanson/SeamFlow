@@ -31,11 +31,22 @@
 // happened, so this file no longer tries.
 // ============================================================================
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
-import { router } from 'expo-router';
+import { router, usePathname, useRootNavigationState } from 'expo-router';
 import { useShareIntent } from 'expo-share-intent';
 import { stashNativeShare, withDimensions } from './share-inbox';
+
+/** Where a share lands. Compared against the router's pathname. */
+const RECEIVE_ROUTE = '/(app)/share-receive';
+
+/**
+ * Give up after this many attempts rather than fight the router forever.
+ *
+ * Each attempt is triggered by the pathname actually changing, so this is a
+ * ceiling on "something else keeps navigating", not a busy loop.
+ */
+const MAX_ROUTE_ATTEMPTS = 5;
 
 /**
  * Watch for an incoming share and route to the receive screen.
@@ -69,6 +80,9 @@ export function useShareListener(): void {
   // which reset() guarantees, so a genuine second share always gets through.
   const routing = useRef(false);
 
+  /** Set once the images are stashed; cleared once the receive screen is up. */
+  const [wantsReceive, setWantsReceive] = useState(false);
+
   useEffect(() => {
     const files = shareIntent?.files ?? [];
     if (files.length === 0) {
@@ -86,13 +100,18 @@ export function useShareListener(): void {
           .filter((f) => !!f.path)
           .map((f) => withDimensions(f.path, f.width ?? null, f.height ?? null)),
       );
-      if (cancelled || images.length === 0) return;
+      if (cancelled || images.length === 0) {
+        routing.current = false;
+        return;
+      }
 
       stashNativeShare(images);
       // Clear before navigating: the receive screen holds the images now, and
       // leaving the intent in place would re-deliver it on the next foreground.
       resetShareIntent();
-      router.push('/(app)/share-receive');
+      // Ask to be routed. The navigation itself is handled below, because on a
+      // cold start it cannot simply be done here — see the note there.
+      setWantsReceive(true);
     })();
 
     return () => {
@@ -102,4 +121,42 @@ export function useShareListener(): void {
     // it would re-run this effect constantly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shareIntent]);
+
+  // -------------------------------------------------------------------------
+  // Getting to the receive screen, which on a cold start is a race we lose.
+  //
+  // Sharing from the gallery launches the app from scratch, and app/index.tsx
+  // then renders <Redirect href="/(app)" /> once the session resolves. A single
+  // router.push() fired from the effect above happens WHILE that redirect is
+  // still settling, so the redirect lands second and puts the tailor back on
+  // the home screen — the app opens, the photo is nowhere, which is exactly the
+  // symptom this whole fix set out to remove.
+  //
+  // So rather than push once and hope, this asks again whenever the route
+  // actually changes underneath it, and stops as soon as it has arrived.
+  // Whatever navigates last, the share wins — and because each attempt needs a
+  // real pathname change to trigger it, it cannot spin.
+  // -------------------------------------------------------------------------
+  const pathname = usePathname();
+  const navReady = !!useRootNavigationState()?.key;
+  const attempts = useRef(0);
+
+  useEffect(() => {
+    if (!wantsReceive || !navReady) return;
+
+    if (pathname.endsWith('share-receive')) {
+      setWantsReceive(false);
+      attempts.current = 0;
+      routing.current = false;
+      return;
+    }
+
+    if (attempts.current >= MAX_ROUTE_ATTEMPTS) {
+      setWantsReceive(false);
+      routing.current = false;
+      return;
+    }
+    attempts.current += 1;
+    router.push(RECEIVE_ROUTE);
+  }, [wantsReceive, navReady, pathname]);
 }
