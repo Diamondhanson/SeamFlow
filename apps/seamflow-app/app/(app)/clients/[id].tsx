@@ -221,7 +221,20 @@ export default function ClientDetail() {
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
-        <Text variant="h3">{t('clients.ordersCount', { count: orders.length })}</Text>
+        {/* Same shape as the measurements header above it. Starting an order
+            was previously only reachable from the home screen, which meant
+            looking a client up, memorising who they were, leaving, and finding
+            them again in the wizard's own picker. */}
+        <View style={styles.row}>
+          <Text variant="h3">{t('clients.ordersCount', { count: orders.length })}</Text>
+          <Button
+            label={t('clients.newOrder')}
+            variant="ghost"
+            size="sm"
+            fullWidth={false}
+            onPress={() => router.push(`/(app)/new-order?forClient=${id}`)}
+          />
+        </View>
         {orders.length === 0 ? (
           <Text variant="bodySm" tone="textMuted">{t('clients.noOrders')}</Text>
         ) : (

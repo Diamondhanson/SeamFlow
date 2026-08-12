@@ -430,6 +430,7 @@ export default function OrderDetailScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
+              style={styles.photoStripOuter}
               contentContainerStyle={styles.photoStrip}
             >
               {photos.map((p) => {
@@ -819,14 +820,19 @@ const styles = StyleSheet.create({
   },
   eventNote: { marginTop: 4, fontStyle: 'italic' },
   // Photos
+  // Both of these follow the "Add photo" button directly. Without the top
+  // margin the first thumbnail (or the empty panel) shares an edge with it and
+  // reads as part of the button.
   photoEmpty: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
+    marginTop: spacing.md,
     paddingVertical: spacing.xl,
     borderRadius: radii.md,
   },
+  photoStripOuter: { marginTop: spacing.md },
   editMeasBtn: {
     flexDirection: 'row',
     alignItems: 'center',

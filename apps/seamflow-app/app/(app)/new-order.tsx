@@ -157,9 +157,16 @@ export default function NewOrderWizard() {
 
   // "Duplicate / repeat order": ?duplicateFrom=<orderId> pre-fills the wizard
   // from an existing order (same client, garments, measurements, notes, fabric).
-  const { duplicateFrom } = useLocalSearchParams<{ duplicateFrom?: string }>();
+  //
+  // "?forClient=<clientId>" arrives from a client's own screen — the tailor has
+  // already said who this is for, so step 1 is answered and skipped.
+  const { duplicateFrom, forClient } = useLocalSearchParams<{
+    duplicateFrom?: string;
+    forClient?: string;
+  }>();
   const dupOrderQ = useOrder(duplicateFrom ?? '');
   const dupClientQ = useClient(dupOrderQ.data?.clientId ?? '');
+  const forClientQ = useClient(forClient ?? '');
   const seededRef = useRef(false);
 
   // Inline new-client form
@@ -218,12 +225,18 @@ export default function NewOrderWizard() {
   useUnsavedWarning(wizardHasContent(draft) && !submitting);
 
   const { clear: clearDraft } = useDraft<WizardDraft>({
-    key: draftKey('new-order', duplicateFrom ?? 'blank'),
+    // An order started for a specific client gets its own draft slot, so an
+    // interrupted order for Ada cannot come back offering itself while the
+    // tailor is starting one for Chidi.
+    key: draftKey('new-order', duplicateFrom ?? (forClient ? `client:${forClient}` : 'blank')),
     value: draft,
     hasContent: wizardHasContent,
     skipRestore: !!duplicateFrom,
     describe: (d) => d.pickedClient?.fullName ?? d.pickedContact?.fullName ?? (d.newClientName.trim() || null),
     onRestore: (d) => {
+      // Restoring answers the same question the ?forClient seed would, and it
+      // knows more. Claim the seed so the two cannot fight over the step.
+      seededRef.current = true;
       setStep(d.step);
       setPickedClient(d.pickedClient);
       setPickedContact(d.pickedContact);
@@ -328,6 +341,18 @@ export default function NewOrderWizard() {
     // Client is known — jump straight to reviewing the garments/measurements.
     setStep('measurements');
   }, [duplicateFrom, dupOrderQ.data, dupClientQ.data]);
+
+  // Same idea, one step smaller: started from a client's screen, so only the
+  // client is known. Guarded by the same seededRef so a restored draft or a
+  // duplicate seed never gets overwritten by this.
+  useEffect(() => {
+    if (!forClient || duplicateFrom || seededRef.current) return;
+    const client = forClientQ.data;
+    if (!client) return;
+    seededRef.current = true;
+    setPickedClient(client);
+    setStep('measurements');
+  }, [forClient, duplicateFrom, forClientQ.data]);
 
   // -------- Step 1: pick or create client --------
   /**

@@ -53,7 +53,7 @@ export const fabrics = {
     removeFabric: 'Remove fabric',
     noFabric: 'No fabric attached',
     pickerTitle: 'Choose a fabric',
-    pickerEmpty: 'No fabrics yet. Add one in the Fabrics library first.',
+    pickerEmpty: 'No fabrics yet. Add your first one above.',
   },
   fr: {
     // Tile + list
@@ -108,6 +108,6 @@ export const fabrics = {
     removeFabric: 'Retirer le tissu',
     noFabric: 'Aucun tissu associé',
     pickerTitle: 'Choisir un tissu',
-    pickerEmpty: 'Aucun tissu. Ajoutez-en un dans la bibliothèque Tissus d’abord.',
+    pickerEmpty: 'Aucun tissu. Ajoutez le premier ci-dessus.',
   },
 } as const;

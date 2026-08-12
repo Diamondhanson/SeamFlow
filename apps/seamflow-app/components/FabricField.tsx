@@ -7,15 +7,20 @@
 // The parent owns the selected id; this resolves display from useFabrics().
 // ============================================================================
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { formatCurrency } from '@seamflow/utils';
 import type { FabricResponse } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Button } from './Button';
 import { useFabrics, useMe } from '../lib/queries';
+import {
+  claimFabricHandoff,
+  releaseFabricHandoff,
+  takeFabric,
+} from '../lib/fabric-handoff';
 import { radii, spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
@@ -48,6 +53,27 @@ export function FabricField({
   const { data: me } = useMe();
   const currency = me?.tailor?.currency ?? null;
   const [open, setOpen] = useState(false);
+
+  // Identity for the handoff mailbox, so that when several pickers are alive at
+  // once only the one that sent the tailor to the form takes the result back.
+  const tokenRef = useRef<symbol>(Symbol('fabric-picker'));
+
+  const goCreateFabric = () => {
+    claimFabricHandoff(tokenRef.current);
+    setOpen(false);
+    router.push('/(app)/fabrics/new');
+  };
+
+  // Coming back from the create form: select what they just made. useFocusEffect
+  // rather than a mount effect — this screen was never unmounted, only covered.
+  useFocusEffect(
+    useCallback(() => {
+      const created = takeFabric(tokenRef.current);
+      if (created) onChange(created);
+    }, [onChange]),
+  );
+
+  useEffect(() => () => releaseFabricHandoff(tokenRef.current), []);
 
   const fabrics = data?.items ?? [];
   const selected = useMemo(
@@ -119,6 +145,19 @@ export function FabricField({
               </Pressable>
             </View>
 
+            {/* Above the list, not buried under it: the roll a tailor wants is
+                most often the one they just bought and never entered, and with
+                a long library they would have to scroll past everything they
+                don't want to reach the way out. */}
+            <View style={styles.newFabricRow}>
+              <Button
+                label={t('fabrics.newFabric')}
+                variant="secondary"
+                iconLeft={<Ionicons name="add" size={18} color={colors.text} />}
+                onPress={goCreateFabric}
+              />
+            </View>
+
             <FlatList
               data={fabrics}
               keyExtractor={(f) => f.id}
@@ -128,14 +167,6 @@ export function FabricField({
                   <Text variant="bodySm" tone="textMuted" style={styles.emptyText}>
                     {t('fabrics.pickerEmpty')}
                   </Text>
-                  <Button
-                    label={t('fabrics.newFabric')}
-                    variant="secondary"
-                    onPress={() => {
-                      setOpen(false);
-                      router.push('/(app)/fabrics/new');
-                    }}
-                  />
                 </View>
               }
               renderItem={({ item }) => (
@@ -205,6 +236,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
   },
+  newFabricRow: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   listContent: { paddingHorizontal: spacing.lg, gap: spacing.sm },
   row: {
     flexDirection: 'row',

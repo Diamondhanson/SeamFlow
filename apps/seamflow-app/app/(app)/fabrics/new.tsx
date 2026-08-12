@@ -4,6 +4,7 @@ import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { FabricForm } from '../../../components/FabricForm';
 import { useCreateFabric, useMe } from '../../../lib/queries';
+import { deliverFabric } from '../../../lib/fabric-handoff';
 import { spacing } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
@@ -28,7 +29,13 @@ export default function NewFabric() {
           submitting={create.isPending}
           onSubmit={(payload) =>
             create.mutate(payload, {
-              onSuccess: () => router.back(),
+              onSuccess: (fabric) => {
+                // If a fabric picker sent them here, hand the new fabric back
+                // so it arrives already attached to the order they were on.
+                // A no-op when they came from the Fabrics library instead.
+                deliverFabric(fabric.id);
+                router.back();
+              },
               onError: (err) => void dialog.error(err),
             })
           }
