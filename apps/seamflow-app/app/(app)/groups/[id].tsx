@@ -27,6 +27,10 @@ import { Input } from '../../../components/Input';
 import { FabricField } from '../../../components/FabricField';
 import { MeasurementSheet } from '../../../components/MeasurementSheet';
 import {
+  LibraryPickerSheet,
+  type LibrarySelection,
+} from '../../../components/LibraryPickerSheet';
+import {
   NO_PENDING,
   numericMeasurements,
   type PendingMeasurement,
@@ -78,6 +82,8 @@ export default function GroupDetail() {
   const [memberRole, setMemberRole] = useState('');
   const [memberClientId, setMemberClientId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [attaching, setAttaching] = useState(false);
 
   // The garment name is a free-text field on a screen that saves by PATCH, so
   // it is committed on blur rather than per keystroke — one request when they
@@ -124,6 +130,41 @@ export default function GroupDetail() {
       }
     } finally {
       setUploading(false);
+    }
+  };
+
+  /** Where should this shared reference image come from? */
+  const chooseSource = async () => {
+    const pick = await dialog.choose<'camera' | 'library' | 'designs' | 'works'>({
+      title: t('orders.addPhotoTitle'),
+      message: t('orders.addPhotoBody'),
+      actions: [
+        { label: t('orders.addFromCamera'), value: 'camera' },
+        { label: t('orders.addFromGallery'), value: 'library' },
+        { label: t('orders.addFromDesigns'), value: 'designs' },
+        { label: t('orders.addFromWorks'), value: 'works' },
+      ],
+    });
+    if (pick === 'camera' || pick === 'library') return addPhoto(pick);
+    if (pick) setLibraryOpen(true);
+  };
+
+  /** Copied server-side inside Storage — the phone sends ids, not megabytes. */
+  const attachFromLibrary = async (selection: LibrarySelection) => {
+    setAttaching(true);
+    try {
+      const added = await api.groupOrderPhotos.attachFromLibrary(id, selection);
+      qc.invalidateQueries({ queryKey: qk.groupPhotos(id) });
+      setLibraryOpen(false);
+      await dialog.alert({
+        title: t('orders.attachedTitle'),
+        message: t('orders.attachedBody', { count: added.length }),
+        tone: 'success',
+      });
+    } catch (err) {
+      if (!(await alertIfOffline(err, dialog, t))) await dialog.error(err);
+    } finally {
+      setAttaching(false);
     }
   };
 
@@ -318,25 +359,16 @@ export default function GroupDetail() {
           </View>
           {uploading ? <ActivityIndicator color={colors.accent} /> : null}
         </View>
-        <View style={styles.photoActions}>
-          <Button
-            label={t('orders.camera')}
-            variant="secondary"
-            fullWidth={false}
-            iconLeft={<Ionicons name="camera-outline" size={18} color={colors.text} />}
-            onPress={() => addPhoto('camera')}
-            disabled={uploading}
-          />
-          <View style={{ width: spacing.sm }} />
-          <Button
-            label={t('orders.gallery')}
-            variant="secondary"
-            fullWidth={false}
-            iconLeft={<Ionicons name="images-outline" size={18} color={colors.text} />}
-            onPress={() => addPhoto('library')}
-            disabled={uploading}
-          />
-        </View>
+        {/* Same one-button chooser as the order screen. A bridal party is
+            exactly where a tailor reaches for an inspiration photo they
+            already saved into Design Studio. */}
+        <Button
+          label={t('orders.addPhotoAction')}
+          variant="secondary"
+          iconLeft={<Ionicons name="add" size={18} color={colors.text} />}
+          onPress={chooseSource}
+          disabled={uploading}
+        />
         {photos.length === 0 ? (
           <View
             style={[
@@ -493,6 +525,13 @@ export default function GroupDetail() {
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
         <Button label={t('groups.deleteGroupOrder')} variant="danger" onPress={onDeleteGroup} />
       </FormScroll>
+    
+      <LibraryPickerSheet
+        visible={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onConfirm={attachFromLibrary}
+        busy={attaching}
+      />
     </Screen>
   );
 }

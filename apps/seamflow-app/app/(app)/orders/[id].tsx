@@ -42,6 +42,11 @@ import {
 } from '../../../lib/queries';
 import { useShareOrder } from '../../../lib/share-order';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
+import {
+  LibraryPickerSheet,
+  type LibrarySelection,
+} from '../../../components/LibraryPickerSheet';
+import { api } from '../../../lib/api';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
@@ -90,6 +95,8 @@ export default function OrderDetailScreen() {
   // `enabled` in useClient already short-circuits when the id is empty.
   const clientQ = useClient(orderQ.data?.clientId ?? '');
   const [uploading, setUploading] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [attaching, setAttaching] = useState(false);
   const colors = useThemeColors();
   const theme = useAtelierTheme();
   const dialog = useDialog();
@@ -125,6 +132,52 @@ export default function OrderDetailScreen() {
       { to },
       { onError: (err) => void dialog.error(err) },
     );
+
+  /**
+   * Where should this photo come from?
+   *
+   * The app already holds the tailor's Design Studio and My Designs images, so
+   * until now the only way to get one onto an order was to save it to the
+   * phone's gallery and re-pick it from there — the app handing you an image
+   * and asking you to fetch it back from outside.
+   */
+  const chooseSource = async () => {
+    const pick = await dialog.choose<'camera' | 'library' | 'designs' | 'works'>({
+      title: t('orders.addPhotoTitle'),
+      message: t('orders.addPhotoBody'),
+      actions: [
+        { label: t('orders.addFromCamera'), value: 'camera' },
+        { label: t('orders.addFromGallery'), value: 'library' },
+        { label: t('orders.addFromDesigns'), value: 'designs' },
+        { label: t('orders.addFromWorks'), value: 'works' },
+      ],
+    });
+    if (pick === 'camera' || pick === 'library') return addPhoto(pick);
+    if (pick) setLibraryOpen(true);
+  };
+
+  /**
+   * Attach images the tailor already has. Nothing is uploaded — the request
+   * carries ids and the server copies the objects inside Storage, so this
+   * costs a few bytes rather than a few megabytes on a bad connection.
+   */
+  const attachFromLibrary = async (selection: LibrarySelection) => {
+    setAttaching(true);
+    try {
+      const added = await api.orderPhotos.attachFromLibrary(id, selection);
+      qc.invalidateQueries({ queryKey: qk.orderPhotos(id) });
+      setLibraryOpen(false);
+      await dialog.alert({
+        title: t('orders.attachedTitle'),
+        message: t('orders.attachedBody', { count: added.length }),
+        tone: 'success',
+      });
+    } catch (err) {
+      if (!(await alertIfOffline(err, dialog, t))) await dialog.error(err);
+    } finally {
+      setAttaching(false);
+    }
+  };
 
   const addPhoto = async (source: 'camera' | 'library') => {
     if (!order) return;
@@ -352,28 +405,18 @@ export default function OrderDetailScreen() {
           title={t('orders.photosCount', { count: photos.length })}
           right={uploading ? <ActivityIndicator color={colors.accent} /> : undefined}
         >
-          <View style={styles.photoActions}>
-            {/* fullWidth={false} is load-bearing: the Button default is 100%
-                width, which made the camera button fill the row and push the
-                gallery button off-screen entirely. */}
-            <Button
-              label={t('orders.camera')}
-              variant="secondary"
-              fullWidth={false}
-              iconLeft={<Ionicons name="camera-outline" size={18} color={colors.text} />}
-              onPress={() => addPhoto('camera')}
-              disabled={uploading}
-            />
-            <View style={{ width: spacing.sm }} />
-            <Button
-              label={t('orders.gallery')}
-              variant="secondary"
-              fullWidth={false}
-              iconLeft={<Ionicons name="images-outline" size={18} color={colors.text} />}
-              onPress={() => addPhoto('library')}
-              disabled={uploading}
-            />
-          </View>
+          {/* One button, four sources. Two buttons already crowded this row —
+              hence the fullWidth={false} note that used to live here — and
+              four would not fit on a phone at all. The sheet also puts Design
+              Studio and My Designs on equal footing with the camera rather
+              than making them look bolted on. */}
+          <Button
+            label={t('orders.addPhotoAction')}
+            variant="secondary"
+            iconLeft={<Ionicons name="add" size={18} color={colors.text} />}
+            onPress={chooseSource}
+            disabled={uploading}
+          />
           {photos.length === 0 ? (
             <View
               style={[styles.photoEmpty, { backgroundColor: withAlpha(s.textMuted, 0.06) }]}
@@ -571,6 +614,13 @@ export default function OrderDetailScreen() {
           <Button label={t('orders.deleteOrder')} variant="danger" onPress={deleteOrder} />
         </View>
       </FormScroll>
+    
+      <LibraryPickerSheet
+        visible={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onConfirm={attachFromLibrary}
+        busy={attaching}
+      />
     </Screen>
   );
 }

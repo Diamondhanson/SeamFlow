@@ -14,6 +14,7 @@ import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { GroupOrderPhotosService } from './group-order-photos.service';
 import {
+  AttachGroupLibraryPhotosDto,
   CreateGroupOrderPhotoDto,
   UpdateGroupOrderPhotoDto,
 } from './group-order-photos.dto';
@@ -43,6 +44,17 @@ export class GroupOrderPhotosController {
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
     return this.photos.createForGroup(tailorId, user.id, groupOrderId, body);
+  }
+
+  /** Attach shared reference images from Design Studio / My Designs. */
+  @Post('group-orders/:groupOrderId/photos/from-library')
+  async attachFromLibrary(
+    @CurrentUser() user: AuthedUser,
+    @Param('groupOrderId', new ParseUUIDPipe()) groupOrderId: string,
+    @Body() body: AttachGroupLibraryPhotosDto,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.photos.attachFromLibrary(tailorId, user.id, groupOrderId, body);
   }
 
   @Get('group-order-photos/:id')

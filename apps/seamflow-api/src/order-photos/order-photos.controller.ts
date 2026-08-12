@@ -13,7 +13,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { OrderPhotosService } from './order-photos.service';
-import { CreateOrderPhotoDto, UpdateOrderPhotoDto } from './order-photos.dto';
+import {
+  AttachLibraryPhotosDto,
+  CreateOrderPhotoDto,
+  UpdateOrderPhotoDto,
+} from './order-photos.dto';
 
 @Controller()
 export class OrderPhotosController {
@@ -40,6 +44,23 @@ export class OrderPhotosController {
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
     return this.photos.createForOrder(tailorId, user.id, orderId, body);
+  }
+
+  /**
+   * Attach images the tailor already has — from Design Studio or My Designs.
+   *
+   * Separate from POST /photos because nothing is uploaded: the body carries
+   * ids, and the server copies the objects inside Storage. The phone sends a
+   * few bytes instead of a few megabytes.
+   */
+  @Post('orders/:orderId/photos/from-library')
+  async attachFromLibrary(
+    @CurrentUser() user: AuthedUser,
+    @Param('orderId', new ParseUUIDPipe()) orderId: string,
+    @Body() body: AttachLibraryPhotosDto,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.photos.attachFromLibrary(tailorId, user.id, orderId, body);
   }
 
   @Get('order-photos/:id')

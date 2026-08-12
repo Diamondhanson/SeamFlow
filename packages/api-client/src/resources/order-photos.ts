@@ -1,5 +1,6 @@
 import type { HttpClient } from '../http';
 import type {
+  AttachLibraryPhotosInput,
   OrderPhoto,
   OrderPhotoCreateInput,
   OrderPhotoUpdateInput,
@@ -13,6 +14,20 @@ export function makeOrderPhotosResource(http: HttpClient) {
   return {
     listForOrder(orderId: string): Promise<ListOrderPhotosResponse> {
       return http.get<ListOrderPhotosResponse>(`/orders/${orderId}/photos`);
+    },
+    /**
+     * Attach images the tailor already has, from Design Studio or My Designs.
+     *
+     * Sends ids, not files: the server copies the objects inside Storage, so
+     * nothing is re-downloaded or re-uploaded from the phone. The copy is a
+     * real copy — the original stays where it was, and the attached photo
+     * survives it being deleted later.
+     */
+    attachFromLibrary(
+      orderId: string,
+      input: AttachLibraryPhotosInput,
+    ): Promise<OrderPhoto[]> {
+      return http.post<OrderPhoto[]>(`/orders/${orderId}/photos/from-library`, input);
     },
     /**
      * Register a photo that was just uploaded to Supabase Storage directly

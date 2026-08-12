@@ -4,11 +4,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { desc, eq } from 'drizzle-orm';
+import { randomUUID } from 'node:crypto';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { groupOrderPhotos, groupOrders } from '../db/schema';
+import { designs, groupOrderPhotos, groupOrders, tailorWorks } from '../db/schema';
 import { SupabaseService } from '../supabase/supabase.service';
 import type {
+  AttachLibraryPhotosInput,
   GroupOrderPhotoCreateInput,
   GroupOrderPhotoUpdateInput,
   OrderPhotoRole,
@@ -23,6 +25,24 @@ export type GroupOrderPhotoWithUrl = GroupOrderPhotoRow & {
 // Group photos live in the SAME bucket as order photos, just under a
 // <tailorId>/groups/<groupId>/... path.
 const BUCKET = 'order-photos';
+const DESIGNS_BUCKET = 'designs';
+const WORKS_BUCKET = 'works';
+
+/** One image chosen from Design Studio or My Designs, ready to be copied. */
+interface LibrarySource {
+  bucket: string;
+  storagePath: string;
+  thumbnailPath: string | null;
+  contentType: string | null;
+  caption: string | null;
+  designId: string | null;
+  workId: string | null;
+}
+
+function extensionOf(path: string): string {
+  const ext = path.split('.').pop();
+  return ext && ext.length <= 5 ? ext : 'jpg';
+}
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour
 
 @Injectable()
@@ -182,5 +202,124 @@ export class GroupOrderPhotosService {
         `Thumb signed URL failed for ${row.thumbnailPath}: ${thumbRes.error.message}`,
       );
     return result;
+  }
+
+  /**
+   * Attach shared reference images from Design Studio / My Designs.
+   *
+   * Same contract as the order variant: a server-side COPY inside Storage, so
+   * the group order owns its own file and survives the original being deleted,
+   * and the phone sends ids rather than megabytes. A bridal party is exactly
+   * where a tailor reaches for an inspiration photo they already saved.
+   */
+  async attachFromLibrary(
+    tailorId: string,
+    actorUserId: string,
+    groupOrderId: string,
+    input: AttachLibraryPhotosInput,
+  ): Promise<GroupOrderPhotoWithUrl[]> {
+    await this.assertGroupOwned(tailorId, groupOrderId);
+
+    const sources: LibrarySource[] = [];
+
+    if (input.designIds.length) {
+      const rows = await this.dbService.db
+        .select()
+        .from(designs)
+        .where(and(eq(designs.tailorId, tailorId), inArray(designs.id, input.designIds)));
+      if (rows.length !== input.designIds.length) {
+        throw new NotFoundException('One or more designs were not found');
+      }
+      for (const d of rows) {
+        sources.push({
+          bucket: DESIGNS_BUCKET,
+          storagePath: d.storagePath,
+          thumbnailPath: d.thumbnailPath,
+          contentType: d.contentType,
+          caption: d.caption,
+          designId: d.id,
+          workId: null,
+        });
+      }
+    }
+
+    if (input.workIds.length) {
+      const rows = await this.dbService.db
+        .select()
+        .from(tailorWorks)
+        .where(and(eq(tailorWorks.tailorId, tailorId), inArray(tailorWorks.id, input.workIds)));
+      if (rows.length !== input.workIds.length) {
+        throw new NotFoundException('One or more works were not found');
+      }
+      for (const w of rows) {
+        sources.push({
+          bucket: w.storageBucket ?? WORKS_BUCKET,
+          storagePath: w.storagePath,
+          thumbnailPath: w.thumbnailPath,
+          contentType: null,
+          caption: w.title,
+          designId: null,
+          workId: w.id,
+        });
+      }
+    }
+
+    const created: GroupOrderPhotoRow[] = [];
+    for (const src of sources) {
+      const id = randomUUID();
+      // Same `<tailorId>/groups/<groupOrderId>/` convention the upload path
+      // uses, so the server's tailor-id prefix check still holds.
+      const folder = `${tailorId}/groups/${groupOrderId}`;
+      const destFull = `${folder}/${id}.${extensionOf(src.storagePath)}`;
+      const destThumb = src.thumbnailPath
+        ? `${folder}/${id}_thumb.${extensionOf(src.thumbnailPath)}`
+        : null;
+
+      if (!(await this.copyObject(src.bucket, src.storagePath, destFull))) continue;
+
+      let thumbPath: string | null = null;
+      if (src.thumbnailPath && destThumb) {
+        if (await this.copyObject(src.bucket, src.thumbnailPath, destThumb)) {
+          thumbPath = destThumb;
+        }
+      }
+
+      const [row] = await this.dbService.db
+        .insert(groupOrderPhotos)
+        .values({
+          groupOrderId,
+          storagePath: destFull,
+          thumbnailPath: thumbPath,
+          contentType: src.contentType,
+          role: (input.role ?? 'reference') as OrderPhotoRole,
+          caption: src.caption,
+          uploadedByUserId: actorUserId,
+          sourceDesignId: src.designId,
+          sourceWorkId: src.workId,
+        })
+        .returning();
+      if (row) created.push(row);
+    }
+
+    if (created.length === 0) {
+      throw new BadRequestException(
+        'Nothing was attached — the selected images could not be copied.',
+      );
+    }
+    return Promise.all(created.map((r) => this.attachSignedUrl(r)));
+  }
+
+  /** Server-side cross-bucket copy. False rather than throw: one bad image
+   *  must not sink an otherwise good multi-select. */
+  private async copyObject(fromBucket: string, from: string, to: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .admin()
+      .storage.from(fromBucket)
+      .copy(from, to, { destinationBucket: BUCKET });
+    if (error) {
+      this.logger.warn(`Copy ${fromBucket}/${from} → ${BUCKET}/${to} failed: ${error.message}`);
+      return false;
+    }
+    return true;
   }
 }

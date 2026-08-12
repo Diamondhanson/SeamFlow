@@ -14,6 +14,9 @@ export const GroupOrderPhotoSchema = z.object({
   role: OrderPhotoRoleSchema,
   caption: z.string().nullable(),
   uploadedByUserId: z.string().uuid().nullable(),
+  /** See OrderPhotoSchema — provenance only. */
+  sourceDesignId: z.string().uuid().nullable().optional(),
+  sourceWorkId: z.string().uuid().nullable().optional(),
   createdAt: z.string().datetime(),
   /** Short-lived signed URL for the full image — populated by API responses. */
   signedUrl: z.string().url().optional(),

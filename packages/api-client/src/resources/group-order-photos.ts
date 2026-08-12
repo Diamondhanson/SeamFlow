@@ -1,5 +1,6 @@
 import type { HttpClient } from '../http';
 import type {
+  AttachLibraryPhotosInput,
   GroupOrderPhoto,
   GroupOrderPhotoCreateInput,
   GroupOrderPhotoUpdateInput,
@@ -14,6 +15,23 @@ export function makeGroupOrderPhotosResource(http: HttpClient) {
     listForGroup(groupOrderId: string): Promise<ListGroupOrderPhotosResponse> {
       return http.get<ListGroupOrderPhotosResponse>(
         `/group-orders/${groupOrderId}/photos`,
+      );
+    },
+    /**
+     * Attach images the tailor already has, from Design Studio or My Designs.
+     *
+     * Sends ids, not files: the server copies the objects inside Storage, so
+     * nothing is re-downloaded or re-uploaded from the phone. The copy is a
+     * real copy — the original stays where it was, and the attached photo
+     * survives it being deleted later.
+     */
+    attachFromLibrary(
+      groupOrderId: string,
+      input: AttachLibraryPhotosInput,
+    ): Promise<GroupOrderPhoto[]> {
+      return http.post<GroupOrderPhoto[]>(
+        `/group-orders/${groupOrderId}/photos/from-library`,
+        input,
       );
     },
     /**

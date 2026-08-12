@@ -4,11 +4,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq } from 'drizzle-orm';
+import { randomUUID } from 'node:crypto';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { orderPhotos, orders } from '../db/schema';
+import { designs, orderPhotos, orders, tailorWorks } from '../db/schema';
 import { SupabaseService } from '../supabase/supabase.service';
 import type {
+  AttachLibraryPhotosInput,
   OrderPhotoCreateInput,
   OrderPhotoRole,
   OrderPhotoUpdateInput,
@@ -21,6 +23,25 @@ export type OrderPhotoWithUrl = OrderPhotoRow & {
 };
 
 const BUCKET = 'order-photos';
+const DESIGNS_BUCKET = 'designs';
+const WORKS_BUCKET = 'works';
+
+/** One image chosen from Design Studio or My Designs, ready to be copied. */
+interface LibrarySource {
+  bucket: string;
+  storagePath: string;
+  thumbnailPath: string | null;
+  contentType: string | null;
+  caption: string | null;
+  designId: string | null;
+  workId: string | null;
+}
+
+/** Keep the copy's extension so Storage serves the right content type. */
+function extensionOf(path: string): string {
+  const ext = path.split('.').pop();
+  return ext && ext.length <= 5 ? ext : 'jpg';
+}
 /** TTL for signed download URLs returned to clients. */
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1 hour
 
@@ -201,5 +222,156 @@ export class OrderPhotosService {
       );
     }
     return result;
+  }
+
+  // ==========================================================================
+  // Attaching from Design Studio / My Designs
+  // ==========================================================================
+
+  /**
+   * Copy images the tailor already has into an order.
+   *
+   * A COPY, deliberately, not a reference. An order is a record of a job that
+   * has to stay true months later, so a tailor tidying their Design Studio in
+   * October must not punch a hole in an order from August. The `source*Id`
+   * columns record where it came from and nothing depends on them.
+   *
+   * The copy happens INSIDE Storage, server-side, so the phone never
+   * re-downloads and re-uploads an image the platform already holds. That
+   * matters most in the exact moment this feature gets used: standing in front
+   * of a client on a bad connection.
+   */
+  async attachFromLibrary(
+    tailorId: string,
+    actorUserId: string,
+    orderId: string,
+    input: AttachLibraryPhotosInput,
+  ): Promise<OrderPhotoWithUrl[]> {
+    await this.assertOrderOwned(tailorId, orderId);
+
+    const sources = await this.resolveLibrarySources(tailorId, input);
+    const role = (input.role ?? 'reference') as OrderPhotoRole;
+
+    const created: OrderPhotoRow[] = [];
+    for (const src of sources) {
+      const id = randomUUID();
+      const ext = extensionOf(src.storagePath);
+      const destFull = `${tailorId}/${orderId}/${id}.${ext}`;
+      const destThumb = src.thumbnailPath
+        ? `${tailorId}/${orderId}/${id}_thumb.${extensionOf(src.thumbnailPath)}`
+        : null;
+
+      const copied = await this.copyObject(src.bucket, src.storagePath, destFull);
+      if (!copied) continue;
+
+      // A missing thumbnail is not worth failing the attach over — the full
+      // image is the thing being attached, and the list view falls back to it.
+      let thumbPath: string | null = null;
+      if (src.thumbnailPath && destThumb) {
+        const ok = await this.copyObject(src.bucket, src.thumbnailPath, destThumb);
+        if (ok) thumbPath = destThumb;
+      }
+
+      const [row] = await this.dbService.db
+        .insert(orderPhotos)
+        .values({
+          orderId,
+          storagePath: destFull,
+          thumbnailPath: thumbPath,
+          contentType: src.contentType,
+          role,
+          caption: src.caption,
+          uploadedByUserId: actorUserId,
+          sourceDesignId: src.designId,
+          sourceWorkId: src.workId,
+        })
+        .returning();
+      if (row) created.push(row);
+    }
+
+    if (created.length === 0) {
+      throw new BadRequestException(
+        'Nothing was attached — the selected images could not be copied.',
+      );
+    }
+    return Promise.all(created.map((r) => this.attachSignedUrl(r)));
+  }
+
+  /**
+   * Look up the chosen designs/works and confirm every one belongs to this
+   * tailor.
+   *
+   * Ownership is checked HERE rather than trusted from the request: the ids
+   * arrive from a client, and a copy endpoint that skipped this would let any
+   * signed-in tailor pull another tailor's designs into their own order.
+   */
+  private async resolveLibrarySources(
+    tailorId: string,
+    input: AttachLibraryPhotosInput,
+  ): Promise<LibrarySource[]> {
+    const out: LibrarySource[] = [];
+
+    if (input.designIds.length) {
+      const rows = await this.dbService.db
+        .select()
+        .from(designs)
+        .where(and(eq(designs.tailorId, tailorId), inArray(designs.id, input.designIds)));
+      if (rows.length !== input.designIds.length) {
+        throw new NotFoundException('One or more designs were not found');
+      }
+      for (const d of rows) {
+        out.push({
+          bucket: DESIGNS_BUCKET,
+          storagePath: d.storagePath,
+          thumbnailPath: d.thumbnailPath,
+          contentType: d.contentType,
+          caption: d.caption,
+          designId: d.id,
+          workId: null,
+        });
+      }
+    }
+
+    if (input.workIds.length) {
+      const rows = await this.dbService.db
+        .select()
+        .from(tailorWorks)
+        .where(and(eq(tailorWorks.tailorId, tailorId), inArray(tailorWorks.id, input.workIds)));
+      if (rows.length !== input.workIds.length) {
+        throw new NotFoundException('One or more works were not found');
+      }
+      for (const w of rows) {
+        out.push({
+          // Works record their own bucket: some predate the current layout.
+          bucket: w.storageBucket ?? WORKS_BUCKET,
+          storagePath: w.storagePath,
+          thumbnailPath: w.thumbnailPath,
+          contentType: null,
+          caption: w.title,
+          designId: null,
+          workId: w.id,
+        });
+      }
+    }
+
+    return out;
+  }
+
+  /**
+   * Server-side object copy, across buckets.
+   *
+   * Returns false rather than throwing so one unreadable image cannot sink an
+   * otherwise good multi-select — the caller drops it and attaches the rest.
+   */
+  private async copyObject(fromBucket: string, from: string, to: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .admin()
+      .storage.from(fromBucket)
+      .copy(from, to, { destinationBucket: BUCKET });
+    if (error) {
+      this.logger.warn(`Copy ${fromBucket}/${from} → ${BUCKET}/${to} failed: ${error.message}`);
+      return false;
+    }
+    return true;
   }
 }
