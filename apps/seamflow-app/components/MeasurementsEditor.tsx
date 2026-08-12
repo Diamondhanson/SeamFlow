@@ -55,25 +55,53 @@ export function numericMeasurements(values: Record<string, string>): Measurement
  * The chips underneath stay as an accelerator: one tap fills the attribute for
  * the measurements almost every order needs.
  */
+/** The half-typed row: an attribute named but not yet added to the list. */
+export type PendingMeasurement = { name: string; value: string };
+
+export const NO_PENDING: PendingMeasurement = { name: '', value: '' };
+
 export function MeasurementsEditor({
   values,
   setValues,
+  pending,
+  setPending,
 }: {
   values: Record<string, string>;
   setValues: (cb: (cur: Record<string, string>) => Record<string, string>) => void;
+  /**
+   * The draft row, lifted out of this component.
+   *
+   * It used to live in local state here, which quietly defeated the whole
+   * unsaved-work rescue: a tailor types "Chest" and "94.5", is interrupted
+   * before tapping "Add attribute", and that measurement is nowhere — not in
+   * `values`, so not in the saved draft either. The row a tailor is *currently
+   * typing* is the single most likely thing to be lost, so it has to live with
+   * the rest of the form.
+   *
+   * Optional, with internal state as the fallback, so a caller that has no
+   * draft to persist stays unchanged.
+   */
+  pending?: PendingMeasurement;
+  setPending?: (next: PendingMeasurement) => void;
 }) {
   const { t } = useTranslation();
   const colors = useThemeColors();
-  const [draftName, setDraftName] = useState('');
-  const [draftValue, setDraftValue] = useState('');
+  const [ownPending, setOwnPending] = useState<PendingMeasurement>(NO_PENDING);
+
+  const row = pending ?? ownPending;
+  const setRow = setPending ?? setOwnPending;
+  const draftName = row.name;
+  const draftValue = row.value;
+  const setDraftName = (name: string) => setRow({ ...row, name });
+  const setDraftValue = (value: string) => setRow({ ...row, value });
+
   const valueRef = useRef<TextInput>(null);
 
   const commit = () => {
     const key = draftName.trim();
     if (!key) return;
     setValues((cur) => ({ ...cur, [key]: draftValue.trim() }));
-    setDraftName('');
-    setDraftValue('');
+    setRow(NO_PENDING);
   };
 
   const remove = (key: string) =>

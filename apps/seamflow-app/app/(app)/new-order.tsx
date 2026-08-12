@@ -20,8 +20,12 @@ import { Card, CardLine, CardTitle } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { PhoneInput } from '../../components/PhoneInput';
-import { MeasurementsEditor, numericMeasurements } from '../../components/MeasurementsEditor';
-import { MeasurementValueInput } from '../../components/MeasurementValueInput';
+import {
+  NO_PENDING,
+  numericMeasurements,
+  type PendingMeasurement,
+} from '../../components/MeasurementsEditor';
+import { MeasurementSheet } from '../../components/MeasurementSheet';
 import { parseDecimal } from '../../lib/numeric';
 import { DateField } from '../../components/DateField';
 import { ContactPickerModal } from '../../components/ContactPickerModal';
@@ -34,6 +38,7 @@ import { useDialog } from '../../lib/dialog';
 import { useGuides } from '../../lib/guides';
 import { useTranslation } from '../../lib/i18n';
 import { canPickContacts } from '../../lib/platform-capabilities';
+import { draftKey, useDraft, useUnsavedWarning } from '../../lib/drafts';
 import { QUICK_MEASUREMENT_KEYS } from '../../lib/measurements';
 
 /** A person chosen for the order who isn't a saved client yet (picked from
@@ -51,10 +56,75 @@ type GarmentDraft = {
   garmentType: string;
   values: Record<string, string>;
   quantity: string;
+  /** The attribute/value row being typed but not yet added. Carried here so it
+   *  is covered by the draft — it is the most likely thing to be lost. */
+  pending: PendingMeasurement;
   /** Label of the saved measurement set the values were pre-filled from —
    *  display-only, drives the "loaded from saved" note. */
   prefilledFrom?: string;
 };
+
+/**
+ * Everything in this wizard that a tailor typed, in a shape that survives
+ * JSON. Only their input is kept — the client list, template list and search
+ * box are all refetched, and storing them would age badly.
+ *
+ * `orderDate` is an ISO string rather than a Date: JSON.stringify turns a Date
+ * into a string on the way out and hands back a string on the way in, so
+ * pretending otherwise would put a broken `Date` into state on restore.
+ */
+type WizardDraft = {
+  step: Step;
+  pickedClient: Client | null;
+  pickedContact: PickedContact | null;
+  showNewClientForm: boolean;
+  newClientName: string;
+  newClientPhone: string;
+  newClientAddress: string;
+  garments: GarmentDraft[];
+  orderName: string;
+  orderNotes: string;
+  orderDate: string | null;
+  fabricId: string | null;
+  fabricYardage: string;
+};
+
+/**
+ * Has the tailor actually done anything yet?
+ *
+ * The wizard boots with one blank garment and an empty form, and offering to
+ * restore THAT is worse than offering nothing — it claims work was rescued
+ * when there was none. So: a person chosen, a garment described or measured,
+ * or any order detail filled in.
+ */
+function wizardHasContent(d: WizardDraft): boolean {
+  if (d.pickedClient || d.pickedContact) return true;
+  if (d.newClientName.trim() || d.newClientPhone.trim() || d.newClientAddress.trim()) return true;
+  if (d.orderName.trim() || d.orderNotes.trim() || d.orderDate || d.fabricId || d.fabricYardage.trim()) {
+    return true;
+  }
+  return d.garments.some(
+    (g) =>
+      g.garmentType.trim() ||
+      g.template ||
+      Object.values(g.values).some((v) => v.trim()) ||
+      g.pending?.name.trim() ||
+      g.pending?.value.trim(),
+  );
+}
+
+/**
+ * A garment's measurements including the row still in the draft inputs.
+ *
+ * The editor only moves a row into `values` when "Add attribute" is pressed.
+ * At save time that distinction is invisible to the tailor and irrelevant to
+ * the order, so anything they typed counts.
+ */
+function withPending(g: GarmentDraft): Record<string, string> {
+  const name = g.pending?.name.trim();
+  if (!name) return g.values;
+  return { ...g.values, [name]: g.pending.value.trim() };
+}
 
 let garmentSeq = 0;
 const makeGarment = (): GarmentDraft => ({
@@ -63,6 +133,7 @@ const makeGarment = (): GarmentDraft => ({
   garmentType: '',
   values: {},
   quantity: '1',
+  pending: NO_PENDING,
 });
 
 export default function NewOrderWizard() {
@@ -113,6 +184,69 @@ export default function NewOrderWizard() {
 
   const [submitting, setSubmitting] = useState(false);
   const [tidyOpen, setTidyOpen] = useState(false);
+
+  // ---- Unsaved-work rescue -------------------------------------------------
+  //
+  // This is the screen that lost a real tailor a real client's measurements:
+  // she took them, was interrupted before pressing Save, and closed the app.
+  // Everything below lives in memory until submitAll() succeeds, so the fix is
+  // to mirror it onto the device on every keystroke. See lib/drafts.ts.
+  //
+  // A duplicated order gets its own draft key so an interrupted "repeat this
+  // order" cannot come back offering itself in a blank new order — and its
+  // restore prompt is suppressed, because the seeding effect below would fight
+  // a restored draft for the same state.
+  const draft: WizardDraft = {
+    step,
+    pickedClient,
+    pickedContact,
+    showNewClientForm,
+    newClientName,
+    newClientPhone,
+    newClientAddress,
+    garments,
+    orderName,
+    orderNotes,
+    orderDate: orderDate ? orderDate.toISOString() : null,
+    fabricId,
+    fabricYardage,
+  };
+
+  // Laptop courtesy only — see useUnsavedWarning. The phone is covered by the
+  // per-keystroke saving above, which is the protection that actually matters.
+  useUnsavedWarning(wizardHasContent(draft) && !submitting);
+
+  const { clear: clearDraft } = useDraft<WizardDraft>({
+    key: draftKey('new-order', duplicateFrom ?? 'blank'),
+    value: draft,
+    hasContent: wizardHasContent,
+    skipRestore: !!duplicateFrom,
+    describe: (d) => d.pickedClient?.fullName ?? d.pickedContact?.fullName ?? (d.newClientName.trim() || null),
+    onRestore: (d) => {
+      setStep(d.step);
+      setPickedClient(d.pickedClient);
+      setPickedContact(d.pickedContact);
+      setShowNewClientForm(d.showNewClientForm);
+      setNewClientName(d.newClientName);
+      setNewClientPhone(d.newClientPhone);
+      setNewClientAddress(d.newClientAddress);
+      // Keep the id counter ahead of the restored garments so a garment added
+      // after restoring cannot collide with one that came back from storage.
+      for (const g of d.garments) {
+        const n = Number(g.id.replace(/^g/, ''));
+        if (Number.isFinite(n) && n >= garmentSeq) garmentSeq = n + 1;
+      }
+      // `pending` was added after the first drafts were written; a draft from
+      // before then has no such field and would crash the editor.
+      const restored = d.garments.map((g) => ({ ...g, pending: g.pending ?? NO_PENDING }));
+      setGarments(restored.length ? restored : [makeGarment()]);
+      setOrderName(d.orderName);
+      setOrderNotes(d.orderNotes);
+      setOrderDate(d.orderDate ? new Date(d.orderDate) : null);
+      setFabricId(d.fabricId);
+      setFabricYardage(d.fabricYardage);
+    },
+  });
 
   const loadClients = useCallback(async (q: string) => {
     try {
@@ -370,7 +504,11 @@ export default function NewOrderWizard() {
     try {
       // Build one order item per garment.
       const items = garments.map((g) => {
-        const measurements = numericMeasurements(g.values);
+        // Include the row still sitting in the draft inputs. A tailor who typed
+        // "Chest 94.5" and pressed Save without first pressing "Add attribute"
+        // means that measurement; silently dropping it is the same lost-work
+        // complaint in a smaller costume.
+        const measurements = numericMeasurements(withPending(g));
         const qty = Math.floor(Number(g.quantity));
         return {
           garmentType: g.garmentType.trim() || 'garment',
@@ -382,7 +520,7 @@ export default function NewOrderWizard() {
       // Save each garment's measurements against the existing client for reuse.
       if (pickedClient) {
         for (const g of garments) {
-          const measurements = numericMeasurements(g.values);
+          const measurements = numericMeasurements(withPending(g));
           if (Object.keys(measurements).length) {
             await api.measurementSets.createForClient(pickedClient.id, {
               label: g.template?.name ?? g.garmentType.trim() ?? 'default',
@@ -410,7 +548,7 @@ export default function NewOrderWizard() {
       // garment's measurements against the new client id.
       if (!pickedClient) {
         for (const g of garments) {
-          const measurements = numericMeasurements(g.values);
+          const measurements = numericMeasurements(withPending(g));
           if (Object.keys(measurements).length) {
             await api.measurementSets.createForClient(created.clientId, {
               label: g.template?.name ?? g.garmentType.trim() ?? 'default',
@@ -431,6 +569,9 @@ export default function NewOrderWizard() {
           tone: 'success',
         });
       }
+
+      // Safely on the server now — the local copy has done its job.
+      clearDraft();
 
       router.replace(`/(app)/orders/${created.id}`);
     } catch (err) {
@@ -618,31 +759,16 @@ export default function NewOrderWizard() {
                 </Text>
               ) : null}
 
-              {g.template && g.template.fields.length > 0 ? (
-                <>
-                  <Text variant="bodySm" tone="textMuted" style={styles.section}>
-                    {t('orders.measurementsCm')}
-                  </Text>
-                  {g.template.fields.map((f) => (
-                    <MeasurementValueInput
-                      key={f.key}
-                      // No asterisk: nothing here is required any more, and a
-                      // marker that doesn't gate anything just misleads.
-                      label={f.label}
-                      value={g.values[f.key] ?? ''}
-                      onChangeText={(v) => setGarmentField(g.id, f.key, v)}
-                      placeholder={t('orders.measurementPlaceholder')}
-                    />
-                  ))}
-                </>
-              ) : null}
-
-              {!g.template ? (
-                <MeasurementsEditor
-                  values={g.values}
-                  setValues={(cb) => updateGarment(g.id, { values: cb(g.values) })}
-                />
-              ) : null}
+              {/* Template fields or the free-form editor — the choice lives in
+                  <MeasurementSheet> so the group-order screen makes it the
+                  same way. Two editors for one concept is how they drift. */}
+              <MeasurementSheet
+                template={g.template}
+                values={g.values}
+                setValues={(cb) => updateGarment(g.id, { values: cb(g.values) })}
+                pending={g.pending}
+                setPending={(pending) => updateGarment(g.id, { pending })}
+              />
 
               <Input
                 label={t('orders.quantityLabel')}

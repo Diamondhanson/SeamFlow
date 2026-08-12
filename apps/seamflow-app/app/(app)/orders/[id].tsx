@@ -47,6 +47,8 @@ import { useDialog } from '../../../lib/dialog';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useTranslation } from '../../../lib/i18n';
+import { draftKey, useDraft } from '../../../lib/drafts';
+import { NO_PENDING, type PendingMeasurement } from '../../../components/MeasurementsEditor';
 
 const STATUS_TONE: Record<OrderStatus, ChipTone> = {
   registered: 'statusRegistered',
@@ -621,25 +623,68 @@ function ItemMeasurementsEditor({
   const { t } = useTranslation();
   const dialog = useDialog();
   const updateItem = useUpdateOrderItem(orderId);
-  const [draft, setDraft] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      Object.entries(item.measurements ?? {}).map(([k, v]) => [k, String(v ?? '')]),
-    ),
+
+  const saved = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(item.measurements ?? {}).map(([k, v]) => [k, String(v ?? '')]),
+      ),
+    [item.measurements],
   );
+  const [draft, setDraft] = useState<Record<string, string>>(saved);
+  // The attribute/value row still being typed. Kept beside the committed
+  // values so the draft covers it too — see MeasurementsEditor.
+  const [pending, setPending] = useState<PendingMeasurement>(NO_PENDING);
+
+  // Corrections happen mid-fitting with the client standing there, so the
+  // device keeps a copy of every keystroke even though the SERVER is only
+  // written on Save. Losing a correction to a backgrounded app is the same
+  // injury as losing a fresh measurement.
+  //
+  // "Content" here means "differs from what is already on the order" — an
+  // untouched copy of the saved values is not unsaved work, and offering to
+  // restore one would be noise on every edit.
+  const { clear: clearDraft } = useDraft({
+    key: draftKey('order-item', orderId, item.id),
+    value: { draft, pending },
+    hasContent: (d) =>
+      JSON.stringify(d.draft) !== JSON.stringify(saved) ||
+      !!d.pending?.name.trim() ||
+      !!d.pending?.value.trim(),
+    onRestore: (d) => {
+      setDraft(d.draft);
+      setPending(d.pending ?? NO_PENDING);
+    },
+  });
 
   const save = () => {
     // Same rule the new-order flow uses: blanks and non-positive values are
     // dropped rather than sent, because the wire format is positive numbers.
-    const cleaned = numericMeasurements(draft);
+    // Include the row still in the inputs — pressing Save is intent enough.
+    const name = pending.name.trim();
+    const cleaned = numericMeasurements(
+      name ? { ...draft, [name]: pending.value.trim() } : draft,
+    );
     updateItem.mutate(
       { id: item.id, input: { measurements: cleaned } },
-      { onSuccess: onDone, onError: (err) => void dialog.error(err) },
+      {
+        onSuccess: () => {
+          clearDraft();
+          onDone();
+        },
+        onError: (err) => void dialog.error(err),
+      },
     );
   };
 
   return (
     <View style={{ marginTop: spacing.sm }}>
-      <MeasurementsEditor values={draft} setValues={(cb) => setDraft((cur) => cb(cur))} />
+      <MeasurementsEditor
+        values={draft}
+        setValues={(cb) => setDraft((cur) => cb(cur))}
+        pending={pending}
+        setPending={setPending}
+      />
       <View style={styles.itemEditActions}>
         <View style={styles.itemEditAction}>
           <Button label={t('common.save')} onPress={save} loading={updateItem.isPending} />

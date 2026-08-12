@@ -28,6 +28,11 @@ import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useContactActions } from '../../../lib/contact-actions';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { draftKey, useDraft } from '../../../lib/drafts';
+
+/** Starting contents of the manual measurement-set box. Also the yardstick for
+ *  "has this been touched?" — see the draft wiring below. */
+const BLANK_VALUES_JSON = '{\n  "chest": 88,\n  "waist": 70,\n  "hips": 96\n}';
 
 export default function ClientDetail() {
   const { t } = useTranslation();
@@ -44,9 +49,28 @@ export default function ClientDetail() {
   // Inline new-measurement-set form
   const [showForm, setShowForm] = useState(false);
   const [label, setLabel] = useState('default');
-  const [valuesJson, setValuesJson] = useState(
-    '{\n  "chest": 88,\n  "waist": 70,\n  "hips": 96\n}',
-  );
+  const [valuesJson, setValuesJson] = useState(BLANK_VALUES_JSON);
+
+  // Keep this form on the device as it is typed. It is the third place a
+  // tailor can enter measurements, and it loses them the same way the order
+  // wizard did: everything sits in state until the button is pressed.
+  //
+  // Untouched starting values are not "work" — only an edited label or edited
+  // JSON counts, or every visit would open with a pointless restore prompt.
+  const { clear: clearDraft } = useDraft({
+    key: draftKey('client-set', id),
+    value: { label, valuesJson },
+    hasContent: (d) => d.label !== 'default' || d.valuesJson !== BLANK_VALUES_JSON,
+    // The client's name comes from the screen, not the draft — the draft holds
+    // only the measurement box, and the URL already fixes whose it is.
+    describe: () => clientQ.data?.fullName ?? null,
+    onRestore: (d) => {
+      setLabel(d.label);
+      setValuesJson(d.valuesJson);
+      // Restoring is pointless if the form they were typing into is closed.
+      setShowForm(true);
+    },
+  });
   // Scan-a-filled-sheet flow (photo → reviewed measurement set)
   const [scanOpen, setScanOpen] = useState(false);
   const { data: me } = useMe();
@@ -88,6 +112,8 @@ export default function ClientDetail() {
         onSuccess: () => {
           setShowForm(false);
           setLabel('default');
+          setValuesJson(BLANK_VALUES_JSON);
+          clearDraft();
         },
         onError: (err) => void dialog.error(err),
       },
