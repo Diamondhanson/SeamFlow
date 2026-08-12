@@ -914,7 +914,7 @@ export const SITE = {
 // sheet, the notification inbox + bell and the discovery feed.
 //
 // WARNING: EAS free-tier artifacts are retained ~30 days, so this link dies
-// around 2026-09-10 and the download button will fail silently.
+// around 2026-09-11 and the download button will fail silently.
 //
 // The permanent fix is NOT to drop the .apk in public/ — it is 102 MB, and a
 // binary that size in git bloats every clone forever and pushes the Vercel
@@ -922,7 +922,7 @@ export const SITE = {
 // Release asset (free, permanent, no repo weight) or a public Supabase Storage
 // bucket, which this project already runs.
 export const ANDROID_APK_URL =
-  'https://expo.dev/artifacts/eas/pPr0FEhiU3_MBn7iUCOTVdoTMbwGvdaiDkfrD6th_lM.apk';
+  'https://expo.dev/artifacts/eas/lnOHZ2aICt31vZAlwPdXAy7jrxhFjVC2QxqhEM1HR50.apk';
 
 // The installable browser build of the tailor app (seamflow-app's web target,
 // `expo export --platform web`). Empty string → not deployed yet: the badge
