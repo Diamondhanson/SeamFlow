@@ -24,7 +24,9 @@ type LegacyVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
 interface Props {
   label: string;
-  onPress: () => void;
+  /** May be async. If it returns a promise the button blocks repeat presses
+   *  and shows a spinner until it settles — see the Atelier <Button>. */
+  onPress: () => void | Promise<unknown>;
   variant?: LegacyVariant;
   size?: ButtonSize;
   /** Stretch to fill parent width. Defaults to true (form buttons). Set false

@@ -16,11 +16,23 @@
 // reanimated isn't available we fall back to a plain Pressable — handy for
 // the web build later (just CSS :active scale).
 //
+// Double-submit is handled HERE, not in each caller.
+//   A tailor on a slow connection taps "Create", sees nothing happen, and taps
+//   again — four, eight times. Every one of those taps used to fire its own
+//   POST. We shipped real duplicate clients that way.
+//   The old contract asked every screen to remember `loading={mutation.isPending}`,
+//   and a contract you have to remember at ~60 call sites is one you will lose.
+//   So: if onPress returns a promise, the button holds itself busy until that
+//   promise settles — presses in between are dropped — and shows the spinner
+//   on its own unless the caller is already driving `loading` explicitly.
+//   Synchronous handlers (steppers, toggles, navigation) return undefined and
+//   are completely unaffected.
+//
 // Web rendering note: <button class="atelier-btn atelier-btn-primary"> +
 // Tailwind preset that emits the same paddings, radii, colors.
 // ============================================================================
 
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -34,6 +46,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { Text } from './Text';
+import { createPressGuard, type PressGuard } from './pressGuard';
 import { useAtelierTheme } from '../theme/ThemeProvider';
 import { press as motionPress } from '../tokens/motion';
 
@@ -55,6 +68,12 @@ export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> 
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+/** How long a press is held after firing an async-operation button, to cover
+ *  the render gap before the caller's own `loading` flag arrives. Long enough
+ *  to swallow an impatient double-tap, short enough that a deliberate retry
+ *  after a fast failure still feels immediate. */
+const PRESS_LOCK_MS = 600;
+
 const HEIGHTS: Record<ButtonSize, number> = { sm: 36, md: 44, lg: 52 };
 const PADDINGS_X: Record<ButtonSize, number> = { sm: 12, md: 16, lg: 20 };
 
@@ -68,6 +87,7 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
     iconLeft,
     iconRight,
     fullWidth = true,
+    onPress,
     onPressIn,
     onPressOut,
     ...rest
@@ -76,6 +96,47 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
 ) {
   const theme = useAtelierTheme();
   const scale = useSharedValue(1);
+
+  const mountedRef = useRef(true);
+  const [selfBusy, setSelfBusy] = useState(false);
+
+  // Whether the caller has declared this an async-operation button. Passing the
+  // prop at all — even as `false` — is the declaration; steppers, chips and
+  // navigation buttons never pass it and stay fully rapid-tappable.
+  const isAsyncButton = loading !== undefined;
+
+  // A ref, not state: the second tap of a double-tap can land before React has
+  // re-rendered, and only a ref is already updated by then.
+  const guardRef = useRef<PressGuard | null>(null);
+  if (guardRef.current === null) {
+    guardRef.current = createPressGuard({
+      lock: isAsyncButton,
+      lockMs: PRESS_LOCK_MS,
+      now: Date.now,
+    });
+  }
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const handlePress = useCallback<NonNullable<PressableProps['onPress']>>(
+    (e) => {
+      const guard = guardRef.current!;
+      if (!guard.shouldRun()) return;
+
+      const result = onPress?.(e) as unknown;
+      if (!isPromise(result)) return;
+
+      guard.hold(result, (busy) => {
+        if (busy || mountedRef.current) setSelfBusy(busy);
+      });
+    },
+    [onPress],
+  );
 
   const palette = useMemo(() => paletteFor(theme.colors, variant), [theme, variant]);
 
@@ -92,7 +153,11 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
     onPressOut?.(e);
   };
 
-  const isDisabled = disabled || loading;
+  // `loading === undefined` means the caller is not driving the busy state, so
+  // we drive it. If they passed it (even `false`), we defer to them for the
+  // spinner and keep our guard purely as the press-blocker underneath.
+  const showSpinner = loading ?? selfBusy;
+  const isDisabled = disabled || showSpinner;
 
   return (
     <Animated.View
@@ -104,6 +169,7 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
       <AnimatedPressable
         ref={ref}
         disabled={isDisabled}
+        onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         style={[
@@ -118,10 +184,10 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
           },
         ]}
         accessibilityRole="button"
-        accessibilityState={{ disabled: isDisabled, busy: !!loading }}
+        accessibilityState={{ disabled: isDisabled, busy: showSpinner }}
         {...rest}
       >
-        {loading ? (
+        {showSpinner ? (
           <ActivityIndicator color={palette.label} />
         ) : (
           <>
@@ -136,6 +202,10 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
     </Animated.View>
   );
 });
+
+function isPromise(v: unknown): v is Promise<unknown> {
+  return typeof (v as { then?: unknown } | null | undefined)?.then === 'function';
+}
 
 interface ButtonPalette {
   bg: string;

@@ -12,7 +12,25 @@ export interface HttpConfig {
   getJwt?: JwtProvider;
   /** Optional fetch override (for tests). */
   fetch?: typeof fetch;
+  /** Milliseconds before a request is abandoned. See DEFAULT_TIMEOUT_MS. */
+  timeoutMs?: number;
 }
+
+/**
+ * How long to wait before giving up on a request.
+ *
+ * There was no timeout at all, and the cost of that was not theoretical: the
+ * API sleeps on its current hosting tier and takes ~30-60s to wake, so a
+ * tailor pressing "Create + continue" got a screen that did nothing, with no
+ * spinner, no error, and no end. They pressed it again. Eight identical
+ * clients landed in the database inside one second.
+ *
+ * 45s is chosen to sit just past a cold start rather than under it — a
+ * timeout that fires while the server is legitimately waking would turn a slow
+ * success into a false failure, which is worse. Past that, something is wrong
+ * and saying so beats waiting forever.
+ */
+const DEFAULT_TIMEOUT_MS = 45_000;
 
 async function resolveJwt(getter: JwtProvider): Promise<string | null> {
   if (!getter) return null;
@@ -39,10 +57,12 @@ export class HttpClient {
   private readonly baseUrl: string;
   private readonly getJwt: JwtProvider;
   private readonly fetchFn: typeof fetch;
+  private readonly timeoutMs: number;
 
   constructor(config: HttpConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.getJwt = config.getJwt;
+    this.timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     // `.bind(globalThis)` is load-bearing on web. Browsers require fetch to be
     // invoked with `this === window`; storing it on an instance and calling
     // `this.fetchFn(...)` passes the Http instance instead, and every request
@@ -70,11 +90,36 @@ export class HttpClient {
     if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
 
     const url = `${this.baseUrl}${path}${buildQuery(opts.query)}`;
-    const res = await this.fetchFn(url, {
-      method,
-      headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-    });
+
+    // AbortController rather than Promise.race: racing leaves the request
+    // running in the background, so a "timed out" write can still land on the
+    // server minutes later with nothing watching for it.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    let res: Response;
+    try {
+      res = await this.fetchFn(url, {
+        method,
+        headers,
+        body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+        signal: controller.signal,
+      });
+    } catch (err) {
+      // A raw AbortError says nothing a tailor can act on. 0 rather than an
+      // HTTP status because none was ever received.
+      if ((err as Error)?.name === 'AbortError') {
+        throw new ApiError(
+          0,
+          `The server did not answer in ${Math.max(1, Math.round(this.timeoutMs / 1000))} seconds. ` +
+            'Check your connection and try again.',
+          null,
+        );
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
 
     // 204 No Content
     if (res.status === 204) return undefined as T;

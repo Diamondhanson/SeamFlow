@@ -183,6 +183,7 @@ export default function NewOrderWizard() {
   const [fabricYardage, setFabricYardage] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
+  const [creatingClient, setCreatingClient] = useState(false);
   const [tidyOpen, setTidyOpen] = useState(false);
 
   // ---- Unsaved-work rescue -------------------------------------------------
@@ -329,8 +330,26 @@ export default function NewOrderWizard() {
   }, [duplicateFrom, dupOrderQ.data, dupClientQ.data]);
 
   // -------- Step 1: pick or create client --------
+  /**
+   * Create a client from the inline form and move on.
+   *
+   * THE IN-FLIGHT GUARD IS NOT OPTIONAL. This button had no pending state, so
+   * on a slow request it looked completely dead — and a tailor pressing it
+   * again did not retry, it created another client. It happened in real use:
+   * eight identical rows landed in the database inside one second, and the
+   * screen never moved.
+   *
+   * The ref, not the state, is what makes it correct. Two taps in the same
+   * frame both read the old `creatingClient` before React re-renders; a ref
+   * flips synchronously, so the second tap is refused. The state exists only
+   * to drive the spinner.
+   */
+  const creatingRef = useRef(false);
   const createClientInline = async () => {
     if (!newClientName || !newClientPhone || !newClientAddress) return;
+    if (creatingRef.current) return;
+    creatingRef.current = true;
+    setCreatingClient(true);
     try {
       const c = await api.clients.create({
         fullName: newClientName.trim(),
@@ -343,6 +362,9 @@ export default function NewOrderWizard() {
       setStep('measurements');
     } catch (err) {
       void dialog.error(err);
+    } finally {
+      creatingRef.current = false;
+      setCreatingClient(false);
     }
   };
 
@@ -652,6 +674,7 @@ export default function NewOrderWizard() {
               <Button
                 label={t('orders.createAndContinue')}
                 onPress={createClientInline}
+                loading={creatingClient}
                 disabled={!newClientName || !newClientPhone || !newClientAddress}
               />
               <View style={{ height: spacing.sm }} />
