@@ -20,7 +20,12 @@ import { z } from 'zod';
 //     returning the original rather than posting twice.
 // ============================================================================
 
-export const ConversationOriginSchema = z.enum(['inquiry', 'order']);
+export const ConversationOriginSchema = z.enum([
+  'inquiry',
+  'order',
+  /** A client's request that this tailor's offer won (ROADMAP appendix H). */
+  'request',
+]);
 export type ConversationOrigin = z.infer<typeof ConversationOriginSchema>;
 
 export const MessageSenderTypeSchema = z.enum(['client', 'tailor']);

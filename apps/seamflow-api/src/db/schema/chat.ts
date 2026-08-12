@@ -37,6 +37,10 @@ export const conversations = pgTable(
     designPostId: uuid('design_post_id').references(() => feedPosts.id, {
       onDelete: 'set null',
     }),
+    // Where this thread came from, when it started as a request rather than an
+    // enquiry on a feed post. Both nullable — most conversations have neither.
+    requestId: uuid('request_id'),
+    offerId: uuid('offer_id'),
     // Set once the thread turns into a commission (D.2.3 quote flow).
     orderId: uuid('order_id').references(() => orders.id, { onDelete: 'set null' }),
     lastMessageAt: timestamp('last_message_at', { withTimezone: true })

@@ -52,6 +52,8 @@ export const feedPostStatusEnum = pgEnum('feed_post_status', [
 export const conversationOriginEnum = pgEnum('conversation_origin', [
   'inquiry',
   'order',
+  /** Started by a client's request and a tailor's accepted offer (appendix H). */
+  'request',
 ]);
 
 export const messageSenderTypeEnum = pgEnum('message_sender_type', [
@@ -87,3 +89,36 @@ export const workSourceEnum = pgEnum('work_source', ['upload', 'order_photo']);
  * need to record which route an attempt actually took.
  */
 export const otpChannelEnum = pgEnum('otp_channel', ['whatsapp', 'sms']);
+
+// ---------------------------------------------------------------------------
+// Requests & offers (ROADMAP appendix H)
+// ---------------------------------------------------------------------------
+
+export const requestVisibilityEnum = pgEnum('request_visibility', [
+  /** Only the tailors the client named. */
+  'selected',
+  /** Any eligible tailor within the chosen area. */
+  'location',
+]);
+
+export const requestLocationScopeEnum = pgEnum('request_location_scope', [
+  'town',
+  'region',
+  'country',
+]);
+
+export const requestStatusEnum = pgEnum('request_status', [
+  'open',
+  'closed',
+  'fulfilled',
+  'expired',
+  'removed',
+]);
+
+export const offerStatusEnum = pgEnum('offer_status', [
+  'sent',
+  'shortlisted',
+  'accepted',
+  'declined',
+  'withdrawn',
+]);

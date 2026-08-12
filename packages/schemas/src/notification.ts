@@ -43,6 +43,14 @@ export const NotificationTypeSchema = z.enum([
   'security.new_device',
   'security.phone_verified',
   'moderation.outcome',
+
+  // Requests & offers (appendix H). A tailor who writes a considered offer and
+  // hears nothing back stops answering the board, so the DECLINE is notified
+  // as deliberately as the win.
+  'request.matched',
+  'offer.received',
+  'offer.accepted',
+  'offer.declined',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -50,6 +58,8 @@ export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 export const NotificationEntityTypeSchema = z.enum([
   'order',
   'conversation',
+  'request',
+  'offer',
   'invoice',
 ]);
 export type NotificationEntityType = z.infer<typeof NotificationEntityTypeSchema>;
