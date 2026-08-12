@@ -16,6 +16,7 @@ export type {
 export type {
   ListGroupOrderMembersResponse,
   PromoteMemberToClientResponse,
+  SaveMeasurementsToClientResponse,
 } from './resources/group-order-members';
 export type { ListOrdersQuery, ListOrdersResponse } from './resources/orders';
 export type { ListOrderItemsResponse } from './resources/order-items';

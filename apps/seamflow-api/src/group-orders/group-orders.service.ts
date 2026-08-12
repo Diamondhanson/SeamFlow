@@ -65,6 +65,8 @@ export class GroupOrdersService {
         description: data.description ?? null,
         sharedDesignNotes: data.sharedDesignNotes ?? null,
         sharedFabricId: data.sharedFabricId ?? null,
+        garmentType: data.garmentType ?? null,
+        templateId: data.templateId ?? null,
         ownerMemberId: data.ownerMemberId ?? null,
         ownerClientId: data.ownerClientId ?? null,
         eventDate: data.eventDate ? new Date(data.eventDate) : null,
@@ -142,6 +144,8 @@ export class GroupOrdersService {
           description: data.description ?? null,
           sharedDesignNotes: data.sharedDesignNotes ?? null,
           sharedFabricId: data.sharedFabricId ?? null,
+          garmentType: data.garmentType ?? null,
+          templateId: data.templateId ?? null,
           ownerClientId,
           eventDate: data.eventDate ? new Date(data.eventDate) : null,
           dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
@@ -183,6 +187,8 @@ export class GroupOrdersService {
     if (data.description !== undefined) patch.description = data.description;
     if (data.sharedDesignNotes !== undefined) patch.sharedDesignNotes = data.sharedDesignNotes;
     if (data.sharedFabricId !== undefined) patch.sharedFabricId = data.sharedFabricId;
+    if (data.garmentType !== undefined) patch.garmentType = data.garmentType;
+    if (data.templateId !== undefined) patch.templateId = data.templateId;
     if (data.ownerMemberId !== undefined) patch.ownerMemberId = data.ownerMemberId;
     if (data.ownerClientId !== undefined) patch.ownerClientId = data.ownerClientId;
     if (data.eventDate !== undefined) {

@@ -60,6 +60,29 @@
       ],
       "cwd": "apps/seamflow-admin",
       "port": 3200
+    },
+    {
+      "name": "tailor-web-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "expo",
+        "start",
+        "--web",
+        "--port",
+        "8085"
+      ],
+      "cwd": "apps/seamflow-app",
+      "port": 8085
+    },
+    {
+      "name": "seamflow-api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "cwd": "apps/seamflow-api",
+      "port": 3001
     }
   ]
 }

@@ -1,5 +1,9 @@
-import type { MeasurementValues } from '@seamflow/schemas';
-import { useState } from 'react';
+import type {
+  GroupOrderWithMembers,
+  MeasurementTemplate,
+  MeasurementValues,
+} from '@seamflow/schemas';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -21,6 +25,12 @@ import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
 import { FabricField } from '../../../components/FabricField';
+import { MeasurementSheet } from '../../../components/MeasurementSheet';
+import {
+  NO_PENDING,
+  numericMeasurements,
+  type PendingMeasurement,
+} from '../../../components/MeasurementsEditor';
 import {
   qk,
   useAddGroupMember,
@@ -32,20 +42,26 @@ import {
   useGroupOrder,
   useGroupPhotos,
   usePromoteMember,
+  useSaveMemberMeasurementsToClient,
+  useTemplates,
+  useUpdateGroupMember,
   useUpdateGroupOrder,
 } from '../../../lib/queries';
+import { api } from '../../../lib/api';
 import { pickPhoto, uploadAndRegisterGroupPhoto } from '../../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { draftKey, useDraft } from '../../../lib/drafts';
 
 export default function GroupDetail() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const groupQ = useGroupOrder(id);
   const clientsQ = useClients();
+  const templatesQ = useTemplates();
   const photosQ = useGroupPhotos(id);
   const addMember = useAddGroupMember(id);
   const updateGroup = useUpdateGroupOrder(id);
@@ -63,8 +79,28 @@ export default function GroupDetail() {
   const [memberClientId, setMemberClientId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  // The garment name is a free-text field on a screen that saves by PATCH, so
+  // it is committed on blur rather than per keystroke — one request when they
+  // move on, not one per letter. Everything else here is a picker and commits
+  // immediately.
+  const [garmentDraft, setGarmentDraft] = useState('');
+
   const group = groupQ.data ?? null;
   const clients = clientsQ.data?.items ?? [];
+  const templates = templatesQ.data?.items ?? [];
+  const groupTemplate = templates.find((tpl) => tpl.id === group?.templateId) ?? null;
+
+  // Seed the text box once the group has loaded, and follow it if the value
+  // changes underneath (another device, a refetch) while the box is untouched.
+  useEffect(() => {
+    setGarmentDraft(group?.garmentType ?? '');
+  }, [group?.garmentType]);
+
+  const saveGarmentType = () => {
+    const next = garmentDraft.trim() || null;
+    if (next === (group?.garmentType ?? null)) return;
+    updateGroup.mutate({ garmentType: next }, { onError: (err) => void dialog.error(err) });
+  };
   const photos = photosQ.data?.items ?? [];
 
   const addPhoto = async (source: 'camera' | 'library') => {
@@ -235,6 +271,46 @@ export default function GroupDetail() {
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
 
+        {/* The garment, set once for the whole group. Everyone inherits it;
+            a member card can override it for the odd one out. Without this the
+            copy-from-client feature had nothing to match against and simply
+            took each client's newest measurement set. */}
+        <Text variant="h3">{t('groups.garmentHeading')}</Text>
+        <Text variant="bodySm" tone="textMuted" style={{ marginBottom: spacing.sm }}>
+          {t('groups.garmentSubtitle')}
+        </Text>
+        <Input
+          label={t('groups.garmentTypeLabel')}
+          value={garmentDraft}
+          onChangeText={setGarmentDraft}
+          onBlur={saveGarmentType}
+          placeholder={t('groups.garmentTypePlaceholder')}
+        />
+        <Text variant="caption" tone="textMuted" style={{ marginBottom: 4 }}>
+          {t('groups.templateLabel')}
+        </Text>
+        <Button
+          label={groupTemplate ? groupTemplate.name : t('groups.templateNone')}
+          variant="secondary"
+          onPress={async () => {
+            const key = await dialog.pick({
+              title: t('groups.pickTemplateTitle'),
+              selectedKey: group.templateId ?? '__none__',
+              options: [
+                { key: '__none__', label: t('groups.templateNone') },
+                ...templates.map((tpl) => ({ key: tpl.id, label: tpl.name })),
+              ],
+            });
+            if (!key) return;
+            updateGroup.mutate(
+              { templateId: key === '__none__' ? null : key },
+              { onError: (err) => void dialog.error(err) },
+            );
+          }}
+        />
+
+        <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
+
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
             <Text variant="h3">{t('groups.photosHeading')}</Text>
@@ -333,7 +409,14 @@ export default function GroupDetail() {
         ) : null}
 
         {group.members.map((m) => (
-          <MemberCard key={m.id} memberId={m.id} groupId={id} member={m} />
+          <MemberCard
+            key={m.id}
+            memberId={m.id}
+            groupId={id}
+            member={m}
+            group={group}
+            templates={templates}
+          />
         ))}
 
         {showForm ? (
@@ -414,10 +497,27 @@ export default function GroupDetail() {
   );
 }
 
+/**
+ * One member of the group: who they are, what they are being made, and their
+ * measurements.
+ *
+ * Three things this card could not do before, all of which a real wedding
+ * party needs:
+ *
+ *   · MEASURE A NON-CLIENT. A bridesmaid who is not in the address book had no
+ *     way to be measured at all — the only button was "copy from client", and
+ *     she had no client to copy from. The data model always allowed it; the
+ *     screen just never offered it.
+ *   · WEAR A DIFFERENT GARMENT. Bridesmaids in one style, groomsmen in
+ *     another, inside one wedding party.
+ *   · COPY HONESTLY. See onCopy below.
+ */
 function MemberCard({
   memberId,
   groupId,
   member,
+  group,
+  templates,
 }: {
   memberId: string;
   groupId: string;
@@ -426,14 +526,76 @@ function MemberCard({
     fullName: string;
     clientId: string | null;
     roleLabel: string | null;
+    garmentType: string | null;
+    templateId: string | null;
     measurements: MeasurementValues;
   };
+  group: GroupOrderWithMembers;
+  templates: MeasurementTemplate[];
 }) {
   const { t } = useTranslation();
   const dialog = useDialog();
   const promote = usePromoteMember(memberId, groupId);
   const copyMeasurements = useCopyMemberMeasurements(memberId, groupId);
+  const saveToClient = useSaveMemberMeasurementsToClient(memberId, groupId);
+  const updateMember = useUpdateGroupMember(memberId, groupId);
   const remove = useDeleteGroupMember(memberId, groupId);
+
+  // Inheritance, resolved in one place. NULL on the member means "whatever the
+  // group says", which is the case for almost every member almost every time.
+  const overrides = member.templateId != null || member.garmentType != null;
+  const templateId = member.templateId ?? group.templateId;
+  const template = templates.find((tpl) => tpl.id === templateId) ?? null;
+  const garment = member.garmentType ?? group.garmentType ?? null;
+
+  const [editing, setEditing] = useState(false);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [pending, setPending] = useState<PendingMeasurement>(NO_PENDING);
+
+  const saved = Object.fromEntries(
+    Object.entries(member.measurements ?? {}).map(([k, v]) => [k, String(v ?? '')]),
+  );
+
+  const openEditor = () => {
+    setValues(saved);
+    setPending(NO_PENDING);
+    setEditing(true);
+  };
+
+  // Measurements typed here are kept on the device as they are typed, exactly
+  // like every other measurement surface — a tailor measuring a wedding party
+  // in someone's front room is the likeliest person in the app to be
+  // interrupted. See lib/drafts.ts.
+  const { clear: clearDraft } = useDraft({
+    key: editing ? draftKey('group-member', memberId) : null,
+    value: { values, pending },
+    hasContent: (d) =>
+      JSON.stringify(d.values) !== JSON.stringify(saved) ||
+      !!d.pending?.name.trim() ||
+      !!d.pending?.value.trim(),
+    describe: () => member.fullName,
+    onRestore: (d) => {
+      setValues(d.values);
+      setPending(d.pending ?? NO_PENDING);
+    },
+  });
+
+  const saveMeasurements = () => {
+    // Fold in the row still sitting in the draft inputs — pressing Save is
+    // intent enough, and dropping it silently is how measurements get lost.
+    const name = pending.name.trim();
+    const merged = name ? { ...values, [name]: pending.value.trim() } : values;
+    updateMember.mutate(
+      { measurements: numericMeasurements(merged) },
+      {
+        onSuccess: () => {
+          clearDraft();
+          setEditing(false);
+        },
+        onError: (err) => void dialog.error(err),
+      },
+    );
+  };
 
   const onPromote = async () => {
     const phone = await dialog.prompt({
@@ -446,16 +608,144 @@ function MemberCard({
     promote.mutate({ phone }, { onError: (err) => void dialog.error(err) });
   };
 
-  const onCopy = () =>
-    copyMeasurements.mutate(undefined, {
-      onSuccess: () =>
-        void dialog.alert({
-          title: t('groups.copiedTitle'),
-          message: t('groups.copiedMessage'),
-          tone: 'success',
-        }),
-      onError: (err) => void dialog.error(err),
+  /**
+   * Copy the client's saved measurements — and say what actually happened.
+   *
+   * The old version called the endpoint and showed a green "Copied!" no matter
+   * what. The endpoint took the client's NEWEST measurement set with no regard
+   * for the garment, so a client last measured for trousers would have those
+   * numbers loaded into a gown order and the app would congratulate itself.
+   *
+   * Now the server reports which set it used and how well it fit, and each
+   * outcome gets its own honest message — including "check these" when the fit
+   * was partial, and a warning tone when there was nothing to match against.
+   */
+  const onCopy = (setId?: string) =>
+    copyMeasurements.mutate(
+      { setId: setId ?? null },
+      {
+        onSuccess: (res) => {
+          const label = res.sourceSetLabel ?? '';
+          if (res.match === 'none') {
+            void dialog.alert({
+              title: t('groups.copiedNothingTitle'),
+              message: t('groups.copiedNothingMessage'),
+              tone: 'warning',
+            });
+            return;
+          }
+          if (res.match === 'template') {
+            void dialog.alert({
+              title: t('groups.copiedTemplateTitle'),
+              message: t('groups.copiedTemplateMessage', { label }),
+              tone: 'success',
+            });
+            return;
+          }
+          if (res.match === 'untargeted') {
+            void dialog.alert({
+              title: t('groups.copiedUntargetedTitle'),
+              message: t('groups.copiedUntargetedMessage', { label }),
+              tone: 'warning',
+            });
+            return;
+          }
+          void dialog.alert({
+            title: t('groups.copiedOverlapTitle'),
+            message: t('groups.copiedOverlapMessage', {
+              label,
+              matched: res.matchedFields,
+              total: res.targetFields,
+            }),
+            tone: 'warning',
+          });
+        },
+        onError: (err) => void dialog.error(err),
+      },
+    );
+
+  /** Let the tailor overrule the server's pick with a specific saved set. */
+  const onChooseSet = async () => {
+    if (!member.clientId) return;
+    try {
+      const res = await api.measurementSets.listForClient(member.clientId);
+      if (!res.items.length) {
+        await dialog.alert({
+          title: t('groups.copiedNothingTitle'),
+          message: t('groups.copiedNothingMessage'),
+          tone: 'warning',
+        });
+        return;
+      }
+      const key = await dialog.pick({
+        title: t('groups.pickSetTitle'),
+        // The date goes IN the label: SheetOption has no subtitle field, and an
+        // extra key would be silently dropped rather than rejected — the sort
+        // of thing that type-checks and then quietly renders nothing.
+        options: res.items.map((set) => ({
+          key: set.id,
+          label: `${set.label} · ${t('groups.pickSetSubtitle', {
+            date: new Date(set.updatedAt).toLocaleDateString(),
+          })}`,
+        })),
+      });
+      if (key) onCopy(key);
+    } catch (err) {
+      void dialog.error(err);
+    }
+  };
+
+  const onSaveToClient = async () => {
+    if (!Object.keys(member.measurements ?? {}).length) {
+      await dialog.alert({ title: t('groups.nothingToSave'), tone: 'info' });
+      return;
+    }
+    const ok = await dialog.confirm({
+      title: t('groups.saveToClientConfirmTitle', { name: member.fullName }),
+      message: t('groups.saveToClientConfirmBody'),
+      confirmLabel: t('common.save'),
     });
+    if (!ok) return;
+    const label = garment ?? group.name;
+    saveToClient.mutate(
+      { label },
+      {
+        onSuccess: () =>
+          void dialog.alert({
+            title: t('groups.savedToClientTitle'),
+            message: t('groups.savedToClientMessage', { name: member.fullName, label }),
+            tone: 'success',
+          }),
+        onError: (err) => void dialog.error(err),
+      },
+    );
+  };
+
+  const onChangeGarment = async () => {
+    const key = await dialog.pick({
+      title: t('groups.memberGarmentTitle', { name: member.fullName }),
+      selectedKey: member.templateId ?? '__inherit__',
+      options: [
+        { key: '__inherit__', label: t('groups.backToGroupGarment') },
+        { key: '__none__', label: t('groups.templateNone') },
+        ...templates.map((tpl) => ({ key: tpl.id, label: tpl.name })),
+      ],
+    });
+    if (!key) return;
+    // '__inherit__' clears BOTH fields — going back to the group's garment
+    // means dropping the override entirely, not just the template.
+    const patch =
+      key === '__inherit__'
+        ? { templateId: null, garmentType: null }
+        : {
+            templateId: key === '__none__' ? null : key,
+            garmentType:
+              key === '__none__'
+                ? (member.garmentType ?? group.garmentType ?? t('groups.garmentNotSet'))
+                : (templates.find((tpl) => tpl.id === key)?.name ?? null),
+          };
+    updateMember.mutate(patch, { onError: (err) => void dialog.error(err) });
+  };
 
   const onRemove = async () => {
     const ok = await dialog.confirm({
@@ -468,49 +758,129 @@ function MemberCard({
     remove.mutate(undefined, { onError: (err) => void dialog.error(err) });
   };
 
+  const measurementEntries = Object.entries(member.measurements ?? {});
+
   return (
     <Card>
       <CardTitle>{member.fullName}</CardTitle>
       {member.roleLabel ? <CardLine>{member.roleLabel}</CardLine> : null}
-      {member.clientId ? (
-        <CardLine>{t('groups.linkedToClient')}</CardLine>
+      <CardLine>
+        {member.clientId ? t('groups.linkedToClient') : t('groups.adHocMember')}
+      </CardLine>
+
+      {/* What this person is being made, and whether that came from the group
+          or from an override on them specifically. */}
+      <CardLine>
+        {garment
+          ? overrides
+            ? t('groups.ownGarment', { garment })
+            : t('groups.inheritsGarment', { garment })
+          : t('groups.garmentNotSet')}
+      </CardLine>
+
+      {editing ? (
+        <>
+          {!template ? (
+            <Text variant="caption" tone="textMuted" style={{ marginTop: spacing.sm }}>
+              {t('groups.noTemplateHint')}
+            </Text>
+          ) : null}
+          <MeasurementSheet
+            template={template}
+            values={values}
+            setValues={(cb) => setValues((cur) => cb(cur))}
+            pending={pending}
+            setPending={setPending}
+          />
+          <View style={{ height: spacing.sm }} />
+          <Button
+            label={t('common.save')}
+            onPress={saveMeasurements}
+            loading={updateMember.isPending}
+          />
+          <View style={{ height: spacing.sm }} />
+          <Button
+            label={t('common.cancel')}
+            variant="secondary"
+            onPress={() => {
+              clearDraft();
+              setEditing(false);
+            }}
+          />
+        </>
       ) : (
-        <CardLine>{t('groups.adHocMember')}</CardLine>
+        <>
+          {measurementEntries.length > 0 ? (
+            <View style={{ marginTop: spacing.sm }}>
+              {measurementEntries.map(([k, v]) => (
+                <CardLine key={k}>
+                  {t('groups.measurementLine', { key: k, value: String(v) })}
+                </CardLine>
+              ))}
+            </View>
+          ) : (
+            <CardLine>{t('groups.noMeasurementsYet')}</CardLine>
+          )}
+
+          <View style={{ height: spacing.sm }} />
+
+          {/* Available to EVERY member, client or not. This is the button whose
+              absence meant a non-client could never be measured. */}
+          <Button label={t('groups.editMeasurements')} onPress={openEditor} />
+
+          <View style={{ height: spacing.sm }} />
+          <Button
+            label={t('groups.changeGarmentForMember')}
+            variant="ghost"
+            size="sm"
+            onPress={onChangeGarment}
+          />
+
+          {member.clientId ? (
+            <>
+              <View style={{ height: spacing.sm }} />
+              <Button
+                label={t('groups.copyFromClient')}
+                variant="secondary"
+                onPress={() => onCopy()}
+                loading={copyMeasurements.isPending}
+              />
+              <View style={{ height: spacing.sm }} />
+              <Button
+                label={t('groups.chooseAnotherSet')}
+                variant="ghost"
+                size="sm"
+                onPress={onChooseSet}
+              />
+              {measurementEntries.length > 0 ? (
+                <>
+                  <View style={{ height: spacing.sm }} />
+                  <Button
+                    label={t('groups.saveToClient')}
+                    variant="ghost"
+                    size="sm"
+                    onPress={onSaveToClient}
+                    loading={saveToClient.isPending}
+                  />
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <View style={{ height: spacing.sm }} />
+              <Button
+                label={t('groups.promote')}
+                variant="secondary"
+                onPress={onPromote}
+                loading={promote.isPending}
+              />
+            </>
+          )}
+
+          <View style={{ height: spacing.sm }} />
+          <Button label={t('common.remove')} variant="danger" onPress={onRemove} />
+        </>
       )}
-      {Object.keys(member.measurements).length > 0 ? (
-        <View style={{ marginTop: spacing.sm }}>
-          {Object.entries(member.measurements).map(([k, v]) => (
-            <CardLine key={k}>
-              {t('groups.measurementLine', { key: k, value: String(v) })}
-            </CardLine>
-          ))}
-        </View>
-      ) : (
-        <CardLine>{t('groups.noMeasurementsYet')}</CardLine>
-      )}
-      <View style={{ height: spacing.sm }} />
-      {member.clientId ? (
-        <Button
-          label={t('groups.copyMeasurements')}
-          variant="secondary"
-          onPress={onCopy}
-          loading={copyMeasurements.isPending}
-        />
-      ) : (
-        <Button
-          label={t('groups.promoteToClient')}
-          variant="secondary"
-          onPress={onPromote}
-          loading={promote.isPending}
-        />
-      )}
-      <View style={{ height: spacing.sm }} />
-      <Button
-        label={t('common.remove')}
-        variant="danger"
-        onPress={onRemove}
-        loading={remove.isPending}
-      />
     </Card>
   );
 }

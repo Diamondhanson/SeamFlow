@@ -136,15 +136,202 @@ async function main(): Promise<void> {
   assert(r.data.items.length === 3, `expected 3 members, got ${r.data.items.length}`);
   console.log('• 3 members in group');
 
-  // 7. Copy measurements from linked client onto member 1
+  // ==========================================================================
+  // 7. THE GARMENT / TEMPLATE MATCH
+  //
+  // This block exists because of a real bug. `copy-measurements-from-client`
+  // used to run `order by created_at desc limit 1` and copy whatever came
+  // back, with no idea what garment was being made. A client last measured for
+  // trousers would have those numbers loaded into a gown order, under a green
+  // "Copied!" tick.
+  //
+  // The setup below is built so the OLD behaviour would fail it: the trouser
+  // set is created LAST, so "newest" and "correct" are different rows.
+  // ==========================================================================
+
+  r = await api(jwt, 'POST', '/measurement-templates', {
+    name: 'Bridesmaid gown',
+    garmentType: 'gown',
+    fields: [
+      { key: 'bust', label: 'Bust' },
+      { key: 'waist', label: 'Waist' },
+      { key: 'hips', label: 'Hips' },
+      { key: 'gownLength', label: 'Gown length' },
+    ],
+  });
+  assert(r.status === 201, `POST gown template: ${r.status}`);
+  const gownTemplateId = r.data.id;
+
+  r = await api(jwt, 'POST', '/measurement-templates', {
+    name: 'Trouser',
+    garmentType: 'trouser',
+    fields: [
+      { key: 'waist', label: 'Waist' },
+      { key: 'inseam', label: 'Inseam' },
+    ],
+  });
+  assert(r.status === 201, `POST trouser template: ${r.status}`);
+  const trouserTemplateId = r.data.id;
+  console.log('• Two templates: gown + trouser');
+
+  // The RIGHT set for a gown — created first, so it is not the newest.
+  r = await api(jwt, 'POST', `/clients/${baseClientId}/measurement-sets`, {
+    label: 'Gown measurements',
+    templateId: gownTemplateId,
+    values: { bust: 91, waist: 70, hips: 96, gownLength: 145 },
+  });
+  assert(r.status === 201, `POST gown set: ${r.status}`);
+
+  // The WRONG set — newest, and what the old code would have grabbed.
+  r = await api(jwt, 'POST', `/clients/${baseClientId}/measurement-sets`, {
+    label: 'Trouser measurements',
+    templateId: trouserTemplateId,
+    values: { waist: 71, inseam: 78 },
+  });
+  assert(r.status === 201, `POST trouser set: ${r.status}`);
+  console.log('• Client has a gown set (older) and a trouser set (newest)');
+
+  // Point the group at the gown.
+  r = await api(jwt, 'PATCH', `/group-orders/${groupId}`, {
+    garmentType: 'Bridesmaid gown',
+    templateId: gownTemplateId,
+  });
+  assert(r.status === 200, `PATCH group garment: ${r.status}`);
+  assert(r.data.templateId === gownTemplateId, 'group templateId did not stick');
+  console.log('• Group order is for a bridesmaid gown');
+
+  // The copy must pick the GOWN set, not the newer trouser one.
   r = await api(
     jwt,
     'POST',
     `/group-order-members/${member1Id}/copy-measurements-from-client`,
+    {},
   );
   assert(r.status === 201, `copy-measurements: ${r.status}`);
-  assert(r.data.measurements.chest === 88, 'copied measurements missing chest=88');
-  console.log('• copy-measurements seeded member 1 from client');
+  assert(r.data.match === 'template', `expected match=template, got ${r.data.match}`);
+  assert(
+    r.data.sourceSetLabel === 'Gown measurements',
+    `copied the wrong set: ${r.data.sourceSetLabel}`,
+  );
+  assert(
+    r.data.member.measurements.gownLength === 145,
+    'gown measurements were not the ones copied',
+  );
+  assert(
+    r.data.member.measurements.inseam === undefined,
+    'THE OLD BUG: trouser measurements leaked into a gown order',
+  );
+  assert(r.data.matchedFields === 4, `expected 4 matched fields, got ${r.data.matchedFields}`);
+  console.log('• Copy picked the gown set over the newer trouser set');
+
+  // A per-member override flips which template that member is measured against,
+  // and therefore which saved set the copy chooses.
+  r = await api(jwt, 'PATCH', `/group-order-members/${member1Id}`, {
+    templateId: trouserTemplateId,
+    garmentType: 'Trouser',
+  });
+  assert(r.status === 200, `PATCH member override: ${r.status}`);
+  r = await api(
+    jwt,
+    'POST',
+    `/group-order-members/${member1Id}/copy-measurements-from-client`,
+    {},
+  );
+  assert(r.status === 201, `copy after override: ${r.status}`);
+  assert(
+    r.data.sourceSetLabel === 'Trouser measurements',
+    `override ignored: got ${r.data.sourceSetLabel}`,
+  );
+  console.log('• Per-member override changes which set is copied');
+
+  // An explicit pick beats the heuristic.
+  r = await api(jwt, 'GET', `/clients/${baseClientId}/measurement-sets`);
+  const gownSet = r.data.items.find((set: any) => set.label === 'Gown measurements');
+  assert(gownSet, 'gown set missing from list');
+  r = await api(
+    jwt,
+    'POST',
+    `/group-order-members/${member1Id}/copy-measurements-from-client`,
+    { setId: gownSet.id },
+  );
+  assert(r.status === 201, `copy by setId: ${r.status}`);
+  assert(r.data.sourceSetId === gownSet.id, 'explicit setId was ignored');
+  console.log('• An explicitly chosen set overrides the heuristic');
+
+  // Back to inheriting the group's garment.
+  r = await api(jwt, 'PATCH', `/group-order-members/${member1Id}`, {
+    templateId: null,
+    garmentType: null,
+  });
+  assert(r.status === 200, `clear override: ${r.status}`);
+  assert(r.data.templateId === null, 'override did not clear');
+  console.log('• Clearing the override goes back to inheriting');
+
+  // A client with NOTHING that fits must leave existing measurements alone.
+  // The old code wrote `{}` here, wiping numbers the tailor had typed by hand.
+  r = await api(jwt, 'POST', '/clients', {
+    fullName: 'Empty Records',
+    phone: '+2348030000111',
+    address: 'nowhere',
+  });
+  assert(r.status === 201, `POST empty client: ${r.status}`);
+  const emptyClientId = r.data.id;
+  r = await api(jwt, 'POST', `/group-orders/${groupId}/members`, {
+    fullName: 'Empty Records',
+    clientId: emptyClientId,
+    measurements: { bust: 80 },
+    position: 9,
+  });
+  assert(r.status === 201, `POST member with no client sets: ${r.status}`);
+  const emptyMemberId = r.data.id;
+  r = await api(
+    jwt,
+    'POST',
+    `/group-order-members/${emptyMemberId}/copy-measurements-from-client`,
+    {},
+  );
+  assert(r.status === 201, `copy with nothing to copy: ${r.status}`);
+  assert(r.data.match === 'none', `expected match=none, got ${r.data.match}`);
+  assert(
+    r.data.member.measurements.bust === 80,
+    'a failed copy wiped measurements that were already there',
+  );
+  console.log('• Nothing to copy → existing measurements left intact');
+
+  // Measuring an AD-HOC member: the case that had no route through the app at
+  // all before this. No client, no copying — just typed numbers.
+  r = await api(jwt, 'PATCH', `/group-order-members/${member3Id}`, {
+    measurements: { bust: 86, waist: 66, hips: 92, gownLength: 140 },
+  });
+  assert(r.status === 200, `PATCH ad-hoc measurements: ${r.status}`);
+  assert(r.data.clientId === null, 'member 3 should still be ad-hoc');
+  assert(r.data.measurements.gownLength === 140, 'ad-hoc measurements did not stick');
+  console.log('• An ad-hoc member (not a client) can be measured');
+
+  // Saving a member's measurements back onto their client's own record.
+  r = await api(
+    jwt,
+    'POST',
+    `/group-order-members/${member1Id}/save-measurements-to-client`,
+    { label: 'From the wedding party' },
+  );
+  assert(r.status === 201, `save-measurements-to-client: ${r.status}`);
+  const savedSetId = r.data.measurementSetId;
+  r = await api(jwt, 'GET', `/clients/${baseClientId}/measurement-sets`);
+  const savedSet = r.data.items.find((set: any) => set.id === savedSetId);
+  assert(savedSet, 'saved set not on the client');
+  assert(savedSet.label === 'From the wedding party', `label wrong: ${savedSet.label}`);
+  console.log('• Member measurements saved back to the client record');
+
+  // An ad-hoc member has no client to save to — must refuse, not crash.
+  r = await api(
+    jwt,
+    'POST',
+    `/group-order-members/${member3Id}/save-measurements-to-client`,
+    {},
+  );
+  assert(r.status === 400, `save from ad-hoc member: expected 400, got ${r.status}`);
+  console.log('• Saving back from an ad-hoc member → 400');
 
   // 8. Update member 2's measurements manually
   r = await api(jwt, 'PATCH', `/group-order-members/${member2Id}`, {
@@ -181,14 +368,16 @@ async function main(): Promise<void> {
   r = await api(jwt, 'GET', `/group-orders/${groupId}`);
   assert(r.status === 200, `GET /group-orders/:id: ${r.status}`);
   assert(Array.isArray(r.data.members), 'members array missing');
-  assert(r.data.members.length === 3, `expected 3 embedded members`);
+  // 4 now: the three originals plus the "Empty Records" member added above to
+  // prove a failed copy leaves existing measurements alone.
+  assert(r.data.members.length === 4, `expected 4 embedded members, got ${r.data.members.length}`);
   console.log('• GET /group-orders/:id includes members');
 
   // 12. Delete member 3
   r = await api(jwt, 'DELETE', `/group-order-members/${member3Id}`);
   assert(r.status === 204, `DELETE member: ${r.status}`);
   r = await api(jwt, 'GET', `/group-orders/${groupId}/members`);
-  assert(r.data.items.length === 2, `expected 2 members after delete, got ${r.data.items.length}`);
+  assert(r.data.items.length === 3, `expected 3 members after delete, got ${r.data.items.length}`);
   console.log('• Member 3 deleted');
 
   // 13. Update group order status
@@ -213,6 +402,9 @@ async function main(): Promise<void> {
 
   // Cleanup
   await api(jwt, 'DELETE', `/clients/${promotedClientId}`);
+  await api(jwt, 'DELETE', `/clients/${emptyClientId}`);
+  await api(jwt, 'DELETE', `/measurement-templates/${gownTemplateId}`);
+  await api(jwt, 'DELETE', `/measurement-templates/${trouserTemplateId}`);
   // Don't delete baseClient — measurement set blocks it; the test-domain script
   // handles its own client cleanup. We leave Adaeze for re-runs to find.
 

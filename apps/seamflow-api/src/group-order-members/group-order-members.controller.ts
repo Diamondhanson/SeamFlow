@@ -15,7 +15,9 @@ import { TailorsService } from '../tailors/tailors.service';
 import { GroupOrderMembersService } from './group-order-members.service';
 import {
   CreateGroupOrderMemberDto,
+  CopyMemberMeasurementsDto,
   PromoteMemberToClientDto,
+  SaveMemberMeasurementsDto,
   UpdateGroupOrderMemberDto,
 } from './group-order-members.dto';
 
@@ -85,12 +87,30 @@ export class GroupOrderMembersController {
     return this.members.promoteToClient(tailorId, id, body);
   }
 
+  /**
+   * Body is optional: omit it to let the server pick the best-matching set,
+   * or pass `{ setId }` to copy one the tailor chose. The response says which
+   * set was used and how well it fit — the caller is expected to show that
+   * rather than announce a flat "Copied!".
+   */
   @Post('group-order-members/:id/copy-measurements-from-client')
   async copyMeasurements(
     @CurrentUser() user: AuthedUser,
     @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: CopyMemberMeasurementsDto,
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
-    return this.members.copyMeasurementsFromClient(tailorId, id);
+    return this.members.copyMeasurementsFromClient(tailorId, id, body ?? {});
+  }
+
+  /** The reverse: keep this event's measurements on the client's own record. */
+  @Post('group-order-members/:id/save-measurements-to-client')
+  async saveMeasurements(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: SaveMemberMeasurementsDto,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.members.saveMeasurementsToClient(tailorId, id, body ?? {});
   }
 }

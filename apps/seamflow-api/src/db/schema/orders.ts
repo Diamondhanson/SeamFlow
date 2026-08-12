@@ -14,6 +14,7 @@ import { sql } from 'drizzle-orm';
 import { tailors, users } from './users';
 import { clients } from './clients';
 import { fabrics } from './fabrics';
+import { measurementTemplates } from './templates';
 import { groupOrderStatusEnum, orderStatusEnum } from './enums';
 
 export const groupOrders = pgTable(
@@ -39,6 +40,17 @@ export const groupOrders = pgTable(
     // create-group-order flow captures owner contact info upfront and writes
     // it here (creating a new client row if the user entered details inline).
     ownerClientId: uuid('owner_client_id').references(() => clients.id, {
+      onDelete: 'set null',
+    }),
+    // What is actually being sewn. A group order is "the same garment, many
+    // people", so the garment and its measurement template live here and every
+    // member inherits them — see group_order_members below for the override.
+    //
+    // Without these the copy-from-client feature had nothing to match against
+    // and simply took each client's newest measurement set, which silently
+    // loaded trouser measurements into a gown order.
+    garmentType: text('garment_type'),
+    templateId: uuid('template_id').references(() => measurementTemplates.id, {
       onDelete: 'set null',
     }),
     eventDate: timestamp('event_date', { withTimezone: true }),
@@ -69,6 +81,19 @@ export const groupOrderMembers = pgTable(
     }),
     fullName: text('full_name').notNull(),
     roleLabel: text('role_label'),
+    // Per-member override of the group's garment/template. NULL means inherit,
+    // which is the case for almost every member almost every time — twelve
+    // bridesmaids in matching aso-ebi should be configured once, not twelve
+    // times. Set these only for the odd one out (the groomsmen in a mixed
+    // wedding party).
+    garmentType: text('garment_type'),
+    templateId: uuid('template_id').references(() => measurementTemplates.id, {
+      onDelete: 'set null',
+    }),
+    // A SNAPSHOT for this event, deliberately not linked to the client's own
+    // saved sets. Measurements taken for an August wedding should not silently
+    // rewrite the client's general record; pushing them back is an explicit
+    // action the tailor takes.
     measurements: jsonb('measurements').notNull().default({}),
     notes: text('notes'),
     position: integer('position').notNull().default(0),

@@ -38,7 +38,9 @@ import type {
   OrderStatus,
   OrderTransitionInput,
   OrderUpdateInput,
+  CopyMemberMeasurementsInput,
   PromoteMemberToClientInput,
+  SaveMemberMeasurementsInput,
   TailorProfileUpdateInput,
   TailorUpsertInput,
   WorkAdoptInput,
@@ -325,11 +327,38 @@ export function usePromoteMember(memberId: string, groupId: string) {
   });
 }
 
+/**
+ * Copy a client's saved measurements onto a group member.
+ *
+ * Takes an optional `setId` so the tailor can override the server's pick. The
+ * result reports which set was used and how well it matched the garment —
+ * callers must show that rather than a flat "Copied!", because this used to
+ * copy whichever set was newest and cheerfully load trouser measurements into
+ * a gown order.
+ */
 export function useCopyMemberMeasurements(memberId: string, groupId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => api.groupOrderMembers.copyMeasurementsFromClient(memberId),
+    mutationFn: (input: CopyMemberMeasurementsInput = {}) =>
+      api.groupOrderMembers.copyMeasurementsFromClient(memberId, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.group(groupId) }),
+  });
+}
+
+/** Push this event's measurements back onto the client's own record. */
+export function useSaveMemberMeasurementsToClient(memberId: string, groupId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: SaveMemberMeasurementsInput = {}) =>
+      api.groupOrderMembers.saveMeasurementsToClient(memberId, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.group(groupId) });
+      // The client's measurement-set list just gained a row. Its key is
+      // ['clients', clientId, 'measurement-sets'], and the client id is not in
+      // scope here, so invalidate the whole 'clients' prefix — cheap, and it
+      // also refreshes the list where the new set is about to be looked for.
+      qc.invalidateQueries({ queryKey: ['clients'] });
+    },
   });
 }
 

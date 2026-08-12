@@ -90,6 +90,53 @@ export const groups = {
     promoteTitle: 'Promote {name} to client',
     promoteMessage: 'Enter a phone number for the new client:',
     promote: 'Promote',
+    // ---- Garment & template -------------------------------------------------
+    // A group order is "the same garment, many people", so the garment lives on
+    // the group and every member inherits it. Only the odd one out overrides.
+    garmentHeading: 'Garment',
+    garmentSubtitle: 'What you are making for this group. Everyone is measured for this unless you change it for someone.',
+    garmentTypeLabel: 'Garment',
+    garmentTypePlaceholder: 'e.g. Bridesmaid gown',
+    templateLabel: 'Measurement template',
+    templateNone: 'No template — type measurements freely',
+    pickTemplateTitle: 'Measure everyone against',
+    garmentNotSet: 'No garment set yet',
+    // On a member card.
+    inheritsGarment: '{garment} · from the group',
+    ownGarment: '{garment} · just this member',
+    changeGarmentForMember: 'Different garment for this member',
+    backToGroupGarment: 'Use the group’s garment',
+    memberGarmentTitle: 'Garment for {name}',
+
+    // ---- Measuring a member -------------------------------------------------
+    editMeasurements: 'Edit measurements',
+    measurementsSaved: 'Measurements saved',
+    noTemplateHint: 'No template set for this garment, so add whatever attributes you need.',
+
+    // ---- Copying from the client -------------------------------------------
+    // Deliberately never a bare "Copied!". The copy used to take whichever set
+    // was newest, so a client's trouser measurements could land in a gown order
+    // under a green tick. The result now says what it used and how well it fit.
+    copyFromClient: 'Copy from client’s records',
+    chooseAnotherSet: 'Choose a different set',
+    copiedTemplateTitle: 'Copied — exact match',
+    copiedTemplateMessage: 'Loaded “{label}”, which was taken with this same template.',
+    copiedOverlapTitle: 'Copied — check these',
+    copiedOverlapMessage: 'Loaded “{label}”. It was taken for something else and fills {matched} of {total} measurements. Check the rest before you sew.',
+    copiedUntargetedTitle: 'Copied — nothing to check against',
+    copiedUntargetedMessage: 'Loaded “{label}”, the most recent set on file. No garment is set for this group, so there was nothing to match it against.',
+    copiedNothingTitle: 'Nothing to copy',
+    copiedNothingMessage: 'This client has no saved measurements that fit this garment. Their existing measurements were left alone.',
+    pickSetTitle: 'Which measurements?',
+    pickSetSubtitle: 'Taken {date}',
+
+    // ---- Saving back to the client -----------------------------------------
+    saveToClient: 'Save to client’s records',
+    saveToClientConfirmTitle: 'Save to {name}’s records?',
+    saveToClientConfirmBody: 'These measurements were taken for this group order. Saving keeps a copy on the client so you can reuse it on future orders.',
+    savedToClientTitle: 'Saved',
+    savedToClientMessage: 'Added to {name}’s measurements as “{label}”.',
+    nothingToSave: 'Measure this member first.',
     copiedTitle: 'Copied',
     copiedMessage: 'Measurements pulled from the linked client.',
     removeMemberTitle: 'Remove member?',
@@ -190,6 +237,44 @@ export const groups = {
     promoteTitle: 'Promouvoir {name} en client',
     promoteMessage: 'Saisissez un numéro de téléphone pour le nouveau client :',
     promote: 'Promouvoir',
+    // ---- Vêtement et gabarit -----------------------------------------------
+    garmentHeading: 'Vêtement',
+    garmentSubtitle: 'Ce que vous confectionnez pour ce groupe. Tout le monde est mesuré pour cela, sauf si vous le changez pour quelqu’un.',
+    garmentTypeLabel: 'Vêtement',
+    garmentTypePlaceholder: 'ex. Robe de demoiselle d’honneur',
+    templateLabel: 'Gabarit de mesures',
+    templateNone: 'Aucun gabarit — saisir librement',
+    pickTemplateTitle: 'Mesurer tout le monde avec',
+    garmentNotSet: 'Aucun vêtement défini',
+    inheritsGarment: '{garment} · du groupe',
+    ownGarment: '{garment} · ce membre uniquement',
+    changeGarmentForMember: 'Vêtement différent pour ce membre',
+    backToGroupGarment: 'Utiliser le vêtement du groupe',
+    memberGarmentTitle: 'Vêtement pour {name}',
+
+    editMeasurements: 'Modifier les mesures',
+    measurementsSaved: 'Mesures enregistrées',
+    noTemplateHint: 'Aucun gabarit défini pour ce vêtement : ajoutez les attributs dont vous avez besoin.',
+
+    copyFromClient: 'Copier depuis le dossier du client',
+    chooseAnotherSet: 'Choisir un autre jeu',
+    copiedTemplateTitle: 'Copié — correspondance exacte',
+    copiedTemplateMessage: '« {label} » chargé, pris avec ce même gabarit.',
+    copiedOverlapTitle: 'Copié — à vérifier',
+    copiedOverlapMessage: '« {label} » chargé. Il a été pris pour autre chose et remplit {matched} mesures sur {total}. Vérifiez le reste avant de coudre.',
+    copiedUntargetedTitle: 'Copié — rien à vérifier',
+    copiedUntargetedMessage: '« {label} » chargé, le jeu le plus récent. Aucun vêtement n’est défini pour ce groupe, il n’y avait donc rien à comparer.',
+    copiedNothingTitle: 'Rien à copier',
+    copiedNothingMessage: 'Ce client n’a aucune mesure enregistrée correspondant à ce vêtement. Ses mesures existantes n’ont pas été touchées.',
+    pickSetTitle: 'Quelles mesures ?',
+    pickSetSubtitle: 'Prises le {date}',
+
+    saveToClient: 'Enregistrer dans le dossier du client',
+    saveToClientConfirmTitle: 'Enregistrer dans le dossier de {name} ?',
+    saveToClientConfirmBody: 'Ces mesures ont été prises pour cette commande groupée. Les enregistrer en conserve une copie chez le client pour vos prochaines commandes.',
+    savedToClientTitle: 'Enregistré',
+    savedToClientMessage: 'Ajouté aux mesures de {name} sous « {label} ».',
+    nothingToSave: 'Mesurez d’abord ce membre.',
     copiedTitle: 'Copié',
     copiedMessage: 'Mesures récupérées depuis le client lié.',
     removeMemberTitle: 'Retirer le membre ?',
