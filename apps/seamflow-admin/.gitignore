@@ -2,3 +2,7 @@
 node_modules
 .env.local
 *.tsbuildinfo
+
+# Local record of every cleanup this dashboard has run. Machine-specific, and
+# it names real clients and invoice numbers — not something to commit.
+.ops-audit.log

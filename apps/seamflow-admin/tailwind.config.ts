@@ -26,8 +26,11 @@ const config: Config = {
         paper: '#FAF7F2',        // page
         surface: '#F1ECE3',      // subtle fill for table heads / stat blocks
         ink: '#1A1714',          // primary text, warm near-black
-        muted: '#5B554F',        // secondary text
-        faint: '#8A837B',        // tertiary / captions
+        muted: '#5B554F',        // secondary text          6.88:1 on paper
+        // Tertiary / captions. Was #8A837B, which measured 3.50:1 — under the
+        // 4.5:1 WCAG floor for body text, and this token carries axis ticks
+        // and column headings, which are exactly the things you squint at.
+        faint: '#767068',        // 4.58:1 on paper
         rule: 'rgba(26,23,20,0.14)',   // hairlines
         ruleStrong: 'rgba(26,23,20,0.30)',
         primary: '#5A18C9',      // dyed-thread indigo
