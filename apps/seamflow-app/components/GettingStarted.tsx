@@ -20,7 +20,15 @@ import { useMe, useClients, useOrders, useTemplates } from '../lib/queries';
 import { radii, spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
-const GUIDE_KEY = 'home.checklist';
+// Bumped from 'home.checklist' when specialties became the first step.
+//
+// Tailors who signed up before the garment taxonomy existed have no
+// specialties set, and matching cannot work without them — but they had
+// already dismissed the old checklist, so a new step added to it would never
+// have been seen. A new key resurfaces the card exactly once for them, with
+// every other step already ticked, so it reads as "one new thing to do"
+// rather than as onboarding starting over.
+const GUIDE_KEY = 'home.checklist.v2';
 
 export function GettingStarted() {
   const { t } = useTranslation();
@@ -33,6 +41,15 @@ export function GettingStarted() {
   const { data: templatesData } = useTemplates();
 
   const steps = [
+    {
+      // First on purpose. It is the cheapest step, it is the one that makes a
+      // tailor findable, and everything about matching clients to tailors
+      // reads from it.
+      key: 'specialties',
+      label: t('specialties.checklistLabel'),
+      done: (me?.tailor?.specialties?.length ?? 0) > 0,
+      go: () => router.push('/(app)/specialties'),
+    },
     {
       key: 'profile',
       label: t('guides.checklistProfile'),
@@ -80,6 +97,7 @@ export function GettingStarted() {
           <SkeletonLine width="70%" />
           <SkeletonLine width="55%" />
           <SkeletonLine width="62%" />
+          <SkeletonLine width="58%" />
         </View>
       </View>
     );

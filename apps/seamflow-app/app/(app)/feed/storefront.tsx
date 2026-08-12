@@ -43,7 +43,6 @@ export default function Storefront() {
 
   const [bio, setBio] = useState('');
   const [city, setCity] = useState('');
-  const [specialties, setSpecialties] = useState('');
   const [languages, setLanguages] = useState('');
   const [acceptsRemote, setAcceptsRemote] = useState(false);
 
@@ -52,7 +51,6 @@ export default function Storefront() {
     if (!tailor) return;
     setBio(tailor.bio ?? '');
     setCity(tailor.city ?? '');
-    setSpecialties((tailor.specialties ?? []).join(', '));
     setLanguages((tailor.languages ?? []).join(', '));
     setAcceptsRemote(tailor.acceptsRemote ?? false);
   }, [tailor]);
@@ -62,7 +60,6 @@ export default function Storefront() {
       {
         bio: bio.trim() || null,
         city: city.trim() || null,
-        specialties: toList(specialties),
         languages: toList(languages),
         acceptsRemote,
       },
@@ -106,13 +103,24 @@ export default function Storefront() {
           value={city}
           onChangeText={setCity}
         />
-        <Input
-          label={t('feed.specialtiesLabel')}
-          placeholder={t('feed.specialtiesPlaceholder')}
-          value={specialties}
-          onChangeText={setSpecialties}
-          autoCapitalize="none"
+        {/* Specialties moved out of a comma-separated text box and into the
+            shared garment taxonomy. Free text here is what produced "Caftan"
+            vs "kaftan" vs "all garments. " across the app, and matching cannot
+            read any of that. This screen no longer edits them — it shows what
+            is set and hands off to the picker. */}
+        <Text variant="caption" tone="textMuted" style={{ marginBottom: 4 }}>
+          {t('specialties.storefrontLabel')}
+        </Text>
+        <Button
+          label={
+            (tailor?.specialties?.length ?? 0) > 0
+              ? t('specialties.storefrontCount', { count: tailor?.specialties?.length ?? 0 })
+              : t('specialties.storefrontEmpty')
+          }
+          variant="secondary"
+          onPress={() => router.push('/(app)/specialties')}
         />
+        <View style={{ height: spacing.md }} />
         <Input
           label={t('feed.languagesLabel')}
           placeholder={t('feed.languagesPlaceholder')}

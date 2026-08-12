@@ -4,6 +4,7 @@ export * from './client';
 export * from './measurement';
 export * from './template';
 export * from './order';
+export * from './garment';
 export * from './order-photo';
 export * from './group-order-photo';
 export * from './design';
