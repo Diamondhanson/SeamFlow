@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Post } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { QueueService } from '../queue/queue.service';
+import { AccountPurgeService } from '../account/account-purge.service';
 import { sentryEnabled } from '../common/sentry';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -21,7 +22,25 @@ export class HealthController {
   constructor(
     private readonly db: DbService,
     private readonly queue: QueueService,
+    private readonly purge: AccountPurgeService,
   ) {}
+
+  /**
+   * Run the account purge now instead of waiting for 03:20.
+   *
+   * DEVELOPMENT ONLY — it 404s in production, and must stay that way: an
+   * unauthenticated endpoint that permanently destroys accounts is exactly the
+   * thing you do not want reachable from the internet. It exists so the
+   * deletion test can prove the purge works without a 30-day wait.
+   */
+  @Post('run-purge')
+  async runPurge(): Promise<{ ran: true }> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new NotFoundException();
+    }
+    await this.purge.purgeDue();
+    return { ran: true };
+  }
 
   @Get()
   async check(): Promise<HealthResponse> {

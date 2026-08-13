@@ -1,6 +1,7 @@
 import { HttpClient, type HttpConfig } from './http';
 import { makeHealthResource, type HealthResource } from './resources/health';
 import { makeMeResource, type MeResource } from './resources/me';
+import { makeAccountResource, type AccountResource } from './resources/account';
 import { makeTailorsResource, type TailorsResource } from './resources/tailors';
 import { makeClientsResource, type ClientsResource } from './resources/clients';
 import {
@@ -75,6 +76,7 @@ import { makeWorksResource, type WorksResource } from './resources/works';
 export interface ApiClient {
   health: HealthResource;
   me: MeResource;
+  account: AccountResource;
   tailors: TailorsResource;
   clients: ClientsResource;
   measurementSets: MeasurementSetsResource;
@@ -121,6 +123,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
   return {
     health: makeHealthResource(http),
     me: makeMeResource(http),
+    account: makeAccountResource(http),
     tailors: makeTailorsResource(http),
     clients: makeClientsResource(http),
     measurementSets: makeMeasurementSetsResource(http),

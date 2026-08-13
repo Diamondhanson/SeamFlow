@@ -12,6 +12,9 @@ const ROUTES: { path: string; priority: number }[] = [
   { path: '/support', priority: 0.6 },
   { path: '/privacy', priority: 0.4 },
   { path: '/terms', priority: 0.4 },
+  // Google Play requires this be reachable without installing the app, which
+  // means it has to be indexable too, not just linked from the footer.
+  { path: '/delete-account', priority: 0.4 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

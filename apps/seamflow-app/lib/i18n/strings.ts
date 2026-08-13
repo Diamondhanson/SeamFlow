@@ -12,6 +12,7 @@
 
 import { common } from './locales/common';
 import { settings } from './locales/settings';
+import { account } from './locales/account';
 import { auth } from './locales/auth';
 import { home } from './locales/home';
 import { clients } from './locales/clients';
@@ -44,6 +45,7 @@ export const translations = {
   en: {
     common: common.en,
     settings: settings.en,
+    account: account.en,
     auth: auth.en,
     home: home.en,
     clients: clients.en,
@@ -68,6 +70,7 @@ export const translations = {
   fr: {
     common: common.fr,
     settings: settings.fr,
+    account: account.fr,
     auth: auth.fr,
     home: home.fr,
     clients: clients.fr,

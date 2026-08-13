@@ -88,6 +88,7 @@ export default function Discover() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.filterBarOuter}
         contentContainerStyle={styles.filterBar}
       >
         {AUDIENCES.map((a) => (
@@ -215,11 +216,17 @@ function Chip({
 
 const styles = StyleSheet.create({
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  // alignItems keeps each chip its own height instead of stretching to the
+  // row; flexGrow stops the row itself claiming the leftover column height.
+  // Native hugs the content either way — on web the ScrollView takes flex:1
+  // and the chips became full-height columns.
+  filterBarOuter: { flexGrow: 0, flexShrink: 0 },
   filterBar: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     gap: spacing.sm,
     flexDirection: 'row',
+    alignItems: 'center',
   },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },

@@ -28,11 +28,28 @@ export const users = pgTable(
      * verified badge) on this timestamp, never on `phone` being non-null.
      */
     phoneVerifiedAt: timestamp('phone_verified_at', { withTimezone: true }),
+
+    /**
+     * Account deletion, with a 30-day grace period (App Store 5.1.1(v),
+     * Google Play data deletion policy).
+     *
+     * `deletedAt` non-null means this row is a TOMBSTONE: the purge has run and
+     * stripped every personal field, but the row itself stays so that the
+     * foreign keys pointing here — a message in someone else's conversation, an
+     * event on an order — remain valid. Treat such a row as "no longer a user".
+     * Anything that counts, lists, notifies or displays users must filter on
+     * `deletedAt is null`.
+     */
+    deletionRequestedAt: timestamp('deletion_requested_at', { withTimezone: true }),
+    deletionScheduledFor: timestamp('deletion_scheduled_for', { withTimezone: true }),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     roleIdx: index('users_role_idx').on(t.role),
+    deletionDueIdx: index('users_deletion_due_idx').on(t.deletionScheduledFor),
   }),
 );
 

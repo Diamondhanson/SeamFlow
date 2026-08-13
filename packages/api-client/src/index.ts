@@ -6,6 +6,7 @@ export type { JwtProvider, HttpConfig } from './http';
 // Re-export response shapes that callers commonly need.
 export type { HealthResponse } from './resources/health';
 export type { MeResponse } from './resources/me';
+export type { AccountResource } from './resources/account';
 export type { ListClientsQuery, ListClientsResponse } from './resources/clients';
 export type { ListMeasurementSetsResponse } from './resources/measurement-sets';
 export type { ListMeasurementTemplatesResponse } from './resources/measurement-templates';

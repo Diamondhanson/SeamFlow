@@ -10,6 +10,7 @@
 import { common } from './locales/common';
 import { auth } from './locales/auth';
 import { home } from './locales/home';
+import { account } from './locales/account';
 import { orders } from './locales/orders';
 import { measurements } from './locales/measurements';
 import { claim } from './locales/claim';
@@ -32,6 +33,7 @@ export const translations = {
     common: common.en,
     auth: auth.en,
     home: home.en,
+    account: account.en,
     orders: orders.en,
     measurements: measurements.en,
     claim: claim.en,
@@ -46,6 +48,7 @@ export const translations = {
     common: common.fr,
     auth: auth.fr,
     home: home.fr,
+    account: account.fr,
     orders: orders.fr,
     measurements: measurements.fr,
     claim: claim.fr,

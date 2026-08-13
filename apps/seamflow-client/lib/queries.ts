@@ -17,6 +17,15 @@ import type {
 import { api } from './api';
 import { qk } from './query-keys';
 
+/**
+ * The signed-in account, including any pending account deletion.
+ *
+ * The deletion state rides along here rather than on its own endpoint so that
+ * a pending deletion surfaces on app open — the only reliable moment to offer
+ * someone who changed their mind a way back.
+ */
+export const useMe = () => useQuery({ queryKey: qk.me(), queryFn: () => api.me.get() });
+
 /** The user's unified orders inbox, across every tailor. */
 export const useConsumerOrders = () =>
   useQuery({ queryKey: qk.consumerOrders(), queryFn: () => api.consumer.listOrders() });

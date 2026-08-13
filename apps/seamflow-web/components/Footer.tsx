@@ -49,6 +49,7 @@ export function Footer({
             <FooterLink href={withLang('/privacy', lang)}>{f.links.privacy}</FooterLink>
             <FooterLink href={withLang('/terms', lang)}>{f.links.terms}</FooterLink>
             <FooterLink href={withLang('/support', lang)}>{f.links.support}</FooterLink>
+            <FooterLink href={withLang('/delete-account', lang)}>{f.links.deleteAccount}</FooterLink>
           </FooterCol>
 
           <FooterCol title={f.contact}>

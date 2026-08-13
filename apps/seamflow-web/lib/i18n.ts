@@ -310,6 +310,7 @@ export const copy = {
         privacy: 'Privacy Policy',
         terms: 'Terms',
         support: 'Support',
+        deleteAccount: 'Delete account',
       },
       email: 'contactseamflow@gmail.com',
       phone: '+237 670 15 19 73',
@@ -325,6 +326,53 @@ export const copy = {
       termsTitle: 'Terms of Service',
       supportTitle: 'Support',
     },
+    deleteAccount: {
+      metaTitle: 'Delete your SeamFlow account',
+      metaDescription:
+        'How to delete your SeamFlow account and everything stored with it — from inside the app, or by writing to us if you no longer have it installed.',
+      title: 'Delete your account',
+      intro:
+        'You can close your SeamFlow account at any time, and take a copy of your records with you first.',
+
+      inAppHeading: 'From inside the app (fastest)',
+      inAppBody:
+        'If you can still sign in, this is the quickest route and you stay in control of it throughout.',
+      inAppStep1: 'Open SeamFlow and go to Settings.',
+      inAppStep2: 'Under Account, tap “Delete my account”.',
+      inAppStep3:
+        'Download a copy of your data if you want one, confirm it is you, and confirm the deletion.',
+
+      emailHeading: 'If you no longer have the app',
+      emailBody:
+        'Write to us from the email address on the account and we will start the same process for you. We may ask a question or two to confirm the account is yours — we will never ask for your password.',
+      emailCta: 'Email us to delete my account',
+      mailSubject: 'Please delete my SeamFlow account',
+      mailBody:
+        'Hello,\n\nPlease delete my SeamFlow account and the data stored with it.\n\nThe email address on my account is: \n\nThank you.',
+
+      whatHappensHeading: 'What happens',
+      whatHappensIntro:
+        'Deletion removes your account and the records attached to it. Here is exactly what that covers.',
+
+      erasedHeading: 'Erased',
+      erased1: 'Your profile and sign-in — you will not be able to log back in',
+      erased2: 'Your clients and their measurements, orders, group orders and invoices',
+      erased3: 'Every photo you uploaded, including your public page',
+      erased4: 'Your requests, offers and saved measurements',
+
+      keptHeading: 'Kept',
+      kept1:
+        'Messages you sent stay in the other person’s conversation, with your name and their contents removed.',
+      kept2:
+        'Anonymous records with nothing personal in them, where they are needed to keep the app working for others.',
+
+      graceHeading: 'You have 30 days to change your mind',
+      graceBody:
+        'Nothing is erased immediately. Your public page disappears straight away and notifications stop, but your records stay untouched for 30 days — sign in during that time and tap “Keep my account” to cancel. After 30 days it is permanent and we cannot recover it.',
+
+      privacyNote: 'For more on what we store and why, see our',
+    },
+
     support: {
       intro: 'Need a hand? We’re happy to help.',
       emailHeading: 'Email us',
@@ -719,6 +767,7 @@ export const copy = {
         privacy: 'Politique de confidentialité',
         terms: 'Conditions',
         support: 'Support',
+        deleteAccount: 'Supprimer un compte',
       },
       email: 'contactseamflow@gmail.com',
       phone: '+237 670 15 19 73',
@@ -734,6 +783,53 @@ export const copy = {
       termsTitle: 'Conditions d’utilisation',
       supportTitle: 'Support',
     },
+    deleteAccount: {
+      metaTitle: 'Supprimer votre compte SeamFlow',
+      metaDescription:
+        'Comment supprimer votre compte SeamFlow et toutes les données associées — depuis l’application, ou en nous écrivant si vous ne l’avez plus installée.',
+      title: 'Supprimer votre compte',
+      intro:
+        'Vous pouvez fermer votre compte SeamFlow à tout moment, et récupérer une copie de vos dossiers avant.',
+
+      inAppHeading: 'Depuis l’application (le plus rapide)',
+      inAppBody:
+        'Si vous pouvez encore vous connecter, c’est la voie la plus rapide et vous gardez la main du début à la fin.',
+      inAppStep1: 'Ouvrez SeamFlow et allez dans Paramètres.',
+      inAppStep2: 'Dans Compte, touchez « Supprimer mon compte ».',
+      inAppStep3:
+        'Téléchargez une copie de vos données si vous le souhaitez, confirmez votre identité, puis confirmez la suppression.',
+
+      emailHeading: 'Si vous n’avez plus l’application',
+      emailBody:
+        'Écrivez-nous depuis l’adresse e-mail du compte et nous lancerons la même procédure. Nous pourrons poser une ou deux questions pour vérifier que le compte est bien le vôtre — nous ne demanderons jamais votre mot de passe.',
+      emailCta: 'Nous écrire pour supprimer mon compte',
+      mailSubject: 'Merci de supprimer mon compte SeamFlow',
+      mailBody:
+        'Bonjour,\n\nMerci de supprimer mon compte SeamFlow et les données associées.\n\nL’adresse e-mail de mon compte est : \n\nMerci.',
+
+      whatHappensHeading: 'Ce qui se passe',
+      whatHappensIntro:
+        'La suppression efface votre compte et les dossiers qui y sont rattachés. Voici précisément ce que cela couvre.',
+
+      erasedHeading: 'Effacé',
+      erased1: 'Votre profil et votre connexion — vous ne pourrez plus vous reconnecter',
+      erased2: 'Vos clients et leurs mesures, commandes, commandes de groupe et factures',
+      erased3: 'Toutes les photos ajoutées, y compris votre page publique',
+      erased4: 'Vos demandes, les offres reçues et vos mesures enregistrées',
+
+      keptHeading: 'Conservé',
+      kept1:
+        'Les messages que vous avez envoyés restent dans la conversation de l’autre personne, sans votre nom ni leur contenu.',
+      kept2:
+        'Des enregistrements anonymes, sans rien de personnel, lorsqu’ils sont nécessaires au bon fonctionnement de l’application pour les autres.',
+
+      graceHeading: 'Vous avez 30 jours pour changer d’avis',
+      graceBody:
+        'Rien n’est effacé immédiatement. Votre page publique disparaît aussitôt et les notifications s’arrêtent, mais vos dossiers restent intacts pendant 30 jours — connectez-vous durant cette période et touchez « Garder mon compte » pour annuler. Passé 30 jours, c’est définitif et irrécupérable.',
+
+      privacyNote: 'Pour en savoir plus sur ce que nous conservons et pourquoi, consultez notre',
+    },
+
     support: {
       intro: 'Besoin d’aide ? Nous sommes là.',
       emailHeading: 'Écrivez-nous',

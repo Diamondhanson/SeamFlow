@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { PendingDeletionBanner } from '../../components/PendingDeletionBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -64,6 +65,10 @@ export default function ClientHome() {
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
       >
+        {/* Above everything: someone who regrets asking to be deleted must not
+            have to go looking for the way back. */}
+        <PendingDeletionBanner />
+
         {/* Greeting hero */}
         <View style={[styles.hero, { backgroundColor: colors.surfaceElevated, borderColor: colors.hairline }]}>
           <View style={[styles.heroBlob, { backgroundColor: withAlpha(colors.primary, 0.14) }]} />
@@ -102,6 +107,17 @@ export default function ClientHome() {
         <Pressable onPress={() => void signOut()} hitSlop={8} style={styles.signOut}>
           <Ionicons name="log-out-outline" size={16} color={themeColors.textMuted} />
           <Text variant="bodySm" tone="textMuted">{t('common.signOut')}</Text>
+        </Pressable>
+
+        {/* Store policy requires this be reachable from inside the app. It
+            moves into settings alongside sign-out when that screen lands. */}
+        <Pressable
+          onPress={() => router.push('/(app)/delete-account')}
+          hitSlop={8}
+          style={styles.signOut}
+        >
+          <Ionicons name="trash-outline" size={16} color={themeColors.textMuted} />
+          <Text variant="bodySm" tone="textMuted">{t('account.deleteAccountRow')}</Text>
         </Pressable>
       </ScrollView>
     </Screen>

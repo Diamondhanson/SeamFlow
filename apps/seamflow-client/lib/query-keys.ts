@@ -5,6 +5,7 @@
 
 export const qk = {
   health: () => ['health'] as const,
+  me: () => ['me'] as const,
 
   consumerOrders: () => ['consumer', 'orders'] as const,
   consumerOrder: (id: string) => ['consumer', 'orders', id] as const,

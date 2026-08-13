@@ -334,6 +334,19 @@ export default function Me() {
           />
         </SettingsCard>
 
+        {/* Account. Kept in its own section rather than tucked beside sign-out:
+            store policy requires this be findable, and burying it beside a
+            button people press every day invites the wrong one. */}
+        <SectionTitle>{t('settings.accountSection')}</SectionTitle>
+        <SettingsCard>
+          <SettingsRow
+            first
+            icon="trash-outline"
+            label={t('settings.deleteAccount')}
+            onPress={() => router.push('/(app)/delete-account')}
+          />
+        </SettingsCard>
+
         <View style={{ height: spacing.xl }} />
         {/* Dev-only helper — never shown in production builds. */}
         {__DEV__ ? (

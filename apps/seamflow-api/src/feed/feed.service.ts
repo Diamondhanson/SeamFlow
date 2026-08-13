@@ -14,6 +14,7 @@ import type {
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { feedPosts, orderPhotos, orders, tailors } from '../db/schema';
+import { ownerIsLive } from '../common/live-owner';
 
 const ORDER_PHOTOS_BUCKET = 'order-photos';
 const FEED_BUCKET = 'feed';
@@ -144,7 +145,7 @@ export class FeedService {
 
   async listPublic(query: FeedQuery): Promise<FeedPage> {
     const limit = query.limit ?? 24;
-    const conditions: SQL[] = [eq(feedPosts.status, 'published')];
+    const conditions: SQL[] = [eq(feedPosts.status, 'published'), ownerIsLive()];
 
     if (query.garmentType) conditions.push(eq(feedPosts.garmentType, query.garmentType));
     if (query.city) conditions.push(eq(feedPosts.city, query.city));
@@ -194,7 +195,7 @@ export class FeedService {
       .select({ post: feedPosts, tailor: tailors })
       .from(feedPosts)
       .innerJoin(tailors, eq(tailors.id, feedPosts.tailorId))
-      .where(and(eq(feedPosts.id, id), eq(feedPosts.status, 'published')))
+      .where(and(eq(feedPosts.id, id), eq(feedPosts.status, 'published'), ownerIsLive()))
       .limit(1);
 
     const row = rows[0];

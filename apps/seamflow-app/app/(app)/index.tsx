@@ -19,6 +19,7 @@ import {
 import { Screen } from '../../components/Screen';
 import { Tile } from '../../components/Tile';
 import { GettingStarted } from '../../components/GettingStarted';
+import { PendingDeletionBanner } from '../../components/PendingDeletionBanner';
 import { ColdStartBanner } from '../../components/ColdStartBanner';
 import { InstallHint } from '../../components/InstallHint';
 import { WelcomeSlides } from '../../components/WelcomeSlides';
@@ -283,6 +284,9 @@ export default function Home() {
         {/* Names the wait when the API is cold-starting (shows only after ~3s
             of pending first-load queries — warm opens never see it). */}
         <ColdStartBanner loading={coldLoading} />
+        {/* Above everything: someone who regrets asking to be deleted must not
+            have to go looking for the way back. */}
+        <PendingDeletionBanner />
         {/* iOS Safari only — Android/Chrome prompts on its own. */}
         <InstallHint />
 

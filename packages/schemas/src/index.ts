@@ -1,4 +1,5 @@
 export * from './user';
+export * from './account';
 export * from './tailor';
 export * from './client';
 export * from './measurement';
