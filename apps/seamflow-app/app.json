@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#7B30E8"
       },
-      "package": "com.seamflowtech.app",
+      "package": "com.bambothanson.FashionApp",
       "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "resize",
       "permissions": [
