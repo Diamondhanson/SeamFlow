@@ -57,10 +57,6 @@ export function LegalShell({
           {d.legal.lastUpdated}: {formatDate(LEGAL_UPDATED, lang)}
         </p>
 
-        <div className="mt-4 rounded-2xl border border-brand-accent/30 bg-brand-accent/10 px-4 py-3 text-sm text-brand-ink/80">
-          {d.legal.draftNotice}
-        </div>
-
         <p className="mt-8 text-[15px] leading-relaxed text-brand-muted">{doc.intro}</p>
 
         <div className="mt-8 space-y-8">

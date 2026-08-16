@@ -1,7 +1,11 @@
 // ============================================================================
-// Legal page content (Privacy Policy + Terms), EN/FR. DRAFT copy for review —
-// have it checked before publishing. Kept out of components so wording is easy
-// to edit. Rendered by app/privacy and app/terms.
+// Legal page content (Privacy Policy + Terms), EN/FR. Kept out of components
+// so wording is easy to edit. Rendered by app/privacy and app/terms.
+//
+// These are PUBLISHED, not drafts: Google Play's Data safety form points at
+// /privacy, so this is the document a reviewer reads and a user is bound by.
+// It has not been through a lawyer. Treat edits accordingly, and bump
+// LEGAL_UPDATED whenever the substance changes — the date is shown on the page.
 // ============================================================================
 
 import type { Lang } from './i18n';

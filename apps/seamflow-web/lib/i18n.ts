@@ -320,8 +320,6 @@ export const copy = {
     legal: {
       lastUpdated: 'Last updated',
       backToHome: 'Back to home',
-      draftNotice:
-        'This is draft copy for review, so please have it checked before publishing.',
       privacyTitle: 'Privacy Policy',
       termsTitle: 'Terms of Service',
       supportTitle: 'Support',
@@ -777,8 +775,6 @@ export const copy = {
     legal: {
       lastUpdated: 'Dernière mise à jour',
       backToHome: 'Retour à l’accueil',
-      draftNotice:
-        'Texte provisoire à relire : faites-le vérifier avant publication.',
       privacyTitle: 'Politique de confidentialité',
       termsTitle: 'Conditions d’utilisation',
       supportTitle: 'Support',
