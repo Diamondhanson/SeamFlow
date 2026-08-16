@@ -20,7 +20,7 @@ export interface LegalDoc {
 }
 
 /** ISO date shown as "Last updated" on both legal pages. */
-export const LEGAL_UPDATED = '2026-07-08';
+export const LEGAL_UPDATED = '2026-08-13';
 
 export const privacy: Record<Lang, LegalDoc> = {
   en: {
@@ -63,13 +63,14 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. Storage, location and retention',
         paragraphs: [
           'Your data is stored on our providers’ cloud infrastructure. It may be processed in countries other than your own; where that happens we rely on appropriate safeguards.',
-          'We keep your data while your account is active. When you ask us to delete your account, we delete your data from our active systems, subject to any limited retention required by law.',
+          'We keep your data while your account is active. When you ask us to delete your account, your public page stops being visible immediately and everything is erased 30 days later. The delay exists so you can change your mind: sign in at any point during those 30 days and choose “Keep my account” to cancel. After that it is permanent and we cannot recover it for you.',
+          'Two things outlast a deletion, and neither identifies you. Messages you sent stay in the other person’s conversation with your name and their contents removed, so their side of the thread still makes sense. And we keep records that identify nobody where they are needed to keep the service working for other people.',
         ],
       },
       {
         heading: '6. Your rights',
         paragraphs: [
-          'You can access, correct, export or delete your data. Much of this you can do directly in the app; for anything else, email us and we will help.',
+          'You can access, correct, export or delete your data. To delete your account, open the app and go to Settings → Account → Delete my account, which also offers you a copy of everything to download first. If you no longer have the app installed, seamflowtech.com/delete-account explains how to ask us instead. For anything else, email us and we will help.',
           'Depending on where you live, you may have additional rights under local law (such as the right to object to or restrict certain processing).',
         ],
       },
@@ -139,13 +140,14 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. Stockage, localisation et conservation',
         paragraphs: [
           'Vos données sont stockées sur l’infrastructure cloud de nos prestataires. Elles peuvent être traitées dans des pays autres que le vôtre ; le cas échéant, nous appliquons des garanties appropriées.',
-          'Nous conservons vos données tant que votre compte est actif. Lorsque vous demandez la suppression de votre compte, nous supprimons vos données de nos systèmes actifs, sous réserve d’une conservation limitée imposée par la loi.',
+          'Nous conservons vos données tant que votre compte est actif. Lorsque vous demandez la suppression de votre compte, votre page publique cesse d’être visible immédiatement et tout est effacé 30 jours plus tard. Ce délai existe pour vous permettre de changer d’avis : connectez-vous à tout moment pendant ces 30 jours et choisissez « Garder mon compte » pour annuler. Passé ce délai, c’est définitif et nous ne pouvons rien récupérer.',
+          'Deux choses survivent à une suppression, et aucune ne vous identifie. Les messages que vous avez envoyés restent dans la conversation de l’autre personne, sans votre nom ni leur contenu, afin que son fil de discussion reste compréhensible. Et nous conservons des enregistrements qui n’identifient personne lorsqu’ils sont nécessaires au fonctionnement du service pour les autres.',
         ],
       },
       {
         heading: '6. Vos droits',
         paragraphs: [
-          'Vous pouvez consulter, corriger, exporter ou supprimer vos données. Une grande partie se fait directement dans l’application ; pour le reste, écrivez-nous et nous vous aiderons.',
+          'Vous pouvez consulter, corriger, exporter ou supprimer vos données. Pour supprimer votre compte, ouvrez l’application et allez dans Paramètres → Compte → Supprimer mon compte, qui vous propose aussi de télécharger une copie de tout au préalable. Si vous n’avez plus l’application installée, seamflowtech.com/delete-account explique comment nous en faire la demande. Pour le reste, écrivez-nous et nous vous aiderons.',
           'Selon votre lieu de résidence, vous pouvez disposer de droits supplémentaires prévus par la loi locale (comme le droit de vous opposer à certains traitements ou de les limiter).',
         ],
       },
