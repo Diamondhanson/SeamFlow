@@ -46,6 +46,7 @@ import type {
   TailorProfileUpdateInput,
   TailorUpsertInput,
   WorkAdoptInput,
+  WorkImagesAddInput,
   WorkPublishInput,
   WorkQuery,
   WorkUpdateInput,
@@ -860,6 +861,28 @@ export const usePublishWork = () =>
 
 export const useUnpublishWork = () =>
   useWorkMutation<string>((id) => api.works.unpublish(id));
+
+// ── Carousel ────────────────────────────────────────────────────────────────
+//
+// These go through useWorkMutation like every other write, so the My Designs
+// grid and the facet counts refresh together — changing the cover changes what
+// that grid shows, and a stale thumbnail there is exactly the kind of thing a
+// tailor reads as "it didn't save".
+
+export const useAddWorkImages = () =>
+  useWorkMutation<{ id: string; input: WorkImagesAddInput }>((v) =>
+    api.works.addImages(v.id, v.input),
+  );
+
+export const useRemoveWorkImage = () =>
+  useWorkMutation<{ id: string; imageId: string }>((v) =>
+    api.works.removeImage(v.id, v.imageId),
+  );
+
+export const useSetWorkCover = () =>
+  useWorkMutation<{ id: string; imageId: string }>((v) =>
+    api.works.setCoverImage(v.id, v.imageId),
+  );
 
 /** Pull a finished order's photo into the portfolio. */
 export const useAdoptOrderPhoto = () =>

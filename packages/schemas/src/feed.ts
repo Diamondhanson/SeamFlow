@@ -32,15 +32,44 @@ const feedPostMeta = {
 };
 
 /**
+ * One public photo of a design. The `feed` bucket is public, so these are
+ * plain stable URLs — no signing, which is what lets the feed be CDN-cached
+ * and rendered for a signed-out visitor.
+ */
+export const FeedImageSchema = z.object({
+  imageUrl: z.string().url(),
+  thumbnailUrl: z.string().url(),
+  width: z.number().int().nullable(),
+  height: z.number().int().nullable(),
+  /** 0 is the cover. */
+  position: z.number().int().nonnegative(),
+});
+export type FeedImage = z.infer<typeof FeedImageSchema>;
+
+/**
  * The public projection — what anyone browsing the feed receives.
  * `width`/`height` let a masonry grid reserve space before the image loads.
  */
 export const FeedPostPublicSchema = z.object({
   id: z.string().uuid(),
+  /**
+   * Cover image, duplicating `images[0]`.
+   *
+   * Kept alongside the array so a feed thumbnail never has to index into it,
+   * and so every client written before carousels existed keeps working. A
+   * one-photo design is the common case and this is all it needs.
+   */
   imageUrl: z.string().url(),
   thumbnailUrl: z.string().url(),
   width: z.number().int().nullable(),
   height: z.number().int().nullable(),
+  /**
+   * Every angle of this design, cover first. Always at least one entry, so a
+   * caller can render `images` alone and ignore the cover fields entirely.
+   */
+  images: z.array(FeedImageSchema),
+  /** Short name of the design, if the tailor gave it one. */
+  title: z.string().nullable(),
   caption: z.string().nullable(),
   garmentType: z.string().nullable(),
   tags: z.array(z.string()),

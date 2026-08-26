@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { and, desc, eq, ilike, lt, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, lt, or, sql, type SQL } from 'drizzle-orm';
 import type {
   CatalogueLink,
   FeedPage,
@@ -28,7 +28,7 @@ import {
 } from '@seamflow/utils';
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
-import { feedPosts, orderPhotos, orders, tailors } from '../db/schema';
+import { feedPostImages, feedPosts, orderPhotos, orders, tailors } from '../db/schema';
 import { ownerIsLive } from '../common/live-owner';
 
 const ORDER_PHOTOS_BUCKET = 'order-photos';
@@ -48,6 +48,14 @@ const SLUG_MINT_ATTEMPTS = 25;
 interface FeedRow {
   post: typeof feedPosts.$inferSelect;
   tailor: typeof tailors.$inferSelect;
+  /**
+   * Every angle of this design, cover first.
+   *
+   * Loaded in one batched query per page rather than per post — see
+   * `attachImages`. Absent means "not loaded yet", which the projection
+   * degrades to a single-image carousel built from the post's cover columns.
+   */
+  images?: (typeof feedPostImages.$inferSelect)[];
 }
 
 /**
@@ -122,14 +130,65 @@ export class FeedService {
     };
   }
 
+  /**
+   * Load the carousel images for a page of posts in one query.
+   *
+   * Called once per page. Doing it per post would turn a 24-item feed into 24
+   * extra round-trips on the hottest read in the product.
+   */
+  private async attachImages(rows: FeedRow[]): Promise<FeedRow[]> {
+    if (rows.length === 0) return rows;
+
+    const found = await this.dbService.db
+      .select()
+      .from(feedPostImages)
+      .where(inArray(feedPostImages.feedPostId, rows.map((r) => r.post.id)))
+      .orderBy(asc(feedPostImages.position));
+
+    const byPost = new Map<string, (typeof feedPostImages.$inferSelect)[]>();
+    for (const img of found) {
+      const list = byPost.get(img.feedPostId) ?? [];
+      list.push(img);
+      byPost.set(img.feedPostId, list);
+    }
+
+    return rows.map((r) => ({ ...r, images: byPost.get(r.post.id) ?? [] }));
+  }
+
   private toPublicPost(row: FeedRow): FeedPostPublic {
     const p = row.post;
+
+    // A post whose image rows are missing — not yet loaded, or predating the
+    // carousel table and missed by the backfill — still renders as a
+    // single-image design built from its cover columns. Callers may then read
+    // `images` unconditionally and never special-case the one-photo case.
+    const images =
+      row.images && row.images.length > 0
+        ? row.images.map((img) => ({
+            imageUrl: this.publicUrl(FEED_BUCKET, img.publicPath),
+            thumbnailUrl: this.publicUrl(FEED_BUCKET, img.publicThumbPath),
+            width: img.width ?? null,
+            height: img.height ?? null,
+            position: img.position,
+          }))
+        : [
+            {
+              imageUrl: this.publicUrl(FEED_BUCKET, p.publicPath),
+              thumbnailUrl: this.publicUrl(FEED_BUCKET, p.publicThumbPath),
+              width: p.width ?? null,
+              height: p.height ?? null,
+              position: 0,
+            },
+          ];
+
     return {
       id: p.id,
       imageUrl: this.publicUrl(FEED_BUCKET, p.publicPath),
       thumbnailUrl: this.publicUrl(FEED_BUCKET, p.publicThumbPath),
       width: p.width ?? null,
       height: p.height ?? null,
+      images,
+      title: p.title ?? null,
       caption: p.caption ?? null,
       garmentType: p.garmentType ?? null,
       tags: (p.tags as string[]) ?? [],
@@ -216,7 +275,7 @@ export class FeedService {
       .limit(limit + 1);
 
     const hasMore = rows.length > limit;
-    const page = hasMore ? rows.slice(0, limit) : rows;
+    const page = await this.attachImages(hasMore ? rows.slice(0, limit) : rows);
     const last = page[page.length - 1];
 
     return {
@@ -236,9 +295,11 @@ export class FeedService {
     const row = rows[0];
     if (!row) throw new NotFoundException(`Feed post ${id} not found`);
 
+    const [withImages] = await this.attachImages([row]);
+
     // `moreLikeThis` stays empty until pgvector similarity lands (C5). Returning
     // the field now means the client can ship its UI without a contract change.
-    return { post: this.toPublicPost(row), moreLikeThis: [] };
+    return { post: this.toPublicPost(withImages ?? row), moreLikeThis: [] };
   }
 
   async storefront(
@@ -368,7 +429,8 @@ export class FeedService {
       .innerJoin(tailors, eq(tailors.id, feedPosts.tailorId))
       .where(eq(feedPosts.tailorId, tailorId))
       .orderBy(desc(feedPosts.createdAt));
-    return rows.map((r) => this.toOwnerPost(r));
+    const withImages = await this.attachImages(rows);
+    return withImages.map((r) => this.toOwnerPost(r));
   }
 
   async update(

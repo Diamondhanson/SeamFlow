@@ -128,6 +128,41 @@ export const feed = {
       'Shown on your catalogue page as a Contact button. This is NOT your sign-in number — leave it empty and no button appears.',
     publicWhatsappInvalid:
       'Enter a full international number, starting with your country code.',
+    // ── Carousel + price on a design ────────────────────────────────────────
+    onePieceTitle: 'How should these {count} photos be saved?',
+    onePieceBody:
+      'If they are different angles of the same piece — front, back, side — save them as one design so clients can swipe through them.',
+    onePieceAsOne: 'One design, {count} photos',
+    onePieceAsSeparate: '{count} separate designs',
+    describeTitle: 'Describe this design',
+    describeSubtitle:
+      'All optional. Anything you add here is what clients see on your catalogue.',
+    describeUploading: 'Uploading {done} of {total}…',
+    describeUploadFailed: 'Your photos could not be uploaded',
+    descriptionLabel: 'Description',
+    descriptionPlaceholder: 'e.g. Hand-embroidered neckline, lined bodice. Made to measure in 2 weeks.',
+    priceLabel: 'Starting price',
+    pricePlaceholder: 'e.g. 45000',
+    priceHelp:
+      'Shown to clients as “From {example}”. Leave empty to show no price.',
+    priceInvalid: 'Enter an amount like 45000',
+    saveAndFinish: 'Save',
+    skipForNow: 'Skip',
+    photosLabel: 'Photos',
+    photosCount: '{count} photos',
+    coverBadge: 'Cover',
+    addPhotos: 'Add photos',
+    photoActionsTitle: 'This photo',
+    makeCover: 'Make it the cover',
+    removePhoto: 'Remove photo',
+    removePhotoConfirm: 'Remove this photo from the design?',
+    lastPhotoTitle: 'This is the only photo',
+    lastPhotoBody:
+      'A design needs at least one photo. Delete the whole design instead if you no longer want it.',
+    maxPhotosTitle: 'That is the most photos for one design',
+    maxPhotosBody:
+      'A design can hold up to {max} photos. Remove one before adding another.',
+    photosUpdated: 'Photos updated',
   },
   fr: {
     publishAction: 'Afficher dans le fil',
@@ -256,5 +291,40 @@ export const feed = {
       'Affiché sur votre page catalogue comme bouton Contact. Ce n’est PAS votre numéro de connexion — laissez vide et aucun bouton n’apparaît.',
     publicWhatsappInvalid:
       'Entrez un numéro international complet, avec l’indicatif du pays.',
+    // ── Carrousel + prix d’une création ─────────────────────────────────────
+    onePieceTitle: 'Comment enregistrer ces {count} photos ?',
+    onePieceBody:
+      'S’il s’agit de la même pièce sous différents angles — devant, dos, côté — enregistrez-les comme une seule création pour que les clients puissent les faire défiler.',
+    onePieceAsOne: 'Une création, {count} photos',
+    onePieceAsSeparate: '{count} créations distinctes',
+    describeTitle: 'Décrivez cette création',
+    describeSubtitle:
+      'Tout est facultatif. Ce que vous ajoutez ici est ce que les clients verront sur votre catalogue.',
+    describeUploading: 'Envoi de {done} sur {total}…',
+    describeUploadFailed: 'Vos photos n’ont pas pu être envoyées',
+    descriptionLabel: 'Description',
+    descriptionPlaceholder: 'ex. Encolure brodée main, corsage doublé. Sur mesure en 2 semaines.',
+    priceLabel: 'Prix à partir de',
+    pricePlaceholder: 'ex. 45000',
+    priceHelp:
+      'Affiché aux clients comme « À partir de {example} ». Laissez vide pour ne pas afficher de prix.',
+    priceInvalid: 'Entrez un montant comme 45000',
+    saveAndFinish: 'Enregistrer',
+    skipForNow: 'Ignorer',
+    photosLabel: 'Photos',
+    photosCount: '{count} photos',
+    coverBadge: 'Couverture',
+    addPhotos: 'Ajouter des photos',
+    photoActionsTitle: 'Cette photo',
+    makeCover: 'Définir comme couverture',
+    removePhoto: 'Retirer la photo',
+    removePhotoConfirm: 'Retirer cette photo de la création ?',
+    lastPhotoTitle: 'C’est la seule photo',
+    lastPhotoBody:
+      'Une création doit garder au moins une photo. Supprimez plutôt la création entière si vous n’en voulez plus.',
+    maxPhotosTitle: 'Nombre maximum de photos atteint',
+    maxPhotosBody:
+      'Une création peut contenir jusqu’à {max} photos. Retirez-en une avant d’en ajouter.',
+    photosUpdated: 'Photos mises à jour',
   },
 } as const;

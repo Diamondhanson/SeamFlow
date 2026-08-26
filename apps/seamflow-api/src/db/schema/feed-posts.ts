@@ -42,6 +42,8 @@ export const feedPosts = pgTable(
     publicThumbPath: text('public_thumb_path').notNull(),
     width: integer('width'),
     height: integer('height'),
+    /** Short name of the design, denormalised from the work at publish time. */
+    title: text('title'),
     caption: text('caption'),
     garmentType: text('garment_type'),
     tags: jsonb('tags').notNull().default([]),

@@ -18,6 +18,7 @@ export * from './order-claims';
 export * from './feed-posts';
 export * from './chat';
 export * from './tailor-works';
+export * from './work-images';
 export * from './phone-verifications';
 export * from './notifications';
 export * from './requests';

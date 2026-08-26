@@ -15,6 +15,7 @@ import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { FeedPostPublic, TailorPublicProfile } from '@seamflow/schemas';
+import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from './Screen';
 import { ScreenHeader } from './ScreenHeader';
@@ -158,6 +159,27 @@ export function StorefrontView({
                       borderRadius: radii.md,
                     }}
                   />
+                  {/* A design with several angles says so on the tile —
+                      otherwise the extra photos are invisible until someone
+                      happens to open it, and most people never would. */}
+                  {post.images.length > 1 ? (
+                    <View style={styles.countBadge}>
+                      <Ionicons name="copy-outline" size={11} color="#fff" />
+                      <Text variant="caption" style={styles.countText}>
+                        {post.images.length}
+                      </Text>
+                    </View>
+                  ) : null}
+                  {post.startingPrice ? (
+                    <Text variant="caption" tone="textMuted" style={styles.tilePrice}>
+                      {t('discover.fromPrice', {
+                        price: formatCurrency(
+                          Number(post.startingPrice),
+                          post.currency ?? tailor?.currency ?? 'XAF',
+                        ),
+                      })}
+                    </Text>
+                  ) : null}
                 </Pressable>
               );
             })}
@@ -180,4 +202,18 @@ const styles = StyleSheet.create({
   grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   wrap: { flexDirection: 'row', flexWrap: 'wrap' },
   empty: { alignItems: 'center', paddingTop: spacing.xl },
+  countBadge: {
+    position: 'absolute',
+    right: 6,
+    top: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  countText: { color: '#fff' },
+  tilePrice: { marginTop: 4 },
 });

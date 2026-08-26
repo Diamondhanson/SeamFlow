@@ -98,7 +98,7 @@ export default function ShareReceive() {
     for (let i = 0; i < images.length; i++) {
       setSaving({ done: i + 1, total: images.length });
       try {
-        if (choice === 'work') await uploadWork({ tailorId, asset: images[i]! });
+        if (choice === 'work') await uploadWork({ tailorId, assets: [images[i]!] });
         else await uploadDesign({ tailorId, asset: images[i]! });
       } catch {
         failed++;

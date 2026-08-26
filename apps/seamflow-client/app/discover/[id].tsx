@@ -11,9 +11,12 @@
 // for the attribution.
 // ============================================================================
 
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Dimensions, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import type { FeedImage } from '@seamflow/schemas';
+import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { SkeletonDetail } from '../../components/Skeleton';
@@ -83,11 +86,7 @@ export default function DesignDetail() {
     <Screen padded={false}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View>
-          <Image
-            source={{ uri: post.imageUrl }}
-            style={[styles.hero, { backgroundColor: colors.card }]}
-            resizeMode="cover"
-          />
+          <HeroCarousel images={post.images} background={colors.card} accent={colors.accent} />
 
           {/* Close, top-left — deliberately not where the attribution goes. */}
           <Pressable
@@ -136,7 +135,10 @@ export default function DesignDetail() {
         </View>
 
         <View style={styles.body}>
-          {post.caption ? <Text variant="body">{post.caption}</Text> : null}
+          {post.title ? <Text variant="h3">{post.title}</Text> : null}
+          {post.caption && post.caption !== post.title ? (
+            <Text variant="body">{post.caption}</Text>
+          ) : null}
 
           <View style={styles.metaRow}>
             {[post.garmentType, post.fabric, post.city].filter(Boolean).map((m) => (
@@ -153,8 +155,11 @@ export default function DesignDetail() {
 
           {post.startingPrice ? (
             <Text variant="bodySm" tone="textMuted">
+              {/* Through Intl, not string concatenation. XAF has no minor unit,
+                  so the raw "45000.00" has to print as FCFA 45,000 — showing
+                  the stored decimals is showing a figure no bill ever has. */}
               {t('discover.fromPrice', {
-                price: `${post.startingPrice} ${post.currency ?? ''}`.trim(),
+                price: formatCurrency(Number(post.startingPrice), post.currency ?? 'XAF'),
               })}
             </Text>
           ) : null}
@@ -168,7 +173,84 @@ export default function DesignDetail() {
   );
 }
 
+/**
+ * The design's angles — front, back, side — as a paged swipe.
+ *
+ * A plain paging ScrollView rather than a carousel library: this is one
+ * horizontal strip of at most eight images and the platform already does
+ * paging natively. Dots only appear for more than one photo, so a single-image
+ * design looks exactly as it did before carousels existed.
+ */
+function HeroCarousel({
+  images,
+  background,
+  accent,
+}: {
+  images: FeedImage[];
+  background: string;
+  accent: string;
+}) {
+  const [index, setIndex] = useState(0);
+  const width = Dimensions.get('window').width;
+
+  if (images.length <= 1) {
+    return (
+      <Image
+        source={{ uri: images[0]?.imageUrl }}
+        style={[styles.hero, { backgroundColor: background }]}
+        resizeMode="cover"
+      />
+    );
+  }
+
+  return (
+    <View>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(e) =>
+          setIndex(Math.round(e.nativeEvent.contentOffset.x / width))
+        }
+      >
+        {images.map((img) => (
+          <Image
+            key={img.position}
+            source={{ uri: img.imageUrl }}
+            style={[styles.hero, { width, backgroundColor: background }]}
+            resizeMode="cover"
+          />
+        ))}
+      </ScrollView>
+
+      <View style={styles.dots} pointerEvents="none">
+        {images.map((img, i) => (
+          <View
+            key={img.position}
+            style={[
+              styles.dot,
+              i === index
+                ? { width: 16, backgroundColor: accent }
+                : { backgroundColor: 'rgba(255,255,255,0.6)' },
+            ]}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  dots: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  dot: { width: 6, height: 6, borderRadius: 3 },
   hero: { width: '100%', height: 460 },
   close: {
     // Fixed scrim rather than a theme token: it sits over an arbitrary

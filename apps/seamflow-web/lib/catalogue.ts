@@ -41,6 +41,11 @@ export interface CatalogueCopy {
   poweredBy: string;
   viewMore: string;
   closeLabel: string;
+  /** `{price}` → already-formatted money. */
+  fromPrice: (price: string) => string;
+  photoCount: (n: number) => string;
+  nextPhoto: string;
+  prevPhoto: string;
 }
 
 export const catalogueCopy: Record<Lang, CatalogueCopy> = {
@@ -73,6 +78,13 @@ export const catalogueCopy: Record<Lang, CatalogueCopy> = {
     poweredBy: 'Catalogue powered by SeamFlow',
     viewMore: 'Show more',
     closeLabel: 'Close',
+    // "From" rather than a flat figure: this is made-to-measure work, where
+    // fabric and finishing move the final number. A price shown as exact is a
+    // promise the tailor did not make.
+    fromPrice: (price) => `From ${price}`,
+    photoCount: (n) => `${n} photos`,
+    nextPhoto: 'Next photo',
+    prevPhoto: 'Previous photo',
   },
   fr: {
     eyebrow: 'Catalogue',
@@ -104,6 +116,10 @@ export const catalogueCopy: Record<Lang, CatalogueCopy> = {
     poweredBy: 'Catalogue propulsé par SeamFlow',
     viewMore: 'Voir plus',
     closeLabel: 'Fermer',
+    fromPrice: (price) => `À partir de ${price}`,
+    photoCount: (n) => `${n} photos`,
+    nextPhoto: 'Photo suivante',
+    prevPhoto: 'Photo précédente',
   },
 };
 

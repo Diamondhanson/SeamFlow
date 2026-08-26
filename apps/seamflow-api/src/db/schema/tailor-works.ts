@@ -6,6 +6,8 @@ import {
   index,
   jsonb,
   integer,
+  numeric,
+  char,
 } from 'drizzle-orm/pg-core';
 import { tailors } from './users';
 import { orderPhotos } from './order-photos';
@@ -48,11 +50,22 @@ export const tailorWorks = pgTable(
     // All nullable: a tailor should be able to save a photo now and describe it
     // later, rather than being blocked by a form at the moment of capture.
     title: text('title'),
+    /** Longer note shown under the design on the public catalogue. */
+    description: text('description'),
     garmentType: text('garment_type'),
     audience: workAudienceEnum('audience'),
     fabric: text('fabric'),
     occasion: workOccasionEnum('occasion'),
     tags: jsonb('tags').notNull().default([]),
+
+    /**
+     * Optional "from" price in MAJOR units — 25000.00 is twenty-five thousand,
+     * not two hundred and fifty. Lives here rather than only on the published
+     * post, so unpublishing a piece no longer destroys the price the tailor
+     * typed.
+     */
+    startingPrice: numeric('starting_price', { precision: 12, scale: 2 }),
+    currency: char('currency', { length: 3 }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

@@ -22,6 +22,7 @@ import {
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Work, WorkAudience, WorkOccasion } from '@seamflow/schemas';
+import { MAX_WORK_IMAGES } from '@seamflow/schemas';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
@@ -35,7 +36,13 @@ import {
   useWorkFacets,
   useWorks,
 } from '../../../lib/queries';
-import { MAX_MULTI_SELECT, pickPhotos, uploadWork } from '../../../lib/photo-upload';
+import {
+  MAX_MULTI_SELECT,
+  pickPhotos,
+  uploadWork,
+  type PickedAsset,
+} from '../../../lib/photo-upload';
+import { setPendingProgress, startPendingWork } from '../../../lib/pending-work';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
 import { useShareCatalogue } from '../../../lib/share-catalogue';
@@ -93,27 +100,49 @@ export default function MyDesigns() {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  /**
+   * Pick photos, then decide what they mean.
+   *
+   * Several photos can mean two completely different things — four angles of
+   * one dress, or four different dresses — and only the tailor knows which.
+   * Guessing either way is wrong often enough to be worth one tap: a carousel
+   * silently split into four designs makes a catalogue look repetitive, and
+   * four designs silently merged into one hides three pieces of work.
+   */
   const add = async (source: 'camera' | 'library') => {
     if (!tailorId) return;
     setUploading(true);
     try {
       const assets = await pickPhotos(source, MAX_MULTI_SELECT);
       if (assets.length === 0) return;
-      // Sequential for the same reason as the Design Studio: encoding ten
-      // images at once spikes memory enough to stall a mid-range phone.
-      let failed = 0;
-      for (let i = 0; i < assets.length; i++) {
-        setProgress({ done: i + 1, total: assets.length });
-        try {
-          await uploadWork({ tailorId, asset: assets[i]! });
-        } catch {
-          failed++;
+
+      if (assets.length === 1) {
+        await uploadOneDesign(assets);
+        return;
+      }
+
+      const choice = await dialog.choose<'one' | 'separate'>({
+        title: t('feed.onePieceTitle', { count: assets.length }),
+        message: t('feed.onePieceBody'),
+        actions: [
+          { label: t('feed.onePieceAsOne', { count: assets.length }), value: 'one' },
+          { label: t('feed.onePieceAsSeparate', { count: assets.length }), value: 'separate' },
+        ],
+      });
+      if (!choice) return;
+
+      if (choice === 'one') {
+        await uploadOneDesign(assets.slice(0, MAX_WORK_IMAGES));
+        if (assets.length > MAX_WORK_IMAGES) {
+          await dialog.alert({
+            title: t('feed.maxPhotosTitle'),
+            message: t('feed.maxPhotosBody', { max: MAX_WORK_IMAGES }),
+          });
         }
+        return;
       }
-      qc.invalidateQueries({ queryKey: ['works'] });
-      if (failed > 0 && failed === assets.length) {
-        await dialog.error(new Error(t('designs.describeError')));
-      }
+
+      await uploadSeparateDesigns(assets);
     } catch (err) {
       if (
         !(await alertIfOffline(err, dialog, t)) &&
@@ -124,6 +153,48 @@ export default function MyDesigns() {
     } finally {
       setUploading(false);
       setProgress(null);
+    }
+  };
+
+  /**
+   * One design from N photos. Navigates to the describe screen IMMEDIATELY and
+   * lets the upload finish behind it — see lib/pending-work.
+   */
+  const uploadOneDesign = async (assets: PickedAsset[]) => {
+    if (!tailorId) return;
+
+    let key = '';
+    const promise = uploadWork({
+      tailorId,
+      assets,
+      onProgress: (done) => setPendingProgress(key, done),
+    });
+    key = startPendingWork({
+      promise,
+      previewUris: assets.map((a) => a.uri),
+      total: assets.length,
+    });
+
+    router.push({ pathname: '/(app)/works/describe', params: { key } });
+  };
+
+  /** N designs from N photos — the old behaviour, now an explicit choice. */
+  const uploadSeparateDesigns = async (assets: PickedAsset[]) => {
+    if (!tailorId) return;
+    // Sequential for the same reason as the Design Studio: encoding ten images
+    // at once spikes memory enough to stall a mid-range phone.
+    let failed = 0;
+    for (let i = 0; i < assets.length; i++) {
+      setProgress({ done: i + 1, total: assets.length });
+      try {
+        await uploadWork({ tailorId, assets: [assets[i]!] });
+      } catch {
+        failed++;
+      }
+    }
+    qc.invalidateQueries({ queryKey: ['works'] });
+    if (failed > 0 && failed === assets.length) {
+      await dialog.error(new Error(t('designs.describeError')));
     }
   };
 

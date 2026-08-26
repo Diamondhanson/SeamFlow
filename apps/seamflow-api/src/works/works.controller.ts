@@ -15,6 +15,7 @@ import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { WorksService } from './works.service';
 import {
+  AddWorkImagesDto,
   AdoptOrderPhotoDto,
   CreateWorkDto,
   PublishWorkDto,
@@ -54,6 +55,46 @@ export class WorksController {
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
     return this.works.getById(tailorId, id);
+  }
+
+  // ── Carousel ──────────────────────────────────────────────────────────────
+  //
+  // A design is a set of photos of one garment — front, back, side. These three
+  // routes are what make that set editable after the fact; without them a
+  // tailor who picked the wrong cover, or missed an angle, would have to delete
+  // the design and start again.
+
+  /** Append more angles. */
+  @Post('works/:id/images')
+  async addImages(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: AddWorkImagesDto,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.works.addImages(tailorId, id, body.images);
+  }
+
+  /** Drop one angle. Refused for the last remaining photo. */
+  @Delete('works/:id/images/:imageId')
+  async removeImage(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('imageId', new ParseUUIDPipe()) imageId: string,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.works.removeImage(tailorId, id, imageId);
+  }
+
+  /** Promote one angle to the cover — what the grid and the feed show. */
+  @Patch('works/:id/images/:imageId/cover')
+  async setCover(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('imageId', new ParseUUIDPipe()) imageId: string,
+  ) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.works.setCoverImage(tailorId, id, imageId);
   }
 
   @Post('works')

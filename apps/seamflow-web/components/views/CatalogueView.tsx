@@ -86,7 +86,20 @@ export function CatalogueView({ lang, tailor, posts }: Props) {
             </h2>
             <span className="text-[12px] tabular-nums text-muted">{c.pieces(posts.length)}</span>
           </div>
-          <CatalogueGrid posts={posts} currency={tailor.currency} closeLabel={c.closeLabel} />
+          <CatalogueGrid
+            posts={posts}
+            currency={tailor.currency}
+            labels={{
+              close: c.closeLabel,
+              next: c.nextPhoto,
+              prev: c.prevPhoto,
+              // Formatted here, on the server, and handed over as plain
+              // strings. The alternative — passing the copy object so the
+              // client can format — means passing functions across the
+              // server/client boundary, which React refuses at render time.
+              priceById: priceMap(posts, tailor.currency, c.fromPrice),
+            }}
+          />
         </section>
       ) : (
         <EmptyState title={c.emptyTitle} body={c.emptyBody} />
@@ -159,6 +172,43 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">{body}</p>
     </div>
   );
+}
+
+/**
+ * Pre-format every price the wall will show, keyed by post id.
+ *
+ * `startingPrice` arrives as a numeric(12,2) string in MAJOR units — "25000.00"
+ * means twenty-five thousand francs, not two hundred and fifty. Don't divide by
+ * 100 here; that mistake is easy to make because plenty of payment code stores
+ * minor units, and it would show every West African price two orders of
+ * magnitude too small.
+ *
+ * The digit count comes from the currency, not from us: XAF and XOF — the home
+ * markets — have no minor unit, so "25000.00" must print as FCFA 25,000 and
+ * never as FCFA 25,000.00. Intl knows which currencies those are.
+ */
+function priceMap(
+  posts: FeedPostPublic[],
+  fallbackCurrency: string,
+  format: (price: string) => string,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const p of posts) {
+    if (p.startingPrice == null || p.startingPrice === '') continue;
+    const value = Number(p.startingPrice);
+    if (!Number.isFinite(value)) continue;
+
+    const currency = p.currency ?? fallbackCurrency;
+    let money: string;
+    try {
+      money = new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(value);
+    } catch {
+      // Unknown ISO code — better a plain number with a suffix than nothing.
+      money = `${value} ${currency}`;
+    }
+    out[p.id] = format(money);
+  }
+  return out;
 }
 
 /**

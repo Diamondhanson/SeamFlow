@@ -3,6 +3,7 @@ import type {
   Work,
   WorkAdoptInput,
   WorkCreateInput,
+  WorkImagesAddInput,
   WorkFacets,
   WorkPage,
   WorkPublishInput,
@@ -42,9 +43,25 @@ export function makeWorksResource(http: HttpClient) {
     get(id: string): Promise<Work> {
       return http.get<Work>(`/works/${id}`);
     },
-    /** Register an image already uploaded to the private `works` bucket. */
+    /**
+     * Register images already uploaded to the private `works` bucket, as one
+     * design. The first entry becomes the cover.
+     */
     create(input: WorkCreateInput): Promise<Work> {
       return http.post<Work>('/works', input);
+    },
+
+    /** Append more angles to an existing design. */
+    addImages(id: string, input: WorkImagesAddInput): Promise<Work> {
+      return http.post<Work>(`/works/${id}/images`, input);
+    },
+    /** Drop one angle. The API refuses to remove the last remaining photo. */
+    removeImage(id: string, imageId: string): Promise<Work> {
+      return http.delete<Work>(`/works/${id}/images/${imageId}`);
+    },
+    /** Promote one angle to the cover — what the grid and the feed show. */
+    setCoverImage(id: string, imageId: string): Promise<Work> {
+      return http.patch<Work>(`/works/${id}/images/${imageId}/cover`, {});
     },
     /** Pull a finished order's photo into the portfolio. Idempotent. */
     adoptOrderPhoto(orderPhotoId: string, input: WorkAdoptInput = {}): Promise<Work> {

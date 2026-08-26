@@ -8,6 +8,7 @@ import type {
   Design,
   Work,
   WorkCreateInput,
+  WorkImageCreateInput,
   MessageAttachment,
   GroupOrderPhoto,
   OrderPhoto,
@@ -69,9 +70,18 @@ const THUMB_MAX_DIM = 400;
 const THUMB_QUALITY = 0.65;
 
 /** Attributes optionally set at upload time; the rest can be filled in later. */
-type WorkCreateMeta = Pick<
+export type WorkCreateMeta = Pick<
   WorkCreateInput,
-  'title' | 'garmentType' | 'audience' | 'fabric' | 'occasion' | 'tags' | 'orderId'
+  | 'title'
+  | 'description'
+  | 'garmentType'
+  | 'audience'
+  | 'fabric'
+  | 'occasion'
+  | 'tags'
+  | 'orderId'
+  | 'startingPrice'
+  | 'currency'
 >;
 
 export interface PickedAsset {
@@ -534,30 +544,84 @@ export async function uploadChatImage(args: {
  */
 export async function uploadWork(args: {
   tailorId: string;
-  asset: PickedAsset;
+  /** One asset, or several angles of the SAME garment — front, back, side. */
+  assets: PickedAsset[];
   meta?: WorkCreateMeta;
+  /** Called after each image lands, so a multi-photo design can show progress. */
+  onProgress?: (done: number, total: number) => void;
 }): Promise<Work> {
-  const { tailorId, asset, meta } = args;
-  const { full, thumb } = await compressBoth(asset);
+  const { tailorId, assets, meta, onProgress } = args;
+  if (assets.length === 0) throw new Error('No photos to upload');
 
-  const id = cryptoRandom();
   const folder = `${tailorId}/works`;
-  const storagePath = `${folder}/${id}.${full.ext}`;
-  const thumbnailPath = `${folder}/${id}_thumb.${thumb.ext}`;
+  const uploaded: WorkImageCreateInput[] = [];
 
-  await Promise.all([
-    uploadOne(WORKS_BUCKET, storagePath, full),
-    uploadOne(WORKS_BUCKET, thumbnailPath, thumb),
-  ]);
+  // Sequential, not Promise.all. Encoding several images at once spikes memory
+  // enough to stall a mid-range Android phone — the same reason the Design
+  // Studio uploads one at a time.
+  for (let i = 0; i < assets.length; i++) {
+    const asset = assets[i]!;
+    const { full, thumb } = await compressBoth(asset);
 
-  return api.works.create({
-    storagePath,
-    thumbnailPath,
-    // Stored so the masonry grid can reserve space before the image loads.
-    width: asset.width,
-    height: asset.height,
-    ...(meta ?? {}),
-  });
+    const id = cryptoRandom();
+    const storagePath = `${folder}/${id}.${full.ext}`;
+    const thumbnailPath = `${folder}/${id}_thumb.${thumb.ext}`;
+
+    await Promise.all([
+      uploadOne(WORKS_BUCKET, storagePath, full),
+      uploadOne(WORKS_BUCKET, thumbnailPath, thumb),
+    ]);
+
+    uploaded.push({
+      storagePath,
+      thumbnailPath,
+      // Stored so a grid can reserve space before the image loads.
+      width: asset.width,
+      height: asset.height,
+    });
+    onProgress?.(i + 1, assets.length);
+  }
+
+  return api.works.create({ images: uploaded, ...(meta ?? {}) });
+}
+
+/**
+ * Upload more angles onto a design that already exists.
+ *
+ * Separate from `uploadWork` because the design is already registered: these
+ * images are appended to it rather than creating a second entry, which is the
+ * difference between "another photo of this dress" and "another dress".
+ */
+export async function uploadWorkImages(args: {
+  tailorId: string;
+  workId: string;
+  assets: PickedAsset[];
+  onProgress?: (done: number, total: number) => void;
+}): Promise<Work> {
+  const { tailorId, workId, assets, onProgress } = args;
+  if (assets.length === 0) throw new Error('No photos to upload');
+
+  const folder = `${tailorId}/works`;
+  const uploaded: WorkImageCreateInput[] = [];
+
+  for (let i = 0; i < assets.length; i++) {
+    const asset = assets[i]!;
+    const { full, thumb } = await compressBoth(asset);
+
+    const id = cryptoRandom();
+    const storagePath = `${folder}/${id}.${full.ext}`;
+    const thumbnailPath = `${folder}/${id}_thumb.${thumb.ext}`;
+
+    await Promise.all([
+      uploadOne(WORKS_BUCKET, storagePath, full),
+      uploadOne(WORKS_BUCKET, thumbnailPath, thumb),
+    ]);
+
+    uploaded.push({ storagePath, thumbnailPath, width: asset.width, height: asset.height });
+    onProgress?.(i + 1, assets.length);
+  }
+
+  return api.works.addImages(workId, { images: uploaded });
 }
 
 /**
