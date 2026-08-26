@@ -97,7 +97,11 @@ function Tile({
     >
       <div
         className="relative w-full overflow-hidden bg-surfaceElevated"
-        style={{ aspectRatio: ratio }}
+        // `isolation: isolate` is load-bearing on iOS Safari, not decoration.
+        // A backdrop-filter inside a rounded `overflow: hidden` ancestor is
+        // composited against the wrong layer there and bleeds past the corner
+        // radius; giving this box its own stacking context confines it.
+        style={{ aspectRatio: ratio, isolation: 'isolate' }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -117,19 +121,119 @@ function Tile({
             {count}
           </span>
         ) : null}
-      </div>
 
-      {label || price ? (
-        <div className="px-3 py-2.5">
+        {label || price ? <Caption label={label} price={price} /> : null}
+      </div>
+    </button>
+  );
+}
+
+/**
+ * The name-and-price bar, laid over the bottom of the photo.
+ *
+ * A progressive blur, not a single frosted panel. One uniform
+ * `backdrop-filter` has a hard top edge that reads as a grey box stuck on the
+ * picture; stacking a few layers whose blur increases downward — each masked
+ * to its own band — makes the photo dissolve into the text instead. The eye
+ * reads it as depth rather than as a rectangle.
+ *
+ * How the stack works: every layer covers the whole bar but is revealed only
+ * across part of it by its mask gradient, and the layers overlap. Reading down
+ * the bar you pass through 0 → 1 → 2 → 3 → 4 active layers, so the blur ramps
+ * smoothly instead of stepping.
+ *
+ * Legibility does not come from the blur. Blurring a photo leaves its
+ * brightness alone, so white text over a blurred white dress is still white on
+ * white — and this catalogue is full of white dresses. A separate dark scrim,
+ * transparent at the top and ~72% at the bottom, is what actually guarantees
+ * contrast; the blur only softens what is behind it.
+ *
+ * Platform notes, since this is read almost entirely on phones:
+ *   - `-webkit-backdrop-filter` is required on iOS Safari; without it every
+ *     layer is a no-op and only the scrim shows.
+ *   - `-webkit-mask-image` is required for older Android WebViews.
+ *   - `transform: translateZ(0)` on the container: iOS composites
+ *     backdrop-filter against the wrong layer inside an `overflow: hidden`
+ *     rounded parent unless something forces its own stacking context, which
+ *     shows up as the blur bleeding past the card's rounded corner.
+ */
+/**
+ * A tight, dark shadow rather than a soft glow.
+ *
+ * The scrim already supplies the broad contrast; this only sharpens the letter
+ * edges where a light detail in the photo happens to sit directly behind a
+ * stroke. Two stacked shadows — one hairline, one softer — keep small text
+ * crisp without the muddy halo a single large blur produces.
+ */
+const TEXT_SHADOW = '0 1px 1px rgba(12,10,9,0.55), 0 1px 6px rgba(12,10,9,0.35)';
+
+function Caption({ label, price }: { label?: string | null; price?: string }) {
+  // Bands overlap so no seam is visible between one blur strength and the next.
+  const layers = [
+    { blur: 1, from: '0%', to: '38%' },
+    { blur: 2, from: '22%', to: '58%' },
+    { blur: 4, from: '42%', to: '76%' },
+    { blur: 8, from: '62%', to: '100%' },
+  ];
+
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-0 bottom-0"
+      style={{ transform: 'translateZ(0)' }}
+    >
+      <div className="relative">
+        {layers.map((l) => (
+          <div
+            key={l.blur}
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              backdropFilter: `blur(${l.blur}px)`,
+              WebkitBackdropFilter: `blur(${l.blur}px)`,
+              maskImage: `linear-gradient(to bottom, transparent ${l.from}, black ${l.to})`,
+              WebkitMaskImage: `linear-gradient(to bottom, transparent ${l.from}, black ${l.to})`,
+            }}
+          />
+        ))}
+
+        {/* The scrim, which is what actually keeps the text readable. */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(to bottom, rgba(16,13,11,0) 0%, rgba(16,13,11,0.28) 45%, rgba(16,13,11,0.72) 100%)',
+          }}
+        />
+
+        <div className="relative px-3 pb-2.5 pt-7">
           {label ? (
-            <p className="line-clamp-2 text-[13px] leading-snug text-ink/90">{label}</p>
+            // The brand serif, as used by the shop name and section headings.
+            // It separates the garment's NAME from the interface text around
+            // it, and its heavier stems hold up better over a photograph than
+            // the UI sans, whose thin strokes break up against busy fabric.
+            <p
+              className="line-clamp-2 font-display text-[14px] font-semibold leading-tight tracking-[-0.01em] text-white"
+              style={{ textShadow: TEXT_SHADOW }}
+            >
+              {label}
+            </p>
           ) : null}
           {price ? (
-            <p className="mt-1 text-[12px] font-medium tracking-tight text-accent">{price}</p>
+            // Deliberately NOT the serif: a price is data, not a name. Tabular
+            // figures keep the digits on a common width so a column of prices
+            // lines up down the wall, and the wide tracking plus small size
+            // reads as a label rather than competing with the title.
+            <p
+              className="mt-1 text-[11px] font-semibold uppercase tabular-nums tracking-[0.07em] text-white/85"
+              style={{ textShadow: TEXT_SHADOW }}
+            >
+              {price}
+            </p>
           ) : null}
         </div>
-      ) : null}
-    </button>
+      </div>
+    </div>
   );
 }
 

@@ -20,6 +20,7 @@ import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from './Screen';
 import { ScreenHeader } from './ScreenHeader';
 import { SkeletonGrid } from './Skeleton';
+import { ImageCaption } from './ImageCaption';
 import { Button } from './Button';
 import { useGridColumns, useContentWidth } from '../lib/use-breakpoint';
 import { useFloatingScroll } from '../lib/floating-scroll';
@@ -148,7 +149,7 @@ export function StorefrontView({
                   onPress={() =>
                     router.push({ pathname: '/(app)/discover/[id]', params: { id: post.id } })
                   }
-                  style={{ width: cellW }}
+                  style={{ width: cellW, borderRadius: radii.md, overflow: 'hidden' }}
                 >
                   <Image
                     source={{ uri: post.thumbnailUrl }}
@@ -170,16 +171,19 @@ export function StorefrontView({
                       </Text>
                     </View>
                   ) : null}
-                  {post.startingPrice ? (
-                    <Text variant="caption" tone="textMuted" style={styles.tilePrice}>
-                      {t('discover.fromPrice', {
-                        price: formatCurrency(
-                          Number(post.startingPrice),
-                          post.currency ?? tailor?.currency ?? 'XAF',
-                        ),
-                      })}
-                    </Text>
-                  ) : null}
+                  <ImageCaption
+                    title={post.title}
+                    price={
+                      post.startingPrice
+                        ? t('discover.fromPrice', {
+                            price: formatCurrency(
+                              Number(post.startingPrice),
+                              post.currency ?? tailor?.currency ?? 'XAF',
+                            ),
+                          })
+                        : null
+                    }
+                  />
                 </Pressable>
               );
             })}
@@ -215,5 +219,4 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
   countText: { color: '#fff' },
-  tilePrice: { marginTop: 4 },
 });
