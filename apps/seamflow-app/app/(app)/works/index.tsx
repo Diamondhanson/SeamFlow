@@ -38,6 +38,7 @@ import {
 import { MAX_MULTI_SELECT, pickPhotos, uploadWork } from '../../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
+import { useShareCatalogue } from '../../../lib/share-catalogue';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
@@ -54,6 +55,7 @@ export default function MyDesigns() {
   const qc = useQueryClient();
   const { data: me } = useMe();
   const tailorId = me?.tailor?.id;
+  const shareCatalogue = useShareCatalogue();
 
   // ── Filters ───────────────────────────────────────────────────────────────
   const [garmentType, setGarmentType] = useState<string | undefined>();
@@ -209,18 +211,40 @@ export default function MyDesigns() {
         <ScreenHeader
           title={t('feed.worksTitle')}
           right={
-            <Pressable
-              onPress={promptAdd}
-              disabled={uploading}
-              accessibilityLabel={t('feed.worksAdd')}
-              style={[styles.addBtn, { backgroundColor: colors.accent, borderRadius: radii.lg }]}
-            >
-              {uploading ? (
-                <ActivityIndicator size="small" color={colors.accentText} />
-              ) : (
-                <Ionicons name="add" size={24} color={colors.accentText} />
-              )}
-            </Pressable>
+            <View style={styles.headerActions}>
+              {/* Share sits beside Add rather than in a menu: this is the
+                  screen a tailor is on when they think "let me send people my
+                  work", and burying it one tap deeper is what stops it being
+                  used. Secondary styling keeps Add the primary action. */}
+              <Pressable
+                onPress={() =>
+                  void shareCatalogue.share({
+                    tailorBusinessName: me?.tailor?.businessName ?? 'SeamFlow',
+                  })
+                }
+                disabled={shareCatalogue.isPending}
+                accessibilityLabel={t('feed.shareCatalogue')}
+                style={[styles.addBtn, { backgroundColor: colors.card, borderRadius: radii.lg }]}
+              >
+                {shareCatalogue.isPending ? (
+                  <ActivityIndicator size="small" color={colors.text} />
+                ) : (
+                  <Ionicons name="share-social-outline" size={22} color={colors.text} />
+                )}
+              </Pressable>
+              <Pressable
+                onPress={promptAdd}
+                disabled={uploading}
+                accessibilityLabel={t('feed.worksAdd')}
+                style={[styles.addBtn, { backgroundColor: colors.accent, borderRadius: radii.lg }]}
+              >
+                {uploading ? (
+                  <ActivityIndicator size="small" color={colors.accentText} />
+                ) : (
+                  <Ionicons name="add" size={24} color={colors.accentText} />
+                )}
+              </Pressable>
+            </View>
           }
         />
         <Text variant="bodySm" tone="textMuted">
@@ -413,6 +437,7 @@ function FilterChip({
 }
 
 const styles = StyleSheet.create({
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   addBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   filterBar: {

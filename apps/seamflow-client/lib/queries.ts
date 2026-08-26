@@ -92,6 +92,21 @@ export const useStorefront = (tailorId: string) =>
     enabled: !!tailorId,
   });
 
+/**
+ * A tailor's catalogue, resolved from the slug in a shared /t/<slug> link.
+ *
+ * Same payload as `useStorefront`, reached by a different address. Public: a
+ * deep link must render for someone who has just installed the app and has no
+ * session yet — asking them to sign in before they can see what they tapped is
+ * how you lose them at the door.
+ */
+export const useCatalogue = (slug: string) =>
+  useQuery({
+    queryKey: qk.catalogue(slug),
+    queryFn: () => api.feed.storefrontBySlug(slug),
+    enabled: !!slug,
+  });
+
 // ============================================================================
 // Chat — the client half. Same endpoints as the tailor app; the API resolves
 // which side you are from the token, so nothing here is role-specific.

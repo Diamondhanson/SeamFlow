@@ -98,6 +98,36 @@ export const feed = {
     occasion_party: 'Party',
     saveDesign: 'Save',
     publishedToggle: 'Published to feed',
+    // ── Shareable catalogue (/t/<slug>) ─────────────────────────────────────
+    shareCatalogue: 'Share my catalogue',
+    shareCatalogueTitle: 'Your catalogue link',
+    shareCatalogueBody:
+      'One permanent link to everything you have published. Put it in your WhatsApp status, your Instagram bio, or on your shop sign — it never expires.',
+    shareOnWhatsApp: 'Share on WhatsApp',
+    shareVia: 'Share via…',
+    copyLink: 'Copy link',
+    linkCopied: 'Link copied',
+    linkCopiedBody: 'Paste it anywhere you want people to find your work.',
+    couldNotShareCatalogue: 'Could not share your catalogue',
+    couldNotCopy: 'Could not copy the link',
+    catalogueEmptyTitle: 'Nothing to show yet',
+    catalogueEmptyBody:
+      'Your catalogue has no published pieces, so anyone opening the link would see an empty page. Publish a design first — then share it.',
+    catalogueEmptyAction: 'Publish something first',
+    catalogueShareAnyway: 'Share anyway',
+    catalogueAddressLabel: 'Your catalogue address',
+    catalogueAddressHelp:
+      'This is the link people will see. Choose it carefully — once you have shared it, changing it breaks every copy already out there.',
+    catalogueAddressTaken: 'That address is already taken',
+    catalogueAddressInvalid:
+      'Use 3–40 lowercase letters, numbers and single hyphens.',
+    catalogueAddressSaved: 'Catalogue address updated',
+    publicWhatsappLabel: 'Public WhatsApp number',
+    publicWhatsappPlaceholder: '+237 6 70 15 19 73',
+    publicWhatsappHelp:
+      'Shown on your catalogue page as a Contact button. This is NOT your sign-in number — leave it empty and no button appears.',
+    publicWhatsappInvalid:
+      'Enter a full international number, starting with your country code.',
   },
   fr: {
     publishAction: 'Afficher dans le fil',
@@ -196,5 +226,35 @@ export const feed = {
     occasion_party: 'Fête',
     saveDesign: 'Enregistrer',
     publishedToggle: 'Publiée dans le fil',
+    // ── Catalogue partageable (/t/<slug>) ───────────────────────────────────
+    shareCatalogue: 'Partager mon catalogue',
+    shareCatalogueTitle: 'Votre lien de catalogue',
+    shareCatalogueBody:
+      'Un lien permanent vers tout ce que vous avez publié. Mettez-le dans votre statut WhatsApp, votre bio Instagram ou sur votre enseigne — il n’expire jamais.',
+    shareOnWhatsApp: 'Partager sur WhatsApp',
+    shareVia: 'Partager via…',
+    copyLink: 'Copier le lien',
+    linkCopied: 'Lien copié',
+    linkCopiedBody: 'Collez-le partout où vous voulez qu’on découvre votre travail.',
+    couldNotShareCatalogue: 'Impossible de partager votre catalogue',
+    couldNotCopy: 'Impossible de copier le lien',
+    catalogueEmptyTitle: 'Rien à montrer pour l’instant',
+    catalogueEmptyBody:
+      'Votre catalogue ne contient aucune pièce publiée : la page serait vide. Publiez d’abord une création, puis partagez-la.',
+    catalogueEmptyAction: 'Publier d’abord une création',
+    catalogueShareAnyway: 'Partager quand même',
+    catalogueAddressLabel: 'Adresse de votre catalogue',
+    catalogueAddressHelp:
+      'C’est le lien que les gens verront. Choisissez-le bien — une fois partagé, le modifier casse toutes les copies déjà diffusées.',
+    catalogueAddressTaken: 'Cette adresse est déjà prise',
+    catalogueAddressInvalid:
+      'Utilisez 3 à 40 caractères : minuscules, chiffres et traits d’union simples.',
+    catalogueAddressSaved: 'Adresse du catalogue mise à jour',
+    publicWhatsappLabel: 'Numéro WhatsApp public',
+    publicWhatsappPlaceholder: '+237 6 70 15 19 73',
+    publicWhatsappHelp:
+      'Affiché sur votre page catalogue comme bouton Contact. Ce n’est PAS votre numéro de connexion — laissez vide et aucun bouton n’apparaît.',
+    publicWhatsappInvalid:
+      'Entrez un numéro international complet, avec l’indicatif du pays.',
   },
 } as const;

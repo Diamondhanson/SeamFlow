@@ -55,6 +55,20 @@ export class FeedController {
     return this.feed.getPublic(id);
   }
 
+  /**
+   * The public catalogue page, addressed by slug rather than uuid.
+   *
+   * Declared before nothing in particular here, but note it lives on `feed`
+   * routes while its `/public/...` twin lives in PublicModule — same service
+   * call, two entry points, because the web page and the client app reach for
+   * different prefixes and neither should own the other's URL.
+   */
+  @Public()
+  @Get('tailors/by-slug/:slug/storefront')
+  storefrontBySlug(@Param('slug') slug: string, @Query() query: FeedQueryDto) {
+    return this.feed.storefrontBySlug(slug, query);
+  }
+
   @Public()
   @Get('tailors/:id/storefront')
   storefront(
@@ -126,6 +140,20 @@ export class FeedController {
   ): Promise<void> {
     const tailorId = await this.tailors.requireTailorId(user.id);
     await this.feed.remove(tailorId, id);
+  }
+
+  /**
+   * Mint (or fetch) this tailor's permanent catalogue link.
+   *
+   * POST rather than GET because the first call has a side effect — it
+   * allocates the slug. Every call after that is a plain read of the same
+   * value, so the app may call it on every tap of Share without guarding.
+   */
+  @Post('me/catalogue-link')
+  @HttpCode(200)
+  async catalogueLink(@CurrentUser() user: AuthedUser) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.feed.catalogueLink(tailorId);
   }
 
   /** Storefront fields (bio, city, specialties, languages, accepts-remote). */

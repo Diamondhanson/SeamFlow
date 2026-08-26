@@ -18,6 +18,17 @@ export const TailorSchema = z.object({
   specialties: z.array(z.string()).default([]),
   languages: z.array(z.string()).default([]),
   avatarPath: z.string().nullable().default(null),
+  /**
+   * Public catalogue address, null until they first share. Owner-visible here
+   * so the storefront editor can show the tailor their own link; the public
+   * projection carries it too (TailorMiniProfile.slug).
+   */
+  slug: z.string().nullable().default(null),
+  /**
+   * Opt-in public WhatsApp in E.164, or null. NOT users.phone — see the note
+   * on TailorPublicProfileSchema.
+   */
+  publicWhatsapp: z.string().nullable().default(null),
   /** Admin-granted. Not settable through TailorProfileUpdate. */
   isVerified: z.boolean().default(false),
   acceptsRemote: z.boolean().default(false),

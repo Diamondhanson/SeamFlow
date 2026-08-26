@@ -720,6 +720,23 @@ export function useDeleteFeedPost() {
 }
 
 /** Storefront fields: bio, city, specialties, languages, accepts-remote. */
+/**
+ * Mint (or fetch) this tailor's permanent catalogue link.
+ *
+ * A mutation rather than a query because the first call allocates the slug.
+ * After that it is idempotent, so calling it on every tap of Share is fine and
+ * always yields the same URL — there is nothing to cache and nothing to
+ * invalidate. `me` IS invalidated, because the first call fills in the slug the
+ * storefront editor displays.
+ */
+export function useCatalogueLink() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.feed.catalogueLink(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.me() }),
+  });
+}
+
 export function useUpdateTailorProfile() {
   const qc = useQueryClient();
   return useMutation({

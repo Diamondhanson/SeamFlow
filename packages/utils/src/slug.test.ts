@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   SLUG_MAX_LENGTH,
   catalogueUrl,
+  fallbackSlugForId,
   isReservedSlug,
   isValidSlugShape,
   slugifyBusinessName,
@@ -104,5 +105,34 @@ describe('catalogueUrl', () => {
     expect(catalogueUrl('https://www.seamflowtech.com/', 'mama-ngozi')).toBe(
       'https://www.seamflowtech.com/t/mama-ngozi',
     );
+  });
+});
+
+describe('fallbackSlugForId', () => {
+  it('produces a valid, unreserved slug for a name that folds to nothing', () => {
+    // The case this exists for: slugifyBusinessName gives up, and the service
+    // still has to hand the tailor an address.
+    expect(slugifyBusinessName('아틀리에')).toBe('');
+    const slug = fallbackSlugForId('3f9a8c21-4b1d-4e7a-9c22-8de1f0a5b6c7');
+    expect(isValidSlugShape(slug)).toBe(true);
+    expect(isReservedSlug(slug)).toBe(false);
+  });
+
+  it('is stable for the same id', () => {
+    const id = '3f9a8c21-4b1d-4e7a-9c22-8de1f0a5b6c7';
+    expect(fallbackSlugForId(id)).toBe(fallbackSlugForId(id));
+  });
+
+  it('differs between tailors', () => {
+    expect(fallbackSlugForId('3f9a8c21-4b1d-4e7a-9c22-8de1f0a5b6c7')).not.toBe(
+      fallbackSlugForId('99887766-4b1d-4e7a-9c22-8de1f0a5b6c7'),
+    );
+  });
+
+  it('stays a valid shape even for a degenerate id', () => {
+    // Not reachable through the service (ids are uuids), but the guarantee the
+    // caller relies on is "always valid", not "valid for uuids".
+    expect(isValidSlugShape(fallbackSlugForId(''))).toBe(true);
+    expect(isValidSlugShape(fallbackSlugForId('zzzz'))).toBe(true);
   });
 });

@@ -137,6 +137,26 @@ export function withSlugSuffix(base: string, suffix: string | number): string {
 }
 
 /**
+ * The address to give a shop whose name yields no usable slug.
+ *
+ * A business named entirely in a non-Latin script folds to an empty string,
+ * and `/t/` with nothing after it is not a link. This is the escape hatch —
+ * derived from the tailor's id so it is stable across calls, and shaped to
+ * satisfy `isValidSlugShape` so the caller can persist it without a second
+ * round of validation.
+ *
+ * Kept short deliberately: it is not a secret (a catalogue is public by
+ * definition), so it only has to be long enough not to collide and short
+ * enough to read down a phone line.
+ */
+export function fallbackSlugForId(tailorId: string): string {
+  const hex = tailorId.replace(/[^a-f0-9]/gi, '').toLowerCase();
+  // A uuid always has more than 8 hex digits; the padding is for anything else
+  // a caller might pass, so the result can never fall under SLUG_MIN_LENGTH.
+  return `tailor-${(hex || '0').slice(0, 8).padEnd(4, '0')}`;
+}
+
+/**
  * Build the public catalogue URL for a slug.
  *
  * One definition, used by the API when it mints a share link and by both apps

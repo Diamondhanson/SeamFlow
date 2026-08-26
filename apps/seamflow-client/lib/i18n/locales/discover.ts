@@ -57,6 +57,8 @@ export const discover = {
     tabDiscover: 'Discover',
     tabMessages: 'Messages',
     tabOrders: 'My orders',
+    catalogueNotFound:
+      'We could not find that catalogue. The link may be mistyped, or the workshop may no longer be listed.',
   },
   fr: {
     title: 'Découvrir',
@@ -109,5 +111,7 @@ export const discover = {
     tabDiscover: 'Découvrir',
     tabMessages: 'Messages',
     tabOrders: 'Mes commandes',
+    catalogueNotFound:
+      'Catalogue introuvable. Le lien est peut-être mal saisi, ou l’atelier n’est plus référencé.',
   },
 } as const;

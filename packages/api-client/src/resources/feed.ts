@@ -1,5 +1,6 @@
 import type { HttpClient } from '../http';
 import type {
+  CatalogueLink,
   FeedPage,
   FeedPost,
   FeedPostCreateInput,
@@ -52,6 +53,28 @@ export function makeFeedResource(http: HttpClient) {
       return http.get<StorefrontResponse>(
         `/tailors/${tailorId}/storefront${toQuery(query as Record<string, string | number | undefined>)}`,
       );
+    },
+
+    /**
+     * Public. The same storefront, addressed by the tailor's catalogue slug.
+     *
+     * This is what `/t/<slug>` resolves to, on the web and in the client app
+     * alike. Prefer it over `storefront(tailorId)` whenever you arrived from a
+     * shared link, so both surfaces read one source.
+     */
+    storefrontBySlug(slug: string, query: Partial<FeedQuery> = {}): Promise<StorefrontResponse> {
+      return http.get<StorefrontResponse>(
+        `/public/tailors/${encodeURIComponent(slug)}/catalogue${toQuery(query as Record<string, string | number | undefined>)}`,
+      );
+    },
+
+    /**
+     * Tailor-only. This shop's permanent catalogue link, minting the slug on
+     * first call. Safe to call on every tap of Share — after the first, it is
+     * a plain read and always returns the same URL.
+     */
+    catalogueLink(): Promise<CatalogueLink> {
+      return http.post<CatalogueLink>('/me/catalogue-link', {});
     },
 
     /**

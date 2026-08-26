@@ -16,6 +16,9 @@ export const qk = {
     ['feed', filter ?? {}] as const,
   feedPost: (id: string) => ['feed', id] as const,
   storefront: (tailorId: string) => ['storefront', tailorId] as const,
+  // Keyed by slug, not id — the slug is all a deep link carries, and resolving
+  // it to an id would mean a round-trip before the cache could even be checked.
+  catalogue: (slug: string) => ['catalogue', slug] as const,
 
   // ── Requests: "Can you make this?" (ROADMAP appendix H) ───────────────────
   myRequests: () => ['requests', 'mine'] as const,

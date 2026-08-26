@@ -13,8 +13,13 @@
       "bundleIdentifier": "com.bambothanson.seamflowclient",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["whatsapp"]
-      }
+        "LSApplicationQueriesSchemes": [
+          "whatsapp"
+        ]
+      },
+      "associatedDomains": [
+        "applinks:www.seamflowtech.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +27,29 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.bambothanson.seamflowclient",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "www.seamflowtech.com",
+              "pathPrefix": "/t"
+            },
+            {
+              "scheme": "https",
+              "host": "www.seamflowtech.com",
+              "pathPrefix": "/fr/t"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
