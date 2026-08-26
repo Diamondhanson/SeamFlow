@@ -999,22 +999,28 @@ export const SITE = {
 // Direct Android APK download. Empty string → not yet available (the Android
 // badge falls back to a "coming soon" state). Set to the built .apk URL to turn
 // on the real "Download for Android" button.
-// EAS build artifact (preview profile, points at the Render API).
-// Built 2026-08-11 — adds editable order measurements and currency-correct
-// money (XAF has no minor unit, so totals no longer store centimes the bill
-// never shows), on top of "share a photo into SeamFlow" from the OS share
-// sheet, the notification inbox + bell and the discovery feed.
 //
-// WARNING: EAS free-tier artifacts are retained ~30 days, so this link dies
-// around 2026-09-11 and the download button will fail silently.
+// Points at a GitHub Release asset, and the URL is deliberately shaped so it
+// never has to change again:
 //
-// The permanent fix is NOT to drop the .apk in public/ — it is 102 MB, and a
-// binary that size in git bloats every clone forever and pushes the Vercel
-// deployment toward its limits. Host it where large files belong: a GitHub
-// Release asset (free, permanent, no repo weight) or a public Supabase Storage
-// bucket, which this project already runs.
+//   /releases/latest/download/SeamFlow-android.apk
+//
+// `latest` resolves to the newest non-prerelease, and the asset FILENAME is
+// stable across builds — the version lives in the release tag and title, not in
+// the file. Publishing a new build is therefore: create a release, attach the
+// APK under exactly this name. Nothing here needs editing, and the download
+// button cannot rot again.
+//
+// This replaced an EAS artifact link, which is the mistake worth not repeating.
+// EAS free-tier artifacts are deleted after about 30 days, so the button had
+// been silently 404ing — the page still rendered, the badge still looked real,
+// and a visitor's download just failed. Never point this at an EAS URL.
+//
+// It is NOT served from public/. A 102 MB binary in git bloats every clone
+// forever and counts against the Vercel deployment. A release asset on a public
+// repo is free, permanent, uncapped for bandwidth, and carries no repo weight.
 export const ANDROID_APK_URL =
-  'https://expo.dev/artifacts/eas/pm9oy69u2sCuoYf3IKJLjb8718g6T_z3Mv1Z3Hb5A-E.apk';
+  'https://github.com/Diamondhanson/SeamFlow/releases/latest/download/SeamFlow-android.apk';
 
 // The installable browser build of the tailor app (seamflow-app's web target,
 // `expo export --platform web`). Empty string → not deployed yet: the badge
