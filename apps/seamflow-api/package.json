@@ -14,6 +14,7 @@
     "test:groups": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-groups.ts",
     "test:orders": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-orders.ts",
     "test:sync": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-sync.ts",
+    "seed:catalogue": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/seed-catalogue.ts",
     "test:share-links": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-share-links.ts",
     "test:notifications": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-notifications.ts",
     "test:groups-atomic": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-groups-atomic.ts",
