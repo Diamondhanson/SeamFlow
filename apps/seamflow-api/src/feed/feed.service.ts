@@ -69,6 +69,9 @@ export class FeedService {
       // photoUrl is already an absolute public URL (legacy); avatarPath is the
       // newer storefront field. Prefer the explicit storefront avatar.
       avatarUrl: this.avatarUrl(t.avatarPath) ?? t.photoUrl ?? null,
+      // Null until they first share a catalogue link — see ensureSlug. Present
+      // here so a feed item can address its maker's page without another call.
+      slug: t.slug ?? null,
       isVerified: t.isVerified,
       acceptsRemote: t.acceptsRemote,
       responseTimeHours: t.responseTimeHours ?? null,
@@ -79,6 +82,9 @@ export class FeedService {
     return {
       ...this.toMiniProfile(t),
       bio: t.bio ?? null,
+      // The opt-in public number, NOT users.phone. Null is both the default
+      // and the common case; the catalogue page renders no contact button then.
+      whatsapp: t.publicWhatsapp ?? null,
       specialties: (t.specialties as string[]) ?? [],
       languages: (t.languages as string[]) ?? [],
       followerCount: t.followerCount,

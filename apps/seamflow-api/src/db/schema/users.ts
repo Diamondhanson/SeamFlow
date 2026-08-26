@@ -81,10 +81,30 @@ export const tailors = pgTable(
     /** Median tailor reply latency, recomputed nightly. Null until enough data. */
     responseTimeHours: integer('response_time_hours'),
 
+    // ── Shareable catalogue (/t/<slug>) ────────────────────────────────────
+    /**
+     * Public catalogue address. Null until the tailor first shares — the slug
+     * is minted then, not at signup, so a shop that never shares never gets a
+     * guessable public address derived from its name.
+     */
+    slug: text('slug'),
+    /**
+     * Opt-in public WhatsApp number, E.164.
+     *
+     * NOT `users.phone`. That one is a sign-in credential and the rule above
+     * still holds — never expose it. This is a separate number the tailor
+     * typed in knowing it goes on a public page. Null → the catalogue page
+     * renders no contact button at all.
+     */
+    publicWhatsapp: text('public_whatsapp'),
+
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     userIdUnique: unique('tailors_user_id_key').on(t.userId),
+    // Uniqueness is on lower(slug) and lives in the migration — Drizzle can't
+    // express a functional partial index, so don't add a plain unique() here:
+    // it would disagree with the database.
   }),
 );

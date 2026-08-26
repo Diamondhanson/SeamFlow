@@ -82,3 +82,31 @@ export function formatInvoiceShareMessage(input: InvoiceShareMessageInput): stri
 
   return `${greeting}\n\nView it here: ${url}${signature}`;
 }
+
+export interface CatalogueShareMessageInput {
+  /** Required — the public catalogue link. */
+  url: string;
+  /** Required — the shop's name, since this message is about them. */
+  tailorBusinessName: string;
+  /** Optional — greets one recipient by name when sharing to a single person. */
+  recipientName?: string | null;
+}
+
+/**
+ * Build the catalogue share message.
+ *
+ * Written to be forwarded, not just received. Order and invoice messages are
+ * addressed to one client about one thing; this one gets pasted into a status
+ * or a group, so it leads with the shop rather than a greeting and stays short
+ * enough to read without expanding.
+ */
+export function formatCatalogueShareMessage(input: CatalogueShareMessageInput): string {
+  const { url, tailorBusinessName, recipientName } = input;
+  const firstName = pickFirstName(recipientName);
+
+  const opener = firstName
+    ? `Hi ${firstName} — take a look at what I've been making at ${tailorBusinessName}.`
+    : `Take a look at what I've been making at ${tailorBusinessName}.`;
+
+  return `${opener}\n\n${url}`;
+}
