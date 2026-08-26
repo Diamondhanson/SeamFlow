@@ -8,6 +8,22 @@ Written as a pickup point for a fresh context. Read the whole thing before
 editing; several decisions below were made deliberately and reversing one by
 accident will cost more than reading.
 
+> ## ⚠️ Apply the migration before anything else
+>
+> `supabase/migrations/20260826120000_tailor_catalogue_share.sql` is committed
+> but **has not been applied to the shared Supabase**, and the Drizzle schema
+> that names those columns is already on `main`.
+>
+> `render.yaml` sets `autoDeploy: true`, so main is already building. Drizzle
+> puts every column it knows about into its SELECT lists, which means that once
+> this deploys, **every query touching `tailors` asks for `slug` and
+> `public_whatsapp`** — columns the database does not have yet. That reaches
+> further than the catalogue work: feed, storefront, chat, requests, invoices,
+> order share links and account all select the tailor row.
+>
+> The migration is purely additive (`add column if not exists`), so applying it
+> is the fix and carries no data risk. Do it first.
+
 ---
 
 ## What we're building
@@ -175,8 +191,10 @@ single place the URL is built — keep it that way.
 `TailorSlugSchema`, and the `tailors_slug_format` check constraint. Deliberate
 (the value ends up inside a URL), but change one and you must change all three.
 
-**Migration is not applied.** The SQL file is committed but has not been run
-against the shared Supabase. Apply it before any of the API work will run.
+**Migration is not applied.** See the banner at the top — this is not just a
+"the new work won't run" problem. The Drizzle schema on `main` already names
+these columns, so until the migration is applied, any deployed build errors on
+every query that reads a tailor row.
 
 ---
 
