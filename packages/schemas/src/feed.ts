@@ -77,13 +77,24 @@ export const FeedPostUpdateSchema = z.object({
 export type FeedPostUpdateInput = z.infer<typeof FeedPostUpdateSchema>;
 
 /**
+ * Largest page any feed-shaped endpoint will serve.
+ *
+ * Exported because callers need to know it, not just obey it. The catalogue
+ * page asks for one big page and renders it server-side, and when it guessed a
+ * number above this cap the API answered 400 — which the page turned into a
+ * 500, since a validation failure is a bug rather than a missing shop. Import
+ * this instead of writing a literal.
+ */
+export const FEED_MAX_LIMIT = 48;
+
+/**
  * Query for GET /feed. Keyset pagination, not offset: an offset feed
  * duplicates and skips posts as new work is published while you scroll.
  */
 export const FeedQuerySchema = z.object({
   /** Opaque cursor from the previous page's `nextCursor`. */
   cursor: z.string().optional(),
-  limit: z.coerce.number().int().min(1).max(48).default(24),
+  limit: z.coerce.number().int().min(1).max(FEED_MAX_LIMIT).default(24),
   garmentType: z.string().optional(),
   city: z.string().optional(),
   fabric: z.string().optional(),

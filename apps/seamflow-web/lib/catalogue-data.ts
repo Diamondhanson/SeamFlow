@@ -1,4 +1,5 @@
 import { ApiError } from '@seamflow/api-client';
+import { FEED_MAX_LIMIT } from '@seamflow/schemas';
 import type { FeedPostPublic, TailorPublicProfile } from '@seamflow/schemas';
 import { publicApi } from './api';
 
@@ -33,8 +34,11 @@ export async function loadCatalogue(slug: string): Promise<CataloguePayload | nu
  *
  * One server-rendered wall, no infinite scroll. A tailor's catalogue is tens
  * of pieces, not thousands, and a scroll-to-load gallery would be invisible to
- * the crawlers and link previewers this page exists to satisfy. If a shop ever
- * outgrows this, add a real paginated second page rather than raising it to a
- * number that makes the first paint slow on a 3G phone.
+ * the crawlers and link previewers this page exists to satisfy.
+ *
+ * Pinned to the API's own ceiling rather than a hand-picked number: asking for
+ * more is a 400, and because a validation failure is a bug rather than a
+ * missing shop, `loadCatalogue` rethrows it and the whole page 500s. If a shop
+ * outgrows one page, add a real second page — do not raise this.
  */
-export const CATALOGUE_PAGE_SIZE = 60;
+export const CATALOGUE_PAGE_SIZE = FEED_MAX_LIMIT;

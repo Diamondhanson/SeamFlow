@@ -3,39 +3,17 @@
 **Status:** built end to end. Blocked on one operational step: the migration.
 **Started:** 2026-08-26. **Last touched:** 2026-08-26.
 
-> ## ⚠️ Apply the migration before anything else
->
-> `supabase/migrations/20260826120000_tailor_catalogue_share.sql` is committed
-> but **has not been applied to the shared Supabase**, and the Drizzle schema
-> that names those columns is already on `main`.
->
-> This is not "the new feature won't work" — it is a live outage. `render.yaml`
-> sets `autoDeploy: true`, so the build carrying those columns is already
-> serving, and Drizzle puts every column it knows about into its SELECT lists.
-> Every query touching `tailors` now asks for `slug` and `public_whatsapp`,
-> which the database does not have. Confirmed 2026-08-26:
-> `GET https://seamflow-api.onrender.com/feed?limit=1` → **500**. Feed,
-> storefront, chat, requests, invoices, order share links and account are all
-> affected.
->
-> The migration is purely additive (`add column if not exists`), so applying it
-> is the fix and carries no data risk.
->
-> ```bash
-> cd /Users/victoi/Documents/SeamFlow && set -a && . apps/seamflow-api/.env && set +a && psql "${DATABASE_URL/:6543/:5432}" -f supabase/migrations/20260826120000_tailor_catalogue_share.sql
-> ```
->
-> Two traps in that command, both learned the hard way:
->
-> - **`:6543` → `:5432`.** `DATABASE_URL` points at the Supavisor pooler in
->   *transaction* mode, where the Supabase CLI dies with
->   `prepared statement "lrupsc_1_0" already exists`. The session pooler on 5432
->   works and is still IPv4, which the direct host is not.
-> - **Never `supabase db push --include-all`.** Remote migration history has
->   drifted — `schema_migrations` is missing at least `20260707120000`,
->   `20260707130000` and `20260708120000`, which were applied out of band. The
->   CLI offers to "insert them before the last migration"; accepting would
->   re-run them.
+**Migration applied 2026-08-26.** `GET /feed` on Render is back to 200 and
+`slug` projects as null across the feed, which is correct — minting is lazy and
+no tailor has shared yet.
+
+> **Do not `supabase db push --include-all`.** Remote migration history has
+> drifted: `schema_migrations` is missing at least `20260707120000`,
+> `20260707130000` and `20260708120000`, applied out of band. The CLI offers to
+> "insert them before the last migration"; accepting would re-run them. Apply
+> single files with `psql -f` instead, and note that `DATABASE_URL` points at
+> the *transaction* pooler (6543) where the CLI dies on
+> `prepared statement "lrupsc_1_0" already exists` — use `:5432`.
 
 ---
 
@@ -163,7 +141,14 @@ render as `FCFA 45,000` with no phantom decimals; empty-catalogue, unknown-slug
 and French variants all render; the OG card generates as a 187KB PNG; both
 `.well-known` documents are correct with and without their env vars.
 
-**Not verified against real data** — that needs the migration.
+Verified against the **real** API and the migrated database: unknown, malformed
+and path-traversal-shaped slugs all 404 rather than 500; `POST /me/catalogue-link`
+is 401 without a token; the not-found page renders with `noindex`; and a live
+storefront payload carries every field the page reads, including the legacy
+`width`/`height`/`startingPrice` nulls that exercise the fallback paths.
+
+**Not yet exercised:** minting a real slug and rendering a real catalogue. That
+happens the first time a tailor taps Share on a deployed build.
 
 ---
 
@@ -232,6 +217,16 @@ Keep that prop list flat and primitive.
 **The slug regex lives in three places** — `packages/utils/src/slug.ts`,
 `TailorSlugSchema`, and the `tailors_slug_format` check constraint. Deliberate,
 because the value ends up inside a URL. Change one, change all three.
+
+**The feed page limit is 48, and asking for more is a 400.** `loadCatalogue`
+rethrows anything that is not a 404, so an over-large `limit` turns into a 500
+on the whole page — correct, since it is a bug rather than a missing shop, but
+it cost a debugging round. `CATALOGUE_PAGE_SIZE` is pinned to `FEED_MAX_LIMIT`
+from `@seamflow/schemas`; import it rather than writing a number.
+
+**A stub that ignores query parameters will hide exactly that bug.** The
+catalogue rendered perfectly against a local stub and 500'd against the real
+API on the first request. Point at the real thing before believing a page works.
 
 **`startingPrice` is a numeric string in MAJOR units.** "25000.00" is twenty-five
 thousand francs. Do not divide by 100 — that mistake is easy because payment
