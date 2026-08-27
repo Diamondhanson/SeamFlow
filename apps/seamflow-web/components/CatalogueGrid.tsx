@@ -19,9 +19,26 @@ interface Props {
     close: string;
     next: string;
     prev: string;
+    inquire: string;
     /** Pre-rendered on the server: "From 45,000 FCFA" per post id. */
     priceById: Record<string, string>;
+    /**
+     * Ready-made `wa.me` links, one per design, built on the server.
+     *
+     * Empty when the tailor has published no WhatsApp number — the button is
+     * then not rendered at all, rather than shown dead. Built server-side for
+     * the same reason prices are: the message text comes from the copy object,
+     * which holds functions that cannot cross into a client component.
+     */
+    inquireHrefById: Record<string, string>;
   };
+  /**
+   * Design to open on first paint, from `?d=<id>` in the URL.
+   *
+   * Read on the server so a shared link renders the right piece immediately
+   * rather than flashing the wall first.
+   */
+  initialDesignId?: string;
 }
 
 /**
@@ -42,11 +59,64 @@ interface Props {
  * vertically scrolling wall fights the scroll, and the wall stops being
  * scannable.
  */
-export function CatalogueGrid({ posts, currency, labels }: Props) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+export function CatalogueGrid({ posts, currency, labels, initialDesignId }: Props) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(() => {
+    if (!initialDesignId) return null;
+    const i = posts.findIndex((p) => p.id === initialDesignId);
+    return i === -1 ? null : i;
+  });
   const active = activeIndex == null ? null : (posts[activeIndex] ?? null);
 
-  const close = useCallback(() => setActiveIndex(null), []);
+  // The open design lives in the URL as `?d=<id>`.
+  //
+  // Two things fall out of that and both matter on a phone: a design can be
+  // sent to someone directly, which is the whole point of the enquiry message
+  // below; and the hardware back button closes the lightbox instead of leaving
+  // the catalogue entirely, because opening one pushes a history entry.
+  //
+  // `history.pushState` rather than a Next router push — this is the same page
+  // with a different overlay open, and routing would re-run the server
+  // component and refetch the catalogue on every tap.
+  const open = useCallback(
+    (index: number) => {
+      setActiveIndex(index);
+      const post = posts[index];
+      if (!post || typeof window === 'undefined') return;
+      window.history.pushState({ designId: post.id }, '', `?d=${post.id}`);
+    },
+    [posts],
+  );
+
+  const close = useCallback(() => {
+    if (typeof window === 'undefined') {
+      setActiveIndex(null);
+      return;
+    }
+    if (window.history.state?.designId) {
+      // Unwind the entry we pushed, so back doesn't reopen what was just closed.
+      window.history.back();
+      return;
+    }
+    // Arrived straight on `?d=<id>` from a shared link, so there is no entry of
+    // ours to unwind. Strip the parameter anyway — leaving it would mean the
+    // URL still names a design nothing is showing, and a reload would reopen
+    // what the reader just closed.
+    setActiveIndex(null);
+    window.history.replaceState({}, '', window.location.pathname);
+  }, []);
+
+  // Back/forward is the authority on what's open — including the first paint,
+  // where the entry came from the server rather than from pushState.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onPop = () => {
+      const id = new URLSearchParams(window.location.search).get('d');
+      const i = id ? posts.findIndex((p) => p.id === id) : -1;
+      setActiveIndex(i === -1 ? null : i);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [posts]);
 
   return (
     <>
@@ -56,7 +126,7 @@ export function CatalogueGrid({ posts, currency, labels }: Props) {
             key={post.id}
             post={post}
             price={labels.priceById[post.id]}
-            onOpen={() => setActiveIndex(i)}
+            onOpen={() => open(i)}
           />
         ))}
       </div>
@@ -65,6 +135,7 @@ export function CatalogueGrid({ posts, currency, labels }: Props) {
         <Lightbox
           post={active}
           price={labels.priceById[active.id]}
+          inquireHref={labels.inquireHrefById[active.id]}
           labels={labels}
           currency={currency}
           onClose={close}
@@ -240,12 +311,14 @@ function Caption({ label, price }: { label?: string | null; price?: string }) {
 function Lightbox({
   post,
   price,
+  inquireHref,
   labels,
   currency,
   onClose,
 }: {
   post: FeedPostPublic;
   price?: string;
+  inquireHref?: string;
   labels: Props['labels'];
   currency: string;
   onClose: () => void;
@@ -366,7 +439,7 @@ function Lightbox({
           ) : null}
         </div>
 
-        {post.title || post.caption || meta.length || price ? (
+        {post.title || post.caption || meta.length || price || inquireHref ? (
           <figcaption className="px-5 py-4">
             {post.title ? (
               <h3 className="font-display text-lg font-semibold tracking-tight text-ink">
@@ -392,6 +465,24 @@ function Lightbox({
             ) : null}
             {price ? (
               <p className="mt-3 text-sm font-semibold tracking-tight text-accent">{price}</p>
+            ) : null}
+
+            {/* Absent entirely when the tailor has published no WhatsApp
+                number. A dead contact button on a shop page is worse than
+                none — and its absence is the tailor's cue to add one. */}
+            {inquireHref ? (
+              <a
+                href={inquireHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2.5 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-pill transition-transform duration-150 hover:scale-[1.02] active:scale-[0.99]"
+              >
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.22 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35Z" />
+                  <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.86 9.86 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.02h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.25-4.35c0-4.53 3.7-8.22 8.23-8.22a8.17 8.17 0 0 1 5.81 2.41 8.17 8.17 0 0 1 2.41 5.82c0 4.53-3.69 8.2-8.23 8.2Z" />
+                </svg>
+                {labels.inquire}
+              </a>
             ) : null}
           </figcaption>
         ) : null}

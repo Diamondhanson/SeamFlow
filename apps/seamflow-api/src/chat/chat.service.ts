@@ -228,8 +228,11 @@ export class ChatService {
         design = {
           id: p.id,
           thumbnailUrl: this.publicUrl(FEED_BUCKET, p.publicThumbPath),
+          title: p.title ?? null,
           caption: p.caption ?? null,
           garmentType: p.garmentType ?? null,
+          startingPrice: p.startingPrice ?? null,
+          currency: p.currency ?? null,
         };
       }
     }

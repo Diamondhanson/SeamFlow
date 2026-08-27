@@ -31,6 +31,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Message, MessageAttachment } from '@seamflow/schemas';
+import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
@@ -361,9 +362,25 @@ export default function Thread() {
             <Text variant="caption" tone="textMuted">
               {t('chat.aboutDesign')}
             </Text>
+            {/* Name first. `caption` is the long description and predates
+                designs having names — it wraps badly on one line and buries
+                the thing the tailor is actually trying to recognise. */}
             <Text variant="bodySm" numberOfLines={1}>
-              {conversation.design.caption ?? conversation.design.garmentType ?? ''}
+              {conversation.design.title ??
+                conversation.design.caption ??
+                conversation.design.garmentType ??
+                ''}
             </Text>
+            {conversation.design.startingPrice ? (
+              <Text variant="caption" tone="textMuted" numberOfLines={1}>
+                {t('chat.designFromPrice', {
+                  price: formatCurrency(
+                    Number(conversation.design.startingPrice),
+                    conversation.design.currency ?? 'XAF',
+                  ),
+                })}
+              </Text>
+            ) : null}
           </View>
         </View>
       ) : null}

@@ -1,13 +1,17 @@
 import type { FeedPostPublic, TailorPublicProfile } from '@seamflow/schemas';
 import type { Lang } from '../../lib/i18n';
 import { SITE, WEB_APP_URL } from '../../lib/i18n';
-import { getCatalogueCopy } from '../../lib/catalogue';
+import { getCatalogueCopy, type CatalogueCopy } from '../../lib/catalogue';
 import { CatalogueGrid } from '../CatalogueGrid';
 
 interface Props {
   lang: Lang;
   tailor: TailorPublicProfile;
   posts: FeedPostPublic[];
+  /** Canonical URL of this catalogue, used to link back to a single design. */
+  pageUrl: string;
+  /** `?d=<id>` — the design to open on first paint, from a shared link. */
+  initialDesignId?: string;
 }
 
 /**
@@ -22,8 +26,9 @@ interface Props {
  * The contact button is repeated at the bottom because on a phone the header
  * has long scrolled away by the time someone has decided they want a piece.
  */
-export function CatalogueView({ lang, tailor, posts }: Props) {
+export function CatalogueView({ lang, tailor, posts, pageUrl, initialDesignId }: Props) {
   const c = getCatalogueCopy(lang);
+  const prices = priceMap(posts, tailor.currency, c.fromPrice);
   const waHref = whatsappHref(tailor.whatsapp, c.whatsappPrefill(tailor.businessName));
 
   return (
@@ -93,12 +98,22 @@ export function CatalogueView({ lang, tailor, posts }: Props) {
               close: c.closeLabel,
               next: c.nextPhoto,
               prev: c.prevPhoto,
+              inquire: c.inquire,
               // Formatted here, on the server, and handed over as plain
               // strings. The alternative — passing the copy object so the
               // client can format — means passing functions across the
               // server/client boundary, which React refuses at render time.
-              priceById: priceMap(posts, tailor.currency, c.fromPrice),
+              priceById: prices,
+              inquireHrefById: inquiryLinks({
+                posts,
+                prices,
+                shop: tailor.businessName,
+                whatsapp: tailor.whatsapp,
+                pageUrl,
+                format: c.inquiryMessage,
+              }),
             }}
+            initialDesignId={initialDesignId}
           />
         </section>
       ) : (
@@ -172,6 +187,51 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted">{body}</p>
     </div>
   );
+}
+
+/**
+ * One `wa.me` link per design, keyed by post id.
+ *
+ * Returns an empty map when the shop has published no number, which is the
+ * common case — `public_whatsapp` is opt-in and starts null. The grid renders
+ * no button for a design with no entry, rather than a dead one.
+ *
+ * Each message carries the design's name, its price when set, and a link back
+ * to that exact piece (`?d=<id>`), so the tailor opens WhatsApp already knowing
+ * what is being asked about instead of having to ask "which one?".
+ */
+function inquiryLinks({
+  posts,
+  prices,
+  shop,
+  whatsapp,
+  pageUrl,
+  format,
+}: {
+  posts: FeedPostPublic[];
+  prices: Record<string, string>;
+  shop: string;
+  whatsapp: string | null;
+  pageUrl: string;
+  format: CatalogueCopy['inquiryMessage'];
+}): Record<string, string> {
+  const digits = whatsapp?.replace(/\D/g, '') ?? '';
+  if (digits.length < 7) return {};
+
+  const out: Record<string, string> = {};
+  for (const p of posts) {
+    // Fall back through name → caption → garment type. A design with none of
+    // those still gets a link; the URL alone tells the tailor which piece.
+    const name = p.title ?? p.caption ?? p.garmentType ?? '';
+    const text = format({
+      shop,
+      design: name,
+      price: prices[p.id] ?? null,
+      url: `${pageUrl}?d=${p.id}`,
+    });
+    out[p.id] = `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  }
+  return out;
 }
 
 /**

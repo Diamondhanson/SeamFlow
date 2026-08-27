@@ -11,7 +11,7 @@
 // ============================================================================
 
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Conversation } from '@seamflow/schemas';
@@ -132,7 +132,18 @@ export default function Messages() {
                 {/* The design system's Avatar is initials-only — it derives
                     both the letters and the colour from the name. Clients
                     rarely have an avatar anyway, so initials are the norm. */}
-                <Avatar size="md" name={c.counterparty.name} />
+                {/* A design enquiry shows the piece rather than the client's
+                    initials. Which garment someone is asking about is the one
+                    thing that lets a tailor triage an inbox without opening
+                    every thread — the name is on the row beside it anyway. */}
+                {c.design ? (
+                  <Image
+                    source={{ uri: c.design.thumbnailUrl }}
+                    style={[styles.designThumb, { borderRadius: radii.md }]}
+                  />
+                ) : (
+                  <Avatar size="md" name={c.counterparty.name} />
+                )}
                 <View style={styles.rowText}>
                   <View style={styles.rowTop}>
                     <Text
@@ -146,6 +157,14 @@ export default function Messages() {
                       {whenLabel(c.lastMessageAt, t)}
                     </Text>
                   </View>
+                  {c.design ? (
+                    <Text variant="caption" tone="textMuted" numberOfLines={1}>
+                      {t('chat.aboutDesignShort', {
+                        design:
+                          c.design.title ?? c.design.garmentType ?? t('chat.aDesign'),
+                      })}
+                    </Text>
+                  ) : null}
                   <View style={styles.rowBottom}>
                     <Text
                       variant="bodySm"
@@ -190,6 +209,7 @@ const styles = StyleSheet.create({
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   list: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
+  designThumb: { width: 44, height: 44 },
   rowText: { flex: 1, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rowBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

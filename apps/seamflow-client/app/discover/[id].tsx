@@ -56,7 +56,17 @@ export default function DesignDetail() {
     }
     router.push({
       pathname: '/(app)/discover/inquire',
-      params: { designId: post.id, tailorId: post.tailor.id, tailorName: post.tailor.businessName },
+      params: {
+        designId: post.id,
+        tailorId: post.tailor.id,
+        tailorName: post.tailor.businessName,
+        // Carried as params rather than refetched: this screen already holds
+        // the post, and the enquiry screen only needs them to write a sentence.
+        designName: post.title ?? post.caption ?? post.garmentType ?? '',
+        designPrice: post.startingPrice
+          ? formatCurrency(Number(post.startingPrice), post.currency ?? 'XAF')
+          : '',
+      },
     });
   };
 

@@ -46,6 +46,22 @@ export interface CatalogueCopy {
   photoCount: (n: number) => string;
   nextPhoto: string;
   prevPhoto: string;
+  /** Per-design enquiry button, inside the lightbox. */
+  inquire: string;
+  /**
+   * The message the client sends about one design.
+   *
+   * Carries the design's name, its price when there is one, and a link back to
+   * this exact piece — the tailor should be able to see what is being asked
+   * about without going hunting. Written to be edited before sending, so it
+   * reads like a person rather than a form submission.
+   */
+  inquiryMessage: (input: {
+    shop: string;
+    design: string;
+    price: string | null;
+    url: string;
+  }) => string;
 }
 
 export const catalogueCopy: Record<Lang, CatalogueCopy> = {
@@ -85,6 +101,13 @@ export const catalogueCopy: Record<Lang, CatalogueCopy> = {
     photoCount: (n) => `${n} photos`,
     nextPhoto: 'Next photo',
     prevPhoto: 'Previous photo',
+    inquire: 'Ask about this piece',
+    inquiryMessage: ({ shop, design, price, url }) =>
+      [
+        `Hello ${shop}, I'm interested in ${design}${price ? ` (${price})` : ''}.`,
+        '',
+        url,
+      ].join('\n'),
   },
   fr: {
     eyebrow: 'Catalogue',
@@ -120,6 +143,13 @@ export const catalogueCopy: Record<Lang, CatalogueCopy> = {
     photoCount: (n) => `${n} photos`,
     nextPhoto: 'Photo suivante',
     prevPhoto: 'Photo précédente',
+    inquire: 'Demander pour cette pièce',
+    inquiryMessage: ({ shop, design, price, url }) =>
+      [
+        `Bonjour ${shop}, je suis intéressé(e) par ${design}${price ? ` (${price})` : ''}.`,
+        '',
+        url,
+      ].join('\n'),
   },
 };
 

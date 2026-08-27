@@ -81,6 +81,9 @@ export const chat = {
     devSimulateBody:
       'Development only. Creates a fake inbound enquiry so the chat can be tested end to end before the client app ships.',
     devSimulateDone: 'Simulated enquiry created',
+    designFromPrice: 'From {price}',
+    aboutDesignShort: 'About {design}',
+    aDesign: 'a design',
   },
   fr: {
     tabLabel: 'Messages',
@@ -153,5 +156,8 @@ export const chat = {
     devSimulateBody:
       'Développement uniquement. Crée une fausse demande entrante pour tester la discussion de bout en bout avant la sortie de l’application client.',
     devSimulateDone: 'Demande simulée créée',
+    designFromPrice: 'À partir de {price}',
+    aboutDesignShort: 'À propos de {design}',
+    aDesign: 'une création',
   },
 } as const;

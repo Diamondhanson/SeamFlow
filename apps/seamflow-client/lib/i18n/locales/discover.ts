@@ -59,6 +59,12 @@ export const discover = {
     tabOrders: 'My orders',
     catalogueNotFound:
       'We could not find that catalogue. The link may be mistyped, or the workshop may no longer be listed.',
+    // Design-aware opener. The generic inquirePlaceholder still covers the
+    // "message the shop" case, where there is no particular piece in mind.
+    inquireAboutDesign: 'Hi! I\u2019m interested in {design}. Could you make something like this for me?',
+    inquireAboutDesignPriced:
+      'Hi! I\u2019m interested in {design} ({price}). Could you make something like this for me?',
+    inquireDesignPinned: 'About {design}',
   },
   fr: {
     title: 'Découvrir',
@@ -113,5 +119,10 @@ export const discover = {
     tabOrders: 'Mes commandes',
     catalogueNotFound:
       'Catalogue introuvable. Le lien est peut-être mal saisi, ou l’atelier n’est plus référencé.',
+    inquireAboutDesign:
+      'Bonjour ! Je suis intéressé(e) par {design}. Pourriez-vous me faire quelque chose comme ceci ?',
+    inquireAboutDesignPriced:
+      'Bonjour ! Je suis intéressé(e) par {design} ({price}). Pourriez-vous me faire quelque chose comme ceci ?',
+    inquireDesignPinned: 'À propos de {design}',
   },
 } as const;

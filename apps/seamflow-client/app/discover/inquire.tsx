@@ -32,11 +32,24 @@ export default function Inquire() {
     designId?: string;
     tailorId: string;
     tailorName?: string;
+    designName?: string;
+    designPrice?: string;
   }>();
 
   const { session } = useAuth();
   const create = useCreateConversation();
-  const [message, setMessage] = useState(t('discover.inquirePlaceholder'));
+
+  // Name the piece when there is one. A tailor with thirty designs published
+  // cannot act on "could you make something like this?" — the thread carries
+  // designPostId, but the tailor reads the sentence, not the foreign key.
+  const [message, setMessage] = useState(() => {
+    const design = params.designName?.trim();
+    if (!design) return t('discover.inquirePlaceholder');
+    const price = params.designPrice?.trim();
+    return price
+      ? t('discover.inquireAboutDesignPriced', { design, price })
+      : t('discover.inquireAboutDesign', { design });
+  });
 
   const send = () => {
     const body = message.trim();
@@ -73,6 +86,11 @@ export default function Inquire() {
           <Text variant="bodySm" tone="textMuted">
             {t('discover.inquireBody', { name: params.tailorName ?? '' })}
           </Text>
+          {params.designName ? (
+            <Text variant="caption" tone="textMuted" style={{ marginTop: spacing.xs }}>
+              {t('discover.inquireDesignPinned', { design: params.designName })}
+            </Text>
+          ) : null}
         </View>
 
         <Input

@@ -113,8 +113,19 @@ export type ConversationCounterparty = z.infer<typeof ConversationCounterpartySc
 export const ConversationDesignSchema = z.object({
   id: z.string().uuid(),
   thumbnailUrl: z.string().url(),
+  /**
+   * The name the tailor gave the design, when they gave it one.
+   *
+   * Added after designs grew names and prices. `caption` predates that and is
+   * the long description, which is the wrong thing to show on a one-line pin —
+   * prefer `title`, fall back to `caption`, then `garmentType`.
+   */
+  title: z.string().nullable(),
   caption: z.string().nullable(),
   garmentType: z.string().nullable(),
+  /** "From" price in MAJOR units, or null. Shown so the tailor recalls the ask. */
+  startingPrice: z.string().nullable(),
+  currency: z.string().nullable(),
 });
 
 export const ConversationSchema = z.object({

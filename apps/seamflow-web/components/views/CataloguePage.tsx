@@ -10,14 +10,29 @@ import { CatalogueView } from './CatalogueView';
  * own `<html lang>` — but they are the same page, so the body and the metadata
  * both live here and take `lang` as an argument.
  */
-export async function CataloguePage({ slug, lang }: { slug: string; lang: Lang }) {
+export async function CataloguePage({
+  slug,
+  lang,
+  designId,
+}: {
+  slug: string;
+  lang: Lang;
+  /** `?d=<id>` — a link to one design rather than the whole wall. */
+  designId?: string;
+}) {
   const payload = await loadCatalogue(slug);
   if (!payload) return <CatalogueNotFound lang={lang} />;
 
   return (
     <>
       <CatalogueJsonLd slug={slug} lang={lang} payload={payload} />
-      <CatalogueView lang={lang} tailor={payload.tailor} posts={payload.posts} />
+      <CatalogueView
+        lang={lang}
+        tailor={payload.tailor}
+        posts={payload.posts}
+        pageUrl={`${SITE.url}${withLang(`/t/${slug}`, lang)}`}
+        initialDesignId={designId}
+      />
     </>
   );
 }
