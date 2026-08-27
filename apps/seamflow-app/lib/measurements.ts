@@ -21,6 +21,16 @@ import { parseDecimal } from './numeric';
  *  `lowConfidence` is set on fields pre-filled from a photo scan the AI
  *  wasn't sure about — display-only, dropped at save time. */
 export interface EditableField {
+  /**
+   * The key this field is already stored under, for a template being EDITED.
+   *
+   * Load-bearing. Recorded measurements live in `measurement_sets.values`
+   * keyed by this string, and the create path derives the key from the label —
+   * so re-deriving it when a tailor fixes a typo would silently orphan every
+   * value already recorded under the old spelling. Absent for a field being
+   * added, which is the only case where deriving a new key is right.
+   */
+  key?: string;
   label: string;
   required?: boolean;
   unit?: 'cm' | 'in';
@@ -39,7 +49,9 @@ export function finalizeTemplateFields(fields: EditableField[]): TemplateField[]
   for (const f of fields) {
     const label = f.label.trim().replace(/\s+/g, ' ');
     if (!label) continue;
-    let key = label;
+    // An existing field keeps its key even when its label changes; only a new
+    // one derives a key from what was typed. See the note on EditableField.
+    let key = f.key?.trim() || label;
     let n = 2;
     while (used.has(key.toLowerCase())) {
       key = `${label} ${n++}`;

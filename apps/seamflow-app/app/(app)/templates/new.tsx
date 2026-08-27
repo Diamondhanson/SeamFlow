@@ -31,6 +31,7 @@ import { ApiError } from '../../../lib/api';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { spacing } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { draftKey, useDraft } from '../../../lib/drafts';
 import { useDialog } from '../../../lib/dialog';
 
 export default function NewTemplate() {
@@ -152,6 +153,34 @@ export default function NewTemplate() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scan, tailorId]);
 
+  // Rescue an unfinished template. A scanned form is the case that matters:
+  // the tailor has already spent a photo and a round-trip to the model, and
+  // losing that to a phone call means doing the whole thing again.
+  //
+  // One key for the whole screen — a half-built template is not tied to any
+  // record yet, so there is nothing to namespace it by.
+  const { clear: clearDraft } = useDraft({
+    key: draftKey('template-new'),
+    value: { name, garmentType, description, fields },
+    // A bare screen is not work. Without this, opening "New template" a second
+    // time would offer to restore an empty form, which reads as a bug.
+    hasContent: (d) =>
+      d.name.trim() !== '' ||
+      d.garmentType.trim() !== '' ||
+      d.description.trim() !== '' ||
+      d.fields.some((f) => f.label.trim() !== ''),
+    describe: (d) => d.name.trim() || null,
+    onRestore: (d) => {
+      setName(d.name);
+      setGarmentType(d.garmentType);
+      setDescription(d.description);
+      setFields(d.fields);
+    },
+    // Arriving with `scan=1` opens the scanner immediately; a restore prompt
+    // would land on top of it and fight for the same decision.
+    skipRestore: scan === '1',
+  });
+
   const submit = () => {
     if (!name.trim()) return;
     create.mutate(
@@ -164,6 +193,7 @@ export default function NewTemplate() {
       },
       {
         onSuccess: (t) => {
+          clearDraft();
           router.dismiss();
           router.push(`/(app)/templates/${t.id}`);
         },

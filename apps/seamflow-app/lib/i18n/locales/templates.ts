@@ -75,6 +75,11 @@ export const templates = {
     deleteTemplate: 'Delete template',
     deleteConfirmTitle: 'Delete template?',
     deleteConfirmBody: '{name} will be deleted.',
+    // Editing a saved template.
+    saveChanges: 'Save changes',
+    saved: 'Saved',
+    savedTitle: 'Template updated',
+    notFound: 'This template no longer exists.',
   },
   fr: {
     listTitle: 'Modèles',
@@ -150,5 +155,9 @@ export const templates = {
     deleteTemplate: 'Supprimer le modèle',
     deleteConfirmTitle: 'Supprimer le modèle ?',
     deleteConfirmBody: '{name} sera supprimé.',
+    saveChanges: 'Enregistrer les modifications',
+    saved: 'Enregistré',
+    savedTitle: 'Modèle mis à jour',
+    notFound: 'Ce modèle n’existe plus.',
   },
 } as const;
