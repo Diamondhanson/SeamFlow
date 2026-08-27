@@ -17,6 +17,27 @@ import {
   type ExtractedMeasurementItem,
 } from '@seamflow/schemas';
 
+// ----------------------------------------------------------------------------
+// No prompt caching in this file, deliberately.
+//
+// Caching only engages above a per-model minimum prefix, and silently does
+// nothing below it — no error, just `cache_creation_input_tokens: 0`. Measured
+// with the token-counting endpoint on 2026-08-27:
+//
+//   describeImage / tags / fabric  113 tokens   vs Haiku 4.5's 4096 minimum
+//   summarizeNotes                 ~130 tokens  vs Haiku 4.5's 4096 minimum
+//   extractMeasurements            858 tokens   vs Sonnet 5's 1024 minimum
+//
+// Every one is far below its threshold, and each request carries a different
+// image anyway, so there is no repeated prefix worth caching even in principle.
+// Adding cache_control here would be decoration that costs a cache-write
+// premium and returns nothing. The assistant is the one path with a prefix
+// big enough to matter (3,152 tokens of tool schemas) — see
+// assistant.service.ts.
+//
+// If these prompts ever grow past the minimums, re-measure before adding it.
+// ----------------------------------------------------------------------------
+
 // Haiku 4.5 — fast + cheap, ideal for describing a single image. Swap to a
 // Sonnet model string if you want richer specs at higher cost.
 const MODEL = 'claude-haiku-4-5-20251001';
