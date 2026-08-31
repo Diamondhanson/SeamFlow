@@ -21,15 +21,27 @@ import {
   type ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { translations, type LanguageCode } from './strings';
+import { LANGUAGES, translations, type LanguageCode } from './strings';
 
 const STORAGE_KEY = 'seamflow.language';
 
 /** Best-effort device language; falls back to English. */
+/**
+ * Best match for the device's own locale.
+ *
+ * Matches on the language subtag only, so `pt-BR`, `pt-PT` and bare `pt` all
+ * land on Portuguese — a Brazilian tailor should not fall back to English
+ * because the region tag doesn't match one we ship.
+ *
+ * Derived from LANGUAGES rather than a hand-written chain of comparisons, so
+ * adding a language to that list is the only edit needed.
+ */
 function deviceLanguage(): LanguageCode {
   try {
     const loc = Intl.DateTimeFormat().resolvedOptions().locale ?? 'en';
-    return loc.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+    const tag = loc.toLowerCase().split(/[-_]/)[0];
+    const match = LANGUAGES.find((l) => l.code === tag);
+    return match ? match.code : 'en';
   } catch {
     return 'en';
   }

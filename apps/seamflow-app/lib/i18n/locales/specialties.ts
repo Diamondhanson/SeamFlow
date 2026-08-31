@@ -44,4 +44,22 @@ export const specialties = {
     storefrontEmpty: 'Non défini — appuyez pour choisir',
     storefrontCount: '{count} sélectionnés',
   },
+  pt: {
+    title: 'O que confeciona?',
+    intro:
+      'Escolha as peças que realmente costura. É assim que os clientes à procura do seu tipo de trabalho o encontram — e como sabemos que pedidos lhe mostrar.',
+    count: '{count} de {max} escolhidas',
+    atCap: 'São {max} — o máximo que pode escolher. Desmarque uma para trocar.',
+
+    checklistLabel: 'Diga-nos o que confeciona',
+    promptTitle: 'O que confeciona?',
+    promptBody:
+      'Escolha as peças que costura para que os clientes à procura do seu tipo de trabalho o encontrem. São poucos toques.',
+    promptGo: 'Escolher agora',
+    promptLater: 'Mais tarde',
+
+    storefrontLabel: 'O que confeciona',
+    storefrontEmpty: 'Ainda por definir — toque para escolher',
+    storefrontCount: '{count} escolhidas',
+  },
 };

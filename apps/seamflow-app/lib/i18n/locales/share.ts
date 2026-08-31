@@ -41,4 +41,23 @@ export const share = {
     nothingBody:
       'Ouvrez une photo sur votre téléphone, touchez Partager, puis choisissez SeamFlow.',
   },
+  pt: {
+    title: 'Guardar no SeamFlow',
+    intro: '{count} foto(s) partilhada(s) com o SeamFlow. Escolha onde guardá-las.',
+    saveTo: 'Guardar em',
+    toDesignStudio: 'Estúdio de Design',
+    toDesignStudioBody: 'Inspiração e referências que vai reunindo',
+    toMyDesigns: 'As Minhas Criações',
+    toMyDesignsBody: 'Trabalho que fez você mesmo',
+    saveCta: 'Guardar',
+    savingProgress: 'A guardar {done} de {total}…',
+    savedSomeTitle: 'Guardado em parte',
+    savedSomeBody: 'Guardámos {n} de {total}. Não foi possível ler as restantes.',
+    savedNoneTitle: 'Não foi possível guardar',
+    savedNoneBody:
+      'Não foi possível ler nenhuma das fotos partilhadas. Tente partilhá-las novamente.',
+    nothingTitle: 'Nada foi partilhado',
+    nothingBody:
+      'Abra uma foto em qualquer lugar do telemóvel, toque em Partilhar e escolha o SeamFlow.',
+  },
 };

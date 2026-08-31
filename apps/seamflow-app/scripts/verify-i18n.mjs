@@ -41,18 +41,59 @@ function extractBlock(src, which) {
   return keys;
 }
 
-const ns = {};
+// Every language the apps ship. English is the reference: a key exists when
+// `en` has it, and every other locale must match exactly.
+//
+// Adding a language here makes the build fail until every namespace file
+// carries it, which is the point — a half-translated locale that falls back to
+// English silently is worse than one that was never offered, because nobody
+// finds out which screens are missing.
+const REFERENCE = 'en';
+const LOCALE_RE = /^\s{2}([a-z]{2}):\s*\{/gm;
+
+const sources = {};
 for (const f of fs.readdirSync(LOC_DIR)) {
   if (!f.endsWith('.ts')) continue;
-  const name = f.replace('.ts', '');
-  const src = fs.readFileSync(path.join(LOC_DIR, f), 'utf8');
-  const en = extractBlock(src, 'en');
-  const fr = extractBlock(src, 'fr');
-  ns[name] = { en, fr };
-  const onlyEn = [...en].filter((x) => !fr.has(x));
-  const onlyFr = [...fr].filter((x) => !en.has(x));
-  if (onlyEn.length || onlyFr.length)
-    problems.push(`PARITY ${name}: en-only=[${onlyEn}] fr-only=[${onlyFr}]`);
+  sources[f.replace('.ts', '')] = fs.readFileSync(path.join(LOC_DIR, f), 'utf8');
+}
+
+// Locales are DISCOVERED from the files rather than listed here, so adding a
+// language is one edit per namespace and nothing else. The union is the
+// requirement: the moment one file gains `pt`, every other file missing it is
+// reported by name. That turns a rollout into a checklist instead of a silent
+// half-translation that falls back to English on screens nobody thought to open.
+const LOCALES = [
+  ...new Set(
+    Object.values(sources).flatMap((src) => [...src.matchAll(LOCALE_RE)].map((m) => m[1])),
+  ),
+].sort();
+
+const ns = {};
+for (const [name, src] of Object.entries(sources)) {
+  const blocks = {};
+  for (const loc of LOCALES) blocks[loc] = extractBlock(src, loc);
+  ns[name] = blocks;
+
+  const ref = blocks[REFERENCE];
+  if (ref.size === 0) {
+    problems.push(`PARITY ${name}: no '${REFERENCE}' block found`);
+    continue;
+  }
+  for (const loc of LOCALES) {
+    if (blocks[loc].size === 0) {
+      problems.push(`MISSING LOCALE ${name}: no '${loc}' block`);
+    }
+  }
+  for (const loc of LOCALES) {
+    if (loc === REFERENCE) continue;
+    const missing = [...ref].filter((x) => !blocks[loc].has(x));
+    const extra = [...blocks[loc]].filter((x) => !ref.has(x));
+    if (missing.length || extra.length) {
+      problems.push(
+        `PARITY ${name}: ${loc} missing=[${missing}] ${loc}-only=[${extra}]`,
+      );
+    }
+  }
 }
 
 // ---- walk source files ------------------------------------------------------

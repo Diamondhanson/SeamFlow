@@ -55,4 +55,28 @@ export const drafts = {
 
     keptOnDevice: 'Conservé sur cet appareil au fur et à mesure',
   },
+  pt: {
+    resumeTitle: 'Retomar de onde parou?',
+    resumeBodyNamed:
+      'Estava a trabalhar em {what} {ago} e não guardou. Está tudo aqui como o deixou.',
+    resumeBody: 'Tinha trabalho por guardar de {ago}. Está tudo aqui como o deixou.',
+    resumeConfirm: 'Continuar',
+    resumeDiscard: 'Começar de novo',
+
+    // Fragmentos, não frases: em português o "há" vem antes, tal como em francês.
+    agoMinute: 'há um minuto',
+    agoMinutes: 'há {count} minutos',
+    agoHour: 'há uma hora',
+    agoHours: 'há {count} horas',
+    agoDay: 'ontem',
+    agoDays: 'há {count} dias',
+
+    leaveTitle: 'Sair sem guardar?',
+    leaveBody:
+      'As suas medidas ficam guardadas neste dispositivo, por isso pode voltar a elas. Só entram nos seus registos depois de guardar.',
+    leaveConfirm: 'Sair',
+    leaveStay: 'Continuar a editar',
+
+    keptOnDevice: 'Guardado neste dispositivo enquanto escreve',
+  },
 };

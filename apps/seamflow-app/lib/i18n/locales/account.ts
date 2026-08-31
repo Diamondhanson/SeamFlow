@@ -96,4 +96,54 @@ export const account = {
     keptTitle: 'Bon retour',
     keptBody: 'Votre compte est conservé et votre atelier est de nouveau visible.',
   },
+  pt: {
+    // ── O ecrã de eliminação ─────────────────────────────────────────────
+    deleteTitle: 'Eliminar a minha conta',
+    warningBody:
+      'Isto encerra a sua loja e apaga os seus registos. Nada acontece durante {days} dias — pode mudar de ideias a qualquer momento até lá.',
+
+    whatGoesTitle: 'O que é apagado',
+    goesClients: 'Todos os clientes, com as suas medidas',
+    goesOrders: 'Todas as encomendas, encomendas de grupo e faturas',
+    goesPhotos: 'Todas as fotos que carregou',
+    goesFeed: 'A sua página pública e tudo o que lá está',
+    goesAccount: 'O seu acesso — deixará de conseguir iniciar sessão',
+
+    takeItTitle: 'Leve primeiro os seus registos',
+    takeItBody:
+      'Guarde uma cópia de tudo antes de desaparecer. Passados os {days} dias, não conseguimos recuperá-la.',
+    exportAction: 'Transferir os meus dados',
+    exportTitle: 'Os seus dados do SeamFlow',
+    exportSavedTitle: 'Guardado',
+    exportSavedBody: 'O ficheiro com os seus dados foi guardado neste dispositivo.',
+
+    confirmItTitle: 'Confirme que é você',
+    passwordLabel: 'A sua palavra-passe',
+    passwordPlaceholder: 'Introduza a sua palavra-passe',
+    reauthProviderBody:
+      'Será pedido que inicie sessão novamente para confirmar que é você.',
+    typeNameLabel: 'Escreva “{name}” para confirmar',
+    deleteAction: 'Eliminar a minha conta',
+    needed:
+      'Introduza a sua palavra-passe e escreva o nome do seu negócio para continuar.',
+    neededName: 'Escreva o nome do seu negócio exatamente para continuar.',
+
+    confirmTitle: 'Eliminar esta conta?',
+    confirmBody:
+      '“{name}” e todos os seus registos serão apagados dentro de 30 dias. Pode cancelar até lá.',
+    confirmAction: 'Sim, eliminar',
+
+    scheduledTitle: 'A sua conta vai encerrar',
+    scheduledBody:
+      'Apagaremos tudo dentro de {days} dias. Até lá pode iniciar sessão e tocar em “Manter a minha conta” para travar o processo.',
+
+    // ── O aviso pendente ─────────────────────────────────────────────────
+    pendingTitle: 'A sua conta encerra dentro de {days} dias',
+    pendingTitleToday: 'A sua conta encerra hoje',
+    pendingBody:
+      'A sua loja está oculta e os seus registos continuam aqui. Toque abaixo para travar isto e continuar normalmente.',
+    keepAccount: 'Manter a minha conta',
+    keptTitle: 'Bem-vindo de volta',
+    keptBody: 'A sua conta está segura e a sua loja voltou a ficar visível.',
+  },
 } as const;

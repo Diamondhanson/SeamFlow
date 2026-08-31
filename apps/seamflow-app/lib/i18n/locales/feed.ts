@@ -327,4 +327,172 @@ export const feed = {
       'Une création peut contenir jusqu’à {max} photos. Retirez-en une avant d’en ajouter.',
     photosUpdated: 'Photos mises à jour',
   },
+  pt: {
+    // ── Publicar uma foto ───────────────────────────────────────────────────
+    publishAction: 'Mostrar no feed',
+    unpublishAction: 'Retirar do feed',
+    inFeedBadge: 'No feed',
+    publishTitle: 'Mostrar isto no feed',
+    publishBody:
+      'Esta foto passa a ser pública: qualquer pessoa a navegar no SeamFlow pode vê-la e pedir-lhe algo parecido. O nome do cliente, as medidas e os detalhes da encomenda nunca são mostrados.',
+    captionLabel: 'Legenda',
+    captionPlaceholder: 'ex. Agbada de casamento em brocado creme',
+    garmentTypeLabel: 'Peça',
+    garmentTypePlaceholder: 'ex. Agbada, Vestido, Fato',
+    tagsLabel: 'Etiquetas (separadas por vírgulas)',
+    tagsPlaceholder: 'ankara, casamento, bordado à mão',
+    fabricLabel: 'Tecido',
+    fabricPlaceholder: 'ex. Brocado creme',
+    startingPriceLabel: 'Preço inicial (opcional)',
+    startingPriceHelp:
+      'Mostrado como preço “a partir de”. Deixe vazio para não indicar preço.',
+    publishCta: 'Publicar',
+    publishing: 'A publicar…',
+    publishedTitle: 'Publicado',
+    publishedBody: 'O seu trabalho já está no feed.',
+    publishError: 'Não foi possível publicar esta foto',
+
+    unpublishConfirmTitle: 'Retirar do feed?',
+    unpublishConfirmBody:
+      'Desaparece do feed público de imediato. A foto continua na encomenda.',
+    unpublishedTitle: 'Retirado do feed',
+
+    // ── O meu trabalho publicado ────────────────────────────────────────────
+    myWorkTitle: 'O meu trabalho publicado',
+    myWorkSubtitle: 'Tudo o que mostrou no feed público.',
+    myWorkEmpty:
+      'Ainda sem nada publicado. Abra uma encomenda terminada, toque numa foto e escolha “Mostrar no feed”.',
+    hiddenLabel: 'Oculto',
+
+    // ── Vitrine ─────────────────────────────────────────────────────────────
+    storefrontTitle: 'A sua vitrine',
+    storefrontSubtitle:
+      'O que as pessoas veem quando encontram o seu trabalho. Só isto — nunca o seu número nem os seus clientes.',
+    bioLabel: 'Sobre o seu trabalho',
+    bioPlaceholder:
+      'Duas ou três linhas sobre o que confeciona e para quem.',
+    cityLabel: 'Cidade',
+    cityPlaceholder: 'ex. Douala',
+    specialtiesLabel: 'Especialidades',
+    specialtiesPlaceholder: 'noivas, agbada, alfaiataria masculina',
+    languagesLabel: 'Idiomas que fala',
+    languagesPlaceholder: 'Português, Inglês',
+    acceptsRemoteLabel: 'Aceitar encomendas de outras cidades',
+    acceptsRemoteHelp:
+      'Ative isto se estiver disponível para trabalhar com clientes que não o possam visitar.',
+    verifiedLabel: 'Verificado',
+    verifiedHelp:
+      'Atribuído pela equipa do SeamFlow — não é algo que possa ativar.',
+    responseTimeLabel: 'Costuma responder em {hours}h',
+    responseTimeUnknown:
+      'O tempo de resposta aparece depois de responder a alguns pedidos.',
+    saveStorefront: 'Guardar vitrine',
+    storefrontSaved: 'Vitrine atualizada',
+    // ── As Minhas Criações ──────────────────────────────────────────────────
+    worksTitle: 'As Minhas Criações',
+    worksTileSubtitle: 'Trabalho que fez',
+    worksSubtitle:
+      'As peças que realmente confecionou. Publique qualquer uma para ser encontrado por novos clientes.',
+    worksEmptyTitle: 'Ainda sem criações',
+    worksEmptyBody:
+      'Adicione fotos de trabalho que terminou. Este é o seu portefólio — distinto do Estúdio de Design, que serve para a inspiração que vai reunindo.',
+    worksAdd: 'Adicionar criações',
+    worksUploading: 'A adicionar {done} de {total}…',
+    worksCount: '{count} criações · {published} publicadas',
+    publishedFilter: 'Publicadas',
+    unpublishedFilter: 'Não publicadas',
+    allFilter: 'Todas',
+    filterGarment: 'Peça',
+    filterAudience: 'Para quem',
+    filterFabric: 'Tecido',
+    filterOccasion: 'Ocasião',
+    clearFilters: 'Limpar filtros',
+    noMatch: 'Nenhuma criação corresponde a esses filtros.',
+    editDesign: 'Editar criação',
+    deleteDesign: 'Eliminar criação',
+    deleteConfirmTitle: 'Eliminar esta criação?',
+    deleteConfirmBody:
+      'É removida do seu portefólio e também do feed público, se estiver publicada. Não é possível anular.',
+    titleLabel: 'Título',
+    titlePlaceholder: 'ex. Agbada em brocado creme',
+    audienceLabel: 'Para quem',
+    occasionLabel: 'Ocasião',
+    audience_women: 'Mulher',
+    audience_men: 'Homem',
+    audience_unisex: 'Unissexo',
+    audience_children: 'Criança',
+    occasion_wedding: 'Casamento',
+    occasion_traditional: 'Tradicional',
+    occasion_corporate: 'Profissional',
+    occasion_casual: 'Casual',
+    occasion_party: 'Festa',
+    saveDesign: 'Guardar',
+    publishedToggle: 'Publicada no feed',
+    // ── Catálogo partilhável (/t/<slug>) ────────────────────────────────────
+    shareCatalogue: 'Partilhar o meu catálogo',
+    shareCatalogueTitle: 'A ligação do seu catálogo',
+    shareCatalogueBody:
+      'Uma ligação permanente para tudo o que publicou. Ponha-a no seu estado do WhatsApp, na bio do Instagram ou na tabuleta da loja — nunca expira.',
+    shareOnWhatsApp: 'Partilhar no WhatsApp',
+    shareVia: 'Partilhar via…',
+    copyLink: 'Copiar ligação',
+    linkCopied: 'Ligação copiada',
+    linkCopiedBody: 'Cole-a onde quiser que encontrem o seu trabalho.',
+    couldNotShareCatalogue: 'Não foi possível partilhar o seu catálogo',
+    couldNotCopy: 'Não foi possível copiar a ligação',
+    catalogueEmptyTitle: 'Ainda não há nada para mostrar',
+    catalogueEmptyBody:
+      'O seu catálogo não tem peças publicadas, por isso quem abrisse a ligação veria uma página vazia. Publique primeiro uma criação — depois partilhe.',
+    catalogueEmptyAction: 'Publicar algo primeiro',
+    catalogueShareAnyway: 'Partilhar mesmo assim',
+    catalogueAddressLabel: 'O endereço do seu catálogo',
+    catalogueAddressHelp:
+      'É esta a ligação que as pessoas vão ver. Escolha com cuidado — depois de a partilhar, mudá-la estraga todas as cópias já distribuídas.',
+    catalogueAddressTaken: 'Esse endereço já está ocupado',
+    catalogueAddressInvalid:
+      'Use 3 a 40 caracteres: minúsculas, números e hífenes simples.',
+    catalogueAddressSaved: 'Endereço do catálogo atualizado',
+    publicWhatsappLabel: 'Número de WhatsApp público',
+    publicWhatsappPlaceholder: '+244 923 456 789',
+    publicWhatsappHelp:
+      'Mostrado na página do seu catálogo como botão de contacto. NÃO é o seu número de início de sessão — deixe vazio e não aparece botão.',
+    publicWhatsappInvalid:
+      'Introduza um número internacional completo, começando pelo indicativo do país.',
+    // ── Carrossel + preço numa criação ──────────────────────────────────────
+    onePieceTitle: 'Como devem ser guardadas estas {count} fotos?',
+    onePieceBody:
+      'Se forem ângulos diferentes da mesma peça — frente, costas, lado — guarde-as como uma só criação para que os clientes possam percorrê-las.',
+    onePieceAsOne: 'Uma criação, {count} fotos',
+    onePieceAsSeparate: '{count} criações distintas',
+    describeTitle: 'Descreva esta criação',
+    describeSubtitle:
+      'Tudo opcional. O que acrescentar aqui é o que os clientes veem no seu catálogo.',
+    describeUploading: 'A enviar {done} de {total}…',
+    describeUploadFailed: 'Não foi possível enviar as suas fotos',
+    descriptionLabel: 'Descrição',
+    descriptionPlaceholder:
+      'ex. Decote bordado à mão, corpo forrado. Feito à medida em 2 semanas.',
+    priceLabel: 'Preço inicial',
+    pricePlaceholder: 'ex. 45000',
+    priceHelp:
+      'Mostrado aos clientes como “A partir de {example}”. Deixe vazio para não mostrar preço.',
+    priceInvalid: 'Introduza um valor como 45000',
+    saveAndFinish: 'Guardar',
+    skipForNow: 'Ignorar',
+    photosLabel: 'Fotos',
+    photosCount: '{count} fotos',
+    coverBadge: 'Capa',
+    addPhotos: 'Adicionar fotos',
+    photoActionsTitle: 'Esta foto',
+    makeCover: 'Definir como capa',
+    removePhoto: 'Remover foto',
+    removePhotoConfirm: 'Remover esta foto da criação?',
+    lastPhotoTitle: 'Esta é a única foto',
+    lastPhotoBody:
+      'Uma criação precisa de pelo menos uma foto. Elimine a criação inteira se já não a quiser.',
+    maxPhotosTitle: 'Atingiu o máximo de fotos para uma criação',
+    maxPhotosBody:
+      'Uma criação pode ter até {max} fotos. Remova uma antes de adicionar outra.',
+    photosUpdated: 'Fotos atualizadas',
+  },
 } as const;

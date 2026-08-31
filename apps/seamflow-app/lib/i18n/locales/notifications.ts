@@ -84,4 +84,41 @@ export const notifications = {
     type_security_phone_verified: 'Votre numéro de téléphone est vérifié',
     type_moderation_outcome: 'Nous avons examiné votre signalement',
   },
+  pt: {
+    title: 'Notificações',
+    empty: 'Ainda nada',
+    emptyBody: 'As novidades sobre as suas encomendas e mensagens aparecem aqui.',
+    markAllRead: 'Marcar tudo como lido',
+    unreadOne: '1 por ler',
+    unreadMany: '{count} por ler',
+    justNow: 'Agora mesmo',
+    loadFailed:
+      'Não foi possível carregar as suas notificações. Verifique a ligação e tente novamente.',
+    inboxSection: 'Na sua caixa de entrada',
+    inboxSectionHint:
+      'O que fica registado aqui. Desligar um item impede a notificação e o registo na caixa de entrada.',
+    type_enquiry_received_label: 'Novos pedidos de informação',
+
+    // ── para o cliente ─────────────────────────────────────────────────────
+    type_quote_received: '{tailorName} enviou-lhe um orçamento para “{orderName}”',
+    type_invoice_issued: 'Fatura pronta para “{orderName}”',
+    type_payment_confirmed: 'Pagamento recebido para “{orderName}” — obrigado',
+    type_order_ready_for_fitting: '“{orderName}” está pronta para prova',
+    type_order_ready_for_pickup: '“{orderName}” está pronta para levantar',
+    type_order_delivered: '“{orderName}” foi entregue',
+    type_order_delivery_date_moved: 'Nova data para “{orderName}”: {date}',
+    type_order_cancelled_by_tailor: '{tailorName} cancelou “{orderName}”',
+
+    // ── para o alfaiate ────────────────────────────────────────────────────
+    type_enquiry_received: 'Novo pedido de informação de {clientName}',
+    type_quote_accepted: '{clientName} aceitou o seu orçamento para “{orderName}”',
+    type_quote_declined: '{clientName} recusou o seu orçamento para “{orderName}”',
+    type_payment_received: '{clientName} pagou “{orderName}”',
+    type_order_claimed: '{clientName} reclamou “{orderName}”',
+
+    // ── de ambos os lados ──────────────────────────────────────────────────
+    type_security_new_device: 'Novo início de sessão num dispositivo novo',
+    type_security_phone_verified: 'O seu número de telemóvel está verificado',
+    type_moderation_outcome: 'Analisámos a sua denúncia',
+  },
 };

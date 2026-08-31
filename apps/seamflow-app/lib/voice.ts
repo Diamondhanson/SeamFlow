@@ -17,6 +17,7 @@ import type * as ExpoSpeech from 'expo-speech';
 import type {
   ExpoSpeechRecognitionModule as SpeechRecModule,
 } from 'expo-speech-recognition';
+import type { LanguageCode } from './i18n/strings';
 
 type SpeechModule = typeof ExpoSpeech;
 type RecognitionModule = typeof SpeechRecModule;
@@ -60,8 +61,24 @@ export function getVoiceSupport(): VoiceSupport {
 }
 
 /** BCP-47 recognizer/speech locale for the app language. */
-function localeFor(lang: 'en' | 'fr'): string {
-  return lang === 'fr' ? 'fr-FR' : 'en-US';
+/**
+ * BCP-47 tag for speech recognition and text-to-speech.
+ *
+ * Typed against LanguageCode rather than a hand-listed union, so adding a UI
+ * language is a compile error here until a voice locale is chosen for it —
+ * silently falling back to English speech would have the assistant answer a
+ * Portuguese tailor in an American accent.
+ */
+const VOICE_LOCALES: Record<LanguageCode, string> = {
+  en: 'en-US',
+  fr: 'fr-FR',
+  // pt-PT rather than pt-BR: the markets this was added for are Angola and
+  // Mozambique, whose speech is closer to European Portuguese.
+  pt: 'pt-PT',
+};
+
+function localeFor(lang: LanguageCode): string {
+  return VOICE_LOCALES[lang] ?? 'en-US';
 }
 
 // ----------------------------------------------------------------------------
@@ -102,7 +119,7 @@ let listenSubs: { remove: () => void }[] = [];
  * Start an on-device recognition session. Returns false when this build has
  * no recognizer (old APK — show the "needs a rebuild" note instead).
  */
-export function startListening(lang: 'en' | 'fr', cbs: ListenCallbacks): boolean {
+export function startListening(lang: LanguageCode, cbs: ListenCallbacks): boolean {
   const rec = getRecognition();
   if (!rec) return false;
 
@@ -162,7 +179,7 @@ function stopListeningCleanup(): void {
  */
 export function speak(
   text: string,
-  lang: 'en' | 'fr',
+  lang: LanguageCode,
   cbs: { onStart?: () => void; onDone: () => void },
 ): boolean {
   const speech = getSpeech();

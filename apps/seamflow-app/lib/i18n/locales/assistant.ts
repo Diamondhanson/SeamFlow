@@ -149,4 +149,82 @@ export const assistant = {
     micPermissionTitle: 'Micro requis',
     micPermissionBody: 'Autorisez l’accès au micro et à la reconnaissance vocale pour parler à l’assistant.',
   },
+  pt: {
+    title: 'Assistente',
+    subtitle: 'Pergunte sobre o seu negócio ou diga-lhe o que fazer.',
+    inputPlaceholder: 'Pergunte o que quiser…',
+    send: 'Enviar',
+    thinking: 'A pensar…',
+    emptyHello:
+      'Pergunte-me sobre as suas encomendas, clientes, medidas ou faturas — ou peça-me para criar algo. Nada é guardado sem a sua confirmação.',
+    suggestionDue: 'O que vence esta semana?',
+    suggestionOwed: 'Quem me deve?',
+    suggestionBusiness: 'Como vai o negócio?',
+    checkedCaption: 'Consultado: {list}',
+    clearTitle: 'Limpar a conversa?',
+    clearBody: 'O histórico da conversa neste dispositivo será apagado.',
+    clearA11y: 'Limpar a conversa',
+    unavailableBody:
+      'O assistente não está disponível de momento — tente novamente mais tarde.',
+    offlineOrFailed:
+      'Não foi possível contactar o assistente. Verifique a ligação e tente novamente.',
+
+    // Cartão de confirmação
+    confirmHeading: 'Confirme esta ação',
+    confirmHint: 'Precisa de mudar algo? Diga-o na conversa.',
+    confirm: 'Confirmar',
+    working: 'A processar…',
+    doneGeneric: '✓ Feito — {title}.',
+    doneLink: '✓ Ligação pronta — toque para abrir:\n{url}',
+    cancelled: 'Cancelado — nada foi guardado.',
+
+    // Títulos das ações
+    actionCreateClient: 'Novo cliente',
+    actionUpdateClient: 'Atualizar cliente',
+    actionCreateOrder: 'Nova encomenda',
+    actionUpdateOrder: 'Atualizar encomenda',
+    actionSetOrderStatus: 'Mudar o estado da encomenda',
+    actionAddMeasurements: 'Guardar medidas',
+    actionCreateInvoice: 'Criar fatura',
+    actionMarkInvoiceSent: 'Marcar fatura como enviada',
+    actionShareOrderLink: 'Partilhar ligação da encomenda',
+    actionShareInvoiceLink: 'Partilhar ligação da fatura',
+    actionUnknown: 'Ação não suportada — atualize a aplicação para a usar.',
+
+    // Etiquetas dos campos do cartão de confirmação
+    fieldClientName: 'Cliente',
+    fieldOrderName: 'Encomenda',
+    fieldPhone: 'Telefone',
+    fieldDue: 'Prazo',
+    fieldFromStatus: 'De',
+    fieldToStatus: 'Para',
+    fieldLabel: 'Etiqueta',
+    fieldCount: 'Medidas',
+    fieldInvoiceNumber: 'Fatura',
+
+    // Etiquetas das consultas para a legenda "Consultado:"
+    toolSearchClients: 'clientes',
+    toolGetClient: 'um cliente',
+    toolSearchOrders: 'encomendas',
+    toolGetOrder: 'uma encomenda',
+    toolGetClientMeasurements: 'medidas',
+    toolListInvoices: 'faturas',
+    toolListFabrics: 'tecidos',
+    toolListGroupOrders: 'encomendas de grupo',
+    toolGetGroupOrder: 'uma encomenda de grupo',
+    toolBusinessSummary: 'o resumo do seu negócio',
+
+    // Voz
+    micA11y: 'Falar com o assistente',
+    micStopA11y: 'Parar de ouvir',
+    listening: 'A ouvir — fale agora…',
+    speakReplies: 'Ler as respostas em voz alta',
+    speakBubbleA11y: 'Ler esta resposta em voz alta',
+    speaking: 'A falar…',
+    voiceNeedsRebuild:
+      'A entrada por voz precisa de uma versão atualizada da aplicação — pode escrever na mesma.',
+    micPermissionTitle: 'Microfone necessário',
+    micPermissionBody:
+      'Permita o acesso ao microfone e ao reconhecimento de voz para poder falar com o assistente.',
+  },
 } as const;

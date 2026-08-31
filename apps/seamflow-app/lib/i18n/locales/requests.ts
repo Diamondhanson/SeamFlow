@@ -111,4 +111,61 @@ export const requests = {
     withdrawTitle: 'Retirer cette offre ?',
     withdrawBody: 'Le client ne la verra plus. Vous pourrez répondre à nouveau si elle est encore ouverte.',
   },
+  pt: {
+    boardTitle: 'Pedidos',
+    tileSubtitle: 'Clientes à procura de trabalho',
+    guideTitle: 'Clientes à procura de trabalho',
+    guideBody:
+      'As pessoas publicam o que querem que lhes façam e qualquer alfaiate por perto pode responder. Não precisa de portefólio para ganhar um — uma boa resposta chega.',
+
+    filterAll: 'Tudo',
+    empty:
+      'Ainda não há pedidos abertos perto de si. Vão aparecer aqui à medida que os clientes os publicam.',
+    emptyFiltered: 'Nada aberto para essa peça de momento. Experimente “Tudo”.',
+
+    noSpecialtiesTitle: 'Diga-nos o que confeciona',
+    noSpecialtiesBody:
+      'Continuará a ver tudo o que está perto, mas o trabalho que realmente faz aparece primeiro.',
+
+    budgetLine: 'Orçamento: {currency} {min} – {max}',
+    budgetOpen: 'Sem orçamento indicado — aberto a conversa',
+    deadlineLine: 'Necessário até {date}',
+    offersAndDays: '{offers} propostas · faltam {days} dias',
+    enoughOffers: 'Propostas suficientes — já não aceita mais',
+
+    detailTitle: 'Pedido',
+    gone: 'Este pedido já não está disponível.',
+
+    makeOfferHeading: 'A sua proposta',
+    makeOfferHint:
+      'Diga como o faria e do que precisaria. O preço é opcional — pode falar sobre isso depois.',
+    messageLabel: 'Mensagem',
+    messagePlaceholder: 'Faço destes com frequência. Para o bordado eu…',
+    priceLabel: 'Preço',
+    priceMaxLabel: 'Até (opcional)',
+    pricePlaceholder: '0',
+    priceOptional: 'Deixe ambos vazios para responder “aberto a conversa”.',
+    sendOffer: 'Enviar proposta',
+    offerSentTitle: 'Proposta enviada',
+    offerSentBody:
+      'O cliente vai vê-la juntamente com o seu trabalho. Terá resposta de qualquer forma.',
+
+    alreadyOfferedTitle: 'Já respondeu a este',
+    enoughOffersTitle: 'Já tem propostas suficientes',
+    enoughOffersBody:
+      'Este pedido já tem todas as propostas que aceita. O seu tempo rende mais noutro.',
+
+    myOffersTitle: 'As minhas propostas',
+    noOffersYet: 'Ainda não respondeu a nenhum pedido.',
+    browseBoard: 'Ver o que os clientes estão a pedir',
+    offerStatus: 'Estado: {status}',
+    offerPrice: '{currency} {price}',
+    offerRange: '{currency} {min} – {max}',
+    offerToDiscuss: 'Aberto a conversa',
+    openChat: 'Abrir a conversa',
+    withdraw: 'Retirar',
+    withdrawTitle: 'Retirar esta proposta?',
+    withdrawBody:
+      'O cliente deixará de a ver. Pode responder novamente mais tarde se ainda estiver aberto.',
+  },
 };

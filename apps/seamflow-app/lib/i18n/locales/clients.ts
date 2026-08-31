@@ -165,4 +165,95 @@ export const clients = {
     duplicateTemplateTitle: 'Un modèle identique existe',
     duplicateTemplateBody: '« {name} » contient déjà exactement ces champs — réutilisez-le plutôt que d’en créer un doublon.',
   },
+  pt: {
+    // lista de clientes
+    title: 'Clientes',
+    contactTitle: 'Contactar cliente',
+    callAction: 'Ligar',
+    whatsappAction: 'WhatsApp',
+    smsAction: 'Mensagem',
+    newClientA11y: 'Novo cliente',
+    searchPlaceholder: 'Procurar nome ou telefone…',
+    emptyList: 'Ainda sem clientes. Toque em + para adicionar.',
+    profileRequiredTitle: 'Perfil necessário',
+    profileRequiredBody: 'Configure primeiro o perfil do seu negócio.',
+    goToProfile: 'Ir para o perfil',
+
+    // novo cliente
+    newClientTitle: 'Novo cliente',
+    fullNameLabel: 'Nome completo *',
+    fullNamePlaceholder: 'Adaeze Okeke',
+    phoneLabel: 'Telefone *',
+    addressLabel: 'Morada *',
+    addressPlaceholder: 'Bonanjo, Douala',
+    createClient: 'Criar cliente',
+
+    // detalhe do cliente
+    clientTitle: 'Cliente',
+    measurementSets: 'Conjuntos de medidas',
+    setCount: '{count} medidas',
+    addSet: '+ Adicionar',
+    noMeasurementSets: 'Ainda sem conjuntos de medidas.',
+    labelLabel: 'Etiqueta',
+    valuesLabel: 'Valores (objeto JSON, cm)',
+    saveSet: 'Guardar conjunto',
+    ordersCount: 'Encomendas ({count})',
+    newOrder: '+ Nova encomenda',
+    noOrders: 'Ainda sem encomendas para este cliente.',
+    statusLine: 'Estado: {status}',
+    deliveryLine: 'Entrega: {date}',
+    deleteClient: 'Eliminar cliente',
+    invalidJsonTitle: 'JSON inválido',
+    invalidJsonBody: 'As medidas têm de ser um objeto JSON de números.',
+    deleteClientTitle: 'Eliminar cliente?',
+    deleteConfirmBody: '{name} será eliminado.',
+
+    // linha deslizante
+    deleteConfirmBodyPermanent:
+      '{name} será eliminado definitivamente. Não é possível anular.',
+    couldNotDelete: 'Não foi possível eliminar',
+    favorite: 'Favorito',
+    unfavorite: 'Remover dos favoritos',
+
+    // digitalizar uma folha de medidas preenchida
+    addMeasurementsTitle: 'Adicionar medidas',
+    addMeasurementsBody:
+      'Digitalize a foto de uma folha de medidas preenchida ou escreva os valores.',
+    scanFromPhoto: 'Digitalizar da foto',
+    enterByHand: 'Escrever à mão',
+    scanSourceTitle: 'Digitalizar uma folha de medidas',
+    scanSourceBody:
+      'Tire uma foto nítida e de frente da folha preenchida, com boa luz — vai verificar cada número antes de guardar.',
+    scanReadingSheet: 'A ler as medidas…',
+    scanReviewTitle: 'Rever medidas digitalizadas',
+    scanReviewHelp:
+      'Compare cada linha com a foto e corrija o que a leitura tiver falhado. As linhas sem número não são guardadas.',
+    scanPhotoA11y: 'Folha de medidas digitalizada',
+    scanMeasurementLabel: 'Medida',
+    scanValueLabel: 'Valor',
+    scanUnitLabel: 'Unidade',
+    scanSetLabelLabel: 'Etiqueta do conjunto',
+    scanDefaultSetLabel: 'Folha digitalizada',
+    scanLowConfidence: 'Difícil de ler — confirme com a foto.',
+    scanNoValuesTitle: 'Sem valores para guardar',
+    scanNoValuesBody:
+      'Cada linha precisa de um número para poder ser guardada. Preencha pelo menos um valor.',
+    scanEmptyTitle: 'Nada legível',
+    scanEmptyBody:
+      'Não foi possível ler medidas nessa foto. Tente uma foto mais nítida e de frente — ou escreva-as à mão.',
+    scanUnavailableTitle: 'Digitalização indisponível',
+    scanUnavailableBody:
+      'A digitalização não está disponível de momento — pode na mesma introduzir as medidas à mão.',
+    promoteTitle: 'Guardar também como modelo?',
+    promoteBody:
+      'Guarde o formato desta folha como modelo de medidas reutilizável (só os nomes, sem números).',
+    promoteAction: 'Guardar modelo',
+    promoteNameTitle: 'Nome do modelo',
+    promoteNamePlaceholder: 'Folha do cliente',
+    promoteSavedTitle: 'Modelo guardado',
+    promoteSavedBody: '“{name}” foi adicionado aos seus modelos.',
+    duplicateTemplateTitle: 'Já existe um modelo igual',
+    duplicateTemplateBody:
+      '“{name}” já tem exatamente estes campos — reutilize-o em vez de criar um duplicado.',
+  },
 } as const;

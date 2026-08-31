@@ -34,64 +34,73 @@ import { drafts } from './locales/drafts';
 import { specialties } from './locales/specialties';
 import { requests } from './locales/requests';
 
-export type LanguageCode = 'en' | 'fr';
+export type LanguageCode = 'en' | 'fr' | 'pt';
 
 export const LANGUAGES: { code: LanguageCode; label: string }[] = [
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
+  // Endonyms, not English names: a Portuguese speaker scanning a language list
+  // is looking for "Português", not "Portuguese".
+  { code: 'pt', label: 'Português' },
 ];
 
-export const translations = {
-  en: {
-    common: common.en,
-    settings: settings.en,
-    account: account.en,
-    auth: auth.en,
-    home: home.en,
-    clients: clients.en,
-    orders: orders.en,
-    groups: groups.en,
-    templates: templates.en,
-    measurements: measurements.en,
-    fabrics: fabrics.en,
-    designs: designs.en,
-    invoices: invoices.en,
-    guides: guides.en,
-    misc: misc.en,
-    assistant: assistant.en,
-    feed: feed.en,
-    chat: chat.en,
-    notifications: notifications.en,
-    share: share.en,
-    drafts: drafts.en,
-    specialties: specialties.en,
-    requests: requests.en,
-  },
-  fr: {
-    common: common.fr,
-    settings: settings.fr,
-    account: account.fr,
-    auth: auth.fr,
-    home: home.fr,
-    clients: clients.fr,
-    orders: orders.fr,
-    groups: groups.fr,
-    templates: templates.fr,
-    measurements: measurements.fr,
-    fabrics: fabrics.fr,
-    designs: designs.fr,
-    invoices: invoices.fr,
-    guides: guides.fr,
-    misc: misc.fr,
-    assistant: assistant.fr,
-    feed: feed.fr,
-    chat: chat.fr,
-    notifications: notifications.fr,
-    share: share.fr,
-    drafts: drafts.fr,
-    specialties: specialties.fr,
-    requests: requests.fr,
-  },
+/**
+ * Every namespace, keyed by name. Listed once rather than once per language.
+ *
+ * The old shape spelled all 23 namespaces out again for each locale, so adding
+ * a language meant 23 more lines that had to stay in step by hand — exactly the
+ * kind of list that silently loses an entry.
+ */
+const NAMESPACES = {
+  common,
+  settings,
+  account,
+  auth,
+  home,
+  clients,
+  orders,
+  groups,
+  templates,
+  measurements,
+  fabrics,
+  designs,
+  invoices,
+  guides,
+  misc,
+  assistant,
+  feed,
+  chat,
+  notifications,
+  share,
+  drafts,
+  specialties,
+  requests,
 } as const;
 
+type Namespaces = typeof NAMESPACES;
+
+/**
+ * Pull one language out of every namespace.
+ *
+ * Typed so that a namespace missing the requested language is a compile error
+ * naming the file, which makes TypeScript the checklist when a language is
+ * being rolled out.
+ */
+function forLanguage<L extends LanguageCode>(lang: L): { [K in keyof Namespaces]: Namespaces[K][L] } {
+  const out = {} as { [K in keyof Namespaces]: Namespaces[K][L] };
+  for (const key of Object.keys(NAMESPACES) as (keyof Namespaces)[]) {
+    // Safe by construction: the mapped return type already requires every
+    // namespace to carry `lang`.
+    (out as Record<string, unknown>)[key] = NAMESPACES[key][lang];
+  }
+  return out;
+}
+
+export const translations = {
+  en: forLanguage('en'),
+  fr: forLanguage('fr'),
+  pt: forLanguage('pt'),
+};
+
+/** English is the reference shape; every other language must match it. */
 export type Translations = typeof translations.en;
