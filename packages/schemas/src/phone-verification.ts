@@ -27,7 +27,7 @@ export const PhoneVerifyStartSchema = z.object({
    * is chosen — but a narrower enum here would reject the app's own locale the
    * day one is.
    */
-  locale: z.enum(['en', 'fr', 'pt', 'es', 'sw']).optional(),
+  locale: z.enum(['en', 'fr', 'pt', 'es', 'sw', 'ar']).optional(),
   /** Defaults to WhatsApp; SMS is the fallback for numbers without WhatsApp. */
   channel: OtpChannelSchema.optional(),
 });

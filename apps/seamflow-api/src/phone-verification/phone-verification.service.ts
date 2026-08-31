@@ -97,7 +97,7 @@ export class PhoneVerificationService {
     userId: string,
     rawPhone: string,
     opts: {
-      locale?: 'en' | 'fr' | 'pt' | 'es' | 'sw';
+      locale?: 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
       channel?: OtpChannel;
       defaultCountry?: CountryCode;
     } = {},
