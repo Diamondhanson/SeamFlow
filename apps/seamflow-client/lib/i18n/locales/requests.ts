@@ -244,4 +244,52 @@ export const requests = {
     closeBody: 'Washonaji wataacha kuliona na hakuna ofa mpya zitakazoingia.',
     closeConfirm: 'Lifunge',
   },
+  ar: {
+    mineTitle: 'طلباتي',
+    tileLabel: 'هل يمكنك خياطة هذا؟',
+    tileSubtitle: 'اعرض ما تريد خياطته',
+    askForSomething: 'اطلب شيئًا',
+    mineEmpty:
+      'لم تطلب شيئًا بعد. اعرض صورة لما تريد خياطته وسيأتيك الخيّاطون.',
+    offerCount: '{count} عروض',
+    statusLine: 'الحالة: {status}',
+
+    newTitle: 'هل يمكنك خياطة هذا؟',
+    newIntro:
+      'اعرض صورة لما تريد خياطته. سيراها الخيّاطون القريبون منك ويردّون — لست بحاجة إلى إيجاد أحدهم أولًا.',
+    photosLabel: 'الصور',
+    addPhotoTitle: 'إضافة صورة',
+    takePhoto: 'التقاط صورة',
+    chooseFromGallery: 'اختيار من المعرض',
+    removePhoto: 'إزالة هذه الصورة',
+    garmentLabel: 'ما هو؟',
+    descriptionLabel: 'اشرح لهم ما تريد',
+    descriptionPlaceholder:
+      'لون كريمي، مع تطريز ذهبي على الصدر. لزفاف في مارس.',
+    budgetLabel: 'الميزانية',
+    budgetHint: 'اختياري. اتركها فارغة وسيقترح الخيّاطون سعرًا.',
+    budgetFrom: 'من',
+    budgetTo: 'إلى',
+    post: 'انشره',
+    needed: 'صورة، وثوب، وبضع كلمات عنه.',
+
+    detailTitle: 'طلب',
+    gone: 'هذا الطلب لم يعد متاحًا.',
+    offersHeading: 'العروض ({count})',
+    noOffersYetClient:
+      'لا عروض بعد. يردّ الخيّاطون عادةً خلال يوم أو يومين.',
+    offerPrice: '{currency} {price}',
+    offerRange: '{currency} {min} – {max}',
+    offerToDiscuss: 'قابل للنقاش',
+    offerStatus: 'الحالة: {status}',
+    chooseThisTailor: 'اختر هذا الخيّاط',
+    acceptTitle: 'تختار هذا الخيّاط؟',
+    acceptBody:
+      'يفتح هذا محادثة معه لتتفقا على التفاصيل. وسيُبلَّغ بقية الخيّاطين بأن الطلب أُخذ.',
+    acceptConfirm: 'اختره',
+    closeRequest: 'إغلاق هذا الطلب',
+    closeTitle: 'إغلاق هذا الطلب؟',
+    closeBody: 'لن يراه الخيّاطون بعد الآن ولن تصل عروض جديدة.',
+    closeConfirm: 'أغلِقه',
+  },
 };

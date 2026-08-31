@@ -55,4 +55,15 @@ export const claim = {
     failedTitle: 'Haikuwezekana kuongeza agizo hilo',
     emptyInput: 'Bandika kiungo au msimbo kwanza.',
   },
+  ar: {
+    title: 'إضافة طلب',
+    subtitle: 'الصق الرابط الذي أرسله لك خيّاطك فيظهر في «طلباتي».',
+    inputLabel: 'رابط الطلب أو رمزه',
+    placeholder: 'الصق الرابط هنا',
+    addBtn: 'إضافة الطلب',
+    successTitle: 'أُضيف الطلب!',
+    successBody: 'ستجده في «طلباتي».',
+    failedTitle: 'تعذّرت إضافة ذلك الطلب',
+    emptyInput: 'الصق رابطًا أو رمزًا أولًا.',
+  },
 } as const;

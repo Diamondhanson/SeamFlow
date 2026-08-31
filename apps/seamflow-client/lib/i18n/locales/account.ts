@@ -235,4 +235,51 @@ export const account = {
 
     deleteAccountRow: 'Futa akaunti yangu',
   },
+  ar: {
+    deleteTitle: 'حذف حسابي',
+    warningBody:
+      'هذا يمحو حسابك في SeamFlow. لن يحدث شيء لمدة {days} يومًا — يمكنك العدول في أي وقت قبل ذلك.',
+
+    whatGoesTitle: 'ما الذي يُمحى',
+    goesRequests: 'طلباتك والعروض التي أرسلها إليك الخيّاطون',
+    goesMessages: 'رسائلك مع الخيّاطين',
+    goesMeasurements: 'مقاساتك المحفوظة',
+    goesAccount: 'إمكانية دخولك — لن تتمكّن من تسجيل الدخول مجددًا',
+
+    takeItTitle: 'خُذ نسخة أولًا',
+    takeItBody:
+      'احفظ نسخة من كل شيء قبل أن يزول. بعد مرور {days} يومًا لا يمكننا استرجاعه لك.',
+    exportAction: 'تنزيل بياناتي',
+    exportTitle: 'بياناتك في SeamFlow',
+    exportSavedTitle: 'تم الحفظ',
+    exportSavedBody: 'حُفظ ملف بياناتك على هذا الجهاز.',
+
+    confirmItTitle: 'أكِّد أنك أنت',
+    passwordLabel: 'كلمة المرور',
+    passwordPlaceholder: 'أدخل كلمة المرور',
+    reauthUnavailable:
+      'حذف حساب سجّلت دخوله عبر Google أو Apple غير متاح في هذا التطبيق بعد. تواصل مع الدعم من فضلك.',
+    typeEmailLabel: 'اكتب بريدك الإلكتروني للتأكيد',
+    deleteAction: 'حذف حسابي',
+    needed: 'أدخل كلمة المرور واكتب بريدك الإلكتروني للمتابعة.',
+
+    confirmTitle: 'حذف هذا الحساب؟',
+    confirmBody:
+      'سيُمحى حسابك وكل ما فيه بعد 30 يومًا. يمكنك الإلغاء قبل ذلك.',
+    confirmAction: 'نعم، احذفه',
+
+    scheduledTitle: 'سيُغلق حسابك',
+    scheduledBody:
+      'سنمحو كل شيء بعد {days} يومًا. حتى ذلك الحين يمكنك تسجيل الدخول والنقر على «الاحتفاظ بحسابي» لإيقاف ذلك.',
+
+    pendingTitle: 'يُغلق حسابك بعد {days} يومًا',
+    pendingTitleToday: 'يُغلق حسابك اليوم',
+    pendingBody:
+      'لم يُمحَ شيء بعد. انقر أدناه لإيقاف ذلك ومتابعة استخدامك كالمعتاد.',
+    keepAccount: 'الاحتفاظ بحسابي',
+    keptTitle: 'أهلًا بعودتك',
+    keptBody: 'حسابك بأمان.',
+
+    deleteAccountRow: 'حذف حسابي',
+  },
 } as const;

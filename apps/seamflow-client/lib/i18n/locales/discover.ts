@@ -315,4 +315,67 @@ export const discover = {
       'Habari! Ninavutiwa na {design} ({price}). Unaweza kunishonea kitu kama hiki?',
     inquireDesignPinned: 'Kuhusu {design}',
   },
+  ar: {
+    // ── الواجهة ────────────────────────────────────────────────────────────
+    title: 'اكتشف',
+    subtitle: 'أعمال حقيقية، من خيّاطين حقيقيين قريبين منك.',
+    emptyTitle: 'لا شيء هنا بعد',
+    emptyBody:
+      'لا يزال الخيّاطون يضيفون أعمالهم. عُد بعد قليل — تمتلئ الواجهة كلما نشروا.',
+    filterAll: 'الكل',
+    filterWomen: 'نساء',
+    filterMen: 'رجال',
+    filterUnisex: 'للجنسين',
+    filterChildren: 'أطفال',
+    occasionWedding: 'زفاف',
+    occasionTraditional: 'تقليدي',
+    occasionCorporate: 'رسمي',
+    occasionCasual: 'يومي',
+    occasionParty: 'حفلة',
+    clearFilters: 'مسح',
+    searchPlaceholder: 'ابحث في القصّات والأقمشة والأثواب…',
+    noMatch: 'لا شيء يطابق هذه التصفية بعد.',
+
+    // ── تفاصيل التصميم ─────────────────────────────────────────────────────
+    byTailor: 'بواسطة {name}',
+    verified: 'موثّق',
+    repliesIn: 'يردّ عادةً خلال {hours} ساعة',
+    acceptsRemote: 'يعمل مع عملاء في أي مكان',
+    fromPrice: 'ابتداءً من {price}',
+    inquire: 'اسأل عن هذا',
+    save: 'حفظ',
+    saved: 'محفوظ',
+    moreLikeThis: 'المزيد مثل هذا',
+    viewTailor: 'شاهد المزيد من أعماله',
+
+    // ── واجهة الورشة ───────────────────────────────────────────────────────
+    storefrontWorks: 'أعماله',
+    storefrontEmpty: 'لا شيء منشور بعد.',
+    memberSince: 'على SeamFlow منذ {date}',
+    specialties: 'التخصّصات',
+    speaks: 'يتحدّث',
+
+    // ── الاستفسار ──────────────────────────────────────────────────────────
+    inquireTitle: 'اسأل عن هذه القطعة',
+    inquireBody:
+      'أرسل رسالة إلى {name}. سيرى التصميم الذي تسأل عنه، ويمكنكما التفاهم هنا.',
+    inquirePlaceholder: 'مرحبًا! هل يمكنك أن تخيط لي شيئًا كهذا؟',
+    inquireSend: 'إرسال الرسالة',
+    inquireSending: 'يُرسل…',
+    inquireSignInTitle: 'سجّل الدخول لإرسال رسالة',
+    inquireSignInBody:
+      'يمكنك تصفّح كل شيء دون حساب. تسجيل الدخول فقط ليتمكّن الخيّاطون من الردّ عليك.',
+    inquireSignIn: 'تسجيل الدخول',
+
+    // ── التنقّل ────────────────────────────────────────────────────────────
+    tabDiscover: 'اكتشف',
+    tabMessages: 'الرسائل',
+    tabOrders: 'طلباتي',
+    catalogueNotFound:
+      'لم نتمكّن من إيجاد ذلك الكتالوج. قد يكون الرابط مكتوبًا بشكل خاطئ، أو لم تعد الورشة مُدرجة.',
+    inquireAboutDesign: 'مرحبًا! يعجبني {design}. هل يمكنك أن تخيط لي شيئًا كهذا؟',
+    inquireAboutDesignPriced:
+      'مرحبًا! يعجبني {design} ({price}). هل يمكنك أن تخيط لي شيئًا كهذا؟',
+    inquireDesignPinned: 'عن {design}',
+  },
 } as const;

@@ -195,4 +195,40 @@ export const notifications = {
     type_security_phone_verified: 'Namba yako ya simu imethibitishwa',
     type_moderation_outcome: 'Tumepitia ripoti yako',
   },
+  ar: {
+    title: 'الإشعارات',
+    empty: 'لا شيء بعد',
+    emptyBody: 'ستظهر هنا مستجدّات طلباتك ورسائلك.',
+    markAllRead: 'تعليم الكل كمقروء',
+    unreadOne: 'واحد غير مقروء',
+    unreadMany: '{count} غير مقروء',
+    justNow: 'الآن',
+    loadFailed: 'تعذّر تحميل إشعاراتك. تحقّق من اتصالك وحاول مرة أخرى.',
+    inboxSection: 'في صندوق الوارد',
+    inboxSectionHint:
+      'ما يُسجَّل هنا. إيقاف أي منها يوقف الإشعار وسجل الوارد معًا.',
+    type_enquiry_received_label: 'استفسارات جديدة',
+
+    // ── إلى العميل ─────────────────────────────────────────────────────────
+    type_quote_received: 'أرسل لك {tailorName} عرض سعر لـ «{orderName}»',
+    type_invoice_issued: 'الفاتورة جاهزة لـ «{orderName}»',
+    type_payment_confirmed: 'تم استلام الدفعة عن «{orderName}» — شكرًا لك',
+    type_order_ready_for_fitting: '«{orderName}» جاهز للقياس',
+    type_order_ready_for_pickup: '«{orderName}» جاهز للاستلام',
+    type_order_delivered: 'تم تسليم «{orderName}»',
+    type_order_delivery_date_moved: 'موعد جديد لـ «{orderName}»: {date}',
+    type_order_cancelled_by_tailor: 'ألغى {tailorName} الطلب «{orderName}»',
+
+    // ── إلى الخيّاط ────────────────────────────────────────────────────────
+    type_enquiry_received: 'استفسار جديد من {clientName}',
+    type_quote_accepted: 'قبِل {clientName} عرض سعرك لـ «{orderName}»',
+    type_quote_declined: 'رفض {clientName} عرض سعرك لـ «{orderName}»',
+    type_payment_received: 'دفع {clientName} مقابل «{orderName}»',
+    type_order_claimed: 'استلم {clientName} الطلب «{orderName}»',
+
+    // ── لكلا الطرفين ───────────────────────────────────────────────────────
+    type_security_new_device: 'تسجيل دخول جديد من جهاز جديد',
+    type_security_phone_verified: 'تم تأكيد رقم هاتفك',
+    type_moderation_outcome: 'راجعنا بلاغك',
+  },
 };

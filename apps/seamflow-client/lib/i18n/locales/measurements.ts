@@ -39,4 +39,12 @@ export const measurements = {
     savedBy: 'Vimehifadhiwa na {name}',
     fieldsCount: 'Vipimo {count}',
   },
+  ar: {
+    title: 'مقاساتي',
+    subtitle: 'مقاساتك، محفوظة لدى خيّاطيك',
+    empty: 'لا مقاسات بعد',
+    emptyHint: 'حين يأخذ خيّاط مقاساتك، ستظهر هنا.',
+    savedBy: 'حفظها {name}',
+    fieldsCount: '{count} مقاسات',
+  },
 } as const;
