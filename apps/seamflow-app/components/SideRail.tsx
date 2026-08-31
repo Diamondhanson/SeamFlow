@@ -53,7 +53,7 @@ export function SideRail() {
     <View
       style={[
         styles.rail,
-        { backgroundColor: colors.surface, borderRightColor: colors.hairline },
+        { backgroundColor: colors.surface, borderEndColor: colors.hairline },
       ]}
     >
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
@@ -94,7 +94,7 @@ export function SideRail() {
 const styles = StyleSheet.create({
   rail: {
     width: 208,
-    borderRightWidth: StyleSheet.hairlineWidth,
+    borderEndWidth: StyleSheet.hairlineWidth,
     paddingTop: spacing.lg,
   },
   list: { paddingHorizontal: spacing.sm, paddingBottom: spacing.lg, gap: 2 },

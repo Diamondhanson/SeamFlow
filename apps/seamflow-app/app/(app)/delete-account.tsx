@@ -164,7 +164,7 @@ export default function DeleteAccount() {
           label={t('account.exportAction')}
           variant="secondary"
           loading={exporting}
-          iconLeft={<Ionicons name="download-outline" size={18} color={colors.text} />}
+          iconStart={<Ionicons name="download-outline" size={18} color={colors.text} />}
           onPress={onExport}
         />
 

@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { TEXT_END } from '../../lib/rtl';
 import {
   ActivityIndicator,
   Image,
@@ -357,14 +358,14 @@ export default function Me() {
             <Button
               label={t('settings.sendTestNotification')}
               variant="secondary"
-              iconLeft={<Ionicons name="paper-plane-outline" size={18} color={colors.text} />}
+              iconStart={<Ionicons name="paper-plane-outline" size={18} color={colors.text} />}
               onPress={onTestNotification}
             />
             <View style={{ height: spacing.md }} />
             <Button
               label={t('settings.previewWelcome')}
               variant="secondary"
-              iconLeft={<Ionicons name="sparkles-outline" size={18} color={colors.text} />}
+              iconStart={<Ionicons name="sparkles-outline" size={18} color={colors.text} />}
               onPress={() => {
                 previewWelcome();
                 router.back();
@@ -376,7 +377,7 @@ export default function Me() {
         <Button
           label={t('settings.signOut')}
           variant="danger"
-          iconLeft={<Ionicons name="log-out-outline" size={18} color={colors.accentText} />}
+          iconStart={<Ionicons name="log-out-outline" size={18} color={colors.accentText} />}
           onPress={onSignOut}
         />
       </ScrollView>
@@ -487,7 +488,7 @@ const styles = StyleSheet.create({
   logo: { width: 56, height: 56, borderRadius: 28 },
   cameraBadge: {
     position: 'absolute',
-    right: -2,
+    end: -2,
     bottom: -2,
     width: 22,
     height: 22,
@@ -515,7 +516,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderTopWidth: 1,
   },
-  infoValue: { flexShrink: 1, textAlign: 'right' },
+  // RN has no textAlign: 'end', so the flip is explicit. These are values
+  // in a space-between row — they hug the far edge, whichever edge that is.
+  infoValue: { flexShrink: 1, textAlign: TEXT_END },
   settingsCard: {
     borderWidth: 1,
     borderRadius: radii.lg,
@@ -529,5 +532,5 @@ const styles = StyleSheet.create({
   },
   settingsRowIcon: { width: 22, textAlign: 'center' },
   settingsRowLabel: { flex: 1 },
-  settingsRowValue: { flexShrink: 1, textAlign: 'right', maxWidth: '45%' },
+  settingsRowValue: { flexShrink: 1, textAlign: TEXT_END, maxWidth: '45%' },
 });

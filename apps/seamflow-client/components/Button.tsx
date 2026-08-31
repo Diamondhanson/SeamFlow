@@ -37,8 +37,8 @@ interface Props {
   loading?: boolean;
   /** Icon node rendered left of the label — Atelier way to replace the old
    *  emoji-in-label pattern. */
-  iconLeft?: ReactNode;
-  iconRight?: ReactNode;
+  iconStart?: ReactNode;
+  iconEnd?: ReactNode;
 }
 
 const VARIANT_MAP: Record<LegacyVariant, AtelierVariant> = {
@@ -56,8 +56,8 @@ export function Button({
   fullWidth,
   disabled,
   loading,
-  iconLeft,
-  iconRight,
+  iconStart,
+  iconEnd,
 }: Props) {
   return (
     <AtelierButton
@@ -68,8 +68,8 @@ export function Button({
       fullWidth={fullWidth}
       disabled={disabled}
       loading={loading}
-      iconLeft={iconLeft}
-      iconRight={iconRight}
+      iconStart={iconStart}
+      iconEnd={iconEnd}
     />
   );
 }

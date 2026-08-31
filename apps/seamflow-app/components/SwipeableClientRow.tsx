@@ -1,8 +1,16 @@
 // ============================================================================
 // <SwipeableClientRow> — a client list row with WhatsApp-style swipe actions.
 //
-//   • Swipe LEFT  (reveals the right panel)  → toggle favorite ★
-//   • Swipe RIGHT (reveals the left panel)   → delete (with confirmation)
+//   • Swipe toward the END   (reveals the near panel) → toggle favorite ★
+//   • Swipe toward the START (reveals the far panel)  → delete (w/ confirm)
+//
+// Described by reading order, not by compass point, because the mapping flips
+// under RTL. ReanimatedSwipeable does NOT consult I18nManager: it keeps
+// renderLeftActions physically left whatever the direction. So under RTL the
+// row's CONTENT mirrors while the action panels stay put, and a swipe that
+// visually reveals DELETE would fire FAVORITE. Since one of these two destroys
+// a client record, the panels are assigned by role below and mapped to
+// physical sides in exactly one place.
 //
 // Favorite state is local/on-device (see lib/favorites). Delete goes through
 // the API and always prompts before removing anything. Both actions fire once
@@ -10,7 +18,7 @@
 // ============================================================================
 
 import { useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { I18nManager, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import ReanimatedSwipeable, {
   type SwipeableMethods,
@@ -101,8 +109,8 @@ export function SwipeableClientRow({ item }: { item: Client }) {
       rightThreshold={48}
       overshootLeft={false}
       overshootRight={false}
-      renderLeftActions={renderDeleteAction}
-      renderRightActions={renderFavoriteAction}
+      renderLeftActions={I18nManager.isRTL ? renderFavoriteAction : renderDeleteAction}
+      renderRightActions={I18nManager.isRTL ? renderDeleteAction : renderFavoriteAction}
       onSwipeableOpen={onOpen}
     >
       <Card
@@ -137,8 +145,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  actionRight: { marginLeft: spacing.sm },
-  actionLeft: { marginRight: spacing.sm },
+  // Named for the physical side each panel renders on, so they must swap
+  // alongside renderLeftActions/renderRightActions above.
+  actionRight: { marginStart: spacing.sm },
+  actionLeft: { marginEnd: spacing.sm },
   clientRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   clientText: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

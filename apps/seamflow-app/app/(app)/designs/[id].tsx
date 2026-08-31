@@ -133,7 +133,7 @@ export default function DesignDetail() {
             variant="secondary"
             size="sm"
             fullWidth={false}
-            iconLeft={<Ionicons name="sparkles-outline" size={16} color={colors.text} />}
+            iconStart={<Ionicons name="sparkles-outline" size={16} color={colors.text} />}
             onPress={() => setDescribeOpen(true)}
           />
           <Button
@@ -141,7 +141,7 @@ export default function DesignDetail() {
             variant="secondary"
             size="sm"
             fullWidth={false}
-            iconLeft={<Ionicons name="link-outline" size={16} color={colors.text} />}
+            iconStart={<Ionicons name="link-outline" size={16} color={colors.text} />}
             onPress={() => setAttachOpen(true)}
           />
         </View>

@@ -58,9 +58,17 @@ export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> 
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
-  /** Render an icon to the left of the label. Pass a phosphor / SVG node. */
+  /**
+   * Render an icon before the label — on the LEFT in a left-to-right language,
+   * on the right in Arabic. Pass a phosphor / SVG node.
+   */
+  iconStart?: React.ReactNode;
+  /** Render an icon after the label. Mirrors under RTL, like `iconStart`. */
+  iconEnd?: React.ReactNode;
+  /** @deprecated Use `iconStart`. The physical name is what led call sites to
+   *  position icons by compass point rather than by reading order. */
   iconLeft?: React.ReactNode;
-  /** Render an icon to the right of the label. */
+  /** @deprecated Use `iconEnd`. */
   iconRight?: React.ReactNode;
   /** Stretch to fill parent width. Default true (matches buttons in forms). */
   fullWidth?: boolean;
@@ -84,6 +92,8 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
     size = 'md',
     loading,
     disabled,
+    iconStart,
+    iconEnd,
     iconLeft,
     iconRight,
     fullWidth = true,
@@ -94,6 +104,9 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
   },
   ref,
 ) {
+  // One release of overlap for the deprecated physical names.
+  const start = iconStart ?? iconLeft;
+  const end = iconEnd ?? iconRight;
   const theme = useAtelierTheme();
   const scale = useSharedValue(1);
 
@@ -191,11 +204,11 @@ export const Button = forwardRef<View, ButtonProps>(function Button(
           <ActivityIndicator color={palette.label} />
         ) : (
           <>
-            {iconLeft ? <View style={styles.iconLeft}>{iconLeft}</View> : null}
+            {start ? <View style={styles.iconStart}>{start}</View> : null}
             <Text variant="button" tone={palette.tone}>
               {label}
             </Text>
-            {iconRight ? <View style={styles.iconRight}>{iconRight}</View> : null}
+            {end ? <View style={styles.iconEnd}>{end}</View> : null}
           </>
         )}
       </AnimatedPressable>
@@ -263,6 +276,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconLeft: { marginRight: 8 },
-  iconRight: { marginLeft: 8 },
+  iconStart: { marginEnd: 8 },
+  iconEnd: { marginStart: 8 },
 });

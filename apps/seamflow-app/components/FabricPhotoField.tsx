@@ -152,13 +152,13 @@ const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     top: 0,
-    left: 0,
+    start: 0,
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
   removeBadge: {
     position: 'absolute',
     top: -6,
-    right: -6,
+    end: -6,
     width: 24,
     height: 24,
     borderRadius: 12,

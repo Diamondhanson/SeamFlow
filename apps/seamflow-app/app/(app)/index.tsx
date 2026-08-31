@@ -331,7 +331,7 @@ export default function Home() {
           </Text>
           <Text
             variant="display"
-            style={{ marginTop: 4, marginRight: 80 }}
+            style={{ marginTop: 4, marginEnd: 80 }}
             numberOfLines={2}
           >
             {businessName}
@@ -343,7 +343,7 @@ export default function Home() {
             <Text variant="body" tone="textMuted" style={styles.statLabel}>
               {t('home.active')}
             </Text>
-            <Text variant="h2" style={{ color: colors.warning, marginLeft: spacing.md }}>
+            <Text variant="h2" style={{ color: colors.warning, marginStart: spacing.md }}>
               {dueSoon.length}
             </Text>
             <Text variant="body" tone="textMuted" style={styles.statLabel}>
@@ -362,7 +362,7 @@ export default function Home() {
 
             Bottom-right rather than beside the avatar: the avatar already owns
             the top-right, and a bell next to it would push the business name's
-            marginRight from 80 to ~128 — which truncates a two-line name like
+            marginEnd from 80 to ~128 — which truncates a two-line name like
             "LYZMA CREATIONS". This corner is empty and still above the fold.
           */}
           <Pressable
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
   heroWrap: { position: 'relative' },
   bell: {
     position: 'absolute',
-    right: spacing.lg,
+    end: spacing.lg,
     bottom: spacing.lg,
     width: 44,
     height: 44,
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
   bellBadge: {
     position: 'absolute',
     top: -2,
-    right: -2,
+    end: -2,
     minWidth: 18,
     height: 18,
     borderRadius: 9,
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   heroCircle: {
     position: 'absolute',
     top: -40,
-    right: -30,
+    end: -30,
     width: 160,
     height: 160,
     borderRadius: 80,
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   avatarImg: { width: 72, height: 72, borderRadius: 36 },
   avatarGear: {
     position: 'absolute',
-    right: -2,
+    end: -2,
     bottom: -2,
     width: 22,
     height: 22,
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     marginTop: spacing.md,
   },
-  statLabel: { marginLeft: 6 },
+  statLabel: { marginStart: 6 },
   cta: { marginTop: spacing.lg, marginBottom: spacing.lg },
   onboarding: {
     borderRadius: 20,
@@ -560,5 +560,5 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP },
   section: { marginTop: spacing.xl },
   sectionLabel: { marginBottom: spacing.md },
-  rail: { gap: spacing.md, paddingRight: spacing.lg },
+  rail: { gap: spacing.md, paddingEnd: spacing.lg },
 });

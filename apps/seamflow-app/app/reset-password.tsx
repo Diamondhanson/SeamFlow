@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ARROW_BACK } from '../lib/rtl';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from '@seamflow/ui';
@@ -179,7 +180,7 @@ export default function ResetPassword() {
       <View style={{ height: spacing.xl }} />
       <Pressable onPress={() => router.replace('/sign-in')}>
         <Text variant="caption" tone="textMuted" style={styles.back}>
-          {t('auth.useDifferentEmail')}
+          {t('auth.useDifferentEmail', { arrow: ARROW_BACK })}
         </Text>
       </Pressable>
     </Screen>

@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   check: {
     position: 'absolute',
     top: 6,
-    right: 6,
+    end: 6,
     width: 24,
     height: 24,
     borderRadius: 12,

@@ -15,11 +15,7 @@
 // ============================================================================
 
 import { forwardRef } from 'react';
-import {
-  Text as RNText,
-  type TextProps as RNTextProps,
-  type TextStyle,
-} from 'react-native';
+import { I18nManager, Text as RNText, type TextProps as RNTextProps, type TextStyle } from 'react-native';
 import { typeScale, type TypeVariant } from '../tokens/typography';
 import type { SemanticColors } from '../tokens/colors';
 import { useAtelierTheme } from '../theme/ThemeProvider';
@@ -51,6 +47,12 @@ export const Text = forwardRef<RNText, TextProps>(function Text(
     fontSize: v.fontSize,
     lineHeight: v.lineHeight,
     letterSpacing: v.letterSpacing,
+    // Stated rather than left to the platform default. Almost every string in
+    // this app mixes scripts — an Arabic label beside a Latin order number,
+    // business name or phone number — and without an explicit base direction
+    // the bidi algorithm resolves punctuation from the first strong character
+    // in the run, which lands full stops and colons on the wrong side.
+    writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
   };
   if ('textTransform' in v && v.textTransform) {
     base.textTransform = v.textTransform;

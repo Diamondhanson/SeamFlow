@@ -272,5 +272,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderTopWidth: 1,
   },
-  toggleLabel: { flex: 1, marginRight: spacing.md },
+  toggleLabel: { flex: 1, marginEnd: spacing.md },
 });

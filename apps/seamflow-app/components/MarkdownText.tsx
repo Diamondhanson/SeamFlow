@@ -68,8 +68,8 @@ export function MarkdownText({ children }: { children: string }) {
         blockquote: {
           backgroundColor: colors.surface,
           borderColor: colors.hairline,
-          marginLeft: 0,
-          paddingLeft: 10,
+          marginStart: 0,
+          paddingStart: 10,
         },
         link: { color: colors.primary },
       }}

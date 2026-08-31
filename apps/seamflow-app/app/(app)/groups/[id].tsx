@@ -365,7 +365,7 @@ export default function GroupDetail() {
         <Button
           label={t('orders.addPhotoAction')}
           variant="secondary"
-          iconLeft={<Ionicons name="add" size={18} color={colors.text} />}
+          iconStart={<Ionicons name="add" size={18} color={colors.text} />}
           onPress={chooseSource}
           disabled={uploading}
         />
@@ -950,7 +950,7 @@ const styles = StyleSheet.create({
   },
   photoThumbWrap: {
     width: 120,
-    marginRight: spacing.sm,
+    marginEnd: spacing.sm,
   },
   photoThumb: {
     width: 120,

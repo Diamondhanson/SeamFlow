@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 12,
-    marginRight: spacing.sm,
+    marginEnd: spacing.sm,
     borderWidth: 1,
   },
   sectionLabel: { marginBottom: spacing.sm },

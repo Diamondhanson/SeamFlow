@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
   confirmButtons: { flexDirection: 'row', marginTop: spacing.md },
 
   thinkingBubble: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  thinkingLabel: { marginLeft: 4 },
+  thinkingLabel: { marginStart: 4 },
   dot: { width: 6, height: 6, borderRadius: 3 },
   pulseDot: { width: 8, height: 8, borderRadius: 4 },
 

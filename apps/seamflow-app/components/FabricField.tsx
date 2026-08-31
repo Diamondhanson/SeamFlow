@@ -153,7 +153,7 @@ export function FabricField({
               <Button
                 label={t('fabrics.newFabric')}
                 variant="secondary"
-                iconLeft={<Ionicons name="add" size={18} color={colors.text} />}
+                iconStart={<Ionicons name="add" size={18} color={colors.text} />}
                 onPress={goCreateFabric}
               />
             </View>

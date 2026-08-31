@@ -144,7 +144,9 @@ const styles = StyleSheet.create({
   },
   accent: {
     position: 'absolute',
-    left: 0,
+    // Must flip with the `paddingStart` clearance below, or the text
+    // collides with the bar under RTL.
+    start: 0,
     top: 0,
     bottom: 0,
     width: 4,
@@ -155,13 +157,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.m,
     paddingVertical: spacing.m,
-    paddingRight: spacing.m,
-    paddingLeft: spacing.m + 4, // clear the accent bar
+    paddingEnd: spacing.m,
+    paddingStart: spacing.m + 4, // clear the accent bar
   },
   wideMiddle: { flex: 1 },
   dueWide: { fontSize: 12, marginTop: 2 },
   // Rail (stacked) layout.
-  inner: { padding: spacing.l, paddingLeft: spacing.l + 4 },
+  inner: { padding: spacing.l, paddingStart: spacing.l + 4 },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',

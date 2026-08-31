@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { ARROW_FORWARD } from '../../../lib/rtl';
 import {
   ActivityIndicator,
   Image,
@@ -357,7 +358,7 @@ export default function OrderDetailScreen() {
                   : t('orders.shareWithClient')
               }
               variant="secondary"
-              iconLeft={
+              iconStart={
                 shareOrderHook.isPending ? undefined : (
                   <Ionicons name="share-social-outline" size={18} color={colors.text} />
                 )
@@ -377,7 +378,7 @@ export default function OrderDetailScreen() {
             nextStatuses.map((st) => (
               <View key={st} style={{ marginBottom: spacing.sm }}>
                 <Button
-                  label={t('orders.transitionTo', { label: statusLabel(st) })}
+                  label={t('orders.transitionTo', { arrow: ARROW_FORWARD, label: statusLabel(st) })}
                   variant="secondary"
                   onPress={() => transition(st)}
                 />
@@ -413,7 +414,7 @@ export default function OrderDetailScreen() {
           <Button
             label={t('orders.addPhotoAction')}
             variant="secondary"
-            iconLeft={<Ionicons name="add" size={18} color={colors.text} />}
+            iconStart={<Ionicons name="add" size={18} color={colors.text} />}
             onPress={chooseSource}
             disabled={uploading}
           />
@@ -567,7 +568,7 @@ export default function OrderDetailScreen() {
             </Text>
           ) : (
             order.events.map((e, i) => (
-              <View key={e.id} style={[styles.event, { borderLeftColor: withAlpha(s.primary, 0.22) }]}>
+              <View key={e.id} style={[styles.event, { borderStartColor: withAlpha(s.primary, 0.22) }]}>
                 {/* Node — the most recent event reads as a filled dot, older
                     ones as hollow, so the head of the timeline is obvious. */}
                 <View
@@ -584,6 +585,7 @@ export default function OrderDetailScreen() {
                     ? t('orders.orderCreated')
                     : e.fromStatus && e.toStatus
                       ? t('orders.statusTransition', {
+                          arrow: ARROW_FORWARD,
                           from: statusLabel(e.fromStatus),
                           to: statusLabel(e.toStatus),
                         })
@@ -608,7 +610,7 @@ export default function OrderDetailScreen() {
           <Button
             label={t('orders.duplicateOrder')}
             variant="secondary"
-            iconLeft={<Ionicons name="copy-outline" size={18} color={colors.text} />}
+            iconStart={<Ionicons name="copy-outline" size={18} color={colors.text} />}
             onPress={() => router.push(`/(app)/new-order?duplicateFrom=${id}`)}
           />
           <View style={{ height: spacing.md }} />
@@ -805,13 +807,14 @@ const styles = StyleSheet.create({
   // Timeline
   event: {
     position: 'relative',
-    borderLeftWidth: 2,
-    paddingLeft: spacing.lg,
+    borderStartWidth: 2,
+    paddingStart: spacing.lg,
     paddingBottom: spacing.lg,
   },
   eventDot: {
     position: 'absolute',
-    left: -6,
+    // Sits on the rail, so it follows borderStartWidth above.
+    start: -6,
     top: 3,
     width: 11,
     height: 11,
@@ -855,7 +858,7 @@ const styles = StyleSheet.create({
   },
   photoThumbWrap: {
     width: 120,
-    marginRight: spacing.sm,
+    marginEnd: spacing.sm,
   },
   photoThumb: {
     width: 120,
@@ -872,7 +875,7 @@ const styles = StyleSheet.create({
   inFeedBadge: {
     position: 'absolute',
     top: spacing.xs,
-    left: spacing.xs,
+    start: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },

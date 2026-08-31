@@ -145,7 +145,7 @@ export function PhoneInput({
         ]}
       >
         <Pressable
-          style={[styles.ccBtn, { borderRightColor: colors.hairline }]}
+          style={[styles.ccBtn, { borderEndColor: colors.hairline }]}
           onPress={() => setPickerOpen(true)}
           accessibilityRole="button"
           accessibilityLabel={t('misc.selectCountryDialCode')}
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    borderRightWidth: 1,
+    borderEndWidth: 1,
   },
   input: {
     flex: 1,

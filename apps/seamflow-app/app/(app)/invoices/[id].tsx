@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { TEXT_END } from '../../../lib/rtl';
 import { StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -406,7 +407,7 @@ export default function InvoiceEditor() {
           label={share.isPending ? t('invoices.sending') : t('invoices.send')}
           onPress={send}
           loading={share.isPending}
-          iconLeft={share.isPending ? undefined : <Ionicons name="share-social-outline" size={18} color={colors.accentText} />}
+          iconStart={share.isPending ? undefined : <Ionicons name="share-social-outline" size={18} color={colors.accentText} />}
         />
         <View style={{ height: spacing.sm }} />
         <Button
@@ -414,7 +415,7 @@ export default function InvoiceEditor() {
           variant="secondary"
           onPress={onSharePdf}
           loading={pdfBusy}
-          iconLeft={pdfBusy ? undefined : <Ionicons name="document-text-outline" size={18} color={colors.text} />}
+          iconStart={pdfBusy ? undefined : <Ionicons name="document-text-outline" size={18} color={colors.text} />}
         />
 
         <View style={[styles.divider, { backgroundColor: colors.hairline }]} />
@@ -435,7 +436,8 @@ const styles = StyleSheet.create({
   qtyRow: { flexDirection: 'row', gap: spacing.sm },
   qtyCol: { width: 100 },
   priceCol: { flex: 1 },
-  lineTotal: { textAlign: 'right', marginTop: 2 },
+  // Amount column: hugs the far edge. RN has no textAlign: 'end'.
+  lineTotal: { textAlign: TEXT_END, marginTop: 2 },
   addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   divider: { height: 1, marginVertical: spacing.lg },
   totalRow: {

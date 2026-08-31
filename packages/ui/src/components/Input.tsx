@@ -223,7 +223,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         <Text
           variant="caption"
           tone={error ? 'danger' : 'textMuted'}
-          style={{ marginTop: 4, marginLeft: 4 }}
+          style={{ marginTop: 4, marginStart: 4 }}
         >
           {error ?? helper}
         </Text>
@@ -250,9 +250,9 @@ const styles = StyleSheet.create({
   },
   label: {
     position: 'absolute',
-    left: 16,
+    start: 16,
     top: 18,
   },
-  leading: { marginRight: 10 },
-  trailing: { marginLeft: 10 },
+  leading: { marginEnd: 10 },
+  trailing: { marginStart: 10 },
 });

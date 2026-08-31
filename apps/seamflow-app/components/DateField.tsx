@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   clear: {
-    marginLeft: spacing.sm,
+    marginStart: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderRadius: radii.md,

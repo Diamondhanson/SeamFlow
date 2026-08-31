@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   // Two-up on wide screens: just under half so the columns keep a gutter.
-  measureRowHalf: { width: '48%', marginRight: '4%' },
+  measureRowHalf: { width: '48%', marginEnd: '4%' },
   measureLabel: { flex: 1 },
   measureValue: { flexShrink: 0 },
   row: {

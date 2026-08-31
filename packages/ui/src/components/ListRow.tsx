@@ -17,14 +17,7 @@
 // ============================================================================
 
 import { forwardRef, type ReactNode } from 'react';
-import {
-  Pressable,
-  type PressableProps,
-  StyleSheet,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { I18nManager, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -116,7 +109,10 @@ export const ListRow = forwardRef<View, ListRowProps>(function ListRow(
       </View>
       {trailing === undefined ? (
         <Text variant="h3" tone="textMuted" style={styles.chevron}>
-          ›
+          {/* A glyph, not a layout property — I18nManager mirrors the row
+              around it but cannot turn the character itself, so an RTL list
+              would point every row back the way the reader came from. */}
+          {I18nManager.isRTL ? '‹' : '›'}
         </Text>
       ) : (
         trailing
@@ -167,8 +163,8 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.m,
+    marginEnd: spacing.m,
   },
   text: { flex: 1 },
-  chevron: { marginLeft: spacing.s, fontSize: 22, lineHeight: 24 },
+  chevron: { marginStart: spacing.s, fontSize: 22, lineHeight: 24 },
 });

@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   coverBadge: {
     position: 'absolute',
-    left: 4,
+    start: 4,
     bottom: 4,
     paddingHorizontal: 6,
     paddingVertical: 1,

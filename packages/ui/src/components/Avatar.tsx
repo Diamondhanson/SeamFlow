@@ -111,7 +111,7 @@ export function AvatarStack({
           name={name}
           size={size}
           ringColor={ring}
-          style={i === 0 ? undefined : { marginLeft: -overlap }}
+          style={i === 0 ? undefined : { marginStart: -overlap }}
         />
       ))}
       {extra > 0 ? (
@@ -121,7 +121,7 @@ export function AvatarStack({
               width: d,
               height: d,
               borderRadius: d / 2,
-              marginLeft: -overlap,
+              marginStart: -overlap,
               backgroundColor: colors.surfaceElevated,
               borderColor: ring,
               borderWidth: 2,
