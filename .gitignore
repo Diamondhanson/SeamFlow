@@ -63,3 +63,8 @@ supabase/.branches/
 # play-ready-screenshots/ and play-ready-tablet/; these are the source frames
 # and are far too big to keep in history.
 phone screenshots. /
+
+# Locally-built APKs. 99MB each — never commit these, and note that a
+# local EAS build log also contains the signing keystore.
+*.apk
+*.aab
