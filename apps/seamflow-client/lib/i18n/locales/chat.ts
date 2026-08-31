@@ -154,4 +154,82 @@ export const chat = {
       'Développement uniquement. Crée une fausse demande entrante pour tester la discussion de bout en bout avant la sortie de l’application client.',
     devSimulateDone: 'Demande simulée créée',
   },
+  pt: {
+    // ── Separador + lista ───────────────────────────────────────────────────
+    tabLabel: 'Mensagens',
+    tabSubtitle: 'Pedidos · conversa',
+    listTitle: 'Mensagens',
+    listSubtitle: 'Pedidos de quem encontrou o seu trabalho.',
+
+    emptyTitle: 'Ainda sem pedidos',
+    emptyBody:
+      'Quando a aplicação para clientes do SeamFlow for lançada, quem estiver a ver o seu trabalho publicado poderá enviar-lhe mensagem aqui. Publicar agora as encomendas terminadas significa que terão algo para descobrir.',
+    emptyCta: 'Mostrar o seu trabalho no feed',
+
+    unreadBadge: '{count} novas',
+    youPrefix: 'Você: ',
+    imageMessage: 'Foto',
+    designMessage: 'Uma criação',
+
+    // ── Conversa ────────────────────────────────────────────────────────────
+    threadTitle: 'Conversa',
+    aboutDesign: 'Sobre esta criação',
+    composerPlaceholder: 'Escreva uma mensagem…',
+    send: 'Enviar',
+    sending: 'A enviar…',
+    failedToSend: 'Não enviada',
+    retry: 'Tentar novamente',
+    retryAll: 'Repetir todas',
+    tapToRetry: 'Toque para tentar de novo',
+    queuedOffline: 'À espera de ligação',
+    offlineBanner: 'Está offline — as mensagens serão enviadas quando voltar.',
+    loadingOlder: 'A carregar mensagens antigas…',
+    startOfConversation: 'Este é o início da vossa conversa.',
+    typing: 'A escrever…',
+    online: 'Online',
+    lastSeenRecently: 'Visto há pouco',
+    readReceipt: 'Lida',
+    deliveredReceipt: 'Enviada',
+
+    // Separadores de dia
+    today: 'Hoje',
+    yesterday: 'Ontem',
+
+    // ── Anexos ──────────────────────────────────────────────────────────────
+    attach: 'Adicionar uma foto',
+    attachTakePhoto: 'Tirar foto',
+    attachFromGallery: 'Escolher da galeria',
+    attachmentFailed: 'Não foi possível anexar essa foto',
+    uploadingAttachment: 'A adicionar foto…',
+
+    // ── Orçamento ───────────────────────────────────────────────────────────
+    createQuote: 'Criar encomenda',
+    createQuoteTitle: 'Transformar isto numa encomenda',
+    createQuoteBody:
+      'Cria uma encomenda e um rascunho de fatura ligados a esta conversa. Depois comporta-se como qualquer outra encomenda.',
+    quoteOrderNameLabel: 'Título da encomenda *',
+    quoteOrderNamePlaceholder: 'ex. Agbada de casamento para a Amina',
+    quoteDeliveryLabel: 'Data de entrega',
+    quoteAmountLabel: 'Preço (opcional)',
+    quoteNotesLabel: 'Notas',
+    quoteNotesPlaceholder: 'O que ficou combinado na conversa…',
+    quoteClientNameLabel: 'Nome do cliente',
+    quoteClientNameHelp:
+      'Ainda não está na sua lista de clientes — é com este nome que o vamos guardar.',
+    quoteClientPhoneLabel: 'Telefone do cliente',
+    quoteSubmit: 'Criar encomenda',
+    quoteCreating: 'A criar…',
+    quoteCreatedTitle: 'Encomenda criada',
+    quoteCreatedBody:
+      'Uma encomenda e um rascunho de fatura estão ligados a esta conversa.',
+    quoteFailed: 'Não foi possível criar a encomenda',
+    viewOrder: 'Ver encomenda',
+    linkedOrder: 'Ligada a uma encomenda',
+
+    // ── Apenas em desenvolvimento ───────────────────────────────────────────
+    devSimulate: 'Simular um pedido de cliente',
+    devSimulateBody:
+      'Apenas em desenvolvimento. Cria um pedido falso para testar a conversa de ponta a ponta antes de a aplicação para clientes ser lançada.',
+    devSimulateDone: 'Pedido simulado criado',
+  },
 } as const;

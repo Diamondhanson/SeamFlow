@@ -93,4 +93,52 @@ export const account = {
 
     deleteAccountRow: 'Supprimer mon compte',
   },
+  pt: {
+    deleteTitle: 'Eliminar a minha conta',
+    warningBody:
+      'Isto apaga a sua conta SeamFlow. Nada acontece durante {days} dias — pode mudar de ideias a qualquer momento até lá.',
+
+    whatGoesTitle: 'O que é apagado',
+    goesRequests: 'Os seus pedidos e as propostas que os alfaiates lhe enviaram',
+    goesMessages: 'As suas mensagens com alfaiates',
+    goesMeasurements: 'As suas medidas guardadas',
+    goesAccount: 'O seu acesso — deixará de conseguir iniciar sessão',
+
+    takeItTitle: 'Leve primeiro uma cópia',
+    takeItBody:
+      'Guarde uma cópia de tudo antes de desaparecer. Passados os {days} dias, não conseguimos recuperá-la.',
+    exportAction: 'Transferir os meus dados',
+    exportTitle: 'Os seus dados do SeamFlow',
+    exportSavedTitle: 'Guardado',
+    exportSavedBody: 'O ficheiro com os seus dados foi guardado neste dispositivo.',
+
+    confirmItTitle: 'Confirme que é você',
+    passwordLabel: 'A sua palavra-passe',
+    passwordPlaceholder: 'Introduza a sua palavra-passe',
+    reauthUnavailable:
+      'Eliminar uma conta com que iniciou sessão através da Google ou da Apple ainda não está disponível nesta aplicação. Contacte o apoio.',
+    typeEmailLabel: 'Escreva o seu endereço de e-mail para confirmar',
+    deleteAction: 'Eliminar a minha conta',
+    needed:
+      'Introduza a sua palavra-passe e escreva o seu endereço de e-mail para continuar.',
+
+    confirmTitle: 'Eliminar esta conta?',
+    confirmBody:
+      'A sua conta e tudo o que nela existe serão apagados dentro de 30 dias. Pode cancelar até lá.',
+    confirmAction: 'Sim, eliminar',
+
+    scheduledTitle: 'A sua conta vai encerrar',
+    scheduledBody:
+      'Apagaremos tudo dentro de {days} dias. Até lá pode iniciar sessão e tocar em “Manter a minha conta” para travar o processo.',
+
+    pendingTitle: 'A sua conta encerra dentro de {days} dias',
+    pendingTitleToday: 'A sua conta encerra hoje',
+    pendingBody:
+      'Ainda não foi apagado nada. Toque abaixo para travar isto e continuar normalmente.',
+    keepAccount: 'Manter a minha conta',
+    keptTitle: 'Bem-vindo de volta',
+    keptBody: 'A sua conta está segura.',
+
+    deleteAccountRow: 'Eliminar a minha conta',
+  },
 } as const;

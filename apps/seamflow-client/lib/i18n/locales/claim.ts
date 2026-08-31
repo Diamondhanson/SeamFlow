@@ -21,4 +21,16 @@ export const claim = {
     failedTitle: 'Impossible d’ajouter cette commande',
     emptyInput: 'Collez d’abord un lien ou un code.',
   },
+  pt: {
+    title: 'Adicionar uma encomenda',
+    subtitle:
+      'Cole a ligação que o seu alfaiate lhe enviou e ela aparece em As minhas encomendas.',
+    inputLabel: 'Ligação ou código da encomenda',
+    placeholder: 'Cole aqui a ligação',
+    addBtn: 'Adicionar encomenda',
+    successTitle: 'Encomenda adicionada!',
+    successBody: 'Vai encontrá-la em As minhas encomendas.',
+    failedTitle: 'Não foi possível adicionar essa encomenda',
+    emptyInput: 'Cole primeiro uma ligação ou código.',
+  },
 } as const;

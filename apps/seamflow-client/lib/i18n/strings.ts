@@ -21,44 +21,55 @@ import { chat } from './locales/chat';
 import { notifications } from './locales/notifications';
 import { requests } from './locales/requests';
 
-export type LanguageCode = 'en' | 'fr';
+export type LanguageCode = 'en' | 'fr' | 'pt';
 
 export const LANGUAGES: { code: LanguageCode; label: string }[] = [
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
+  // Endonyms, not English names: a Portuguese speaker scanning a language list
+  // is looking for "Português", not "Portuguese".
+  { code: 'pt', label: 'Português' },
 ];
 
-export const translations = {
-  en: {
-    common: common.en,
-    auth: auth.en,
-    home: home.en,
-    account: account.en,
-    orders: orders.en,
-    measurements: measurements.en,
-    claim: claim.en,
-    guides: guides.en,
-    misc: misc.en,
-    discover: discover.en,
-    chat: chat.en,
-    notifications: notifications.en,
-    requests: requests.en,
-  },
-  fr: {
-    common: common.fr,
-    auth: auth.fr,
-    home: home.fr,
-    account: account.fr,
-    orders: orders.fr,
-    measurements: measurements.fr,
-    claim: claim.fr,
-    guides: guides.fr,
-    misc: misc.fr,
-    discover: discover.fr,
-    chat: chat.fr,
-    notifications: notifications.fr,
-    requests: requests.fr,
-  },
+/**
+ * Every namespace, keyed by name. Listed once rather than once per language —
+ * see the same note in the tailor app's strings.ts.
+ */
+const NAMESPACES = {
+  common,
+  auth,
+  home,
+  account,
+  orders,
+  measurements,
+  claim,
+  guides,
+  misc,
+  discover,
+  chat,
+  notifications,
+  requests,
 } as const;
 
+type Namespaces = typeof NAMESPACES;
+
+/**
+ * Pull one language out of every namespace. Typed so a namespace missing the
+ * requested language is a compile error naming the file.
+ */
+function forLanguage<L extends LanguageCode>(lang: L): { [K in keyof Namespaces]: Namespaces[K][L] } {
+  const out = {} as { [K in keyof Namespaces]: Namespaces[K][L] };
+  for (const key of Object.keys(NAMESPACES) as (keyof Namespaces)[]) {
+    (out as Record<string, unknown>)[key] = NAMESPACES[key][lang];
+  }
+  return out;
+}
+
+export const translations = {
+  en: forLanguage('en'),
+  fr: forLanguage('fr'),
+  pt: forLanguage('pt'),
+};
+
+/** English is the reference shape; every other language must match it. */
 export type Translations = typeof translations.en;

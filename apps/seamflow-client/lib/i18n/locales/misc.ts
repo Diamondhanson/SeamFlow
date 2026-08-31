@@ -155,4 +155,81 @@ export const misc = {
     // Search field
     searchPlaceholder: 'Rechercher…',
   },
+  pt: {
+    // Ecrã de definições do PIN
+    pinLockTitle: 'Bloqueio por PIN',
+    appPinLock: 'Bloqueio da aplicação por PIN',
+    pinSetDescription:
+      'Existe um PIN definido. A aplicação bloqueia ao fim de 5 minutos em segundo plano.',
+    noPinDescription:
+      'Sem PIN definido. A aplicação não bloqueia quando muda para outra.',
+    changePin: 'Mudar PIN',
+    removePin: 'Remover PIN',
+    lockNow: 'Bloquear agora',
+    setAPin: 'Definir um PIN',
+    wrongPinTitle: 'PIN incorreto',
+    tryAgain: 'Tente novamente.',
+    removePinTitle: 'Remover o PIN?',
+    removePinBody: 'Pode voltar a defini-lo mais tarde neste ecrã.',
+    pinRemovedTitle: 'PIN removido',
+    pinRemovedBody: 'A aplicação deixa de bloquear.',
+    pinsDontMatchTitle: 'Os PIN não coincidem',
+    pinSetTitle: 'PIN definido',
+    pinChangedTitle: 'PIN alterado',
+    pinSavedBody:
+      'A aplicação passa a pedir este PIN se a deixar inativa durante alguns minutos.',
+    enterCurrentPin: 'Introduza o PIN atual',
+    enterNewPin: 'Introduza um novo PIN',
+    choosePin: 'Escolha um PIN de 4 dígitos',
+    reenterPin: 'Volte a introduzir o PIN para confirmar',
+    // Ecrã de bloqueio
+    enterYourPin: 'Introduza o seu PIN',
+    tooManyAttemptsTitle: 'Demasiadas tentativas',
+    tooManyAttemptsBody:
+      '{max} tentativas erradas. A terminar a sessão — inicie sessão novamente para continuar.',
+    wrongPinAttempts: 'PIN incorreto. Resta{plural} {left} tentativa{plural}.',
+    forgotPinSignOut: 'Esqueceu-se do PIN? Terminar sessão',
+    forgotPinConfirmTitle: 'Repor o seu PIN?',
+    forgotPinConfirmBody:
+      'Para repor o PIN vai terminar a sessão, voltar a entrar e definir um novo. O seu trabalho está seguro — fica na sua conta.',
+    forgotPinConfirmCta: 'Terminar sessão',
+    // Seletor de contactos
+    selectFromContacts: 'Escolher dos contactos',
+    searchNameOrNumber: 'Procurar nome ou número…',
+    noContactsMatch: 'Nenhum contacto corresponde.',
+    contactsAccessOff:
+      'O acesso aos contactos está desligado. Ative-o para esta aplicação nas Definições do telemóvel para escolher clientes da sua lista.',
+    // Permissões
+    permissionNeededTitle: 'Permissão necessária',
+    cameraAccessOff:
+      'O acesso à câmara está desligado. Ative-o para esta aplicação nas Definições do telemóvel para tirar fotos.',
+    photosAccessOff:
+      'O acesso às fotos está desligado. Ative-o para esta aplicação nas Definições do telemóvel para escolher uma foto.',
+    openSettings: 'Abrir Definições',
+    photosOfflineTitle: 'Está offline',
+    photosOfflineBody:
+      'As fotos precisam de ligação para serem carregadas. Volte a ligar-se e adicione-as depois.',
+    // Introdução de telefone
+    phoneNumber: 'Número de telefone',
+    selectCountry: 'Selecionar país',
+    searchCountryOrCode: 'Procurar país ou indicativo…',
+    selectCountryDialCode: 'Selecionar indicativo do país',
+    // Aviso de offline
+    offlineWithPending:
+      'Offline — {count} alteraç{plural} será sincronizada quando voltar a ligar-se',
+    youreOffline: 'Está offline',
+    syncing: 'A sincronizar {count} alteraç{plural}…',
+    // Calendário
+    pickADayToSee: 'Escolha um dia para ver as entregas.',
+    today: 'HOJE · ',
+    event: 'evento',
+    events: 'eventos',
+    noDeliveriesThisDay: 'Sem entregas previstas para este dia.',
+    previousMonth: 'Mês anterior',
+    nextMonth: 'Mês seguinte',
+    // Campo de data
+    pickADate: 'Escolher uma data',
+    // Campo de pesquisa
+    searchPlaceholder: 'Pesquisar…',
+  },
 } as const;

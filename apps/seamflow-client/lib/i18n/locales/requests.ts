@@ -100,4 +100,52 @@ export const requests = {
     closeBody: 'Les tailleurs ne la verront plus et aucune nouvelle offre ne pourra arriver.',
     closeConfirm: 'Clôturer',
   },
+  pt: {
+    mineTitle: 'Os meus pedidos',
+    tileLabel: 'Consegue fazer isto?',
+    tileSubtitle: 'Mostre o que quer que lhe façam',
+    askForSomething: 'Pedir alguma coisa',
+    mineEmpty:
+      'Ainda não pediu nada. Mostre uma foto do que quer que lhe façam e os alfaiates virão ter consigo.',
+    offerCount: '{count} propostas',
+    statusLine: 'Estado: {status}',
+
+    newTitle: 'Consegue fazer isto?',
+    newIntro:
+      'Mostre uma foto do que quer que lhe façam. Os alfaiates perto de si vão vê-la e responder — não precisa de encontrar um primeiro.',
+    photosLabel: 'Fotos',
+    addPhotoTitle: 'Adicionar uma foto',
+    takePhoto: 'Tirar uma foto',
+    chooseFromGallery: 'Escolher da galeria',
+    removePhoto: 'Remover esta foto',
+    garmentLabel: 'O que é?',
+    descriptionLabel: 'Conte-lhes como é',
+    descriptionPlaceholder:
+      'Creme, com bordado dourado no peito. Para um casamento em março.',
+    budgetLabel: 'Orçamento',
+    budgetHint: 'Opcional. Deixe vazio e os alfaiates sugerem um preço.',
+    budgetFrom: 'De',
+    budgetTo: 'Até',
+    post: 'Publicar',
+    needed: 'Uma foto, uma peça e algumas palavras sobre ela.',
+
+    detailTitle: 'Pedido',
+    gone: 'Este pedido já não está disponível.',
+    offersHeading: 'Propostas ({count})',
+    noOffersYetClient:
+      'Ainda sem propostas. Os alfaiates costumam responder num dia ou dois.',
+    offerPrice: '{currency} {price}',
+    offerRange: '{currency} {min} – {max}',
+    offerToDiscuss: 'Aberto a conversa',
+    offerStatus: 'Estado: {status}',
+    chooseThisTailor: 'Escolher este alfaiate',
+    acceptTitle: 'Escolher este alfaiate?',
+    acceptBody:
+      'Isto abre uma conversa com ele para acertarem os detalhes. Os outros alfaiates serão informados de que já está entregue.',
+    acceptConfirm: 'Escolher',
+    closeRequest: 'Fechar este pedido',
+    closeTitle: 'Fechar este pedido?',
+    closeBody: 'Os alfaiates deixam de o ver e não podem chegar novas propostas.',
+    closeConfirm: 'Fechar',
+  },
 };

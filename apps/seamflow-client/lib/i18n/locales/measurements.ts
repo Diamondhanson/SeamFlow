@@ -15,4 +15,12 @@ export const measurements = {
     savedBy: 'Enregistré par {name}',
     fieldsCount: '{count} mesures',
   },
+  pt: {
+    title: 'As minhas medidas',
+    subtitle: 'As suas medidas, guardadas pelos seus alfaiates',
+    empty: 'Ainda sem medidas',
+    emptyHint: 'Quando um alfaiate o medir, as suas medidas aparecem aqui.',
+    savedBy: 'Guardadas por {name}',
+    fieldsCount: '{count} medidas',
+  },
 } as const;

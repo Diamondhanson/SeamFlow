@@ -42,4 +42,23 @@ export const home = {
     comingSoon: 'Bientôt disponible',
     settings: 'Paramètres',
   },
+  pt: {
+    // ----- saudação -----
+    goodMorning: 'Bom dia',
+    goodAfternoon: 'Boa tarde',
+    goodEvening: 'Boa noite',
+    welcome: 'Bem-vindo',
+    // ----- estrutura do início -----
+    tagline: 'O seu estilo, num só lugar.',
+    ordersTile: 'As minhas encomendas',
+    ordersTileSub: 'Acompanhe o que os seus alfaiates estão a fazer',
+    measurementsTile: 'As minhas medidas',
+    measurementsTileSub: 'As suas medidas, prontas a partilhar',
+    lookbookTile: 'Lookbook',
+    lookbookTileSub: 'Todas as peças feitas para si',
+    tailorsTile: 'Os meus alfaiates',
+    tailorsTileSub: 'As pessoas que fazem a sua roupa',
+    comingSoon: 'Em breve',
+    settings: 'Definições',
+  },
 } as const;

@@ -129,4 +129,70 @@ export const guides = {
     firstClientBody:
       'Il est maintenant dans votre liste de clients, prêt à être choisi pour une commande.',
   },
+  pt: {
+    // ----- Lista de primeiros passos (início) -----
+    checklistTitle: 'Primeiros passos',
+    checklistSubtitle: 'Alguns passos rápidos para preparar a sua loja.',
+    checklistProgress: '{done} de {total} concluídos',
+    checklistProfile: 'Configure a sua loja',
+    checklistClient: 'Adicione o seu primeiro cliente',
+    checklistOrder: 'Crie a sua primeira encomenda',
+    checklistTemplate: 'Guarde um modelo de medidas',
+
+    // ----- Ecrãs de boas-vindas (primeira utilização) -----
+    welcomeSkip: 'Ignorar',
+    welcomeNext: 'Seguinte',
+    welcomeStart: 'Começar',
+    welcomeTitle1: 'Bem-vindo ao SeamFlow',
+    welcomeBody1:
+      'Todo o seu atelier no bolso — clientes, medidas e encomendas, tudo num só lugar.',
+    welcomeTitle2: 'Nunca mais perca uma medida',
+    welcomeBody2:
+      'Guarde cada cliente e as suas medidas uma vez. Da próxima vez que costurar para essa pessoa, está tudo ali.',
+    welcomeTitle3: 'Nunca mais falhe uma entrega',
+    welcomeBody3:
+      'Acompanhe cada encomenda e receba um lembrete antes do prazo.',
+
+    // ----- Cartões de ajuda no fluxo -----
+    newOrderTitle: 'Criar uma encomenda',
+    newOrderBody:
+      'Uma encomenda é um trabalho de costura para um cliente. Escolha para quem é, tire as medidas e dê-lhe um nome e uma data de entrega.',
+    designsTitle: 'O seu quadro de inspiração',
+    designsBody:
+      'Fotografe ou carregue imagens de estilos e tecidos de que goste e junte-as a uma encomenda como referência.',
+    clientsTitle: 'As pessoas para quem costura',
+    clientsBody:
+      'Os clientes são os seus fregueses. Guarde aqui o nome e o contacto — e também as medidas, para nunca as perder.',
+    groupsTitle: 'Trajes a condizer para um evento',
+    groupsBody:
+      'As encomendas de grupo servem para eventos como casamentos, em que várias pessoas levam trajes a condizer numa só encomenda.',
+    templatesTitle: 'O que é um modelo?',
+    templatesBody:
+      'Uma lista guardada do que medir para um tipo de traje — um fato ou um vestido — para não ter de se lembrar de cada vez. Toque num exemplo abaixo para começar.',
+    fabricsTitle: 'O seu stock de tecidos',
+    fabricsBody:
+      'Acompanhe os seus rolos de tecido — quanto tem, quanto custou e a quem comprou.',
+    invoicesTitle: 'Contas que pode partilhar',
+    invoicesBody:
+      'Transforme uma encomenda terminada numa conta que pode enviar ao cliente por WhatsApp.',
+
+    // ----- Pontos de informação -----
+    infoTemplateTitle: 'Modelo',
+    infoTemplateBody:
+      'Uma lista guardada do que medir para um tipo de traje. Escolha uma e o formulário pede exatamente essas medidas — não precisa de as decorar.',
+    infoOwnerTitle: 'Responsável',
+    infoOwnerBody:
+      'A pessoa principal a quem esta encomenda de grupo se destina — como a noiva ou o noivo. Todos os outros são membros.',
+    infoYardageTitle: 'Tecido usado',
+    infoYardageBody:
+      'Quanto tecido esta encomenda consumiu, em metros. Útil para saber o que resta em stock.',
+
+    // ----- Mensagens de sucesso (uma só vez) -----
+    firstOrderTitle: 'A sua primeira encomenda está registada!',
+    firstOrderBody:
+      'Encontra-a em Encomendas. Pode atualizar o progresso ou partilhá-la com o cliente quando quiser.',
+    firstClientTitle: 'Primeiro cliente guardado!',
+    firstClientBody:
+      'Já está na sua lista de Clientes, pronto a escolher para uma encomenda.',
+  },
 } as const;

@@ -125,4 +125,68 @@ export const discover = {
       'Bonjour ! Je suis intéressé(e) par {design} ({price}). Pourriez-vous me faire quelque chose comme ceci ?',
     inquireDesignPinned: 'À propos de {design}',
   },
+  pt: {
+    // ── Feed ────────────────────────────────────────────────────────────────
+    title: 'Descobrir',
+    subtitle: 'Trabalho real, de alfaiates reais perto de si.',
+    emptyTitle: 'Ainda não há nada aqui',
+    emptyBody:
+      'Os alfaiates ainda estão a adicionar o seu trabalho. Volte daqui a pouco — o feed vai enchendo à medida que publicam.',
+    filterAll: 'Tudo',
+    filterWomen: 'Mulher',
+    filterMen: 'Homem',
+    filterUnisex: 'Unissexo',
+    filterChildren: 'Criança',
+    occasionWedding: 'Casamento',
+    occasionTraditional: 'Tradicional',
+    occasionCorporate: 'Profissional',
+    occasionCasual: 'Casual',
+    occasionParty: 'Festa',
+    clearFilters: 'Limpar',
+    searchPlaceholder: 'Procurar estilos, tecidos, peças…',
+    noMatch: 'Ainda nada corresponde a esses filtros.',
+
+    // ── Detalhe da criação ──────────────────────────────────────────────────
+    byTailor: 'Por {name}',
+    verified: 'Verificado',
+    repliesIn: 'Costuma responder em {hours}h',
+    acceptsRemote: 'Trabalha com clientes em qualquer lugar',
+    fromPrice: 'A partir de {price}',
+    inquire: 'Perguntar sobre isto',
+    save: 'Guardar',
+    saved: 'Guardado',
+    moreLikeThis: 'Mais como esta',
+    viewTailor: 'Ver mais do trabalho deste alfaiate',
+
+    // ── Vitrine ─────────────────────────────────────────────────────────────
+    storefrontWorks: 'O trabalho deste alfaiate',
+    storefrontEmpty: 'Ainda sem nada publicado.',
+    memberSince: 'No SeamFlow desde {date}',
+    specialties: 'Especialidades',
+    speaks: 'Fala',
+
+    // ── Pedir informação ────────────────────────────────────────────────────
+    inquireTitle: 'Perguntar sobre esta peça',
+    inquireBody:
+      'Envie uma mensagem a {name}. Verá a criação sobre a qual está a perguntar e podem falar aqui.',
+    inquirePlaceholder: 'Olá! Poderia fazer-me algo assim?',
+    inquireSend: 'Enviar mensagem',
+    inquireSending: 'A enviar…',
+    inquireSignInTitle: 'Inicie sessão para enviar uma mensagem',
+    inquireSignInBody:
+      'Pode ver tudo sem conta. Iniciar sessão serve apenas para que os alfaiates lhe possam responder.',
+    inquireSignIn: 'Iniciar sessão',
+
+    // ── Navegação ───────────────────────────────────────────────────────────
+    tabDiscover: 'Descobrir',
+    tabMessages: 'Mensagens',
+    tabOrders: 'As minhas encomendas',
+    catalogueNotFound:
+      'Não foi possível encontrar esse catálogo. O link pode estar mal escrito ou o atelier já não estar listado.',
+    inquireAboutDesign:
+      'Olá! Estou interessado(a) em {design}. Poderia fazer-me algo assim?',
+    inquireAboutDesignPriced:
+      'Olá! Estou interessado(a) em {design} ({price}). Poderia fazer-me algo assim?',
+    inquireDesignPinned: 'Sobre {design}',
+  },
 } as const;
