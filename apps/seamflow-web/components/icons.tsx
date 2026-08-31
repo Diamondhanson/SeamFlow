@@ -125,9 +125,18 @@ export const Icons: Record<string, (p: IconProps) => JSX.Element> = {
       <path d="M5 12.5 10 17l9-10" />
     </S>
   ),
+  // `arrow` points toward the inline END (forward / onward), `arrowBack` toward
+  // the inline START. Both carry the RTL flip themselves, so no call site has to
+  // think about direction — and nobody reaches for `rotate-180` again, which is
+  // what made these two meanings share one glyph in the first place.
   arrow: ({ className }) => (
-    <S className={className}>
+    <S className={`rtl:-scale-x-100 ${className ?? ''}`}>
       <path d="M5 12h14M13 6l6 6-6 6" />
+    </S>
+  ),
+  arrowBack: ({ className }) => (
+    <S className={`rtl:-scale-x-100 ${className ?? ''}`}>
+      <path d="M19 12H5M11 18l-6-6 6-6" />
     </S>
   ),
   chevron: ({ className }) => (

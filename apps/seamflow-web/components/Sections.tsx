@@ -41,7 +41,7 @@ export function Problem({ d }: { d: Dict }) {
           </h2>
           <p className="mt-4 text-[15px] leading-relaxed text-brand-muted">{d.problem.body}</p>
         </div>
-        <div className="relative overflow-hidden rounded-4xl border border-brand-primary/20 bg-gradient-to-br from-brand-primary to-brand-primaryDeep p-8 text-white shadow-soft sm:p-10">
+        <div className="relative overflow-hidden rounded-4xl border border-brand-primary/20 bg-gradient-to-br from-brand-primary to-brand-primaryDeep p-8 text-white shadow-soft rtl:bg-gradient-to-bl sm:p-10">
           <div
             aria-hidden="true"
             className="absolute -right-10 -top-10 h-40 w-40 transform-gpu rounded-full bg-brand-lavender/30 blur-2xl"
@@ -140,13 +140,13 @@ export function AssistantSpotlight({ d, lang }: { d: Dict; lang: Lang }) {
             <span className="font-display text-sm font-semibold text-brand-ink">
               {d.nav.assistant}
             </span>
-            <Icon name="voice" className="ml-auto h-4 w-4 text-brand-muted" />
+            <Icon name="voice" className="ms-auto h-4 w-4 text-brand-muted" />
           </div>
           <ul className="mt-5 flex flex-col gap-2.5">
             {d.spotlight.examples.map((ex, i) => (
               <li
                 key={i}
-                className="max-w-[85%] self-end rounded-2xl rounded-br-md bg-brand-primary px-4 py-2.5 text-sm leading-snug text-white"
+                className="max-w-[85%] self-end rounded-2xl rounded-ee-md bg-brand-primary px-4 py-2.5 text-sm leading-snug text-white"
               >
                 {ex}
               </li>

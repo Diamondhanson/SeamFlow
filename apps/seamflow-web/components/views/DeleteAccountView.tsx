@@ -49,7 +49,7 @@ export function DeleteAccountView({ lang }: { lang: Lang }) {
           href={withLang('/', lang)}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-muted transition hover:text-brand-ink"
         >
-          <Icon name="arrow" className="h-4 w-4 rotate-180" />
+          <Icon name="arrowBack" className="h-4 w-4" />
           {d.legal.backToHome}
         </Link>
 
@@ -62,7 +62,7 @@ export function DeleteAccountView({ lang }: { lang: Lang }) {
         <section className="mt-10 rounded-3xl border border-brand-hairline bg-brand-surface/60 p-7">
           <h2 className="font-display text-lg font-semibold text-brand-ink">{t.inAppHeading}</h2>
           <p className="mt-2 text-sm leading-relaxed text-brand-muted">{t.inAppBody}</p>
-          <ol className="mt-4 list-decimal space-y-1.5 pl-5 text-sm text-brand-muted">
+          <ol className="mt-4 list-decimal space-y-1.5 ps-5 text-sm text-brand-muted">
             <li>{t.inAppStep1}</li>
             <li>{t.inAppStep2}</li>
             <li>{t.inAppStep3}</li>

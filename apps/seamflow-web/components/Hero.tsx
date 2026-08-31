@@ -50,21 +50,25 @@ export function Hero({ d }: { d: Dict }) {
 
         {/* Two-device composition: a landscape tablet in front, with the phone
             shifted right and peeking out behind it. The art is drawn at a fixed
-            size and scaled responsively, so it never reflows or overflows. */}
+            size and scaled responsively, so it never reflows or overflows.
+
+            Positioned with logical `start-*`, so the whole composition mirrors
+            under RTL — but the screenshots inside the frames do not, because
+            mirrored app chrome would be a lie about what the app looks like. */}
         <div className="relative flex justify-center lg:justify-end">
           <div className="relative h-[259px] w-[307px] sm:h-[367px] sm:w-[435px] lg:h-[432px] lg:w-[512px] xl:h-[513px] xl:w-[608px]">
-            <div className="absolute left-0 top-0 origin-top-left scale-[0.48] sm:scale-[0.68] lg:scale-[0.80] xl:scale-[0.95]">
+            <div className="absolute start-0 top-0 origin-top-left scale-[0.48] rtl:origin-top-right sm:scale-[0.68] lg:scale-[0.80] xl:scale-[0.95]">
               <div className="relative h-[540px] w-[640px]">
                 <div
                   aria-hidden="true"
-                  className="absolute -inset-2 transform-gpu rounded-[80px] bg-gradient-to-tr from-brand-primary/50 via-brand-lavender/40 to-brand-accent/30 blur-3xl"
+                  className="absolute -inset-2 transform-gpu rounded-[80px] bg-gradient-to-tr from-brand-primary/50 via-brand-lavender/40 to-brand-accent/30 blur-3xl rtl:bg-gradient-to-tl"
                 />
-                {/* Phone — behind, shifted right */}
-                <div className="absolute left-[380px] top-[6px] z-0 animate-floaty">
+                {/* Phone — behind, shifted toward the inline end */}
+                <div className="absolute start-[380px] top-[6px] z-0 animate-floaty">
                   <PhoneFrame alt={d.gallery.altPhone} />
                 </div>
                 {/* Tablet (landscape) — in front */}
-                <div className="absolute left-[10px] top-[150px] z-10">
+                <div className="absolute start-[10px] top-[150px] z-10">
                   <TabletFrame alt={d.gallery.altTablet} />
                 </div>
               </div>

@@ -35,7 +35,7 @@ function ComingSoonBadge({
 }) {
   return (
     <div className="group relative inline-flex select-none items-center gap-3 rounded-2xl bg-brand-ink px-4 py-2.5 text-white shadow-soft">
-      <span className="absolute -right-2 -top-2 rounded-full bg-brand-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-ink shadow-pill">
+      <span className="absolute -end-2 -top-2 rounded-full bg-brand-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-ink shadow-pill">
         {soon}
       </span>
       <span className="h-7 w-7 shrink-0 text-white">{glyph}</span>

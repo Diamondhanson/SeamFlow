@@ -68,7 +68,7 @@ export function LangToggle({
         aria-expanded={open}
         aria-controls={menuId}
         aria-haspopup="menu"
-        className={`inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-surface/70 py-1.5 pl-2.5 pr-2 text-sm font-medium text-brand-ink shadow-pill transition hover:bg-brand-surface sm:gap-2 sm:pl-3 ${
+        className={`inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-surface/70 py-1.5 ps-2.5 pe-2 text-sm font-medium text-brand-ink shadow-pill transition hover:bg-brand-surface sm:gap-2 sm:ps-3 ${
           open ? 'bg-brand-surface' : ''
         }`}
       >
@@ -89,7 +89,7 @@ export function LangToggle({
         id={menuId}
         role="menu"
         aria-hidden={!open}
-        className={`absolute right-0 z-50 min-w-[11rem] rounded-2xl border border-brand-border bg-brand-bg p-1.5 shadow-card transition duration-150 ${
+        className={`absolute end-0 z-50 min-w-[11rem] rounded-2xl border border-brand-border bg-brand-bg p-1.5 shadow-card transition duration-150 ${
           placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
         } ${
           open

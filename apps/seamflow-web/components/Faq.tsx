@@ -25,7 +25,7 @@ export function Faq({ d, lang }: { d: Dict; lang: Lang }) {
                 type="button"
                 onClick={() => setOpen(isOpen ? null : i)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-start"
               >
                 <span className="font-display text-base font-semibold text-brand-ink">
                   {item.q}

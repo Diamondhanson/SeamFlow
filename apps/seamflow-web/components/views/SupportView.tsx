@@ -31,7 +31,7 @@ export function SupportView({ lang }: { lang: Lang }) {
           href={withLang('/', lang)}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-muted transition hover:text-brand-ink"
         >
-          <Icon name="arrow" className="h-4 w-4 rotate-180" />
+          <Icon name="arrowBack" className="h-4 w-4" />
           {d.legal.backToHome}
         </Link>
 

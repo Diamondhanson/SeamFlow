@@ -164,7 +164,7 @@ function Tile({
       onClick={onOpen}
       // `break-inside-avoid` is what stops a column break through the middle of
       // a card — without it, multi-column will happily slice one in half.
-      className="group mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-border/60 bg-surface text-left shadow-sm transition-shadow duration-200 hover:shadow-card sm:mb-4"
+      className="group mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-border/60 bg-surface text-start shadow-sm transition-shadow duration-200 hover:shadow-card sm:mb-4"
     >
       <div
         className="relative w-full overflow-hidden bg-surfaceElevated"
@@ -186,7 +186,7 @@ function Tile({
         {count > 1 ? (
           <span
             aria-hidden
-            className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-ink/65 px-2 py-0.5 text-[11px] font-medium tabular-nums text-white backdrop-blur-sm"
+            className="absolute end-2 top-2 flex items-center gap-1 rounded-full bg-ink/65 px-2 py-0.5 text-[11px] font-medium tabular-nums text-white backdrop-blur-sm"
           >
             <StackIcon />
             {count}
@@ -345,8 +345,12 @@ function Lightbox({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') go(1);
-      if (e.key === 'ArrowLeft') go(-1);
+      // Arrow keys follow the reading direction, not the axis: in an RTL
+      // carousel the next photo is to the LEFT, so a fixed mapping would run
+      // the gallery backwards for Arabic readers.
+      const forward = getComputedStyle(document.documentElement).direction === 'rtl' ? -1 : 1;
+      if (e.key === 'ArrowRight') go(forward);
+      if (e.key === 'ArrowLeft') go(-forward);
     };
 
     const { scrollY } = window;
@@ -391,7 +395,7 @@ function Lightbox({
         type="button"
         onClick={onClose}
         aria-label={labels.close}
-        className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/90 text-ink shadow-pill"
+        className="absolute end-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-background/90 text-ink shadow-pill"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M18 6 6 18M6 6l12 12" />
@@ -422,8 +426,8 @@ function Lightbox({
 
           {count > 1 ? (
             <>
-              <ArrowButton side="left" label={labels.prev} onClick={() => go(-1)} />
-              <ArrowButton side="right" label={labels.next} onClick={() => go(1)} />
+              <ArrowButton dir="prev" label={labels.prev} onClick={() => go(-1)} />
+              <ArrowButton dir="next" label={labels.next} onClick={() => go(1)} />
 
               <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
                 {images.map((img, i) => (
@@ -491,12 +495,21 @@ function Lightbox({
   );
 }
 
+/**
+ * A carousel control, keyed on what it DOES rather than where it sits.
+ *
+ * The previous version took `side: 'left' | 'right'` and hardcoded both the
+ * position and the glyph from it — which bakes in the assumption that "previous"
+ * is on the left. In Arabic it is on the right. Naming the prop `dir` and
+ * placing it with `start-`/`end-` means the button follows the reading
+ * direction, and `rtl:-scale-x-100` turns the chevron to match.
+ */
 function ArrowButton({
-  side,
+  dir,
   label,
   onClick,
 }: {
-  side: 'left' | 'right';
+  dir: 'prev' | 'next';
   label: string;
   onClick: () => void;
 }) {
@@ -506,11 +519,21 @@ function ArrowButton({
       onClick={onClick}
       aria-label={label}
       className={`absolute top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/85 text-ink shadow-pill transition-opacity hover:bg-background ${
-        side === 'left' ? 'left-3' : 'right-3'
+        dir === 'prev' ? 'start-3' : 'end-3'
       }`}
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d={side === 'left' ? 'M15 18 9 12l6-6' : 'm9 18 6-6-6-6'} />
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="rtl:-scale-x-100"
+      >
+        <path d={dir === 'prev' ? 'M15 18 9 12l6-6' : 'm9 18 6-6-6-6'} />
       </svg>
     </button>
   );
