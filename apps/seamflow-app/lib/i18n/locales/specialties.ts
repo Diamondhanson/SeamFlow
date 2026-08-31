@@ -98,4 +98,24 @@ export const specialties = {
     storefrontEmpty: 'Bado haijawekwa — gusa ili kuchagua',
     storefrontCount: '{count} zimechaguliwa',
   },
+  ar: {
+    title: 'ماذا تخيط؟',
+    intro:
+      'اختر الملابس التي تخيطها فعلًا. بهذا يجدك العملاء الباحثون عن نوع عملك — وبهذا نعرف أي الطلبات نعرضها عليك.',
+    count: 'تم اختيار {count} من {max}',
+    atCap: 'هذا هو الحد الأقصى ({max}). ألغِ اختيار واحد لتستبدله.',
+
+    // مدخل قائمة البدء، وتنبيه للخياطين الذين سجّلوا قبل وجود هذه الميزة.
+    checklistLabel: 'أخبرنا بما تخيطه',
+    promptTitle: 'ماذا تخيط؟',
+    promptBody:
+      'اختر الملابس التي تخيطها ليجدك العملاء الباحثون عن نوع عملك. الأمر لا يستغرق سوى نقرات قليلة.',
+    promptGo: 'اختر الآن',
+    promptLater: 'لاحقًا',
+
+    // ملخّص دِرِيسة العرض، مكان مربّع النص الحر سابقًا.
+    storefrontLabel: 'ما تخيطه',
+    storefrontEmpty: 'لم يُحدَّد بعد — انقر للاختيار',
+    storefrontCount: 'تم اختيار {count}',
+  },
 };

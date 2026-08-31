@@ -79,6 +79,10 @@ const VOICE_LOCALES: Record<LanguageCode, string> = {
   // was added for is overwhelmingly the Americas.
   es: 'es-419',
   sw: 'sw-KE',
+  // Modern Standard Arabic. ar-SA is the most widely supported tag for both
+  // recognition and TTS across iOS and Android; the regional variants are
+  // patchy, and MSA is what the UI copy is written in.
+  ar: 'ar-SA',
 };
 
 function localeFor(lang: LanguageCode): string {

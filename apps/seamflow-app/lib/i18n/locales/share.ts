@@ -98,4 +98,22 @@ export const share = {
     nothingBody:
       'Fungua picha popote kwenye simu yako, gusa Shiriki, kisha chagua SeamFlow.',
   },
+  ar: {
+    title: 'حفظ في SeamFlow',
+    intro: 'تمت مشاركة {count} صورة مع SeamFlow. اختر أين تحفظها.',
+    saveTo: 'حفظ في',
+    toDesignStudio: 'استوديو التصميم',
+    toDesignStudioBody: 'الإلهام والمراجع التي تجمعها',
+    toMyDesigns: 'ابتكاراتي',
+    toMyDesignsBody: 'أعمال صنعتها بنفسك',
+    saveCta: 'حفظ',
+    savingProgress: 'يحفظ {done} من {total}…',
+    savedSomeTitle: 'حُفظ جزئيًا',
+    savedSomeBody: 'حُفظت {n} من {total}. تعذّرت قراءة الباقي.',
+    savedNoneTitle: 'تعذّر الحفظ',
+    savedNoneBody: 'تعذّرت قراءة أي من الصور المشتركة. حاول مشاركتها من جديد.',
+    nothingTitle: 'لم تتم مشاركة شيء',
+    nothingBody:
+      'افتح صورة في أي مكان على هاتفك، انقر «مشاركة»، ثم اختر SeamFlow.',
+  },
 };

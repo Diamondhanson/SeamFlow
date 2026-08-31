@@ -1,5 +1,20 @@
 import { I18nManager } from 'react-native';
 
+/**
+ * Whether the UI is laid out right-to-left.
+ *
+ * Coerced explicitly, because `I18nManager.isRTL` is a boolean on iOS and
+ * Android but `undefined` under react-native-web — so `isRTL ? a : b` silently
+ * takes the Latin branch in the browser build.
+ *
+ * KNOWN GAP: that means the Arabic type scale does not activate in the web
+ * export (app.seamflowtech.com), and Arabic there falls back to whatever font
+ * the OS supplies. RNW does not honour `forceRTL` either, so a proper fix means
+ * driving `document.dir` from the language — a separate piece of work on that
+ * deployment, tracked rather than hidden behind a falsy value.
+ */
+export const IS_RTL: boolean = I18nManager.isRTL === true;
+
 // ============================================================================
 // Type system — three families, one scale.
 //
@@ -184,6 +199,6 @@ export type TypeVariant = keyof typeof typeScale;
  * renderer — and which previously hardcoded `'Inter_400Regular'`, silently
  * opting themselves out of any font decision made at the token layer.
  */
-export const activeFontFamilies: Record<keyof typeof fontFamilies, string> = I18nManager.isRTL
+export const activeFontFamilies: Record<keyof typeof fontFamilies, string> = IS_RTL
   ? arabicFontFamilies
   : fontFamilies;

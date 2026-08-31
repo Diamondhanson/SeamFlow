@@ -23,6 +23,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { IS_RTL } from '../tokens/typography';
 import { Text } from './Text';
 import { useAtelierTheme } from '../theme/ThemeProvider';
 import { withAlpha } from '../tokens/colors';
@@ -112,7 +113,7 @@ export const ListRow = forwardRef<View, ListRowProps>(function ListRow(
           {/* A glyph, not a layout property — I18nManager mirrors the row
               around it but cannot turn the character itself, so an RTL list
               would point every row back the way the reader came from. */}
-          {I18nManager.isRTL ? '‹' : '›'}
+          {IS_RTL ? '‹' : '›'}
         </Text>
       ) : (
         trailing

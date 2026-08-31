@@ -25,7 +25,13 @@ const problems = [];
 
 // ---- load locale namespaces -------------------------------------------------
 function extractBlock(src, which) {
-  const m = new RegExp(which + '\\s*:\\s*\\{', 'm').exec(src);
+  // Anchored to a locale key at exactly two-space indent. Unanchored, this
+  // matched the first `<anything>ar: {` in the file — and the Portuguese
+  // string `usingTemplate: 'A usar: {name}'` contains exactly that, so the
+  // 'ar' block was being read from inside a string literal and every key in
+  // the namespace reported missing. The same trap waits for any future locale
+  // whose code is a substring before a `: {`.
+  const m = new RegExp('^  ' + which + '\\s*:\\s*\\{', 'm').exec(src);
   if (!m) return new Set();
   let i = m.index + m[0].length;
   let depth = 1;

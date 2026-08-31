@@ -15,8 +15,8 @@
 // ============================================================================
 
 import { forwardRef } from 'react';
-import { I18nManager, Text as RNText, type TextProps as RNTextProps, type TextStyle } from 'react-native';
-import { typeScale, arabicTypeScale, type TypeVariant } from '../tokens/typography';
+import { Text as RNText, type TextProps as RNTextProps, type TextStyle } from 'react-native';
+import { typeScale, arabicTypeScale, IS_RTL, type TypeVariant } from '../tokens/typography';
 import type { SemanticColors } from '../tokens/colors';
 import { useAtelierTheme } from '../theme/ThemeProvider';
 
@@ -38,7 +38,7 @@ export const Text = forwardRef<RNText, TextProps>(function Text(
   // Arabic needs its own families, zero tracking and more leading — see
   // arabicTypeScale. Direction only changes across an app restart, so which
   // scale applies is fixed for the lifetime of the process.
-  const v = (I18nManager.isRTL ? arabicTypeScale : typeScale)[effectiveVariant];
+  const v = (IS_RTL ? arabicTypeScale : typeScale)[effectiveVariant];
   const color = theme.colors[tone];
 
   // Build the base style explicitly typed so the `readonly` tuple in
@@ -55,7 +55,7 @@ export const Text = forwardRef<RNText, TextProps>(function Text(
     // business name or phone number — and without an explicit base direction
     // the bidi algorithm resolves punctuation from the first strong character
     // in the run, which lands full stops and colons on the wrong side.
-    writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
+    writingDirection: IS_RTL ? 'rtl' : 'ltr',
   };
   if ('textTransform' in v && v.textTransform) {
     base.textTransform = v.textTransform;

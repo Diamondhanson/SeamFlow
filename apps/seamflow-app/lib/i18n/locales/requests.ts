@@ -276,4 +276,58 @@ export const requests = {
     withdrawTitle: 'Uondoe ofa hii?',
     withdrawBody: 'Mteja hataiona tena. Unaweza kujibu tena baadaye kama bado liko wazi.',
   },
+  ar: {
+    boardTitle: 'الطلبات المفتوحة',
+    tileSubtitle: 'عملاء يبحثون عن خيّاط',
+    guideTitle: 'عملاء يبحثون عن خيّاط',
+    guideBody:
+      'ينشر الناس ما يريدون خياطته، ويمكن لأي خيّاط قريب أن يردّ. لست بحاجة إلى معرض أعمال لتفوز بأحدها — يكفي ردّ جيد.',
+
+    filterAll: 'الكل',
+    empty: 'لا طلبات مفتوحة قريبة منك بعد. ستظهر هنا حين ينشرها العملاء.',
+    emptyFiltered: 'لا شيء مفتوح لهذا الثوب حاليًا. جرّب «الكل».',
+
+    noSpecialtiesTitle: 'أخبرنا بما تخيطه',
+    noSpecialtiesBody:
+      'سترى كل ما هو قريب منك على أي حال، لكن العمل الذي تتقنه سيأتي أولًا.',
+
+    budgetLine: 'الميزانية: {currency} {min} – {max}',
+    budgetOpen: 'لم تُذكر ميزانية — قابل للنقاش',
+    deadlineLine: 'مطلوب بحلول {date}',
+    offersAndDays: '{offers} عروض · بقي {days} أيام',
+    enoughOffers: 'العروض كافية — لم تعد تُقبل',
+
+    detailTitle: 'طلب',
+    gone: 'هذا الطلب لم يعد متاحًا.',
+
+    makeOfferHeading: 'عرضك',
+    makeOfferHint:
+      'اشرح كيف ستخيطه وما ستحتاج إليه. السعر اختياري — يمكنكما التفاهم عليه بدلًا من ذلك.',
+    messageLabel: 'الرسالة',
+    messagePlaceholder: 'أخيط هذه كثيرًا. أما التطريز فسأقوم…',
+    priceLabel: 'السعر',
+    priceMaxLabel: 'حتى (اختياري)',
+    pricePlaceholder: '0',
+    priceOptional: 'اترك الحقلين فارغين لتردّ بـ«قابل للنقاش».',
+    sendOffer: 'إرسال العرض',
+    offerSentTitle: 'أُرسل العرض',
+    offerSentBody: 'سيراه العميل مع أعمالك. وسيصلك ردّ في كل الأحوال.',
+
+    alreadyOfferedTitle: 'لقد رددت على هذا',
+    enoughOffersTitle: 'العروض كافية بالفعل',
+    enoughOffersBody:
+      'هذا الطلب استوفى كل العروض التي يقبلها. وقتك أجدى على طلب آخر.',
+
+    myOffersTitle: 'عروضي',
+    noOffersYet: 'لم تردّ على أي طلب بعد.',
+    browseBoard: 'شاهد ما يطلبه العملاء',
+    offerStatus: 'الحالة: {status}',
+    offerPrice: '{currency} {price}',
+    offerRange: '{currency} {min} – {max}',
+    offerToDiscuss: 'قابل للنقاش',
+    openChat: 'فتح المحادثة',
+    withdraw: 'سحب',
+    withdrawTitle: 'سحب هذا العرض؟',
+    withdrawBody: 'لن يعود العميل يراه. يمكنك الردّ مجددًا لاحقًا إن كان لا يزال مفتوحًا.',
+  },
 };

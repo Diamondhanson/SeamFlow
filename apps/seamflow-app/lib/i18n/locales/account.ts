@@ -244,4 +244,53 @@ export const account = {
     keptTitle: 'Karibu tena',
     keptBody: 'Akaunti yako iko salama na duka lako linaonekana tena.',
   },
+  ar: {
+    // ── شاشة الحذف ───────────────────────────────────────────────────────
+    deleteTitle: 'حذف حسابي',
+    warningBody:
+      'هذا يُغلق ورشتك ويمحو سجلّاتك. لن يحدث شيء لمدة {days} يومًا — يمكنك العدول في أي وقت قبل ذلك.',
+
+    whatGoesTitle: 'ما الذي يُمحى',
+    goesClients: 'كل عميل، مع مقاساته',
+    goesOrders: 'كل طلب وطلب مجموعة وفاتورة',
+    goesPhotos: 'كل صورة رفعتها',
+    goesFeed: 'صفحتك العامة وكل ما فيها',
+    goesAccount: 'إمكانية دخولك — لن تتمكّن من تسجيل الدخول مجددًا',
+
+    takeItTitle: 'خُذ سجلّاتك أولًا',
+    takeItBody:
+      'احفظ نسخة من كل شيء قبل أن يزول. بعد مرور {days} يومًا لا يمكننا استرجاعه لك.',
+    exportAction: 'تنزيل بياناتي',
+    exportTitle: 'بياناتك في SeamFlow',
+    exportSavedTitle: 'تم الحفظ',
+    exportSavedBody: 'حُفظ ملف بياناتك على هذا الجهاز.',
+
+    confirmItTitle: 'أكِّد أنك أنت',
+    passwordLabel: 'كلمة المرور',
+    passwordPlaceholder: 'أدخل كلمة المرور',
+    reauthProviderBody:
+      'سيُطلب منك تسجيل الدخول مرة أخرى للتأكد من أنك أنت.',
+    typeNameLabel: 'اكتب «{name}» للتأكيد',
+    deleteAction: 'حذف حسابي',
+    needed: 'أدخل كلمة المرور واكتب اسم عملك للمتابعة.',
+    neededName: 'اكتب اسم عملك بالضبط للمتابعة.',
+
+    confirmTitle: 'حذف هذا الحساب؟',
+    confirmBody:
+      'سيُمحى «{name}» وكل سجلّاته بعد 30 يومًا. يمكنك الإلغاء قبل ذلك.',
+    confirmAction: 'نعم، احذفه',
+
+    scheduledTitle: 'سيُغلق حسابك',
+    scheduledBody:
+      'سنمحو كل شيء بعد {days} يومًا. حتى ذلك الحين يمكنك تسجيل الدخول والنقر على «الاحتفاظ بحسابي» لإيقاف ذلك.',
+
+    // ── شريط التنبيه ─────────────────────────────────────────────────────
+    pendingTitle: 'يُغلق حسابك بعد {days} يومًا',
+    pendingTitleToday: 'يُغلق حسابك اليوم',
+    pendingBody:
+      'ورشتك مخفية وسجلّاتك لا تزال هنا. انقر أدناه لإيقاف ذلك ومتابعة عملك كالمعتاد.',
+    keepAccount: 'الاحتفاظ بحسابي',
+    keptTitle: 'أهلًا بعودتك',
+    keptBody: 'حسابك بأمان وورشتك ظاهرة من جديد.',
+  },
 } as const;

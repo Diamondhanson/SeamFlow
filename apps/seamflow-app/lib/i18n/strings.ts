@@ -34,7 +34,7 @@ import { drafts } from './locales/drafts';
 import { specialties } from './locales/specialties';
 import { requests } from './locales/requests';
 
-export type LanguageCode = 'en' | 'fr' | 'pt' | 'es' | 'sw';
+export type LanguageCode = 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
 
 export interface LanguageDef {
   code: LanguageCode;
@@ -65,6 +65,9 @@ export const LANGUAGES: LanguageDef[] = [
   { code: 'pt', intl: 'pt-PT', label: 'Português', dir: 'ltr' },
   { code: 'es', intl: 'es-419', label: 'Español', dir: 'ltr' },
   { code: 'sw', intl: 'sw-KE', label: 'Kiswahili', dir: 'ltr' },
+  // The first right-to-left language. `dir` drives I18nManager.forceRTL, and
+  // the pinned `intl` tag keeps digits Western — see LanguageDef.
+  { code: 'ar', intl: 'ar-u-nu-latn-ca-gregory', label: 'العربية', dir: 'rtl' },
 ];
 
 /**
@@ -125,6 +128,7 @@ export const translations = {
   pt: forLanguage('pt'),
   es: forLanguage('es'),
   sw: forLanguage('sw'),
+  ar: forLanguage('ar'),
 };
 
 /** English is the reference shape; every other language must match it. */

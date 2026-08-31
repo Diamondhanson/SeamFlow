@@ -127,4 +127,28 @@ export const drafts = {
 
     keptOnDevice: 'Huhifadhiwa kwenye kifaa hiki unapoandika',
   },
+  ar: {
+    resumeTitle: 'هل تكمل من حيث توقّفت؟',
+    // {what} هو ما كنت تعمل عليه؛ {ago} مثل «قبل ٥ دقائق».
+    resumeBodyNamed: 'كنت تعمل على {what} {ago} ولم تحفظ. كل ما كتبته لا يزال موجودًا.',
+    resumeBody: 'لديك عمل غير محفوظ من {ago}. كل ما كتبته لا يزال موجودًا.',
+    resumeConfirm: 'متابعة',
+    resumeDiscard: 'البدء من جديد',
+
+    agoMinute: 'قبل دقيقة',
+    agoMinutes: 'قبل {count} دقائق',
+    agoHour: 'قبل ساعة',
+    agoHours: 'قبل {count} ساعات',
+    agoDay: 'أمس',
+    agoDays: 'قبل {count} أيام',
+
+    // مغادرة شاشة فيها مقاسات غير محفوظة.
+    leaveTitle: 'تغادر دون حفظ؟',
+    leaveBody: 'مقاساتك محفوظة على هذا الجهاز، فيمكنك العودة إليها. لكنها لن تصل إلى سجلّاتك حتى تحفظها.',
+    leaveConfirm: 'مغادرة',
+    leaveStay: 'متابعة التعديل',
+
+    // طمأنة هادئة بجوار نموذج يُحفظ تلقائيًا.
+    keptOnDevice: 'يُحفظ على هذا الجهاز أثناء الكتابة',
+  },
 };

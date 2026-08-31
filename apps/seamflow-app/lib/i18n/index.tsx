@@ -21,6 +21,7 @@ import {
   type ReactNode,
 } from 'react';
 import { I18nManager } from 'react-native';
+import { IS_RTL } from '@seamflow/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES, translations, type LanguageCode } from './strings';
 
@@ -134,7 +135,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     void AsyncStorage.setItem(STORAGE_KEY, l);
 
     const nextRtl = (LANGUAGES.find((x) => x.code === l)?.dir ?? 'ltr') === 'rtl';
-    if (nextRtl === I18nManager.isRTL) return { requiresRestart: false };
+    if (nextRtl === IS_RTL) return { requiresRestart: false };
 
     // Both directions matter — switching OUT of Arabic has to unset it too,
     // which a one-way `if (nextRtl)` would quietly miss.

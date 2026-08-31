@@ -24,7 +24,7 @@ import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, Avatar, useAtelierTheme } from '@seamflow/ui';
+import { Avatar, IS_RTL, Text, useAtelierTheme } from '@seamflow/ui';
 import type { Client } from '@seamflow/schemas';
 import { Card, CardTitle, CardLine } from './Card';
 import { useFavorites } from '../lib/favorites';
@@ -109,8 +109,8 @@ export function SwipeableClientRow({ item }: { item: Client }) {
       rightThreshold={48}
       overshootLeft={false}
       overshootRight={false}
-      renderLeftActions={I18nManager.isRTL ? renderFavoriteAction : renderDeleteAction}
-      renderRightActions={I18nManager.isRTL ? renderDeleteAction : renderFavoriteAction}
+      renderLeftActions={IS_RTL ? renderFavoriteAction : renderDeleteAction}
+      renderRightActions={IS_RTL ? renderDeleteAction : renderFavoriteAction}
       onSwipeableOpen={onOpen}
     >
       <Card

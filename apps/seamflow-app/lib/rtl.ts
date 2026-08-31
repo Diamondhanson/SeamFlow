@@ -6,7 +6,7 @@
 // more than the logical property name. These are the exceptions.
 // ============================================================================
 
-import { I18nManager } from 'react-native';
+import { IS_RTL } from '@seamflow/ui';
 
 /**
  * `textAlign` has no logical value in React Native — the type is
@@ -19,10 +19,10 @@ import { I18nManager } from 'react-native';
  * flips on its own. Reach for this only when the text itself must align, e.g.
  * a wrapped value in a space-between row or an amount column.
  */
-export const TEXT_END: 'left' | 'right' = I18nManager.isRTL ? 'left' : 'right';
+export const TEXT_END: 'left' | 'right' = IS_RTL ? 'left' : 'right';
 
 /** The mirror of {@link TEXT_END}, for the rare value that hugs the near edge. */
-export const TEXT_START: 'left' | 'right' = I18nManager.isRTL ? 'right' : 'left';
+export const TEXT_START: 'left' | 'right' = IS_RTL ? 'right' : 'left';
 
 /**
  * Directional arrows, for interpolation into translated strings.
@@ -37,5 +37,5 @@ export const TEXT_START: 'left' | 'right' = I18nManager.isRTL ? 'right' : 'left'
  * unchanged: `t('orders.statusTransition', { from, to, arrow: ARROW_FORWARD })`
  * still renders exactly the `→` it always did.
  */
-export const ARROW_FORWARD = I18nManager.isRTL ? '←' : '→';
-export const ARROW_BACK = I18nManager.isRTL ? '→' : '←';
+export const ARROW_FORWARD = IS_RTL ? '←' : '→';
+export const ARROW_BACK = IS_RTL ? '→' : '←';

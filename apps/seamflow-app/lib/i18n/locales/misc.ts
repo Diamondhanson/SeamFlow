@@ -407,4 +407,76 @@ export const misc = {
     // Sehemu ya utafutaji
     searchPlaceholder: 'Tafuta…',
   },
+  ar: {
+    pinLockTitle: 'قفل PIN',
+    appPinLock: 'قفل التطبيق برمز PIN',
+    pinSetDescription:
+      'تم تعيين رمز PIN. سيُقفل التطبيق بعد 5 دقائق في الخلفية.',
+    noPinDescription:
+      'لا يوجد رمز PIN. لن يُقفل التطبيق عند الانتقال إلى تطبيق آخر.',
+    changePin: 'تغيير الرمز',
+    removePin: 'إزالة الرمز',
+    lockNow: 'اقفل الآن',
+    setAPin: 'تعيين رمز PIN',
+    wrongPinTitle: 'رمز خاطئ',
+    tryAgain: 'حاول مرة أخرى.',
+    removePinTitle: 'إزالة الرمز؟',
+    removePinBody: 'يمكنك إعادة تعيينه لاحقًا من هذه الشاشة.',
+    pinRemovedTitle: 'أُزيل الرمز',
+    pinRemovedBody: 'لن يُقفل التطبيق بعد الآن.',
+    pinsDontMatchTitle: 'الرمزان غير متطابقين',
+    pinSetTitle: 'تم تعيين الرمز',
+    pinChangedTitle: 'تم تغيير الرمز',
+    pinSavedBody:
+      'سيطلب التطبيق هذا الرمز إن تركته دون استخدام لبضع دقائق.',
+    enterCurrentPin: 'أدخل رمزك الحالي',
+    enterNewPin: 'أدخل رمزًا جديدًا',
+    choosePin: 'اختر رمزًا من 4 أرقام',
+    reenterPin: 'أعِد إدخال الرمز للتأكيد',
+    enterYourPin: 'أدخل رمزك',
+    tooManyAttemptsTitle: 'محاولات كثيرة',
+    tooManyAttemptsBody:
+      '{max} محاولات خاطئة. يجري تسجيل خروجك — سجّل الدخول مجددًا للمتابعة.',
+    wrongPinAttempts: 'رمز خاطئ. بقيت {left} محاولات.',
+    forgotPinSignOut: 'نسيت الرمز؟ سجّل الخروج',
+    forgotPinConfirmTitle: 'إعادة تعيين رمزك؟',
+    forgotPinConfirmBody:
+      'لإعادة تعيين الرمز ستسجّل الخروج، ثم تدخل من جديد وتعيّن رمزًا آخر. عملك بأمان — يبقى على حسابك.',
+    forgotPinConfirmCta: 'تسجيل الخروج',
+    selectFromContacts: 'اختيار من جهات الاتصال',
+    searchNameOrNumber: 'ابحث بالاسم أو الرقم…',
+    noContactsMatch: 'لا جهات اتصال مطابقة.',
+    contactsAccessOff:
+      'الوصول إلى جهات الاتصال مغلق. فعّله لهذا التطبيق من إعدادات هاتفك لاختيار العملاء من دفتر عناوينك.',
+    permissionNeededTitle: 'الإذن مطلوب',
+    cameraAccessOff:
+      'الوصول إلى الكاميرا مغلق. فعّله لهذا التطبيق من إعدادات هاتفك لالتقاط الصور.',
+    photosAccessOff:
+      'الوصول إلى الصور مغلق. فعّله لهذا التطبيق من إعدادات هاتفك لاختيار صورة.',
+    micAccessOff:
+      'الوصول إلى المِيكروفون مغلق. فعّل المِيكروفون لهذا التطبيق من إعدادات هاتفك للتحدّث إلى المساعد.',
+    openSettings: 'فتح الإعدادات',
+    installHintTitle: 'أضِف SeamFlow إلى شاشتك الرئيسية',
+    installHintBody: 'انقر زرّ المشاركة أدناه، ثم اختر «إضافة إلى الشاشة الرئيسية» — يفتح SeamFlow كتطبيق بملء الشاشة.',
+    photosOfflineTitle: 'أنت دون اتصال',
+    photosOfflineBody:
+      'تحتاج الصور إلى اتصال لرفعها. أعِد الاتصال ثم أضِفها.',
+    phoneNumber: 'رقم الهاتف',
+    selectCountry: 'اختر البلد',
+    searchCountryOrCode: 'ابحث عن بلد أو رمز…',
+    selectCountryDialCode: 'اختر رمز الاتصال الدولي',
+    offlineWithPending:
+      'دون اتصال — ستُزامَن {count} تغييرات عند عودة الشبكة',
+    youreOffline: 'أنت دون اتصال',
+    syncing: 'يُزامن {count} تغييرات…',
+    pickADayToSee: 'اختر يومًا لعرض تسليماته.',
+    today: 'اليوم · ',
+    event: 'موعد',
+    events: 'مواعيد',
+    noDeliveriesThisDay: 'لا تسليمات في هذا اليوم.',
+    previousMonth: 'الشهر السابق',
+    nextMonth: 'الشهر التالي',
+    pickADate: 'اختر تاريخًا',
+    searchPlaceholder: 'بحث…',
+  },
 } as const;
