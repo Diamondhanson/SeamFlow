@@ -21,11 +21,13 @@ import {
   type ReactNode,
 } from 'react';
 import { I18nManager } from 'react-native';
-import { IS_RTL } from '@seamflow/ui';
+import { IS_RTL, LANGUAGE_STORAGE_KEY } from '@seamflow/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES, translations, type LanguageCode } from './strings';
 
-const STORAGE_KEY = 'seamflow.language';
+// Imported rather than redeclared: the design system reads this key too,
+// synchronously at module load, to decide the writing direction on web.
+const STORAGE_KEY = LANGUAGE_STORAGE_KEY;
 
 /** Best-effort device language; falls back to English. */
 /**
@@ -135,6 +137,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     void AsyncStorage.setItem(STORAGE_KEY, l);
 
     const nextRtl = (LANGUAGES.find((x) => x.code === l)?.dir ?? 'ltr') === 'rtl';
+
+    // Web: RNW ignores forceRTL, but honours `dir` — see +html.tsx. Setting it
+    // here means the attribute and the stored language never disagree, even
+    // though the reload below is what actually re-resolves the type scale.
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('dir', nextRtl ? 'rtl' : 'ltr');
+      document.documentElement.setAttribute('lang', l);
+    }
+
     if (nextRtl === IS_RTL) return { requiresRestart: false };
 
     // Both directions matter — switching OUT of Arabic has to unset it too,

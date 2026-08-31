@@ -3,17 +3,55 @@ import { I18nManager } from 'react-native';
 /**
  * Whether the UI is laid out right-to-left.
  *
- * Coerced explicitly, because `I18nManager.isRTL` is a boolean on iOS and
- * Android but `undefined` under react-native-web — so `isRTL ? a : b` silently
- * takes the Latin branch in the browser build.
+ * Two sources, because the platforms answer differently:
  *
- * KNOWN GAP: that means the Arabic type scale does not activate in the web
- * export (app.seamflowtech.com), and Arabic there falls back to whatever font
- * the OS supplies. RNW does not honour `forceRTL` either, so a proper fix means
- * driving `document.dir` from the language — a separate piece of work on that
- * deployment, tracked rather than hidden behind a falsy value.
+ *  - Native: `I18nManager.isRTL`, set by `forceRTL` and persisted by the OS, so
+ *    it is already correct before React mounts.
+ *  - Web: `I18nManager.isRTL` is `undefined` under react-native-web and
+ *    `forceRTL` does nothing, so the answer comes from the `dir` attribute
+ *    instead — which the app's `+html.tsx` shell sets from the stored language
+ *    before the bundle loads, for exactly this reason.
+ *
+ * Coerced with `=== true` rather than truthiness, because `undefined ? a : b`
+ * silently taking the Latin branch is the bug this replaced.
  */
-export const IS_RTL: boolean = I18nManager.isRTL === true;
+/**
+ * Where the apps persist the chosen language. Shared with the app's i18n
+ * provider (which imports it from here) so the two cannot drift — this module
+ * has to read it directly, see below.
+ */
+export const LANGUAGE_STORAGE_KEY = 'seamflow.language';
+
+/** Language codes that read right-to-left. */
+export const RTL_LANGUAGE_CODES = ['ar'] as const;
+
+function detectRtl(): boolean {
+  // Native: set by forceRTL, persisted by the OS, correct before React mounts.
+  if (I18nManager.isRTL === true) return true;
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') return false;
+
+  // Web: read the stored language directly rather than the `dir` attribute.
+  // `dir` would work, but only if it were set before this module is evaluated —
+  // and that is a module-load-ORDER dependency, which is exactly the kind of
+  // thing that works locally and breaks in a production bundle. localStorage is
+  // synchronous and order-independent, so there is nothing to get wrong.
+  try {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    const lang = stored || (typeof navigator !== 'undefined' ? navigator.language.slice(0, 2) : '');
+    return (RTL_LANGUAGE_CODES as readonly string[]).includes(lang);
+  } catch {
+    return false; // private mode, storage disabled
+  }
+}
+
+export const IS_RTL: boolean = detectRtl();
+
+// react-native-web ignores forceRTL but honours `dir`, so set it here — at the
+// same moment the direction is decided, rather than hoping some other module
+// runs first.
+if (typeof document !== 'undefined') {
+  document.documentElement?.setAttribute('dir', IS_RTL ? 'rtl' : 'ltr');
+}
 
 // ============================================================================
 // Type system — three families, one scale.
