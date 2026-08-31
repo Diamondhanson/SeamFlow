@@ -17,6 +17,14 @@
 // descriptions of them, and inventing a Spanish or Swahili word for an agbada
 // would make the taxonomy worse, not more accessible.
 //
+// Arabic is the exception to how that rule is APPLIED, not to the rule itself.
+// Latin script inside an Arabic chip list forces a bidi break on every chip and
+// reads as untranslated, so the same names are TRANSLITERATED into Arabic
+// script rather than left in Latin. One is not a transliteration at all:
+// `kaftan` is قفطان, an Arabic word English borrowed. These seven are the
+// entries most worth putting in front of a native reviewer explicitly, rather
+// than leaving buried among the rest.
+//
 // WHAT READS THIS
 //   · tailor specialties        (what I make)
 //   · measurement templates     (garmentType)
@@ -51,7 +59,7 @@ export type GarmentCategory = z.infer<typeof GarmentCategorySchema>;
  * translated, which is the point — a half-translated taxonomy silently shows
  * English to the people it was widened for.
  */
-export type GarmentLang = 'en' | 'fr' | 'pt' | 'es' | 'sw';
+export type GarmentLang = 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
 
 export type GarmentTypeDef = {
   key: string;
@@ -68,6 +76,7 @@ export const GARMENT_CATEGORY_LABELS: Record<
     pt: 'Tradicional e cerimónia',
     es: 'Tradicional y de ceremonia',
     sw: 'Kiasili na sherehe',
+    ar: 'تقليدي ومناسبات',
   },
   womens: {
     en: "Women's wear",
@@ -75,6 +84,7 @@ export const GARMENT_CATEGORY_LABELS: Record<
     pt: 'Vestuário feminino',
     es: 'Ropa de mujer',
     sw: 'Mavazi ya wanawake',
+    ar: 'ملابس نسائية',
   },
   mens: {
     en: "Men's tailoring",
@@ -82,6 +92,7 @@ export const GARMENT_CATEGORY_LABELS: Record<
     pt: 'Alfaiataria masculina',
     es: 'Sastrería de hombre',
     sw: 'Ushonaji wa wanaume',
+    ar: 'خياطة رجالية',
   },
   bridal: {
     en: 'Bridal & wedding',
@@ -89,6 +100,7 @@ export const GARMENT_CATEGORY_LABELS: Record<
     pt: 'Noivas e casamento',
     es: 'Novias y boda',
     sw: 'Bibi harusi na harusi',
+    ar: 'أعراس',
   },
   kids: {
     en: 'Children',
@@ -96,6 +108,7 @@ export const GARMENT_CATEGORY_LABELS: Record<
     pt: 'Crianças',
     es: 'Niños',
     sw: 'Watoto',
+    ar: 'أطفال',
   },
   other: {
     en: 'Other work',
@@ -103,6 +116,7 @@ export const GARMENT_CATEGORY_LABELS: Record<
     pt: 'Outros trabalhos',
     es: 'Otros trabajos',
     sw: 'Kazi nyingine',
+    ar: 'أعمال أخرى',
   },
 };
 
@@ -114,45 +128,45 @@ export const GARMENT_CATEGORY_LABELS: Record<
  */
 export const GARMENT_TYPES: GarmentTypeDef[] = [
   // ---- Traditional & occasion ---------------------------------------------
-  { key: 'kaftan', category: 'traditional', en: 'Kaftan', fr: 'Caftan', pt: 'Cafetã', es: 'Caftán', sw: 'Kaftani' },
-  { key: 'agbada', category: 'traditional', en: 'Agbada', fr: 'Agbada', pt: 'Agbada', es: 'Agbada', sw: 'Agbada' },
-  { key: 'senator', category: 'traditional', en: 'Senator', fr: 'Sénateur', pt: 'Senator', es: 'Senator', sw: 'Senator' },
-  { key: 'boubou', category: 'traditional', en: 'Boubou', fr: 'Boubou', pt: 'Boubou', es: 'Boubou', sw: 'Boubou' },
-  { key: 'kaba', category: 'traditional', en: 'Kaba', fr: 'Kaba', pt: 'Kaba', es: 'Kaba', sw: 'Kaba' },
-  { key: 'dashiki', category: 'traditional', en: 'Dashiki', fr: 'Dashiki', pt: 'Dashiki', es: 'Dashiki', sw: 'Dashiki' },
-  { key: 'ankara_set', category: 'traditional', en: 'Ankara set', fr: 'Ensemble ankara', pt: 'Conjunto ankara', es: 'Conjunto ankara', sw: 'Seti ya ankara' },
-  { key: 'buba_wrapper', category: 'traditional', en: 'Buba & wrapper', fr: 'Buba et pagne', pt: 'Buba e pano', es: 'Buba y wrapper', sw: 'Buba na wrapper' },
+  { key: 'kaftan', category: 'traditional', en: 'Kaftan', fr: 'Caftan', pt: 'Cafetã', es: 'Caftán', sw: 'Kaftani', ar: 'قفطان' },
+  { key: 'agbada', category: 'traditional', en: 'Agbada', fr: 'Agbada', pt: 'Agbada', es: 'Agbada', sw: 'Agbada', ar: 'أغبادا' },
+  { key: 'senator', category: 'traditional', en: 'Senator', fr: 'Sénateur', pt: 'Senator', es: 'Senator', sw: 'Senator', ar: 'سيناتور' },
+  { key: 'boubou', category: 'traditional', en: 'Boubou', fr: 'Boubou', pt: 'Boubou', es: 'Boubou', sw: 'Boubou', ar: 'بوبو' },
+  { key: 'kaba', category: 'traditional', en: 'Kaba', fr: 'Kaba', pt: 'Kaba', es: 'Kaba', sw: 'Kaba', ar: 'كابا' },
+  { key: 'dashiki', category: 'traditional', en: 'Dashiki', fr: 'Dashiki', pt: 'Dashiki', es: 'Dashiki', sw: 'Dashiki', ar: 'داشيكي' },
+  { key: 'ankara_set', category: 'traditional', en: 'Ankara set', fr: 'Ensemble ankara', pt: 'Conjunto ankara', es: 'Conjunto ankara', sw: 'Seti ya ankara', ar: 'طقم أنكارا' },
+  { key: 'buba_wrapper', category: 'traditional', en: 'Buba & wrapper', fr: 'Buba et pagne', pt: 'Buba e pano', es: 'Buba y wrapper', sw: 'Buba na wrapper', ar: 'بوبا وإزار' },
 
   // ---- Women's wear --------------------------------------------------------
-  { key: 'gown', category: 'womens', en: 'Gown', fr: 'Robe longue', pt: 'Vestido comprido', es: 'Vestido largo', sw: 'Gauni refu' },
-  { key: 'dress', category: 'womens', en: 'Dress', fr: 'Robe', pt: 'Vestido', es: 'Vestido', sw: 'Gauni' },
-  { key: 'skirt', category: 'womens', en: 'Skirt', fr: 'Jupe', pt: 'Saia', es: 'Falda', sw: 'Sketi' },
-  { key: 'blouse', category: 'womens', en: 'Blouse', fr: 'Chemisier', pt: 'Blusa', es: 'Blusa', sw: 'Blauzi' },
-  { key: 'jumpsuit', category: 'womens', en: 'Jumpsuit', fr: 'Combinaison', pt: 'Macacão', es: 'Enterizo', sw: 'Ovaroli' },
-  { key: 'two_piece_set', category: 'womens', en: 'Two-piece set', fr: 'Ensemble deux pièces', pt: 'Conjunto de duas peças', es: 'Conjunto de dos piezas', sw: 'Seti ya vipande viwili' },
-  { key: 'wrapper_set', category: 'womens', en: 'Wrapper set', fr: 'Ensemble pagne', pt: 'Conjunto de pano', es: 'Conjunto de wrapper', sw: 'Seti ya wrapper' },
+  { key: 'gown', category: 'womens', en: 'Gown', fr: 'Robe longue', pt: 'Vestido comprido', es: 'Vestido largo', sw: 'Gauni refu', ar: 'فستان طويل' },
+  { key: 'dress', category: 'womens', en: 'Dress', fr: 'Robe', pt: 'Vestido', es: 'Vestido', sw: 'Gauni', ar: 'فستان' },
+  { key: 'skirt', category: 'womens', en: 'Skirt', fr: 'Jupe', pt: 'Saia', es: 'Falda', sw: 'Sketi', ar: 'تنورة' },
+  { key: 'blouse', category: 'womens', en: 'Blouse', fr: 'Chemisier', pt: 'Blusa', es: 'Blusa', sw: 'Blauzi', ar: 'بلوزة' },
+  { key: 'jumpsuit', category: 'womens', en: 'Jumpsuit', fr: 'Combinaison', pt: 'Macacão', es: 'Enterizo', sw: 'Ovaroli', ar: 'أفرول' },
+  { key: 'two_piece_set', category: 'womens', en: 'Two-piece set', fr: 'Ensemble deux pièces', pt: 'Conjunto de duas peças', es: 'Conjunto de dos piezas', sw: 'Seti ya vipande viwili', ar: 'طقم من قطعتين' },
+  { key: 'wrapper_set', category: 'womens', en: 'Wrapper set', fr: 'Ensemble pagne', pt: 'Conjunto de pano', es: 'Conjunto de wrapper', sw: 'Seti ya wrapper', ar: 'طقم إزار' },
 
   // ---- Men's tailoring -----------------------------------------------------
-  { key: 'suit', category: 'mens', en: 'Suit', fr: 'Costume', pt: 'Fato', es: 'Traje', sw: 'Suti' },
-  { key: 'blazer', category: 'mens', en: 'Blazer', fr: 'Blazer', pt: 'Blazer', es: 'Saco', sw: 'Blazer' },
-  { key: 'shirt', category: 'mens', en: 'Shirt', fr: 'Chemise', pt: 'Camisa', es: 'Camisa', sw: 'Shati' },
-  { key: 'trouser', category: 'mens', en: 'Trousers', fr: 'Pantalon', pt: 'Calças', es: 'Pantalón', sw: 'Suruali' },
-  { key: 'waistcoat', category: 'mens', en: 'Waistcoat', fr: 'Gilet', pt: 'Colete', es: 'Chaleco', sw: 'Kizibao' },
+  { key: 'suit', category: 'mens', en: 'Suit', fr: 'Costume', pt: 'Fato', es: 'Traje', sw: 'Suti', ar: 'بدلة' },
+  { key: 'blazer', category: 'mens', en: 'Blazer', fr: 'Blazer', pt: 'Blazer', es: 'Saco', sw: 'Blazer', ar: 'سترة' },
+  { key: 'shirt', category: 'mens', en: 'Shirt', fr: 'Chemise', pt: 'Camisa', es: 'Camisa', sw: 'Shati', ar: 'قميص' },
+  { key: 'trouser', category: 'mens', en: 'Trousers', fr: 'Pantalon', pt: 'Calças', es: 'Pantalón', sw: 'Suruali', ar: 'بنطال' },
+  { key: 'waistcoat', category: 'mens', en: 'Waistcoat', fr: 'Gilet', pt: 'Colete', es: 'Chaleco', sw: 'Kizibao', ar: 'صديري' },
 
   // ---- Bridal & wedding ----------------------------------------------------
-  { key: 'wedding_gown', category: 'bridal', en: 'Wedding gown', fr: 'Robe de mariée', pt: 'Vestido de noiva', es: 'Vestido de novia', sw: 'Gauni la harusi' },
-  { key: 'reception_dress', category: 'bridal', en: 'Reception dress', fr: 'Robe de réception', pt: 'Vestido de receção', es: 'Vestido de recepción', sw: 'Gauni la mapokezi' },
-  { key: 'bridesmaid', category: 'bridal', en: 'Bridesmaid outfit', fr: 'Tenue de demoiselle d’honneur', pt: 'Traje de dama de honor', es: 'Vestido de dama de honor', sw: 'Vazi la msindikizaji' },
-  { key: 'groom_outfit', category: 'bridal', en: 'Groom’s outfit', fr: 'Tenue du marié', pt: 'Traje do noivo', es: 'Traje del novio', sw: 'Vazi la bwana harusi' },
+  { key: 'wedding_gown', category: 'bridal', en: 'Wedding gown', fr: 'Robe de mariée', pt: 'Vestido de noiva', es: 'Vestido de novia', sw: 'Gauni la harusi', ar: 'فستان زفاف' },
+  { key: 'reception_dress', category: 'bridal', en: 'Reception dress', fr: 'Robe de réception', pt: 'Vestido de receção', es: 'Vestido de recepción', sw: 'Gauni la mapokezi', ar: 'فستان حفل' },
+  { key: 'bridesmaid', category: 'bridal', en: 'Bridesmaid outfit', fr: 'Tenue de demoiselle d’honneur', pt: 'Traje de dama de honor', es: 'Vestido de dama de honor', sw: 'Vazi la msindikizaji', ar: 'فستان إشبينة' },
+  { key: 'groom_outfit', category: 'bridal', en: 'Groom’s outfit', fr: 'Tenue du marié', pt: 'Traje do noivo', es: 'Traje del novio', sw: 'Vazi la bwana harusi', ar: 'بدلة العريس' },
 
   // ---- Children ------------------------------------------------------------
-  { key: 'kids_outfit', category: 'kids', en: 'Children’s outfit', fr: 'Tenue enfant', pt: 'Roupa de criança', es: 'Ropa de niño', sw: 'Vazi la mtoto' },
-  { key: 'school_uniform', category: 'kids', en: 'School uniform', fr: 'Uniforme scolaire', pt: 'Uniforme escolar', es: 'Uniforme escolar', sw: 'Sare ya shule' },
+  { key: 'kids_outfit', category: 'kids', en: 'Children’s outfit', fr: 'Tenue enfant', pt: 'Roupa de criança', es: 'Ropa de niño', sw: 'Vazi la mtoto', ar: 'ملابس أطفال' },
+  { key: 'school_uniform', category: 'kids', en: 'School uniform', fr: 'Uniforme scolaire', pt: 'Uniforme escolar', es: 'Uniforme escolar', sw: 'Sare ya shule', ar: 'زي مدرسي' },
 
   // ---- Other ---------------------------------------------------------------
-  { key: 'work_uniform', category: 'other', en: 'Work uniform', fr: 'Tenue de travail', pt: 'Farda de trabalho', es: 'Uniforme de trabajo', sw: 'Sare ya kazi' },
-  { key: 'alteration', category: 'other', en: 'Alterations & repairs', fr: 'Retouches et réparations', pt: 'Arranjos e reparações', es: 'Arreglos y reparaciones', sw: 'Marekebisho na matengenezo' },
-  { key: 'other', category: 'other', en: 'Something else', fr: 'Autre chose', pt: 'Outra coisa', es: 'Otra cosa', sw: 'Kitu kingine' },
+  { key: 'work_uniform', category: 'other', en: 'Work uniform', fr: 'Tenue de travail', pt: 'Farda de trabalho', es: 'Uniforme de trabajo', sw: 'Sare ya kazi', ar: 'زي عمل' },
+  { key: 'alteration', category: 'other', en: 'Alterations & repairs', fr: 'Retouches et réparations', pt: 'Arranjos e reparações', es: 'Arreglos y reparaciones', sw: 'Marekebisho na matengenezo', ar: 'تعديلات وإصلاحات' },
+  { key: 'other', category: 'other', en: 'Something else', fr: 'Autre chose', pt: 'Outra coisa', es: 'Otra cosa', sw: 'Kitu kingine', ar: 'شيء آخر' },
 ];
 
 export const GARMENT_KEYS = GARMENT_TYPES.map((g) => g.key);
