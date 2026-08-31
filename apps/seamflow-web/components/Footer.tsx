@@ -66,7 +66,7 @@ export function Footer({
               {f.phone}
             </a>
             <div className="pt-2">
-              <LangToggle lang={lang} />
+              <LangToggle lang={lang} placement="top" />
             </div>
           </FooterCol>
         </div>

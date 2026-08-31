@@ -24,6 +24,21 @@ export type Lang = 'en' | 'fr' | 'pt' | 'es' | 'sw';
  */
 export const LANGS: Lang[] = ['en', 'fr', 'pt', 'es', 'sw'];
 
+/**
+ * What each language calls itself. A reader scanning a language menu is looking
+ * for "Kiswahili", not "Swahili" — the endonym is the one word they can find
+ * without already reading the language the menu is written in. Which is also
+ * why these are NOT translated per-language: the list reads the same whichever
+ * page you are on.
+ */
+export const LANG_LABELS: Record<Lang, string> = {
+  en: 'English',
+  fr: 'Français',
+  pt: 'Português',
+  es: 'Español',
+  sw: 'Kiswahili',
+};
+
 /** The default language, which carries no URL prefix. */
 export const DEFAULT_LANG: Lang = 'en';
 

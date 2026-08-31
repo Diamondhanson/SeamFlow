@@ -68,17 +68,17 @@ export default function Me() {
   const currentLanguageLabel =
     LANGUAGES.find((l) => l.code === language)?.label ?? language;
 
-  // Language is a centered dialog (choose), not a bottom sheet. The active
-  // language gets a ✓ so the current choice is obvious.
+  // `pick`, not `choose`: at five languages this is a list, and `choose`
+  // stacks one button per option in a card that does not scroll. `pick` also
+  // owns the selected state, so the current language gets a real checkmark
+  // instead of a ✓ glued onto its label.
   const onChooseLanguage = async () => {
-    const picked = await dialog.choose<LanguageCode>({
+    const picked = await dialog.pick({
       title: t('settings.language'),
-      actions: LANGUAGES.map((l) => ({
-        label: l.code === language ? `${l.label}  ✓` : l.label,
-        value: l.code,
-      })),
+      options: LANGUAGES.map((l) => ({ key: l.code, label: l.label })),
+      selectedKey: language,
     });
-    if (picked && picked !== language) setLanguage(picked);
+    if (picked && picked !== language) setLanguage(picked as LanguageCode);
   };
 
   // Change / remove the profile photo. Upload lands in the public `avatars`

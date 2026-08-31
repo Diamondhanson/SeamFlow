@@ -8,7 +8,7 @@ import { useAuth } from '../../lib/auth-context';
 import { useDialog } from '../../lib/dialog';
 import { useUnreadNotificationCount } from '../../lib/queries';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
-import { useTranslation } from '../../lib/i18n';
+import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
 
 function greetingKey(hour: number): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
   if (hour < 12) return 'goodMorning';
@@ -26,7 +26,7 @@ interface HomeTile {
 }
 
 export default function ClientHome() {
-  const { t } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
   const { colors } = useAtelierTheme();
   const themeColors = useThemeColors();
   const dialog = useDialog();
@@ -37,6 +37,19 @@ export default function ClientHome() {
 
   const comingSoon = () =>
     dialog.alert({ title: t('home.comingSoon'), message: t('home.tagline'), tone: 'info' });
+
+  // Until a real settings screen lands this sits with sign-out and delete
+  // below. It cannot wait for that screen: the app picks a language from the
+  // device locale, and someone whose phone is set to a language we do not ship
+  // lands in English with no way out.
+  const onChooseLanguage = async () => {
+    const picked = await dialog.pick({
+      title: t('common.language'),
+      options: LANGUAGES.map((l) => ({ key: l.code, label: l.label })),
+      selectedKey: language,
+    });
+    if (picked && picked !== language) setLanguage(picked as LanguageCode);
+  };
 
   const tiles: HomeTile[] = [
     { key: 'discover', label: t('discover.tabDiscover'), sub: t('discover.subtitle'), icon: 'sparkles-outline', live: true, go: () => router.push('/discover') },
@@ -102,6 +115,16 @@ export default function ClientHome() {
             </Pressable>
           ))}
         </View>
+
+        <Pressable onPress={() => void onChooseLanguage()} hitSlop={8} style={styles.signOut}>
+          <Ionicons name="language-outline" size={16} color={themeColors.textMuted} />
+          <Text variant="bodySm" tone="textMuted">
+            {t('common.language')}
+          </Text>
+          <Text variant="bodySm" tone="textMuted" style={{ opacity: 0.7 }}>
+            {LANGUAGES.find((l) => l.code === language)?.label ?? language}
+          </Text>
+        </Pressable>
 
         {/* Temporary sign-out (until a real settings screen lands) */}
         <Pressable onPress={() => void signOut()} hitSlop={8} style={styles.signOut}>

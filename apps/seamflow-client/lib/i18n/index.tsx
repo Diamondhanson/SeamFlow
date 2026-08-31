@@ -88,7 +88,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (!cancelled && (stored === 'en' || stored === 'fr')) setLang(stored);
+        // Validated against LANGUAGES, not a hardcoded pair: this guard used
+        // to be `stored === 'en' || stored === 'fr'`, which silently rejected
+        // every language added after it. The choice saved, then was thrown
+        // away on the next launch and the device locale won instead.
+        if (!cancelled && LANGUAGES.some((l) => l.code === stored)) {
+          setLang(stored as LanguageCode);
+        }
       } finally {
         if (!cancelled) setReady(true);
       }

@@ -66,7 +66,11 @@ export function Nav({ d, lang, onHome = true }: { d: Dict; lang: Lang; onHome?: 
         </div>
 
         <div className="flex items-center gap-3">
-          <LangToggle lang={lang} className="hidden sm:inline-flex" />
+          {/* Hidden on phones on purpose: at 375px the header already has
+              to fit the wordmark and a CTA that wraps in the longer
+              languages, and a third control pushes it to three lines. The
+              footer toggle is the mobile route. */}
+          <LangToggle lang={lang} className="hidden sm:block" />
           <a
             href={WEB_APP_URL || `${home}#get-app`}
             className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-primaryDeep"

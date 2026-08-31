@@ -23,6 +23,7 @@ export const common = {
     yes: 'Yes',
     no: 'No',
     optional: 'optional',
+    language: 'Language',
   },
   fr: {
     save: 'Enregistrer',
@@ -46,6 +47,7 @@ export const common = {
     yes: 'Oui',
     no: 'Non',
     optional: 'facultatif',
+    language: 'Langue',
   },
   pt: {
     save: 'Guardar',
@@ -69,6 +71,7 @@ export const common = {
     yes: 'Sim',
     no: 'Não',
     optional: 'opcional',
+    language: 'Idioma',
   },
   es: {
     save: 'Guardar',
@@ -92,6 +95,7 @@ export const common = {
     yes: 'Sí',
     no: 'No',
     optional: 'opcional',
+    language: 'Idioma',
   },
   sw: {
     save: 'Hifadhi',
@@ -115,5 +119,6 @@ export const common = {
     yes: 'Ndiyo',
     no: 'Hapana',
     optional: 'si lazima',
+    language: 'Lugha',
   },
 } as const;
