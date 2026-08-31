@@ -17,7 +17,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, useFieldFocus, spacing } from '@seamflow/ui';
+import { Text, activeFontFamilies, spacing, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { ALL_COUNTRIES, flagEmoji } from '../lib/countries';
 
 export interface CountryPickerModalProps {
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: activeFontFamilies.body,
     fontSize: 15,
     padding: 0,
   },

@@ -16,7 +16,7 @@
 
 import { forwardRef } from 'react';
 import { I18nManager, Text as RNText, type TextProps as RNTextProps, type TextStyle } from 'react-native';
-import { typeScale, type TypeVariant } from '../tokens/typography';
+import { typeScale, arabicTypeScale, type TypeVariant } from '../tokens/typography';
 import type { SemanticColors } from '../tokens/colors';
 import { useAtelierTheme } from '../theme/ThemeProvider';
 
@@ -35,7 +35,10 @@ export const Text = forwardRef<RNText, TextProps>(function Text(
 ) {
   const theme = useAtelierTheme();
   const effectiveVariant: TypeVariant = numeric ? 'mono' : variant;
-  const v = typeScale[effectiveVariant];
+  // Arabic needs its own families, zero tracking and more leading — see
+  // arabicTypeScale. Direction only changes across an app restart, so which
+  // scale applies is fixed for the lifetime of the process.
+  const v = (I18nManager.isRTL ? arabicTypeScale : typeScale)[effectiveVariant];
   const color = theme.colors[tone];
 
   // Build the base style explicitly typed so the `readonly` tuple in

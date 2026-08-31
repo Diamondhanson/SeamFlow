@@ -10,7 +10,7 @@ import { createElement } from 'react';
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme } from '@seamflow/ui';
 import { useTranslation } from '../lib/i18n';
 import { radii, spacing, useThemeColors } from '../lib/theme';
 import { isWeb } from '../lib/platform-capabilities';
@@ -96,7 +96,7 @@ export function DateField({
                 outline: 'none',
                 background: 'transparent',
                 color: colors.text,
-                fontFamily: 'Inter_400Regular',
+                fontFamily: activeFontFamilies.body,
                 fontSize: 15,
               },
             })}

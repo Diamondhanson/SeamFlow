@@ -19,7 +19,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import type { CountryCode } from 'libphonenumber-js';
 import {
   ensureContactsPermission,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     height: 44,
     marginBottom: spacing.sm,
   },
-  searchInput: { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 15, padding: 0 },
+  searchInput: { flex: 1, fontFamily: activeFontFamilies.body, fontSize: 15, padding: 0 },
   list: { flex: 1 },
   empty: { textAlign: 'center', marginTop: spacing.xl },
   row: {

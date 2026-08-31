@@ -19,7 +19,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
 import { useSummarizeNotes } from '../lib/ai';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     minHeight: 140,
     borderWidth: 1,
     padding: spacing.md,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: activeFontFamilies.body,
     fontSize: 15,
     textAlignVertical: 'top',
   },

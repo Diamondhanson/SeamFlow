@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { TIMEZONES } from '../lib/timezones';
 import { useTranslation } from '../lib/i18n';
 import { spacing } from '../lib/theme';
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     height: 44,
     marginBottom: spacing.sm,
   },
-  searchInput: { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 15, padding: 0 },
+  searchInput: { flex: 1, fontFamily: activeFontFamilies.body, fontSize: 15, padding: 0 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

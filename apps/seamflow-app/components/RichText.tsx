@@ -11,7 +11,7 @@
 // ============================================================================
 
 import { StyleSheet } from 'react-native';
-import { Text, useAtelierTheme, type TextProps } from '@seamflow/ui';
+import { Text, activeFontFamilies, type TextProps, useAtelierTheme } from '@seamflow/ui';
 
 /** Remove markdown markers, keeping the inner text — for plain-text targets
  *  (captions) and TTS, so the voice never reads symbols aloud. */
@@ -67,5 +67,5 @@ export function RichText({
 
 const styles = StyleSheet.create({
   // Custom fonts don't synthesize bold on Android — use the semibold face.
-  em: { fontFamily: 'Inter_600SemiBold' },
+  em: { fontFamily: activeFontFamilies.bodySemibold },
 });

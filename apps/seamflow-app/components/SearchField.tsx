@@ -8,7 +8,7 @@
 
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAtelierTheme, spacing, useFieldFocus } from '@seamflow/ui';
+import { activeFontFamilies, spacing, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { useTranslation } from '../lib/i18n';
 
 export function SearchField({
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: activeFontFamilies.body,
     fontSize: 16,
     padding: 0,
   },

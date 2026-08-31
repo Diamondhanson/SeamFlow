@@ -1,3 +1,5 @@
+import { I18nManager } from 'react-native';
+
 // ============================================================================
 // Type system — three families, one scale.
 //
@@ -93,4 +95,95 @@ export const typeScale = {
   },
 } as const;
 
+/** The shape every type-scale entry satisfies. */
+export interface TypeStyle {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  letterSpacing: number;
+  textTransform?: 'uppercase';
+  /**
+   * Mirrors React Native's `FontVariant`. Spelled out rather than imported so
+   * this token file stays free of a react-native dependency — but widening it
+   * to `string[]` would make the Text primitive stop compiling, which is how
+   * this got noticed.
+   */
+  fontVariant?: readonly (
+    | 'small-caps'
+    | 'oldstyle-nums'
+    | 'lining-nums'
+    | 'tabular-nums'
+    | 'proportional-nums'
+  )[];
+}
+
+// ── Arabic ──────────────────────────────────────────────────────────────────
+// None of the three Latin families above has Arabic coverage, so Arabic text
+// would fall back to whatever the OS supplies (Geeza Pro on iOS, Noto Naskh on
+// Android) — losing the brand type identity entirely, and mixing fonts within a
+// line wherever a Latin fragment appears.
+//
+// Mono is deliberately NOT swapped. Digits stay Western, so JetBrains Mono
+// still covers them and the tabular alignment that keeps chest / waist / hips
+// lined up in a column survives.
+export const arabicFontFamilies = {
+  display: 'NotoKufiArabic_600SemiBold',
+  displayBold: 'NotoKufiArabic_700Bold',
+  body: 'IBMPlexSansArabic_400Regular',
+  bodyMedium: 'IBMPlexSansArabic_500Medium',
+  bodySemibold: 'IBMPlexSansArabic_600SemiBold',
+  mono: 'JetBrainsMono_500Medium',
+} as const;
+
+/** Latin family name -> its Arabic counterpart. */
+const ARABIC_EQUIVALENT: Record<string, string> = {
+  [fontFamilies.display]: arabicFontFamilies.display,
+  [fontFamilies.displayBold]: arabicFontFamilies.displayBold,
+  [fontFamilies.body]: arabicFontFamilies.body,
+  [fontFamilies.bodyMedium]: arabicFontFamilies.bodyMedium,
+  [fontFamilies.bodySemibold]: arabicFontFamilies.bodySemibold,
+};
+
+/**
+ * The same scale, adjusted for Arabic. Derived from `typeScale` rather than
+ * written out, so a change to the Latin scale cannot silently skip Arabic.
+ *
+ * Two adjustments, both required rather than stylistic:
+ *
+ *  - `letterSpacing: 0`. Arabic is cursive — the letters within a word are
+ *    joined. Negative tracking (display, h1) crushes those joins; positive
+ *    tracking (label, button) can break the connections outright on Android.
+ *    That is a rendering defect, not a matter of taste.
+ *  - `lineHeight` x1.15. Arabic ascenders, descenders and diacritics need more
+ *    vertical room than Latin at the same nominal size, and `label` at 12/16
+ *    is already tight.
+ *
+ * `textTransform: 'uppercase'` on `label` is left as-is: Arabic has no case, so
+ * it is a harmless no-op, and stripping it would only add a branch.
+ */
+export const arabicTypeScale = Object.fromEntries(
+  Object.entries(typeScale).map(([name, v]) => [
+    name,
+    {
+      ...v,
+      fontFamily: ARABIC_EQUIVALENT[v.fontFamily] ?? v.fontFamily,
+      letterSpacing: 0,
+      lineHeight: Math.round(v.lineHeight * 1.15),
+    },
+  ]),
+) as Record<keyof typeof typeScale, TypeStyle>;
+
 export type TypeVariant = keyof typeof typeScale;
+
+/**
+ * The families actually in force for this launch, already resolved for the
+ * current writing direction.
+ *
+ * `<Text>` gets this for free via the type scale. These exist for the handful
+ * of places that cannot use `<Text>` — mostly `TextInput`, plus the markdown
+ * renderer — and which previously hardcoded `'Inter_400Regular'`, silently
+ * opting themselves out of any font decision made at the token layer.
+ */
+export const activeFontFamilies: Record<keyof typeof fontFamilies, string> = I18nManager.isRTL
+  ? arabicFontFamilies
+  : fontFamilies;

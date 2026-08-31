@@ -16,6 +16,15 @@ import {
   Inter_600SemiBold,
 } from '@expo-google-fonts/inter';
 import { JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
+import {
+  NotoKufiArabic_600SemiBold,
+  NotoKufiArabic_700Bold,
+} from '@expo-google-fonts/noto-kufi-arabic';
+import {
+  IBMPlexSansArabic_400Regular,
+  IBMPlexSansArabic_500Medium,
+  IBMPlexSansArabic_600SemiBold,
+} from '@expo-google-fonts/ibm-plex-sans-arabic';
 import { Figtree_400Regular, Figtree_500Medium } from '@expo-google-fonts/figtree';
 import { AtelierThemeProvider } from '@seamflow/ui';
 import { AuthProvider } from '../lib/auth-context';
@@ -69,6 +78,13 @@ function ThemedRoot() {
     Inter_500Medium,
     Inter_600SemiBold,
     JetBrainsMono_500Medium,
+    // Loaded unconditionally, not only under RTL: a tailor whose business name
+    // or client names are in Arabic needs these glyphs on an English UI too.
+    NotoKufiArabic_600SemiBold,
+    NotoKufiArabic_700Bold,
+    IBMPlexSansArabic_400Regular,
+    IBMPlexSansArabic_500Medium,
+    IBMPlexSansArabic_600SemiBold,
     Figtree_400Regular,
     Figtree_500Medium,
   });

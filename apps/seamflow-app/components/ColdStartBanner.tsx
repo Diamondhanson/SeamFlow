@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { radii, spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
@@ -66,5 +66,5 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   textCol: { flex: 1 },
-  title: { fontFamily: 'Inter_600SemiBold' },
+  title: { fontFamily: activeFontFamilies.bodySemibold },
 });

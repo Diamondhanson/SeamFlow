@@ -9,7 +9,7 @@
 // ============================================================================
 
 import Markdown from 'react-native-markdown-display';
-import { useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, useAtelierTheme } from '@seamflow/ui';
 
 export function MarkdownText({ children }: { children: string }) {
   const { colors } = useAtelierTheme();
@@ -18,29 +18,29 @@ export function MarkdownText({ children }: { children: string }) {
       style={{
         body: {
           color: colors.text,
-          fontFamily: 'Inter_400Regular',
+          fontFamily: activeFontFamilies.body,
           fontSize: 15,
           lineHeight: 21,
         },
         paragraph: { marginTop: 0, marginBottom: 6 },
-        strong: { fontFamily: 'Inter_600SemiBold', color: colors.primary },
+        strong: { fontFamily: activeFontFamilies.bodySemibold, color: colors.primary },
         em: { fontStyle: 'italic' },
         heading1: {
-          fontFamily: 'Inter_600SemiBold',
+          fontFamily: activeFontFamilies.bodySemibold,
           fontSize: 17,
           lineHeight: 22,
           marginTop: 4,
           marginBottom: 4,
         },
         heading2: {
-          fontFamily: 'Inter_600SemiBold',
+          fontFamily: activeFontFamilies.bodySemibold,
           fontSize: 16,
           lineHeight: 21,
           marginTop: 4,
           marginBottom: 4,
         },
         heading3: {
-          fontFamily: 'Inter_600SemiBold',
+          fontFamily: activeFontFamilies.bodySemibold,
           fontSize: 15,
           lineHeight: 20,
           marginTop: 4,
@@ -52,7 +52,7 @@ export function MarkdownText({ children }: { children: string }) {
         bullet_list_icon: { color: colors.textMuted },
         ordered_list_icon: { color: colors.textMuted },
         code_inline: {
-          fontFamily: 'JetBrainsMono_500Medium',
+          fontFamily: activeFontFamilies.mono,
           fontSize: 13,
           backgroundColor: colors.surface,
           color: colors.text,
@@ -61,7 +61,7 @@ export function MarkdownText({ children }: { children: string }) {
         code_block: { backgroundColor: colors.surface, borderColor: colors.hairline },
         table: { borderColor: colors.hairline, borderRadius: 6 },
         thead: {},
-        th: { padding: 6, fontFamily: 'Inter_600SemiBold' },
+        th: { padding: 6, fontFamily: activeFontFamilies.bodySemibold },
         tr: { borderColor: colors.hairline },
         td: { padding: 6 },
         hr: { backgroundColor: colors.hairline },

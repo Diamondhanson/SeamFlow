@@ -28,7 +28,7 @@ import {
   getCountryCallingCode,
   type CountryCode,
 } from 'libphonenumber-js';
-import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { useMe } from '../lib/queries';
 import { useTranslation } from '../lib/i18n';
 import { spacing } from '../lib/theme';
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: activeFontFamilies.body,
     fontSize: 16,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     height: 44,
     marginBottom: spacing.sm,
   },
-  searchInput: { flex: 1, fontFamily: 'Inter_400Regular', fontSize: 15, padding: 0 },
+  searchInput: { flex: 1, fontFamily: activeFontFamilies.body, fontSize: 15, padding: 0 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

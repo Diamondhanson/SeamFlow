@@ -20,7 +20,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
 import type { AiDescribeMode } from '@seamflow/schemas';
 import { api } from '../lib/api';
 import { stripMarkdown } from './RichText';
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     minHeight: 120,
     borderWidth: 1,
     padding: spacing.md,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: activeFontFamilies.body,
     fontSize: 15,
     textAlignVertical: 'top',
   },
