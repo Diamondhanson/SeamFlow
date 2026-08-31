@@ -21,8 +21,13 @@ export const PhoneVerifyStartSchema = z.object({
   phone: z.string().min(4).max(32),
   /** Interpret a local-format number against this country. ISO-3166 alpha-2. */
   defaultCountry: z.string().length(2).optional(),
-  /** Template language, where the provider supports localised templates. */
-  locale: z.enum(['en', 'fr']).optional(),
+  /**
+   * Template language, where the provider supports localised templates.
+   * Mirrors the apps' LanguageCode. Nothing calls this yet — no OTP provider
+   * is chosen — but a narrower enum here would reject the app's own locale the
+   * day one is.
+   */
+  locale: z.enum(['en', 'fr', 'pt', 'es', 'sw']).optional(),
   /** Defaults to WhatsApp; SMS is the fallback for numbers without WhatsApp. */
   channel: OtpChannelSchema.optional(),
 });

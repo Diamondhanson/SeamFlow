@@ -38,7 +38,7 @@ export interface OtpSendInput {
   code: string;
   channel: OtpChannel;
   /** Drives template selection for providers that localise. */
-  locale: 'en' | 'fr';
+  locale: 'en' | 'fr' | 'pt' | 'es' | 'sw';
   /** Minutes until the code expires — most WhatsApp OTP templates show this. */
   ttlMinutes: number;
 }

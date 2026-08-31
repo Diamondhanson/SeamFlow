@@ -96,7 +96,11 @@ export class PhoneVerificationService {
   async start(
     userId: string,
     rawPhone: string,
-    opts: { locale?: 'en' | 'fr'; channel?: OtpChannel; defaultCountry?: CountryCode } = {},
+    opts: {
+      locale?: 'en' | 'fr' | 'pt' | 'es' | 'sw';
+      channel?: OtpChannel;
+      defaultCountry?: CountryCode;
+    } = {},
   ): Promise<{ phone: string; channel: OtpChannel; expiresAt: Date; ttlMinutes: number }> {
     if (!this.isEnabled) {
       throw new ServiceUnavailableException(

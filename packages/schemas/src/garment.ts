@@ -9,8 +9,13 @@
 //   templates:    "all garments. " · "any" · "all types" · trouser
 //
 // That is free text drifting apart, and it is why 0 of 9 tailors have usable
-// specialties. So: stable KEYS, with EN + FR labels attached — the same pattern
-// the measurement vocabulary already uses.
+// specialties. So: stable KEYS, with a label per supported language attached —
+// the same pattern the measurement vocabulary already uses.
+//
+// West African garment names (agbada, kaba, boubou, dashiki, ankara, buba,
+// wrapper) are NOT translated. They are the names of the garments, not
+// descriptions of them, and inventing a Spanish or Swahili word for an agbada
+// would make the taxonomy worse, not more accessible.
 //
 // WHAT READS THIS
 //   · tailor specialties        (what I make)
@@ -40,20 +45,65 @@ export const GarmentCategorySchema = z.enum([
 ]);
 export type GarmentCategory = z.infer<typeof GarmentCategorySchema>;
 
-export interface GarmentTypeDef {
+/**
+ * Languages the taxonomy carries a label for. Mirrors the apps' LanguageCode.
+ * Widening this is a compile error on every entry below until each one is
+ * translated, which is the point — a half-translated taxonomy silently shows
+ * English to the people it was widened for.
+ */
+export type GarmentLang = 'en' | 'fr' | 'pt' | 'es' | 'sw';
+
+export type GarmentTypeDef = {
   key: string;
   category: GarmentCategory;
-  en: string;
-  fr: string;
-}
+} & Record<GarmentLang, string>;
 
-export const GARMENT_CATEGORY_LABELS: Record<GarmentCategory, { en: string; fr: string }> = {
-  traditional: { en: 'Traditional & occasion', fr: 'Traditionnel et cérémonie' },
-  womens: { en: "Women's wear", fr: 'Vêtements femme' },
-  mens: { en: "Men's tailoring", fr: 'Tailleur homme' },
-  bridal: { en: 'Bridal & wedding', fr: 'Mariage' },
-  kids: { en: 'Children', fr: 'Enfants' },
-  other: { en: 'Other work', fr: 'Autres travaux' },
+export const GARMENT_CATEGORY_LABELS: Record<
+  GarmentCategory,
+  Record<GarmentLang, string>
+> = {
+  traditional: {
+    en: 'Traditional & occasion',
+    fr: 'Traditionnel et cérémonie',
+    pt: 'Tradicional e cerimónia',
+    es: 'Tradicional y de ceremonia',
+    sw: 'Kiasili na sherehe',
+  },
+  womens: {
+    en: "Women's wear",
+    fr: 'Vêtements femme',
+    pt: 'Vestuário feminino',
+    es: 'Ropa de mujer',
+    sw: 'Mavazi ya wanawake',
+  },
+  mens: {
+    en: "Men's tailoring",
+    fr: 'Tailleur homme',
+    pt: 'Alfaiataria masculina',
+    es: 'Sastrería de hombre',
+    sw: 'Ushonaji wa wanaume',
+  },
+  bridal: {
+    en: 'Bridal & wedding',
+    fr: 'Mariage',
+    pt: 'Noivas e casamento',
+    es: 'Novias y boda',
+    sw: 'Bibi harusi na harusi',
+  },
+  kids: {
+    en: 'Children',
+    fr: 'Enfants',
+    pt: 'Crianças',
+    es: 'Niños',
+    sw: 'Watoto',
+  },
+  other: {
+    en: 'Other work',
+    fr: 'Autres travaux',
+    pt: 'Outros trabalhos',
+    es: 'Otros trabajos',
+    sw: 'Kazi nyingine',
+  },
 };
 
 /**
@@ -64,45 +114,45 @@ export const GARMENT_CATEGORY_LABELS: Record<GarmentCategory, { en: string; fr: 
  */
 export const GARMENT_TYPES: GarmentTypeDef[] = [
   // ---- Traditional & occasion ---------------------------------------------
-  { key: 'kaftan', category: 'traditional', en: 'Kaftan', fr: 'Caftan' },
-  { key: 'agbada', category: 'traditional', en: 'Agbada', fr: 'Agbada' },
-  { key: 'senator', category: 'traditional', en: 'Senator', fr: 'Sénateur' },
-  { key: 'boubou', category: 'traditional', en: 'Boubou', fr: 'Boubou' },
-  { key: 'kaba', category: 'traditional', en: 'Kaba', fr: 'Kaba' },
-  { key: 'dashiki', category: 'traditional', en: 'Dashiki', fr: 'Dashiki' },
-  { key: 'ankara_set', category: 'traditional', en: 'Ankara set', fr: 'Ensemble ankara' },
-  { key: 'buba_wrapper', category: 'traditional', en: 'Buba & wrapper', fr: 'Buba et pagne' },
+  { key: 'kaftan', category: 'traditional', en: 'Kaftan', fr: 'Caftan', pt: 'Cafetã', es: 'Caftán', sw: 'Kaftani' },
+  { key: 'agbada', category: 'traditional', en: 'Agbada', fr: 'Agbada', pt: 'Agbada', es: 'Agbada', sw: 'Agbada' },
+  { key: 'senator', category: 'traditional', en: 'Senator', fr: 'Sénateur', pt: 'Senator', es: 'Senator', sw: 'Senator' },
+  { key: 'boubou', category: 'traditional', en: 'Boubou', fr: 'Boubou', pt: 'Boubou', es: 'Boubou', sw: 'Boubou' },
+  { key: 'kaba', category: 'traditional', en: 'Kaba', fr: 'Kaba', pt: 'Kaba', es: 'Kaba', sw: 'Kaba' },
+  { key: 'dashiki', category: 'traditional', en: 'Dashiki', fr: 'Dashiki', pt: 'Dashiki', es: 'Dashiki', sw: 'Dashiki' },
+  { key: 'ankara_set', category: 'traditional', en: 'Ankara set', fr: 'Ensemble ankara', pt: 'Conjunto ankara', es: 'Conjunto ankara', sw: 'Seti ya ankara' },
+  { key: 'buba_wrapper', category: 'traditional', en: 'Buba & wrapper', fr: 'Buba et pagne', pt: 'Buba e pano', es: 'Buba y wrapper', sw: 'Buba na wrapper' },
 
   // ---- Women's wear --------------------------------------------------------
-  { key: 'gown', category: 'womens', en: 'Gown', fr: 'Robe longue' },
-  { key: 'dress', category: 'womens', en: 'Dress', fr: 'Robe' },
-  { key: 'skirt', category: 'womens', en: 'Skirt', fr: 'Jupe' },
-  { key: 'blouse', category: 'womens', en: 'Blouse', fr: 'Chemisier' },
-  { key: 'jumpsuit', category: 'womens', en: 'Jumpsuit', fr: 'Combinaison' },
-  { key: 'two_piece_set', category: 'womens', en: 'Two-piece set', fr: 'Ensemble deux pièces' },
-  { key: 'wrapper_set', category: 'womens', en: 'Wrapper set', fr: 'Ensemble pagne' },
+  { key: 'gown', category: 'womens', en: 'Gown', fr: 'Robe longue', pt: 'Vestido comprido', es: 'Vestido largo', sw: 'Gauni refu' },
+  { key: 'dress', category: 'womens', en: 'Dress', fr: 'Robe', pt: 'Vestido', es: 'Vestido', sw: 'Gauni' },
+  { key: 'skirt', category: 'womens', en: 'Skirt', fr: 'Jupe', pt: 'Saia', es: 'Falda', sw: 'Sketi' },
+  { key: 'blouse', category: 'womens', en: 'Blouse', fr: 'Chemisier', pt: 'Blusa', es: 'Blusa', sw: 'Blauzi' },
+  { key: 'jumpsuit', category: 'womens', en: 'Jumpsuit', fr: 'Combinaison', pt: 'Macacão', es: 'Enterizo', sw: 'Ovaroli' },
+  { key: 'two_piece_set', category: 'womens', en: 'Two-piece set', fr: 'Ensemble deux pièces', pt: 'Conjunto de duas peças', es: 'Conjunto de dos piezas', sw: 'Seti ya vipande viwili' },
+  { key: 'wrapper_set', category: 'womens', en: 'Wrapper set', fr: 'Ensemble pagne', pt: 'Conjunto de pano', es: 'Conjunto de wrapper', sw: 'Seti ya wrapper' },
 
   // ---- Men's tailoring -----------------------------------------------------
-  { key: 'suit', category: 'mens', en: 'Suit', fr: 'Costume' },
-  { key: 'blazer', category: 'mens', en: 'Blazer', fr: 'Blazer' },
-  { key: 'shirt', category: 'mens', en: 'Shirt', fr: 'Chemise' },
-  { key: 'trouser', category: 'mens', en: 'Trousers', fr: 'Pantalon' },
-  { key: 'waistcoat', category: 'mens', en: 'Waistcoat', fr: 'Gilet' },
+  { key: 'suit', category: 'mens', en: 'Suit', fr: 'Costume', pt: 'Fato', es: 'Traje', sw: 'Suti' },
+  { key: 'blazer', category: 'mens', en: 'Blazer', fr: 'Blazer', pt: 'Blazer', es: 'Saco', sw: 'Blazer' },
+  { key: 'shirt', category: 'mens', en: 'Shirt', fr: 'Chemise', pt: 'Camisa', es: 'Camisa', sw: 'Shati' },
+  { key: 'trouser', category: 'mens', en: 'Trousers', fr: 'Pantalon', pt: 'Calças', es: 'Pantalón', sw: 'Suruali' },
+  { key: 'waistcoat', category: 'mens', en: 'Waistcoat', fr: 'Gilet', pt: 'Colete', es: 'Chaleco', sw: 'Kizibao' },
 
   // ---- Bridal & wedding ----------------------------------------------------
-  { key: 'wedding_gown', category: 'bridal', en: 'Wedding gown', fr: 'Robe de mariée' },
-  { key: 'reception_dress', category: 'bridal', en: 'Reception dress', fr: 'Robe de réception' },
-  { key: 'bridesmaid', category: 'bridal', en: 'Bridesmaid outfit', fr: 'Tenue de demoiselle d’honneur' },
-  { key: 'groom_outfit', category: 'bridal', en: 'Groom’s outfit', fr: 'Tenue du marié' },
+  { key: 'wedding_gown', category: 'bridal', en: 'Wedding gown', fr: 'Robe de mariée', pt: 'Vestido de noiva', es: 'Vestido de novia', sw: 'Gauni la harusi' },
+  { key: 'reception_dress', category: 'bridal', en: 'Reception dress', fr: 'Robe de réception', pt: 'Vestido de receção', es: 'Vestido de recepción', sw: 'Gauni la mapokezi' },
+  { key: 'bridesmaid', category: 'bridal', en: 'Bridesmaid outfit', fr: 'Tenue de demoiselle d’honneur', pt: 'Traje de dama de honor', es: 'Vestido de dama de honor', sw: 'Vazi la msindikizaji' },
+  { key: 'groom_outfit', category: 'bridal', en: 'Groom’s outfit', fr: 'Tenue du marié', pt: 'Traje do noivo', es: 'Traje del novio', sw: 'Vazi la bwana harusi' },
 
   // ---- Children ------------------------------------------------------------
-  { key: 'kids_outfit', category: 'kids', en: 'Children’s outfit', fr: 'Tenue enfant' },
-  { key: 'school_uniform', category: 'kids', en: 'School uniform', fr: 'Uniforme scolaire' },
+  { key: 'kids_outfit', category: 'kids', en: 'Children’s outfit', fr: 'Tenue enfant', pt: 'Roupa de criança', es: 'Ropa de niño', sw: 'Vazi la mtoto' },
+  { key: 'school_uniform', category: 'kids', en: 'School uniform', fr: 'Uniforme scolaire', pt: 'Uniforme escolar', es: 'Uniforme escolar', sw: 'Sare ya shule' },
 
   // ---- Other ---------------------------------------------------------------
-  { key: 'work_uniform', category: 'other', en: 'Work uniform', fr: 'Tenue de travail' },
-  { key: 'alteration', category: 'other', en: 'Alterations & repairs', fr: 'Retouches et réparations' },
-  { key: 'other', category: 'other', en: 'Something else', fr: 'Autre chose' },
+  { key: 'work_uniform', category: 'other', en: 'Work uniform', fr: 'Tenue de travail', pt: 'Farda de trabalho', es: 'Uniforme de trabajo', sw: 'Sare ya kazi' },
+  { key: 'alteration', category: 'other', en: 'Alterations & repairs', fr: 'Retouches et réparations', pt: 'Arranjos e reparações', es: 'Arreglos y reparaciones', sw: 'Marekebisho na matengenezo' },
+  { key: 'other', category: 'other', en: 'Something else', fr: 'Autre chose', pt: 'Outra coisa', es: 'Otra cosa', sw: 'Kitu kingine' },
 ];
 
 export const GARMENT_KEYS = GARMENT_TYPES.map((g) => g.key);
@@ -119,7 +169,7 @@ export function garmentByKey(key: string | null | undefined): GarmentTypeDef | n
 
 /** The label for a key in the given language, falling back to the raw value so
  *  legacy free-text garment types still render as something readable. */
-export function garmentLabel(key: string | null | undefined, lang: 'en' | 'fr'): string {
+export function garmentLabel(key: string | null | undefined, lang: GarmentLang): string {
   if (!key) return '';
   const def = BY_KEY.get(key);
   return def ? def[lang] : key;
