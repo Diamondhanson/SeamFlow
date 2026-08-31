@@ -17,7 +17,7 @@
 // ============================================================================
 
 import { forwardRef, type ReactNode } from 'react';
-import { I18nManager, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
