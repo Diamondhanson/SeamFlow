@@ -58,3 +58,8 @@ android/build/
 # Supabase CLI
 supabase/.temp/
 supabase/.branches/
+
+# Raw screenshot dumps pulled off a phone. The curated Play Store sets live in
+# play-ready-screenshots/ and play-ready-tablet/; these are the source frames
+# and are far too big to keep in history.
+phone screenshots. /
