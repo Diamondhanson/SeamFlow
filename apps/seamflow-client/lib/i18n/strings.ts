@@ -21,7 +21,7 @@ import { chat } from './locales/chat';
 import { notifications } from './locales/notifications';
 import { requests } from './locales/requests';
 
-export type LanguageCode = 'en' | 'fr' | 'pt';
+export type LanguageCode = 'en' | 'fr' | 'pt' | 'es' | 'sw';
 
 export const LANGUAGES: { code: LanguageCode; label: string }[] = [
   { code: 'en', label: 'English' },
@@ -29,6 +29,8 @@ export const LANGUAGES: { code: LanguageCode; label: string }[] = [
   // Endonyms, not English names: a Portuguese speaker scanning a language list
   // is looking for "Português", not "Portuguese".
   { code: 'pt', label: 'Português' },
+  { code: 'es', label: 'Español' },
+  { code: 'sw', label: 'Kiswahili' },
 ];
 
 /**
@@ -69,6 +71,8 @@ export const translations = {
   en: forLanguage('en'),
   fr: forLanguage('fr'),
   pt: forLanguage('pt'),
+  es: forLanguage('es'),
+  sw: forLanguage('sw'),
 };
 
 /** English is the reference shape; every other language must match it. */

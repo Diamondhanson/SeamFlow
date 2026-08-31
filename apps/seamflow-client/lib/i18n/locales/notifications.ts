@@ -121,4 +121,78 @@ export const notifications = {
     type_security_phone_verified: 'O seu número de telemóvel está verificado',
     type_moderation_outcome: 'Analisámos a sua denúncia',
   },
+  es: {
+    title: 'Notificaciones',
+    empty: 'Nada todavía',
+    emptyBody: 'Las novedades sobre sus pedidos y mensajes aparecerán aquí.',
+    markAllRead: 'Marcar todo como leído',
+    unreadOne: '1 sin leer',
+    unreadMany: '{count} sin leer',
+    justNow: 'Ahora mismo',
+    loadFailed:
+      'No pudimos cargar sus notificaciones. Revise su conexión e intente de nuevo.',
+    inboxSection: 'En su bandeja',
+    inboxSectionHint:
+      'Lo que queda registrado aquí. Desactivar uno detiene la notificación y el registro en la bandeja.',
+    type_enquiry_received_label: 'Nuevas consultas',
+
+    // ── al cliente ─────────────────────────────────────────────────────────
+    type_quote_received: '{tailorName} le envió una cotización por “{orderName}”',
+    type_invoice_issued: 'Factura lista para “{orderName}”',
+    type_payment_confirmed: 'Pago recibido por “{orderName}” — gracias',
+    type_order_ready_for_fitting: '“{orderName}” está lista para la prueba',
+    type_order_ready_for_pickup: '“{orderName}” está lista para recoger',
+    type_order_delivered: '“{orderName}” fue entregada',
+    type_order_delivery_date_moved: 'Nueva fecha para “{orderName}”: {date}',
+    type_order_cancelled_by_tailor: '{tailorName} canceló “{orderName}”',
+
+    // ── al sastre ──────────────────────────────────────────────────────────
+    type_enquiry_received: 'Nueva consulta de {clientName}',
+    type_quote_accepted: '{clientName} aceptó su cotización por “{orderName}”',
+    type_quote_declined: '{clientName} rechazó su cotización por “{orderName}”',
+    type_payment_received: '{clientName} pagó “{orderName}”',
+    type_order_claimed: '{clientName} reclamó “{orderName}”',
+
+    // ── ambos lados ────────────────────────────────────────────────────────
+    type_security_new_device: 'Nuevo inicio de sesión en un dispositivo nuevo',
+    type_security_phone_verified: 'Su número de teléfono está verificado',
+    type_moderation_outcome: 'Revisamos su reporte',
+  },
+  sw: {
+    title: 'Arifa',
+    empty: 'Bado hakuna kitu',
+    emptyBody: 'Habari kuhusu maagizo na ujumbe wako zitaonekana hapa.',
+    markAllRead: 'Weka zote kuwa zimesomwa',
+    unreadOne: '1 haijasomwa',
+    unreadMany: '{count} hazijasomwa',
+    justNow: 'Sasa hivi',
+    loadFailed:
+      'Hatukuweza kupakia arifa zako. Angalia muunganisho wako kisha ujaribu tena.',
+    inboxSection: 'Kwenye kikasha chako',
+    inboxSectionHint:
+      'Kinachohifadhiwa hapa. Kuzima kimoja kunazuia arifa na pia kumbukumbu ya kikasha.',
+    type_enquiry_received_label: 'Maswali mapya',
+
+    // ── kwa mteja ──────────────────────────────────────────────────────────
+    type_quote_received: '{tailorName} amekutumia bei ya “{orderName}”',
+    type_invoice_issued: 'Ankara iko tayari kwa “{orderName}”',
+    type_payment_confirmed: 'Malipo yamepokelewa kwa “{orderName}” — asante',
+    type_order_ready_for_fitting: '“{orderName}” iko tayari kupimwa',
+    type_order_ready_for_pickup: '“{orderName}” iko tayari kuchukuliwa',
+    type_order_delivered: '“{orderName}” imekabidhiwa',
+    type_order_delivery_date_moved: 'Tarehe mpya ya “{orderName}”: {date}',
+    type_order_cancelled_by_tailor: '{tailorName} ameghairi “{orderName}”',
+
+    // ── kwa mshonaji ───────────────────────────────────────────────────────
+    type_enquiry_received: 'Swali jipya kutoka kwa {clientName}',
+    type_quote_accepted: '{clientName} amekubali bei yako ya “{orderName}”',
+    type_quote_declined: '{clientName} amekataa bei yako ya “{orderName}”',
+    type_payment_received: '{clientName} amelipa “{orderName}”',
+    type_order_claimed: '{clientName} amedai “{orderName}”',
+
+    // ── pande zote mbili ───────────────────────────────────────────────────
+    type_security_new_device: 'Kuingia kwa mara ya kwanza kwenye kifaa kipya',
+    type_security_phone_verified: 'Namba yako ya simu imethibitishwa',
+    type_moderation_outcome: 'Tumepitia ripoti yako',
+  },
 };

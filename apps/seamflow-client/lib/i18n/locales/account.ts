@@ -141,4 +141,98 @@ export const account = {
 
     deleteAccountRow: 'Eliminar a minha conta',
   },
+  es: {
+    deleteTitle: 'Eliminar mi cuenta',
+    warningBody:
+      'Esto borra su cuenta de SeamFlow. No pasa nada durante {days} días: puede cambiar de opinión en cualquier momento antes de eso.',
+
+    whatGoesTitle: 'Qué se borra',
+    goesRequests: 'Sus solicitudes y las ofertas que le enviaron los sastres',
+    goesMessages: 'Sus mensajes con los sastres',
+    goesMeasurements: 'Sus medidas guardadas',
+    goesAccount: 'Su acceso: ya no podrá iniciar sesión',
+
+    takeItTitle: 'Llévese primero una copia',
+    takeItBody:
+      'Guarde una copia de todo antes de que desaparezca. Pasados los {days} días, no podemos recuperarlo.',
+    exportAction: 'Descargar mis datos',
+    exportTitle: 'Sus datos de SeamFlow',
+    exportSavedTitle: 'Guardado',
+    exportSavedBody: 'El archivo con sus datos se guardó en este dispositivo.',
+
+    confirmItTitle: 'Confirme que es usted',
+    passwordLabel: 'Su contraseña',
+    passwordPlaceholder: 'Escriba su contraseña',
+    reauthUnavailable:
+      'Eliminar una cuenta con la que inició sesión mediante Google o Apple aún no está disponible en esta app. Escriba al servicio de asistencia.',
+    typeEmailLabel: 'Escriba su correo electrónico para confirmar',
+    deleteAction: 'Eliminar mi cuenta',
+    needed: 'Escriba su contraseña y su correo electrónico para continuar.',
+
+    confirmTitle: '¿Eliminar esta cuenta?',
+    confirmBody:
+      'Su cuenta y todo lo que contiene se borrarán en 30 días. Puede cancelar antes.',
+    confirmAction: 'Sí, eliminarla',
+
+    scheduledTitle: 'Su cuenta se cerrará',
+    scheduledBody:
+      'Borraremos todo en {days} días. Hasta entonces puede iniciar sesión y tocar “Conservar mi cuenta” para detenerlo.',
+
+    pendingTitle: 'Su cuenta se cierra en {days} días',
+    pendingTitleToday: 'Su cuenta se cierra hoy',
+    pendingBody:
+      'Todavía no se ha borrado nada. Toque abajo para detenerlo y continuar con normalidad.',
+    keepAccount: 'Conservar mi cuenta',
+    keptTitle: 'Bienvenido de nuevo',
+    keptBody: 'Su cuenta está a salvo.',
+
+    deleteAccountRow: 'Eliminar mi cuenta',
+  },
+  sw: {
+    deleteTitle: 'Futa akaunti yangu',
+    warningBody:
+      'Hii inafuta akaunti yako ya SeamFlow. Hakuna kitakachotokea kwa siku {days} — unaweza kubadilisha nia wakati wowote kabla ya hapo.',
+
+    whatGoesTitle: 'Kitakachofutwa',
+    goesRequests: 'Maombi yako na ofa walizokutumia washonaji',
+    goesMessages: 'Ujumbe wako na washonaji',
+    goesMeasurements: 'Vipimo vyako vilivyohifadhiwa',
+    goesAccount: 'Uwezo wako wa kuingia — hutaweza kuingia tena',
+
+    takeItTitle: 'Chukua nakala kwanza',
+    takeItBody:
+      'Hifadhi nakala ya kila kitu kabla hakijaondoka. Siku {days} zikipita, hatuwezi kukurudishia.',
+    exportAction: 'Pakua data yangu',
+    exportTitle: 'Data yako ya SeamFlow',
+    exportSavedTitle: 'Imehifadhiwa',
+    exportSavedBody: 'Faili la data yako limehifadhiwa kwenye kifaa hiki.',
+
+    confirmItTitle: 'Thibitisha ni wewe',
+    passwordLabel: 'Nenosiri lako',
+    passwordPlaceholder: 'Weka nenosiri lako',
+    reauthUnavailable:
+      'Kufuta akaunti uliyoingia nayo kwa Google au Apple bado hakupatikani kwenye programu hii. Tafadhali wasiliana na huduma kwa wateja.',
+    typeEmailLabel: 'Andika barua pepe yako ili kuthibitisha',
+    deleteAction: 'Futa akaunti yangu',
+    needed: 'Weka nenosiri lako na uandike barua pepe yako ili kuendelea.',
+
+    confirmTitle: 'Ufute akaunti hii?',
+    confirmBody:
+      'Akaunti yako na kila kilichomo vitafutwa baada ya siku 30. Unaweza kughairi kabla ya hapo.',
+    confirmAction: 'Ndiyo, ifute',
+
+    scheduledTitle: 'Akaunti yako itafungwa',
+    scheduledBody:
+      'Tutafuta kila kitu baada ya siku {days}. Hadi wakati huo unaweza kuingia na kugusa “Weka akaunti yangu” ili kusimamisha.',
+
+    pendingTitle: 'Akaunti yako inafungwa baada ya siku {days}',
+    pendingTitleToday: 'Akaunti yako inafungwa leo',
+    pendingBody:
+      'Bado hakuna kilichofutwa. Gusa hapa chini ili kusimamisha na kuendelea kama kawaida.',
+    keepAccount: 'Weka akaunti yangu',
+    keptTitle: 'Karibu tena',
+    keptBody: 'Akaunti yako iko salama.',
+
+    deleteAccountRow: 'Futa akaunti yangu',
+  },
 } as const;

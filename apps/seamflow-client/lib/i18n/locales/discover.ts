@@ -189,4 +189,130 @@ export const discover = {
       'Olá! Estou interessado(a) em {design} ({price}). Poderia fazer-me algo assim?',
     inquireDesignPinned: 'Sobre {design}',
   },
+  es: {
+    // ── Muro ────────────────────────────────────────────────────────────────
+    title: 'Descubrir',
+    subtitle: 'Trabajo real, de sastres reales cerca de usted.',
+    emptyTitle: 'Aún no hay nada aquí',
+    emptyBody:
+      'Los sastres todavía están subiendo su trabajo. Vuelva en un rato — el muro se llena a medida que publican.',
+    filterAll: 'Todo',
+    filterWomen: 'Mujeres',
+    filterMen: 'Hombres',
+    filterUnisex: 'Unisex',
+    filterChildren: 'Niños',
+    occasionWedding: 'Boda',
+    occasionTraditional: 'Tradicional',
+    occasionCorporate: 'Corporativo',
+    occasionCasual: 'Informal',
+    occasionParty: 'Fiesta',
+    clearFilters: 'Quitar',
+    searchPlaceholder: 'Buscar estilos, telas, prendas…',
+    noMatch: 'Todavía no hay nada que coincida con esos filtros.',
+
+    // ── Detalle del diseño ──────────────────────────────────────────────────
+    byTailor: 'Por {name}',
+    verified: 'Verificado',
+    repliesIn: 'Suele responder en {hours} h',
+    acceptsRemote: 'Trabaja con clientes de cualquier lugar',
+    fromPrice: 'Desde {price}',
+    inquire: 'Preguntar por esto',
+    save: 'Guardar',
+    saved: 'Guardado',
+    moreLikeThis: 'Más como esto',
+    viewTailor: 'Ver más de su trabajo',
+
+    // ── Escaparate ──────────────────────────────────────────────────────────
+    storefrontWorks: 'Su trabajo',
+    storefrontEmpty: 'Aún no hay nada publicado.',
+    memberSince: 'En SeamFlow desde {date}',
+    specialties: 'Especialidades',
+    speaks: 'Habla',
+
+    // ── Consultar ───────────────────────────────────────────────────────────
+    inquireTitle: 'Preguntar por esta pieza',
+    inquireBody:
+      'Envíe un mensaje a {name}. Verá el diseño por el que pregunta y podrán conversarlo aquí.',
+    inquirePlaceholder: '¡Hola! ¿Podría hacerme algo así?',
+    inquireSend: 'Enviar mensaje',
+    inquireSending: 'Enviando…',
+    inquireSignInTitle: 'Inicie sesión para enviar un mensaje',
+    inquireSignInBody:
+      'Puede ver todo sin una cuenta. Iniciar sesión solo sirve para que los sastres puedan responderle.',
+    inquireSignIn: 'Iniciar sesión',
+
+    // ── Navegación ──────────────────────────────────────────────────────────
+    tabDiscover: 'Descubrir',
+    tabMessages: 'Mensajes',
+    tabOrders: 'Mis pedidos',
+    catalogueNotFound:
+      'No encontramos ese catálogo. Puede que el enlace esté mal escrito, o que el taller ya no aparezca listado.',
+    inquireAboutDesign: '¡Hola! Me interesa {design}. ¿Podría hacerme algo así?',
+    inquireAboutDesignPriced:
+      '¡Hola! Me interesa {design} ({price}). ¿Podría hacerme algo así?',
+    inquireDesignPinned: 'Sobre {design}',
+  },
+  sw: {
+    // ── Mkondo ──────────────────────────────────────────────────────────────
+    title: 'Gundua',
+    subtitle: 'Kazi halisi, ya washonaji halisi walio karibu nawe.',
+    emptyTitle: 'Bado hakuna kitu hapa',
+    emptyBody:
+      'Washonaji bado wanaongeza kazi zao. Rudi baada ya muda mfupi — mkondo hujaa wanapochapisha.',
+    filterAll: 'Yote',
+    filterWomen: 'Wanawake',
+    filterMen: 'Wanaume',
+    filterUnisex: 'Wote',
+    filterChildren: 'Watoto',
+    occasionWedding: 'Harusi',
+    occasionTraditional: 'Kiasili',
+    occasionCorporate: 'Kikazi',
+    occasionCasual: 'Kawaida',
+    occasionParty: 'Sherehe',
+    clearFilters: 'Ondoa',
+    searchPlaceholder: 'Tafuta mitindo, vitambaa, mavazi…',
+    noMatch: 'Bado hakuna kinacholingana na vichujio hivyo.',
+
+    // ── Maelezo ya ubunifu ──────────────────────────────────────────────────
+    byTailor: 'Na {name}',
+    verified: 'Amethibitishwa',
+    repliesIn: 'Hujibu kwa kawaida ndani ya saa {hours}',
+    acceptsRemote: 'Hufanya kazi na wateja popote walipo',
+    fromPrice: 'Kuanzia {price}',
+    inquire: 'Uliza kuhusu hii',
+    save: 'Hifadhi',
+    saved: 'Imehifadhiwa',
+    moreLikeThis: 'Nyingine kama hii',
+    viewTailor: 'Ona kazi zake zaidi',
+
+    // ── Dirisha la duka ─────────────────────────────────────────────────────
+    storefrontWorks: 'Kazi zake',
+    storefrontEmpty: 'Bado hakuna kilichochapishwa.',
+    memberSince: 'Yupo SeamFlow tangu {date}',
+    specialties: 'Utaalamu',
+    speaks: 'Anazungumza',
+
+    // ── Kuuliza ─────────────────────────────────────────────────────────────
+    inquireTitle: 'Uliza kuhusu kipande hiki',
+    inquireBody:
+      'Mtumie {name} ujumbe. Ataona ubunifu unaouulizia, na mnaweza kuujadili hapa.',
+    inquirePlaceholder: 'Habari! Unaweza kunishonea kitu kama hiki?',
+    inquireSend: 'Tuma ujumbe',
+    inquireSending: 'Inatuma…',
+    inquireSignInTitle: 'Ingia ili kutuma ujumbe',
+    inquireSignInBody:
+      'Unaweza kutazama kila kitu bila akaunti. Kuingia ni ili washonaji waweze kukujibu tu.',
+    inquireSignIn: 'Ingia',
+
+    // ── Urambazaji ──────────────────────────────────────────────────────────
+    tabDiscover: 'Gundua',
+    tabMessages: 'Ujumbe',
+    tabOrders: 'Maagizo yangu',
+    catalogueNotFound:
+      'Hatukuweza kuipata katalogi hiyo. Huenda kiungo kimeandikwa vibaya, au duka halijaorodheshwa tena.',
+    inquireAboutDesign: 'Habari! Ninavutiwa na {design}. Unaweza kunishonea kitu kama hiki?',
+    inquireAboutDesignPriced:
+      'Habari! Ninavutiwa na {design} ({price}). Unaweza kunishonea kitu kama hiki?',
+    inquireDesignPinned: 'Kuhusu {design}',
+  },
 } as const;

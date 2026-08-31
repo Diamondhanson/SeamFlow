@@ -232,4 +232,156 @@ export const chat = {
       'Apenas em desenvolvimento. Cria um pedido falso para testar a conversa de ponta a ponta antes de a aplicação para clientes ser lançada.',
     devSimulateDone: 'Pedido simulado criado',
   },
+  es: {
+    tabLabel: 'Mensajes',
+    tabSubtitle: 'Consultas · chat',
+    listTitle: 'Mensajes',
+    listSubtitle: 'Consultas de personas que encontraron su trabajo.',
+
+    emptyTitle: 'Aún no hay consultas',
+    emptyBody:
+      'Cuando se lance la app de clientes de SeamFlow, quienes vean su trabajo publicado podrán escribirle aquí. Publicar sus pedidos terminados ahora significa que tendrán algo que encontrar.',
+    emptyCta: 'Muestre su trabajo en el muro',
+
+    unreadBadge: '{count} nuevos',
+    youPrefix: 'Usted: ',
+    imageMessage: 'Foto',
+    designMessage: 'Un diseño',
+
+    // ── Conversación ────────────────────────────────────────────────────────
+    threadTitle: 'Conversación',
+    aboutDesign: 'Sobre este diseño',
+    composerPlaceholder: 'Escriba un mensaje…',
+    send: 'Enviar',
+    sending: 'Enviando…',
+    failedToSend: 'No enviado',
+    retry: 'Reintentar',
+    retryAll: 'Reintentar todo',
+    tapToRetry: 'Toque para intentar de nuevo',
+    queuedOffline: 'Esperando conexión',
+    offlineBanner: 'Está sin conexión — los mensajes se enviarán cuando vuelva.',
+    loadingOlder: 'Cargando mensajes anteriores…',
+    startOfConversation: 'Aquí empieza su conversación.',
+    typing: 'Escribiendo…',
+    online: 'En línea',
+    lastSeenRecently: 'Visto hace poco',
+    readReceipt: 'Leído',
+    deliveredReceipt: 'Enviado',
+
+    // Separadores de día
+    today: 'Hoy',
+    yesterday: 'Ayer',
+
+    // ── Adjuntos ────────────────────────────────────────────────────────────
+    attach: 'Agregar una foto',
+    attachTakePhoto: 'Tomar foto',
+    attachFromGallery: 'Elegir de la galería',
+    attachmentFailed: 'No se pudo adjuntar esa foto',
+    uploadingAttachment: 'Agregando la foto…',
+
+    // ── Cotización (C3) ─────────────────────────────────────────────────────
+    createQuote: 'Crear pedido',
+    createQuoteTitle: 'Convierta esto en un pedido',
+    createQuoteBody:
+      'Crea un pedido y una factura en borrador vinculados a esta conversación. Después funciona como cualquier otro pedido.',
+    quoteOrderNameLabel: 'Título del pedido *',
+    quoteOrderNamePlaceholder: 'p. ej. Agbada de boda para Amina',
+    quoteDeliveryLabel: 'Fecha de entrega',
+    quoteAmountLabel: 'Precio (opcional)',
+    quoteNotesLabel: 'Notas',
+    quoteNotesPlaceholder: 'Lo que se acordó en el chat…',
+    quoteClientNameLabel: 'Nombre del cliente',
+    quoteClientNameHelp:
+      'Todavía no está en su lista de clientes — este es el nombre con el que lo guardaremos.',
+    quoteClientPhoneLabel: 'Teléfono del cliente',
+    quoteSubmit: 'Crear pedido',
+    quoteCreating: 'Creando…',
+    quoteCreatedTitle: 'Pedido creado',
+    quoteCreatedBody: 'Un pedido y una factura en borrador quedaron vinculados a esta conversación.',
+    quoteFailed: 'No se pudo crear el pedido',
+    viewOrder: 'Ver pedido',
+    linkedOrder: 'Vinculado a un pedido',
+
+    // ── Ayuda solo para desarrollo ──────────────────────────────────────────
+    devSimulate: 'Simular una consulta de cliente',
+    devSimulateBody:
+      'Solo para desarrollo. Crea una consulta entrante falsa para probar el chat de principio a fin antes de que salga la app de clientes.',
+    devSimulateDone: 'Consulta simulada creada',
+  },
+  sw: {
+    tabLabel: 'Ujumbe',
+    tabSubtitle: 'Maulizo · mazungumzo',
+    listTitle: 'Ujumbe',
+    listSubtitle: 'Maulizo kutoka kwa watu waliokutana na kazi yako.',
+
+    emptyTitle: 'Bado hakuna maulizo',
+    emptyBody:
+      'Programu ya wateja ya SeamFlow itakapozinduliwa, watu wanaotazama kazi yako iliyochapishwa wataweza kukuandikia hapa. Kuchapisha maagizo yako yaliyokamilika sasa kunamaanisha watakuwa na kitu cha kukuta.',
+    emptyCta: 'Onyesha kazi yako kwenye mkondo',
+
+    unreadBadge: 'Mpya {count}',
+    youPrefix: 'Wewe: ',
+    imageMessage: 'Picha',
+    designMessage: 'Ubunifu',
+
+    // ── Mazungumzo ──────────────────────────────────────────────────────────
+    threadTitle: 'Mazungumzo',
+    aboutDesign: 'Kuhusu ubunifu huu',
+    composerPlaceholder: 'Andika ujumbe…',
+    send: 'Tuma',
+    sending: 'Inatuma…',
+    failedToSend: 'Haujatumwa',
+    retry: 'Jaribu tena',
+    retryAll: 'Jaribu yote tena',
+    tapToRetry: 'Gusa ujaribu tena',
+    queuedOffline: 'Inasubiri muunganisho',
+    offlineBanner: 'Huna mtandao — ujumbe utatumwa utakaporudi.',
+    loadingOlder: 'Inapakia ujumbe wa zamani…',
+    startOfConversation: 'Hapa ndipo mazungumzo yenu yanaanzia.',
+    typing: 'Anaandika…',
+    online: 'Yupo mtandaoni',
+    lastSeenRecently: 'Alionekana hivi karibuni',
+    readReceipt: 'Umesomwa',
+    deliveredReceipt: 'Umetumwa',
+
+    // Vitenganishi vya siku
+    today: 'Leo',
+    yesterday: 'Jana',
+
+    // ── Viambatisho ─────────────────────────────────────────────────────────
+    attach: 'Ongeza picha',
+    attachTakePhoto: 'Piga picha',
+    attachFromGallery: 'Chagua kutoka matunzio',
+    attachmentFailed: 'Haikuwezekana kuambatisha picha hiyo',
+    uploadingAttachment: 'Inaongeza picha…',
+
+    // ── Nukuu ya bei (C3) ───────────────────────────────────────────────────
+    createQuote: 'Tengeneza agizo',
+    createQuoteTitle: 'Geuza haya kuwa agizo',
+    createQuoteBody:
+      'Hutengeneza agizo na rasimu ya ankara vilivyounganishwa na mazungumzo haya. Kisha hufanya kazi kama agizo lingine lolote.',
+    quoteOrderNameLabel: 'Kichwa cha agizo *',
+    quoteOrderNamePlaceholder: 'mf. Agbada ya harusi kwa Amina',
+    quoteDeliveryLabel: 'Tarehe ya kukabidhi',
+    quoteAmountLabel: 'Bei (si lazima)',
+    quoteNotesLabel: 'Maelezo',
+    quoteNotesPlaceholder: 'Mliyokubaliana kwenye mazungumzo…',
+    quoteClientNameLabel: 'Jina la mteja',
+    quoteClientNameHelp:
+      'Bado hayupo kwenye orodha yako ya wateja — hili ndilo jina tutakalomhifadhi nalo.',
+    quoteClientPhoneLabel: 'Simu ya mteja',
+    quoteSubmit: 'Tengeneza agizo',
+    quoteCreating: 'Inatengeneza…',
+    quoteCreatedTitle: 'Agizo limetengenezwa',
+    quoteCreatedBody: 'Agizo na rasimu ya ankara vimeunganishwa na mazungumzo haya.',
+    quoteFailed: 'Haikuwezekana kutengeneza agizo',
+    viewOrder: 'Ona agizo',
+    linkedOrder: 'Limeunganishwa na agizo',
+
+    // ── Kisaidizi cha maendeleo pekee ───────────────────────────────────────
+    devSimulate: 'Iga ulizo la mteja',
+    devSimulateBody:
+      'Kwa maendeleo pekee. Hutengeneza ulizo bandia linaloingia ili mazungumzo yajaribiwe kikamilifu kabla programu ya wateja haijatoka.',
+    devSimulateDone: 'Ulizo la kuiga limetengenezwa',
+  },
 } as const;

@@ -61,4 +61,42 @@ export const home = {
     comingSoon: 'Em breve',
     settings: 'Definições',
   },
+  es: {
+    // ----- saludo -----
+    goodMorning: 'Buenos días',
+    goodAfternoon: 'Buenas tardes',
+    goodEvening: 'Buenas noches',
+    welcome: 'Bienvenido',
+    // ----- inicio -----
+    tagline: 'Su estilo, en un solo lugar.',
+    ordersTile: 'Mis pedidos',
+    ordersTileSub: 'Siga lo que sus sastres están confeccionando',
+    measurementsTile: 'Mis medidas',
+    measurementsTileSub: 'Sus tallas, listas para compartir',
+    lookbookTile: 'Álbum',
+    lookbookTileSub: 'Cada pieza hecha para usted',
+    tailorsTile: 'Mis sastres',
+    tailorsTileSub: 'Las personas que hacen su ropa',
+    comingSoon: 'Próximamente',
+    settings: 'Ajustes',
+  },
+  sw: {
+    // ----- salamu -----
+    goodMorning: 'Habari za asubuhi',
+    goodAfternoon: 'Habari za mchana',
+    goodEvening: 'Habari za jioni',
+    welcome: 'Karibu',
+    // ----- ukurasa wa mwanzo -----
+    tagline: 'Mtindo wako, mahali pamoja.',
+    ordersTile: 'Maagizo yangu',
+    ordersTileSub: 'Fuatilia washonaji wako wanachokushonea',
+    measurementsTile: 'Vipimo vyangu',
+    measurementsTileSub: 'Saizi zako, tayari kushirikiwa',
+    lookbookTile: 'Albamu',
+    lookbookTileSub: 'Kila kipande kilichoshonwa kwa ajili yako',
+    tailorsTile: 'Washonaji wangu',
+    tailorsTileSub: 'Watu wanaokushonea nguo zako',
+    comingSoon: 'Inakuja hivi karibuni',
+    settings: 'Mipangilio',
+  },
 } as const;

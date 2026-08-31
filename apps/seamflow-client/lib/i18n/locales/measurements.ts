@@ -23,4 +23,20 @@ export const measurements = {
     savedBy: 'Guardadas por {name}',
     fieldsCount: '{count} medidas',
   },
+  es: {
+    title: 'Mis medidas',
+    subtitle: 'Sus tallas, guardadas por sus sastres',
+    empty: 'Aún no hay medidas',
+    emptyHint: 'Cuando un sastre le tome medidas, sus tallas aparecerán aquí.',
+    savedBy: 'Guardadas por {name}',
+    fieldsCount: '{count} medidas',
+  },
+  sw: {
+    title: 'Vipimo vyangu',
+    subtitle: 'Saizi zako, zilizohifadhiwa na washonaji wako',
+    empty: 'Bado hakuna vipimo',
+    emptyHint: 'Mshonaji atakapokupima, saizi zako zitaonekana hapa.',
+    savedBy: 'Vimehifadhiwa na {name}',
+    fieldsCount: 'Vipimo {count}',
+  },
 } as const;
