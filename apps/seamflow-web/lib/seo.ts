@@ -62,5 +62,11 @@ export function openGraphFor(
     siteName: SITE.name,
     locale: OG_LOCALE[lang],
     alternateLocale: LANGS.filter((l) => l !== lang).map((l) => OG_LOCALE[l]),
+    // Stated explicitly rather than relying on file-based metadata inheritance.
+    // Next only folds app/opengraph-image.tsx into a page that does NOT set its
+    // own `openGraph` — and every page using this helper does. That is why the
+    // prefixed languages have been shipping share cards with no image since the
+    // day they launched, while /privacy (which sets no openGraph) was fine.
+    images: [{ url: `${SITE.url}/opengraph-image`, width: 1200, height: 630, alt: SITE.name }],
   };
 }

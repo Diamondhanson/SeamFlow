@@ -4,6 +4,12 @@ const nextConfig = {
   // for everything under @seamflow/*.
   transpilePackages: ['@seamflow/schemas', '@seamflow/api-client'],
   reactStrictMode: true,
+  experimental: {
+    // Required by app/global-not-found.tsx. There is no single root layout any
+    // more (the language segment sits above it), so a plain app/not-found.tsx
+    // has nothing to render inside and fails the build.
+    globalNotFound: true,
+  },
   // Photos come back from Supabase Storage as signed URLs on the
   // <project>.supabase.co host. Allow them through next/image when we add it.
   images: {

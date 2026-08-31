@@ -43,6 +43,26 @@ export const LANG_LABELS: Record<Lang, string> = {
 export const DEFAULT_LANG: Lang = 'en';
 
 /**
+ * Writing direction per language.
+ *
+ * A `Record`, not an `RTL_LANGS` array, on purpose: adding a language to `Lang`
+ * is then a compile error until its direction is declared, so nobody can ship a
+ * right-to-left language that silently renders left-to-right. Consumed by
+ * <RootHtml> for the `dir` attribute, which is what every `rtl:` Tailwind
+ * variant and every CSS logical property keys off.
+ */
+export const DIR: Record<Lang, 'ltr' | 'rtl'> = {
+  en: 'ltr',
+  fr: 'ltr',
+  pt: 'ltr',
+  es: 'ltr',
+  sw: 'ltr',
+};
+
+/** True when the language reads right-to-left. */
+export const isRtl = (lang: Lang): boolean => DIR[lang] === 'rtl';
+
+/**
  * BCP-47 tag per language, for `Intl.*` formatting (dates, numbers).
  * Spanish is the Latin-American region tag because the copy is written that
  * way; Portuguese is European Portuguese for the same reason.
