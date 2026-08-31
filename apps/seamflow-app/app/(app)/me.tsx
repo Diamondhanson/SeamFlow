@@ -79,7 +79,19 @@ export default function Me() {
       options: LANGUAGES.map((l) => ({ key: l.code, label: l.label })),
       selectedKey: language,
     });
-    if (picked && picked !== language) setLanguage(picked as LanguageCode);
+    if (!picked || picked === language) return;
+    const { requiresRestart } = setLanguage(picked as LanguageCode);
+    if (requiresRestart) {
+      // Non-dismissible on purpose: between the strings flipping and the
+      // relaunch, the user is looking at Arabic text in a left-to-right
+      // layout. Better an instruction they must acknowledge than a broken
+      // screen with no explanation.
+      await dialog.alert({
+        title: t('settings.restartTitle'),
+        message: t('settings.restartBody'),
+        tone: 'info',
+      });
+    }
   };
 
   // Change / remove the profile photo. Upload lands in the public `avatars`

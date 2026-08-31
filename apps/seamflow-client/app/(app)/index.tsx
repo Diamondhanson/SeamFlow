@@ -48,7 +48,15 @@ export default function ClientHome() {
       options: LANGUAGES.map((l) => ({ key: l.code, label: l.label })),
       selectedKey: language,
     });
-    if (picked && picked !== language) setLanguage(picked as LanguageCode);
+    if (!picked || picked === language) return;
+    const { requiresRestart } = setLanguage(picked as LanguageCode);
+    if (requiresRestart) {
+      await dialog.alert({
+        title: t('common.restartTitle'),
+        message: t('common.restartBody'),
+        tone: 'info',
+      });
+    }
   };
 
   const tiles: HomeTile[] = [

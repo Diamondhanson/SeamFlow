@@ -20,6 +20,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES, translations, type LanguageCode } from './strings';
 
@@ -72,7 +73,8 @@ function interpolate(s: string, vars?: Record<string, string | number>): string 
 
 interface I18nState {
   language: LanguageCode;
-  setLanguage: (l: LanguageCode) => void;
+  /** Returns `{ requiresRestart }` — true when the direction changed. */
+  setLanguage: (l: LanguageCode) => { requiresRestart: boolean };
   t: (key: string, vars?: Record<string, string | number>) => string;
   ready: boolean;
 }
@@ -104,9 +106,37 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const setLanguage = useCallback((l: LanguageCode) => {
+  /**
+   * Change language, and the layout direction with it.
+   *
+   * Returns whether the app must be reopened for the change to be complete.
+   * The DIRECTION change is applied here and cannot be bypassed by a caller
+   * ignoring that return value — what a caller can skip is only telling the
+   * user about it. That ordering is deliberate: the worst case is then a
+   * correct-on-next-launch app rather than a wrong-forever one.
+   *
+   * Why a restart at all: I18nManager.forceRTL only takes effect when the
+   * native view hierarchy is recreated. It DOES persist across launches, so
+   * nothing needs to be read synchronously at boot — the next cold start is
+   * already correct before React mounts.
+   *
+   * The reload is not automated because neither app bundles expo-updates, and
+   * adding a native module for this is not a change worth making blind. To
+   * upgrade: install expo-updates, then call Updates.reloadAsync() where the
+   * caller currently shows its dialog. Nothing else here changes.
+   */
+  const setLanguage = useCallback((l: LanguageCode): { requiresRestart: boolean } => {
     setLang(l);
     void AsyncStorage.setItem(STORAGE_KEY, l);
+
+    const nextRtl = (LANGUAGES.find((x) => x.code === l)?.dir ?? 'ltr') === 'rtl';
+    if (nextRtl === I18nManager.isRTL) return { requiresRestart: false };
+
+    // Both directions matter — switching OUT of Arabic has to unset it too,
+    // which a one-way `if (nextRtl)` would quietly miss.
+    I18nManager.allowRTL(true);
+    I18nManager.forceRTL(nextRtl);
+    return { requiresRestart: true };
   }, []);
 
   const t = useCallback(

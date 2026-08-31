@@ -1,5 +1,7 @@
 export const settings = {
   en: {
+    restartTitle: 'Reopen SeamFlow to finish',
+    restartBody: 'Arabic reads right to left, so the whole layout has to be rebuilt. Close SeamFlow completely and open it again — your work is saved.',
     title: 'Settings',
     businessProfile: 'Business profile',
     signedInAs: 'Signed in as {email}',
@@ -67,6 +69,8 @@ export const settings = {
     notifLoadError: "Couldn't load notification settings.",
   },
   fr: {
+    restartTitle: 'Rouvrez SeamFlow pour terminer',
+    restartBody: 'L’arabe se lit de droite à gauche : toute la mise en page doit être reconstruite. Fermez complètement SeamFlow puis rouvrez-le — votre travail est enregistré.',
     title: 'Paramètres',
     businessProfile: "Profil de l'entreprise",
     signedInAs: 'Connecté en tant que {email}',
@@ -134,6 +138,8 @@ export const settings = {
     notifLoadError: 'Impossible de charger les paramètres de notification.',
   },
   pt: {
+    restartTitle: 'Reabra o SeamFlow para concluir',
+    restartBody: 'O árabe lê-se da direita para a esquerda, por isso todo o layout tem de ser reconstruído. Feche o SeamFlow por completo e abra-o de novo — o seu trabalho está guardado.',
     title: 'Definições',
     businessProfile: 'Perfil do negócio',
     signedInAs: 'Sessão iniciada como {email}',
@@ -201,6 +207,8 @@ export const settings = {
     notifLoadError: 'Não foi possível carregar as definições de notificação.',
   },
   es: {
+    restartTitle: 'Vuelva a abrir SeamFlow para terminar',
+    restartBody: 'El árabe se lee de derecha a izquierda, así que hay que rehacer toda la maquetación. Cierre SeamFlow por completo y ábralo de nuevo — su trabajo está guardado.',
     title: 'Ajustes',
     businessProfile: 'Perfil del negocio',
     signedInAs: 'Sesión iniciada como {email}',
@@ -268,6 +276,8 @@ export const settings = {
     notifLoadError: 'No se pudieron cargar los ajustes de notificaciones.',
   },
   sw: {
+    restartTitle: 'Fungua SeamFlow tena ili kukamilisha',
+    restartBody: 'Kiarabu husomwa kulia kwenda kushoto, kwa hivyo mpangilio wote lazima ujengwe upya. Funga SeamFlow kabisa kisha uifungue tena — kazi yako imehifadhiwa.',
     title: 'Mipangilio',
     businessProfile: 'Wasifu wa biashara',
     signedInAs: 'Umeingia kama {email}',

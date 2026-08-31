@@ -2,6 +2,8 @@
 // wording stays consistent (e.g. every "Save"/"Cancel" reads the same).
 export const common = {
   en: {
+    restartTitle: 'Reopen SeamFlow to finish',
+    restartBody: 'Arabic reads right to left, so the whole layout has to be rebuilt. Close SeamFlow completely and open it again — your work is saved.',
     save: 'Save',
     cancel: 'Cancel',
     signOut: 'Sign out',
@@ -26,6 +28,8 @@ export const common = {
     language: 'Language',
   },
   fr: {
+    restartTitle: 'Rouvrez SeamFlow pour terminer',
+    restartBody: 'L’arabe se lit de droite à gauche : toute la mise en page doit être reconstruite. Fermez complètement SeamFlow puis rouvrez-le — votre travail est enregistré.',
     save: 'Enregistrer',
     cancel: 'Annuler',
     signOut: 'Se déconnecter',
@@ -50,6 +54,8 @@ export const common = {
     language: 'Langue',
   },
   pt: {
+    restartTitle: 'Reabra o SeamFlow para concluir',
+    restartBody: 'O árabe lê-se da direita para a esquerda, por isso todo o layout tem de ser reconstruído. Feche o SeamFlow por completo e abra-o de novo — o seu trabalho está guardado.',
     save: 'Guardar',
     cancel: 'Cancelar',
     signOut: 'Terminar sessão',
@@ -74,6 +80,8 @@ export const common = {
     language: 'Idioma',
   },
   es: {
+    restartTitle: 'Vuelva a abrir SeamFlow para terminar',
+    restartBody: 'El árabe se lee de derecha a izquierda, así que hay que rehacer toda la maquetación. Cierre SeamFlow por completo y ábralo de nuevo — su trabajo está guardado.',
     save: 'Guardar',
     cancel: 'Cancelar',
     signOut: 'Cerrar sesión',
@@ -98,6 +106,8 @@ export const common = {
     language: 'Idioma',
   },
   sw: {
+    restartTitle: 'Fungua SeamFlow tena ili kukamilisha',
+    restartBody: 'Kiarabu husomwa kulia kwenda kushoto, kwa hivyo mpangilio wote lazima ujengwe upya. Funga SeamFlow kabisa kisha uifungue tena — kazi yako imehifadhiwa.',
     save: 'Hifadhi',
     cancel: 'Ghairi',
     signOut: 'Toka',

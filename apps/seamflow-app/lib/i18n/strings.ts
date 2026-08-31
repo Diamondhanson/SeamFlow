@@ -36,14 +36,25 @@ import { requests } from './locales/requests';
 
 export type LanguageCode = 'en' | 'fr' | 'pt' | 'es' | 'sw';
 
-export const LANGUAGES: { code: LanguageCode; label: string }[] = [
-  { code: 'en', label: 'English' },
-  { code: 'fr', label: 'Français' },
+export interface LanguageDef {
+  code: LanguageCode;
+  label: string;
+  /**
+   * Writing direction. Declared per language rather than inferred from a list
+   * of RTL codes, so a new language cannot be added without deciding — and a
+   * right-to-left one cannot silently ship rendering left-to-right.
+   */
+  dir: 'ltr' | 'rtl';
+}
+
+export const LANGUAGES: LanguageDef[] = [
+  { code: 'en', label: 'English', dir: 'ltr' },
+  { code: 'fr', label: 'Français', dir: 'ltr' },
   // Endonyms, not English names: a Portuguese speaker scanning a language list
   // is looking for "Português", not "Portuguese".
-  { code: 'pt', label: 'Português' },
-  { code: 'es', label: 'Español' },
-  { code: 'sw', label: 'Kiswahili' },
+  { code: 'pt', label: 'Português', dir: 'ltr' },
+  { code: 'es', label: 'Español', dir: 'ltr' },
+  { code: 'sw', label: 'Kiswahili', dir: 'ltr' },
 ];
 
 /**
