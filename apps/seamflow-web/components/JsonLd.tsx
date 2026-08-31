@@ -19,7 +19,7 @@
 // ============================================================================
 
 import type { Dict, Lang } from '../lib/i18n';
-import { SITE, withLang } from '../lib/i18n';
+import { SITE, withLang, LANGS } from '../lib/i18n';
 
 /** Escape the only sequence that can terminate a <script> block early. */
 function serialize(data: unknown): string {
@@ -68,16 +68,12 @@ export function SoftwareApplicationLd({ d, lang }: { d: Dict; lang: Lang }) {
         '@type': 'SoftwareApplication',
         '@id': `${SITE.url}/#app`,
         name: SITE.name,
-        alternateName: [
-          'SeamFlow Tailor Assistant',
-          lang === 'fr' ? 'Assistant tailleur SeamFlow' : 'SeamFlow AI tailor assistant',
-        ],
+        alternateName: ['SeamFlow Tailor Assistant', d.seo.altName],
         applicationCategory: 'BusinessApplication',
-        applicationSubCategory:
-          lang === 'fr' ? 'Assistant tailleur' : 'Tailor assistant',
+        applicationSubCategory: d.seo.subCategory,
         operatingSystem: 'Android, Web',
         url: `${SITE.url}${withLang('/', lang)}`,
-        inLanguage: ['en', 'fr'],
+        inLanguage: LANGS,
         description: d.seo.description,
         publisher: { '@id': `${SITE.url}/#organization` },
         offers: {

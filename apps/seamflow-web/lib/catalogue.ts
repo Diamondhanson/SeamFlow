@@ -1,9 +1,9 @@
 // ============================================================================
-// Copy for the public catalogue page (/t/<slug>), EN/FR.
+// Copy for the public catalogue page (/t/<slug>), one block per language.
 //
 // Kept out of lib/i18n.ts for the same reason legal.ts is: that file holds the
 // marketing site's shared chrome, and this is a distinct surface with its own
-// vocabulary. Both languages live here so a missing translation is a visible
+// vocabulary. Every language lives here so a missing translation is a visible
 // hole in one object rather than a silent English fallback.
 //
 // A note on tone: this page is read by a tailor's actual customer, often after
@@ -189,6 +189,90 @@ export const catalogueCopy: Record<Lang, CatalogueCopy> = {
     inquiryMessage: ({ shop, design, price, url }) =>
       [
         `Olá ${shop}, estou interessado(a) em ${design}${price ? ` (${price})` : ''}.`,
+        '',
+        url,
+      ].join('\n'),
+  },
+  es: {
+    eyebrow: 'Catálogo',
+    worksTitle: 'Trabajos recientes',
+    metaTitle: (name) => `${name} — catálogo`,
+    metaDescription: (name, count, city) => {
+      const where = city ? ` en ${city}` : '';
+      if (count === 0) return `${name}${where} en SeamFlow.`;
+      return `${count} pieza${count === 1 ? '' : 's'} hecha${count === 1 ? '' : 's'} por ${name}${where}. Vea el catálogo y escriba directamente al taller.`;
+    },
+    whatsappCta: 'Escribir por WhatsApp',
+    whatsappHint: 'Pregunte por una pieza, por un precio o por sus propias medidas.',
+    appCta: 'Obtener la app SeamFlow',
+    appSoon: 'Próximamente',
+    emptyTitle: 'Aún no hay nada publicado',
+    emptyBody:
+      'Este taller todavía no ha agregado piezas a su catálogo. Vuelva pronto.',
+    notFoundTitle: 'Catálogo no encontrado',
+    notFoundBody:
+      'Puede que el enlace esté mal escrito, o que el taller ya no aparezca listado.',
+    memberSince: (year) => `En SeamFlow desde ${year}`,
+    pieces: (n) => `${n} ${n === 1 ? 'pieza' : 'piezas'}`,
+    verified: 'Verificado',
+    acceptsRemote: 'Acepta pedidos a distancia',
+    respondsIn: (h) =>
+      h <= 1 ? 'Suele responder en menos de una hora' : `Suele responder en menos de ${h} h`,
+    whatsappPrefill: (name) => `Hola ${name}, vi su catálogo en SeamFlow.`,
+    footerNote: 'Hecho con cuidado.',
+    poweredBy: 'Catálogo con la tecnología de SeamFlow',
+    viewMore: 'Ver más',
+    closeLabel: 'Cerrar',
+    fromPrice: (price) => `Desde ${price}`,
+    photoCount: (n) => `${n} fotos`,
+    nextPhoto: 'Foto siguiente',
+    prevPhoto: 'Foto anterior',
+    inquire: 'Preguntar por esta pieza',
+    inquiryMessage: ({ shop, design, price, url }) =>
+      [
+        `Hola ${shop}, me interesa ${design}${price ? ` (${price})` : ''}.`,
+        '',
+        url,
+      ].join('\n'),
+  },
+  sw: {
+    eyebrow: 'Katalogi',
+    worksTitle: 'Kazi za hivi karibuni',
+    metaTitle: (name) => `${name} — katalogi`,
+    metaDescription: (name, count, city) => {
+      const where = city ? ` ${city}` : '';
+      if (count === 0) return `${name}${where} kwenye SeamFlow.`;
+      return `Vipande ${count} vilivyoshonwa na ${name}${where}. Tazama katalogi na umwandikie mshonaji moja kwa moja.`;
+    },
+    whatsappCta: 'Andika kwa WhatsApp',
+    whatsappHint: 'Uliza kuhusu kipande, bei, au vipimo vyako mwenyewe.',
+    appCta: 'Pata programu ya SeamFlow',
+    appSoon: 'Inakuja hivi karibuni',
+    emptyTitle: 'Bado hakuna kilichochapishwa',
+    emptyBody:
+      'Duka hili bado halijaongeza vipande kwenye katalogi yake. Rudi hivi karibuni.',
+    notFoundTitle: 'Katalogi haikupatikana',
+    notFoundBody:
+      'Huenda kiungo hiki kimeandikwa vibaya, au duka halijaorodheshwa tena.',
+    memberSince: (year) => `Yupo SeamFlow tangu ${year}`,
+    pieces: (n) => `Vipande ${n}`,
+    verified: 'Amethibitishwa',
+    acceptsRemote: 'Hupokea maagizo ya mbali',
+    respondsIn: (h) =>
+      h <= 1 ? 'Hujibu kwa kawaida ndani ya saa moja' : `Hujibu kwa kawaida ndani ya saa ${h}`,
+    whatsappPrefill: (name) => `Habari ${name}, nimeona katalogi yako kwenye SeamFlow.`,
+    footerNote: 'Imeshonwa kwa uangalifu.',
+    poweredBy: 'Katalogi inaendeshwa na SeamFlow',
+    viewMore: 'Onyesha zaidi',
+    closeLabel: 'Funga',
+    fromPrice: (price) => `Kuanzia ${price}`,
+    photoCount: (n) => `Picha ${n}`,
+    nextPhoto: 'Picha inayofuata',
+    prevPhoto: 'Picha iliyotangulia',
+    inquire: 'Uliza kuhusu kipande hiki',
+    inquiryMessage: ({ shop, design, price, url }) =>
+      [
+        `Habari ${shop}, ninavutiwa na ${design}${price ? ` (${price})` : ''}.`,
         '',
         url,
       ].join('\n'),

@@ -14,7 +14,7 @@
 // ============================================================================
 
 import type { Lang } from './i18n';
-import { withLang, LANGS, SITE } from './i18n';
+import { withLang, LANGS, SITE, OG_LOCALE } from './i18n';
 
 /** Language-neutral paths that exist in both English and French. */
 export const LOCALIZED_ROUTES = [
@@ -60,7 +60,7 @@ export function openGraphFor(
     type: 'website' as const,
     url: `${SITE.url}${withLang(path, lang)}`,
     siteName: SITE.name,
-    locale: lang === 'fr' ? 'fr_FR' : 'en_US',
-    alternateLocale: lang === 'fr' ? 'en_US' : 'fr_FR',
+    locale: OG_LOCALE[lang],
+    alternateLocale: LANGS.filter((l) => l !== lang).map((l) => OG_LOCALE[l]),
   };
 }

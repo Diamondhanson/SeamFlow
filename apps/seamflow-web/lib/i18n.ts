@@ -12,20 +12,42 @@
 // to both readers and search engines.
 // ============================================================================
 
-export type Lang = 'en' | 'fr' | 'pt';
+export type Lang = 'en' | 'fr' | 'pt' | 'es' | 'sw';
 
 /**
  * Every language the site publishes, English first.
  *
  * English is the UNPREFIXED default (`/privacy`); every other language lives
- * under its own code (`/fr/privacy`, `/pt/privacy`). The helpers below derive
+ * under its own code (`/fr/privacy`, `/pt/privacy`, `/es/privacy`, `/sw/privacy`). The helpers below derive
  * their behaviour from this array, so adding a language means adding a code
  * here and a route folder — no prefix logic to update.
  */
-export const LANGS: Lang[] = ['en', 'fr', 'pt'];
+export const LANGS: Lang[] = ['en', 'fr', 'pt', 'es', 'sw'];
 
 /** The default language, which carries no URL prefix. */
 export const DEFAULT_LANG: Lang = 'en';
+
+/**
+ * BCP-47 tag per language, for `Intl.*` formatting (dates, numbers).
+ * Spanish is the Latin-American region tag because the copy is written that
+ * way; Portuguese is European Portuguese for the same reason.
+ */
+export const INTL_LOCALE: Record<Lang, string> = {
+  en: 'en-US',
+  fr: 'fr-FR',
+  pt: 'pt-PT',
+  es: 'es-419',
+  sw: 'sw-KE',
+};
+
+/** OpenGraph `locale` per language (language_TERRITORY, as og: expects). */
+export const OG_LOCALE: Record<Lang, string> = {
+  en: 'en_US',
+  fr: 'fr_FR',
+  pt: 'pt_PT',
+  es: 'es_LA',
+  sw: 'sw_KE',
+};
 
 /** Languages that DO carry a prefix — i.e. everything except the default. */
 const PREFIXED = LANGS.filter((l) => l !== DEFAULT_LANG);
@@ -95,10 +117,13 @@ export const copy = {
     // Search-facing strings. Deliberately plainer and more literal than the
     // on-page hero copy — a title tag has to say what the product *is*.
     seo: {
+      // Also-known-as name and category, for the SoftwareApplication JSON-LD.
+      altName: 'SeamFlow AI tailor assistant',
+      subCategory: 'Tailor assistant',
       title:
         'SeamFlow: the AI tailor assistant for measurements, orders & invoices',
       description:
-        'SeamFlow is a tailor assistant app for tailors and fashion designers. Scan measurements from paper, track orders, send invoices, and ask an AI assistant about your business. Bilingual, offline-first, free in early access.',
+        'SeamFlow is a tailor assistant app for tailors and fashion designers. Scan measurements from paper, track orders, send invoices, and ask an AI assistant about your business. Multilingual, offline-first, free in early access.',
       keywords: [
         'tailor assistant',
         'tailor assistant app',
@@ -130,7 +155,7 @@ export const copy = {
         'SeamFlow is the tailor assistant that keeps your clients, measurements, orders and deadlines together, with an AI assistant that answers questions about your business and files the work for you.',
       ctaPrimary: 'Use on browser',
       ctaSecondary: 'See how it works',
-      note: 'Works offline · English & French · Free in early access',
+      note: 'Works offline · Five languages · Free in early access',
     },
     store: {
       soon: 'Coming soon',
@@ -209,8 +234,8 @@ export const copy = {
         },
         {
           key: 'offline',
-          title: 'Bilingual & offline',
-          body: 'Full English and French. Take orders and edit on the spot even with no signal. It syncs when you’re back.',
+          title: 'Multilingual & offline',
+          body: 'Five complete languages. Take orders and edit on the spot even with no signal. It syncs when you’re back.',
         },
       ] as Feature[],
     },
@@ -218,7 +243,7 @@ export const copy = {
     spotlight: {
       eyebrow: 'New',
       title: 'A tailor assistant you can actually talk to.',
-      body: 'Most tailoring software makes you go and find the answer. SeamFlow’s assistant knows your clients, orders, measurements and invoices, so you can just ask, in English or French, by typing or by speaking.',
+      body: 'Most tailoring software makes you go and find the answer. SeamFlow’s assistant knows your clients, orders, measurements and invoices, so you can just ask, in your own language, by typing or by speaking.',
       examples: [
         'What’s due this week?',
         'Who still owes me money?',
@@ -288,11 +313,11 @@ export const copy = {
         },
         {
           q: 'What makes SeamFlow different from other tailor assistant apps?',
-          a: 'Three things: it works with no signal, so the workshop never stops; it’s fully bilingual in English and French rather than translated as an afterthought; and its assistant is wired into your real data, so it answers about your orders and clients instead of giving generic advice.',
+          a: 'Three things: it works with no signal, so the workshop never stops; it’s properly translated into every language it offers rather than translated as an afterthought; and its assistant is wired into your real data, so it answers about your orders and clients instead of giving generic advice.',
         },
         {
           q: 'What languages does it support?',
-          a: 'English, French and Portuguese today, fully. Every screen, not just the menus. More on the way.',
+          a: 'English, French, Portuguese, Spanish and Swahili today, fully. Every screen, not just the menus. More on the way.',
         },
         {
           q: 'Does it work offline?',
@@ -410,7 +435,7 @@ export const copy = {
     assistantPage: {
       metaTitle: 'AI tailor assistant: ask about your workshop, by text or voice | SeamFlow',
       metaDescription:
-        'SeamFlow’s AI tailor assistant answers questions about your own orders, clients and invoices, and creates records for you on confirmation. Type or speak, in English or French. Free in early access.',
+        'SeamFlow’s AI tailor assistant answers questions about your own orders, clients and invoices, and creates records for you on confirmation. Type or speak, in your own language. Free in early access.',
       eyebrow: 'Inside SeamFlow',
       title: 'The AI tailor assistant for your workshop.',
       subtitle:
@@ -451,7 +476,7 @@ export const copy = {
         {
           key: 'globe',
           title: 'Answers in your language',
-          body: 'Ask in English or French and it replies in the same language. It understands the vocabulary of the trade in both: poitrine and chest are the same measurement to it.',
+          body: 'Ask in your own language and it replies in the same one. It understands the vocabulary of the trade in all of them: poitrine and chest are the same measurement to it.',
         },
         {
           key: 'offline',
@@ -491,7 +516,7 @@ export const copy = {
         {
           key: 'assistant',
           title: 'An assistant you can talk to',
-          body: 'SeamFlow has a built-in AI assistant wired into your own data. Ask "what’s due this week?" or "who owes me?" and it answers about your workshop. Tell it to create an order and it prepares the record, shows you a confirmation card, and waits. You can type or speak, in English or French. As far as we can tell from their site, Tailor Assist has no equivalent.',
+          body: 'SeamFlow has a built-in AI assistant wired into your own data. Ask "what’s due this week?" or "who owes me?" and it answers about your workshop. Tell it to create an order and it prepares the record, shows you a confirmation card, and waits. You can type or speak, in your own language. As far as we can tell from their site, Tailor Assist has no equivalent.',
         },
         {
           key: 'scan',
@@ -519,8 +544,8 @@ export const copy = {
           body: 'Tailor Assist offers staff accounts, role-based access and task assignment across a production pipeline. SeamFlow today is built for one tailor and their own records. There is no way to invite an employee or hand a job to someone else.',
         },
         {
-          title: 'You need Arabic or Spanish',
-          body: 'They list English, French, Arabic and Spanish. SeamFlow is English, French and Portuguese. Ours are complete rather than partial translations, but if Arabic or Spanish is the language your clients read, they have it today and we do not.',
+          title: 'You need Arabic',
+          body: 'They list English, French, Arabic and Spanish. SeamFlow is English, French, Portuguese, Spanish and Swahili. Ours are complete rather than partial translations, but if Arabic is the language your clients read, they have it today and we do not.',
         },
         {
           title: 'You want payment tracking',
@@ -551,10 +576,13 @@ export const copy = {
 
   fr: {
     seo: {
+      // Also-known-as name and category, for the SoftwareApplication JSON-LD.
+      altName: 'Assistant tailleur SeamFlow',
+      subCategory: 'Assistant tailleur',
       title:
         'SeamFlow : l’assistant tailleur IA pour mesures, commandes et factures',
       description:
-        'SeamFlow est une application d’assistant tailleur pour tailleurs et créateurs de mode. Scannez les mesures sur papier, suivez les commandes, envoyez des factures et interrogez un assistant IA sur votre activité. Bilingue, hors ligne, gratuit en accès anticipé.',
+        'SeamFlow est une application d’assistant tailleur pour tailleurs et créateurs de mode. Scannez les mesures sur papier, suivez les commandes, envoyez des factures et interrogez un assistant IA sur votre activité. Multilingue, hors ligne, gratuit en accès anticipé.',
       keywords: [
         'assistant tailleur',
         'application assistant tailleur',
@@ -586,7 +614,7 @@ export const copy = {
         'SeamFlow est l’assistant tailleur qui réunit vos clients, mesures, commandes et échéances, avec un assistant IA qui répond à vos questions et enregistre le travail à votre place.',
       ctaPrimary: 'Utiliser sur navigateur',
       ctaSecondary: 'Voir comment ça marche',
-      note: 'Fonctionne hors ligne · Français et anglais · Gratuit en accès anticipé',
+      note: 'Fonctionne hors ligne · Cinq langues · Gratuit en accès anticipé',
     },
     store: {
       soon: 'Bientôt disponible',
@@ -665,15 +693,15 @@ export const copy = {
         },
         {
           key: 'offline',
-          title: 'Bilingue et hors ligne',
-          body: 'Français et anglais complets. Prenez des commandes et modifiez sur place, même sans signal. La synchro se fait au retour du réseau.',
+          title: 'Multilingue et hors ligne',
+          body: 'Cinq langues complètes. Prenez des commandes et modifiez sur place, même sans signal. La synchro se fait au retour du réseau.',
         },
       ] as Feature[],
     },
     spotlight: {
       eyebrow: 'Nouveau',
       title: 'Un assistant tailleur à qui vous pouvez vraiment parler.',
-      body: 'La plupart des logiciels de couture vous obligent à aller chercher la réponse. L’assistant de SeamFlow connaît vos clients, commandes, mesures et factures, il suffit de demander, en français ou en anglais, à l’écrit ou à la voix.',
+      body: 'La plupart des logiciels de couture vous obligent à aller chercher la réponse. L’assistant de SeamFlow connaît vos clients, commandes, mesures et factures, il suffit de demander, dans votre langue, à l’écrit ou à la voix.',
       examples: [
         'Qu’est-ce qui est dû cette semaine ?',
         'Qui me doit encore de l’argent ?',
@@ -703,7 +731,7 @@ export const copy = {
     vision: {
       eyebrow: 'Pourquoi nous l’avons créé',
       title: 'Le compagnon d’affaires d’un métier qui le mérite.',
-      body: 'Les tailleurs indépendants font tourner de vraies entreprises avec un carnet et leur mémoire. SeamFlow offre à ce métier des outils modernes : un assistant dans la poche, bilingue dès le départ, pensé hors-ligne, et s’ouvrant à chaque langue et marché où l’on crée encore de beaux vêtements à la main.',
+      body: 'Les tailleurs indépendants font tourner de vraies entreprises avec un carnet et leur mémoire. SeamFlow offre à ce métier des outils modernes : un assistant dans la poche, multilingue dès le départ, pensé hors-ligne, et s’ouvrant à chaque langue et marché où l’on crée encore de beaux vêtements à la main.',
       photoAlt:
         'L’établi d’un tailleur : une vieille machine à coudre Singer, des ciseaux et du tissu sombre, dans un atelier en activité.',
     },
@@ -743,11 +771,11 @@ export const copy = {
         },
         {
           q: 'Qu’est-ce qui distingue SeamFlow des autres applications d’assistant tailleur ?',
-          a: 'Trois choses : il fonctionne sans réseau, donc l’atelier ne s’arrête jamais ; il est réellement bilingue français-anglais, pas traduit après coup ; et son assistant est branché sur vos vraies données, donc il répond sur vos commandes et vos clients au lieu de donner des conseils génériques.',
+          a: 'Trois choses : il fonctionne sans réseau, donc l’atelier ne s’arrête jamais ; il est réellement traduit dans chaque langue qu’il propose, pas traduit après coup ; et son assistant est branché sur vos vraies données, donc il répond sur vos commandes et vos clients au lieu de donner des conseils génériques.',
         },
         {
           q: 'Quelles langues sont prises en charge ?',
-          a: 'Le français, l’anglais et le portugais aujourd’hui, entièrement. Chaque écran, pas seulement les menus. D’autres à venir.',
+          a: 'Le français, l’anglais, le portugais, l’espagnol et le swahili aujourd’hui, entièrement. Chaque écran, pas seulement les menus. D’autres à venir.',
         },
         {
           q: 'Est-ce que ça marche hors ligne ?',
@@ -865,7 +893,7 @@ export const copy = {
       metaTitle:
         'Assistant tailleur IA : interrogez votre atelier, à l’écrit ou à la voix | SeamFlow',
       metaDescription:
-        'L’assistant tailleur IA de SeamFlow répond aux questions sur vos propres commandes, clients et factures, et crée les fiches pour vous après confirmation. Écrivez ou parlez, en français ou en anglais. Gratuit en accès anticipé.',
+        'L’assistant tailleur IA de SeamFlow répond aux questions sur vos propres commandes, clients et factures, et crée les fiches pour vous après confirmation. Écrivez ou parlez, dans votre langue. Gratuit en accès anticipé.',
       eyebrow: 'Dans SeamFlow',
       title: 'L’assistant tailleur IA de votre atelier.',
       subtitle:
@@ -906,7 +934,7 @@ export const copy = {
         {
           key: 'globe',
           title: 'Des réponses dans votre langue',
-          body: 'Demandez en français ou en anglais, il répond dans la même langue. Il comprend le vocabulaire du métier dans les deux : poitrine et chest désignent la même mesure pour lui.',
+          body: 'Demandez dans votre langue, il répond dans la même. Il comprend le vocabulaire du métier dans toutes : poitrine et chest désignent la même mesure pour lui.',
         },
         {
           key: 'offline',
@@ -943,7 +971,7 @@ export const copy = {
         {
           key: 'assistant',
           title: 'Un assistant à qui vous pouvez parler',
-          body: 'SeamFlow intègre un assistant IA branché sur vos propres données. Demandez « qu’est-ce qui est dû cette semaine ? » ou « qui me doit de l’argent ? » et il répond sur votre atelier. Dites-lui de créer une commande : il prépare la fiche, affiche une carte de confirmation, et attend. À l’écrit ou à la voix, en français ou en anglais. À la lecture de leur site, Tailor Assist n’a pas d’équivalent.',
+          body: 'SeamFlow intègre un assistant IA branché sur vos propres données. Demandez « qu’est-ce qui est dû cette semaine ? » ou « qui me doit de l’argent ? » et il répond sur votre atelier. Dites-lui de créer une commande : il prépare la fiche, affiche une carte de confirmation, et attend. À l’écrit ou à la voix, dans votre langue. À la lecture de leur site, Tailor Assist n’a pas d’équivalent.',
         },
         {
           key: 'scan',
@@ -971,8 +999,8 @@ export const copy = {
           body: 'Tailor Assist propose des comptes pour le personnel, des accès par rôle et l’attribution de tâches le long d’une chaîne de production. SeamFlow est conçu pour un tailleur et ses propres fiches : impossible d’inviter un employé ou de confier un travail à quelqu’un d’autre.',
         },
         {
-          title: 'Vous avez besoin de l’arabe ou de l’espagnol',
-          body: 'Ils annoncent l’anglais, le français, l’arabe et l’espagnol. SeamFlow existe en anglais, en français et en portugais. Les nôtres sont complètes plutôt que partielles, mais si vos clients lisent l’arabe ou l’espagnol, ils l’ont aujourd’hui et nous non.',
+          title: 'Vous avez besoin de l’arabe',
+          body: 'Ils annoncent l’anglais, le français, l’arabe et l’espagnol. SeamFlow existe en anglais, en français, en portugais, en espagnol et en swahili. Les nôtres sont complètes plutôt que partielles, mais si vos clients lisent l’arabe, ils l’ont aujourd’hui et nous non.',
         },
         {
           title: 'Vous voulez suivre les paiements',
@@ -1005,6 +1033,9 @@ export const copy = {
     // Strings viradas para pesquisa. Deliberadamente mais literais do que a
     // copy da página — uma tag de título tem de dizer o que o produto *é*.
     seo: {
+      // Also-known-as name and category, for the SoftwareApplication JSON-LD.
+      altName: 'Assistente de alfaiate com IA SeamFlow',
+      subCategory: 'Assistente de alfaiate',
       title:
         'SeamFlow: o assistente de IA para alfaiates — medidas, encomendas e faturas',
       description:
@@ -1042,7 +1073,7 @@ export const copy = {
         'O SeamFlow é o assistente que mantém juntos os seus clientes, medidas, encomendas e prazos, com um assistente de IA que responde a perguntas sobre o seu negócio e trata dos registos por si.',
       ctaPrimary: 'Usar no navegador',
       ctaSecondary: 'Ver como funciona',
-      note: 'Funciona offline · Português, inglês e francês · Gratuito em acesso antecipado',
+      note: 'Funciona offline · Cinco idiomas · Gratuito em acesso antecipado',
     },
     store: {
       soon: 'Em breve',
@@ -1123,7 +1154,7 @@ export const copy = {
         {
           key: 'offline',
           title: 'Multilingue e offline',
-          body: 'Português, inglês e francês completos. Registe encomendas e faça alterações no momento, mesmo sem rede. Sincroniza quando voltar.',
+          body: 'Cinco idiomas completos. Registe encomendas e faça alterações no momento, mesmo sem rede. Sincroniza quando voltar.',
         },
       ] as Feature[],
     },
@@ -1204,7 +1235,7 @@ export const copy = {
         },
         {
           q: 'Que línguas são suportadas?',
-          a: 'Português, inglês e francês hoje, na totalidade. Todos os ecrãs, não apenas os menus. Mais a caminho.',
+          a: 'Português, inglês, francês, espanhol e suaíli hoje, na totalidade. Todos os ecrãs, não apenas os menus. Mais a caminho.',
         },
         {
           q: 'Funciona offline?',
@@ -1325,7 +1356,7 @@ export const copy = {
       metaTitle:
         'Assistente de IA para alfaiates: pergunte sobre o seu atelier, por texto ou voz | SeamFlow',
       metaDescription:
-        'O assistente de IA do SeamFlow responde a perguntas sobre as suas encomendas, clientes e faturas, e cria registos por si mediante confirmação. Escreva ou fale, em português, inglês ou francês. Gratuito em acesso antecipado.',
+        'O assistente de IA do SeamFlow responde a perguntas sobre as suas encomendas, clientes e faturas, e cria registos por si mediante confirmação. Escreva ou fale, na sua própria língua. Gratuito em acesso antecipado.',
       eyebrow: 'Dentro do SeamFlow',
       title: 'O assistente de IA para o seu atelier.',
       subtitle:
@@ -1366,7 +1397,7 @@ export const copy = {
         {
           key: 'globe',
           title: 'Respostas na sua língua',
-          body: 'Pergunte em português, inglês ou francês e ele responde na mesma língua. Percebe o vocabulário do ofício em todas: peito, poitrine e chest são a mesma medida para ele.',
+          body: 'Pergunte na sua própria língua e ele responde na mesma. Percebe o vocabulário do ofício em todas: peito, poitrine e chest são a mesma medida para ele.',
         },
         {
           key: 'offline',
@@ -1430,8 +1461,8 @@ export const copy = {
           body: 'O Tailor Assist oferece contas de funcionário, acesso por função e atribuição de tarefas ao longo de uma linha de produção. O SeamFlow é hoje feito para um alfaiate e os seus próprios registos. Não há forma de convidar um empregado nem de passar um trabalho a outra pessoa.',
         },
         {
-          title: 'Precisa de árabe ou espanhol',
-          body: 'Eles anunciam inglês, francês, árabe e espanhol. O SeamFlow existe em inglês, francês e português. As nossas são traduções completas e não parciais, mas se os seus clientes leem árabe ou espanhol, eles têm-no hoje e nós não.',
+          title: 'Precisa de árabe',
+          body: 'Eles anunciam inglês, francês, árabe e espanhol. O SeamFlow existe em inglês, francês, português, espanhol e suaíli. As nossas são traduções completas e não parciais, mas se os seus clientes leem árabe, eles têm-no hoje e nós não.',
         },
         {
           title: 'Quer acompanhamento de pagamentos',
@@ -1458,6 +1489,908 @@ export const copy = {
       ctaBody:
         'Gratuito enquanto o SeamFlow estiver em acesso antecipado. Traga um cliente e uma encomenda e veja como é.',
       backToFeatures: 'Ver todas as funcionalidades',
+    },
+  },
+
+  // Español neutro latinoamericano, con trato de «usted». Los nombres de
+  // prendas de África Occidental (agbada, aso-ebi, kaftan) no se traducen:
+  // son nombres propios de la prenda, no descripciones.
+  es: {
+    seo: {
+      // Also-known-as name and category, for the SoftwareApplication JSON-LD.
+      altName: 'Asistente de IA para sastres SeamFlow',
+      subCategory: 'Asistente para sastres',
+      title:
+        'SeamFlow: el asistente de IA para sastres — medidas, pedidos y facturas',
+      description:
+        'SeamFlow es una app asistente para sastres y diseñadores de moda. Escanee medidas del papel, siga sus pedidos, envíe facturas y pregúntele a un asistente de IA sobre su negocio. Multilingüe, funciona sin conexión, gratis en acceso anticipado.',
+      keywords: [
+        'asistente para sastres',
+        'app para sastres',
+        'asistente de IA para sastres',
+        'software de sastrería',
+        'app de medidas para sastres',
+        'gestión de pedidos de sastrería',
+        'app para taller de costura',
+        'app para diseñadores de moda',
+        'escáner de medidas',
+        'facturación para sastres',
+        'gestión de atelier',
+        'programa para modistas',
+      ],
+    },
+    nav: {
+      features: 'Funciones',
+      assistant: 'Asistente de IA',
+      how: 'Cómo funciona',
+      faq: 'Preguntas',
+      useOnBrowser: 'Usar en el navegador',
+    },
+    hero: {
+      eyebrow: 'El asistente de IA para talleres de costura',
+      title: 'Todo su taller, en un solo lugar tranquilo.',
+      subtitle:
+        'SeamFlow es el asistente que mantiene juntos a sus clientes, sus medidas, sus pedidos y sus plazos, con un asistente de IA que responde preguntas sobre su negocio y archiva el trabajo por usted.',
+      ctaPrimary: 'Usar en el navegador',
+      ctaSecondary: 'Ver cómo funciona',
+      note: 'Funciona sin conexión · Cinco idiomas · Gratis en acceso anticipado',
+    },
+    store: {
+      soon: 'Próximamente',
+      appStore: 'Descargar en el App Store',
+      googlePlay: 'Disponible en Google Play',
+      androidEyebrow: 'APK de Android',
+      androidCta: 'Descargar para Android',
+    },
+    problem: {
+      eyebrow: 'El problema',
+      title: 'Las medidas en papel. Las fechas en la cabeza. Las referencias en el grupo de WhatsApp.',
+      body: 'Cuando cada cosa vive en un sitio distinto, se pasa una fecha de entrega, hay que volver a tomar una medida y un cliente pregunta «¿ya está?» por décima vez. Es demasiado para sostenerlo solo.',
+      solutionTitle: 'SeamFlow lo sostiene por usted.',
+      solutionBody:
+        'Un solo lugar para cada cliente, pedido, prueba y factura. Un asistente al que simplemente puede preguntarle, avisos antes de cada plazo, una página del pedido que puede compartir, y todo sigue funcionando aunque la red no lo haga.',
+    },
+    features: {
+      heading: 'Todo lo que el oficio necesita',
+      subheading:
+        'Un asistente hecho a la medida de cómo trabajan los sastres de verdad, no una lista de tareas genérica.',
+      items: [
+        {
+          key: 'assistant',
+          title: 'Asistente de IA, por texto o por voz',
+          body: 'Pregunte «¿qué se entrega esta semana?» o «¿quién me debe?» y reciba una respuesta directa. Pídale que cree un cliente, un pedido o una factura y prepara el registro, le muestra exactamente lo que se va a guardar y espera su confirmación.',
+        },
+        {
+          key: 'scan',
+          title: 'Escanee las medidas del papel',
+          body: 'Fotografíe una hoja de medidas llenada y SeamFlow pasa los números a un juego de medidas. Fotografíe una página en blanco de su libreta y se convierte en una plantilla reutilizable. Usted revisa cada valor antes de que se guarde.',
+        },
+        {
+          key: 'clients',
+          title: 'Clientes y medidas',
+          body: 'Guarde cada cliente una sola vez, con todos los juegos de medidas que necesite. Arme sus propias plantillas por prenda y reutilice las medidas guardadas de un cliente en el siguiente pedido.',
+        },
+        {
+          key: 'orders',
+          title: 'Pedidos con seguimiento de estado',
+          body: 'Registrado → en proceso → prueba → entregado. Todos saben exactamente en qué punto está el trabajo.',
+        },
+        {
+          key: 'invoices',
+          title: 'Facturas y anticipos',
+          body: 'Convierta cualquier pedido en una factura: mano de obra, tela y extras como conceptos separados, el anticipo registrado y el saldo calculado por usted. Compártala como enlace o como PDF.',
+        },
+        {
+          key: 'calendar',
+          title: 'Calendario y recordatorios',
+          body: 'Vea cada prueba y cada entrega día por día, y reciba un aviso amable antes de cada una. Los plazos dejan de tomarlo por sorpresa.',
+        },
+        {
+          key: 'groups',
+          title: 'Pedidos de grupo',
+          body: 'Cortejos de boda, aso-ebi, uniformes: coordine un grupo entero con tela compartida y medidas por persona.',
+        },
+        {
+          key: 'design',
+          title: 'Estudio de Diseño',
+          body: 'Reúna inspiración y fotos de telas en un tablero, abra cualquier imagen a pantalla completa y deje que la IA convierta una foto de referencia en notas de diseño claras y ordenadas.',
+        },
+        {
+          key: 'share',
+          title: 'Comparta con sus clientes',
+          body: 'Envíe un enlace y su cliente ve su pedido, el estado, la fecha de prueba y las fotos, sin instalar ninguna app.',
+        },
+        {
+          key: 'fabric',
+          title: 'Biblioteca de telas',
+          body: 'Fotografíe sus existencias, siga el proveedor y el costo por metro, y adjunte la tela directamente a un pedido.',
+        },
+        {
+          key: 'devices',
+          title: 'Teléfono, tableta o navegador',
+          body: 'La app de Android en el taller, el mismo SeamFlow en el navegador de una laptop. Instálelo en su pantalla de inicio y se comporta como una app.',
+        },
+        {
+          key: 'offline',
+          title: 'Multilingüe y sin conexión',
+          body: 'Cinco idiomas completos. Tome pedidos y edite en el momento aunque no haya señal. Se sincroniza cuando vuelve.',
+        },
+      ] as Feature[],
+    },
+    spotlight: {
+      eyebrow: 'Nuevo',
+      title: 'Un asistente de sastrería con el que de verdad puede hablar.',
+      body: 'Casi todo el software de sastrería lo obliga a ir a buscar la respuesta. El asistente de SeamFlow conoce a sus clientes, sus pedidos, sus medidas y sus facturas, así que basta con preguntar, en su propio idioma, escribiendo o hablando.',
+      examples: [
+        '¿Qué se entrega esta semana?',
+        '¿Quién me sigue debiendo dinero?',
+        '¿Cómo va el negocio este mes?',
+        'Crea un pedido para Amina, agbada, para el día 20.',
+      ],
+      cta: 'Vea lo que puede hacer el asistente',
+    },
+    steps: {
+      eyebrow: 'Tres pasos',
+      heading: 'Funcionando en minutos',
+      items: [
+        {
+          title: 'Agregue un cliente',
+          body: 'Nombre, teléfono, medidas: escríbalos, impórtelos de sus contactos o escanee con la cámara una hoja de medidas llenada.',
+        },
+        {
+          title: 'Cree un pedido',
+          body: 'Elija una prenda, ponga la fecha de entrega, agregue notas de diseño y fotos de referencia. O simplemente dígaselo al asistente y confirme.',
+        },
+        {
+          title: 'Reciba avisos, reciba su pago',
+          body: 'SeamFlow le avisa antes de cada prueba y de cada plazo, mantiene informado al cliente y convierte el pedido terminado en una factura.',
+        },
+      ] as Step[],
+    },
+    vision: {
+      eyebrow: 'Por qué lo hicimos',
+      title: 'El compañero de negocio para un oficio que se lo merece.',
+      body: 'Los sastres independientes llevan negocios reales con libretas y memoria. SeamFlow le da a ese oficio herramientas modernas: un asistente en el bolsillo, multilingüe desde el primer día, pensado para funcionar sin conexión y creciendo hacia cada idioma y cada mercado donde la buena ropa se sigue haciendo a mano.',
+      photoAlt:
+        'La mesa de trabajo de un sastre: una vieja máquina de coser Singer, tijeras y tela oscura, en un taller en funcionamiento.',
+    },
+    gallery: {
+      heading: 'Una mirada por dentro',
+      subheading:
+        'La app real, en un teléfono real. Clara u oscura, sigue lo que tenga configurado su dispositivo.',
+      altPhone:
+        'Pantalla de inicio de SeamFlow en un teléfono Android en modo oscuro, con pedidos, clientes, grupos, calendario, plantillas, telas, Estudio de Diseño y el asistente.',
+      altTablet:
+        'Pantalla de inicio de SeamFlow en una tableta en modo claro, con los mismos mosaicos repartidos en una pantalla más ancha.',
+    },
+    faq: {
+      heading: 'Preguntas, respondidas',
+      items: [
+        {
+          q: '¿SeamFlow trae un asistente de IA para sastres?',
+          a: 'Sí. SeamFlow incluye un asistente de IA integrado al que puede escribirle o hablarle. Responde preguntas sobre su propio negocio: qué se entrega, quién le debe, cómo va el mes. También puede crear clientes, pedidos, medidas y facturas por usted. Siempre le muestra exactamente lo que va a guardar y espera su confirmación primero.',
+          href: '/tailor-assistant',
+          linkLabel: 'Más sobre el asistente',
+        },
+        {
+          q: '¿Puedo escanear las medidas del papel en vez de escribirlas?',
+          a: 'Sí. Tome una foto de frente de una hoja de medidas llenada y SeamFlow pasa las etiquetas y los números a un juego de medidas. Fotografíe una página en blanco de su libreta y se convierte en una plantilla reutilizable. No se guarda nada hasta que haya revisado cada línea contra la foto.',
+        },
+        {
+          q: '¿Puedo enviar facturas a mis clientes?',
+          a: 'Sí. Cualquier pedido puede convertirse en una factura con líneas separadas para mano de obra, tela y extras. Registre un anticipo y SeamFlow calcula el saldo pendiente; luego comparta la factura como enlace o como PDF.',
+        },
+        {
+          q: '¿SeamFlow funciona en una computadora o solo en el teléfono?',
+          a: 'En ambos. Hay una app de Android para el taller, y el mismo SeamFlow corre en cualquier navegador moderno de una laptop o computadora de escritorio. Puede instalarlo en su pantalla de inicio o escritorio y se comporta como una app nativa.',
+        },
+        {
+          q: '¿Cuánto cuesta?',
+          a: 'SeamFlow está en acceso anticipado. Las funciones principales son gratuitas mientras lo construimos; cualquier plan de pago será claramente opcional.',
+        },
+        {
+          q: '¿Qué diferencia a SeamFlow de otras apps para sastres?',
+          a: 'Tres cosas: funciona sin señal, así que el taller nunca se detiene; está realmente traducido a cada idioma que ofrece, no traducido a última hora; y su asistente está conectado a sus datos reales, así que responde sobre sus pedidos y sus clientes en lugar de dar consejos genéricos.',
+        },
+        {
+          q: '¿Qué idiomas admite?',
+          a: 'Hoy inglés, francés, portugués, español y suajili, completos. Cada pantalla, no solo los menús. Vienen más en camino.',
+        },
+        {
+          q: '¿Funciona sin conexión?',
+          a: 'Sí. Puede navegar, tomar pedidos y hacer cambios sin conexión; todo se sincroniza cuando vuelve a estar en línea.',
+        },
+        {
+          q: '¿Mis clientes tienen que instalar algo?',
+          a: 'No. Usted comparte un enlace y ellos ven su pedido o su factura en cualquier navegador.',
+        },
+        {
+          q: '¿Puedo bloquear la app para que nadie más la abra?',
+          a: 'Sí. Puede poner un PIN de cuatro dígitos, y SeamFlow se bloquea solo tras unos minutos en segundo plano, así su lista de clientes sigue siendo suya aunque alguien más tome el teléfono.',
+        },
+        {
+          q: '¿Mis datos son privados?',
+          a: 'Sus datos son suyos; no los vendemos. Nuestra Política de Privacidad detalla exactamente qué se guarda y cuáles son sus derechos.',
+          href: '/privacy',
+          linkLabel: 'Leer la Política de Privacidad',
+        },
+        {
+          q: '¿En qué dispositivos funciona?',
+          a: 'Hoy en teléfonos y tabletas Android, en cualquier navegador de laptop o escritorio, y pronto en iOS.',
+        },
+      ] as Faq[],
+    },
+    cta: {
+      title: 'Reúna su taller en un solo lugar.',
+      body: 'Únase a los sastres que hicieron de SeamFlow su asistente diario.',
+    },
+    footer: {
+      tagline: 'El asistente de IA y el hogar tranquilo de su negocio de sastrería.',
+      product: 'Producto',
+      legal: 'Legal',
+      contact: 'Contacto',
+      links: {
+        features: 'Funciones',
+        assistant: 'Asistente de IA',
+        compare: 'Cómo nos comparamos',
+        how: 'Cómo funciona',
+        faq: 'Preguntas',
+        privacy: 'Política de Privacidad',
+        terms: 'Términos',
+        support: 'Soporte',
+        deleteAccount: 'Eliminar cuenta',
+      },
+      email: 'contactseamflow@gmail.com',
+      phone: '+237 670 15 19 73',
+      rights: '© {year} SeamFlow. Todos los derechos reservados.',
+      madeWith: 'Hecho para sastres, en todas partes.',
+    },
+    legal: {
+      lastUpdated: 'Última actualización',
+      backToHome: 'Volver al inicio',
+      privacyTitle: 'Política de Privacidad',
+      termsTitle: 'Términos del Servicio',
+      supportTitle: 'Soporte',
+    },
+    deleteAccount: {
+      metaTitle: 'Elimine su cuenta de SeamFlow',
+      metaDescription:
+        'Cómo eliminar su cuenta de SeamFlow y todo lo guardado con ella: desde la propia app, o escribiéndonos si ya no la tiene instalada.',
+      title: 'Elimine su cuenta',
+      intro:
+        'Puede cerrar su cuenta de SeamFlow cuando quiera, y llevarse antes una copia de sus registros.',
+
+      inAppHeading: 'Desde la app (lo más rápido)',
+      inAppBody:
+        'Si todavía puede iniciar sesión, este es el camino más rápido y usted mantiene el control en todo momento.',
+      inAppStep1: 'Abra SeamFlow y vaya a Ajustes.',
+      inAppStep2: 'En Cuenta, toque «Eliminar mi cuenta».',
+      inAppStep3:
+        'Descargue una copia de sus datos si la quiere, confirme que es usted y confirme la eliminación.',
+
+      emailHeading: 'Si ya no tiene la app',
+      emailBody:
+        'Escríbanos desde el correo electrónico de la cuenta y empezaremos el mismo proceso por usted. Puede que le hagamos una o dos preguntas para confirmar que la cuenta es suya; nunca le pediremos su contraseña.',
+      emailCta: 'Escríbanos para eliminar mi cuenta',
+      mailSubject: 'Por favor eliminen mi cuenta de SeamFlow',
+      mailBody:
+        'Hola:\n\nPor favor eliminen mi cuenta de SeamFlow y los datos guardados con ella.\n\nEl correo electrónico de mi cuenta es: \n\nGracias.',
+
+      whatHappensHeading: 'Qué ocurre',
+      whatHappensIntro:
+        'La eliminación borra su cuenta y los registros asociados a ella. Esto es exactamente lo que abarca.',
+
+      erasedHeading: 'Se borra',
+      erased1: 'Su perfil y su acceso: no podrá volver a iniciar sesión',
+      erased2: 'Sus clientes y sus medidas, pedidos, pedidos de grupo y facturas',
+      erased3: 'Cada foto que haya subido, incluida su página pública',
+      erased4: 'Sus solicitudes, ofertas y medidas guardadas',
+
+      keptHeading: 'Se conserva',
+      kept1:
+        'Los mensajes que envió quedan en la conversación de la otra persona, sin su nombre y sin su contenido.',
+      kept2:
+        'Registros anónimos sin nada personal, cuando hacen falta para que la app siga funcionando para los demás.',
+
+      graceHeading: 'Tiene 30 días para cambiar de opinión',
+      graceBody:
+        'No se borra nada de inmediato. Su página pública desaparece enseguida y las notificaciones se detienen, pero sus registros quedan intactos durante 30 días: inicie sesión en ese plazo y toque «Conservar mi cuenta» para cancelarlo. Pasados los 30 días es definitivo y no podemos recuperarlo.',
+
+      privacyNote: 'Para saber más sobre qué guardamos y por qué, consulte nuestra',
+    },
+
+    support: {
+      intro: '¿Necesita una mano? Con gusto le ayudamos.',
+      emailHeading: 'Escríbanos',
+      emailBody: 'Mándenos un correo y le respondemos en un par de días.',
+      faqHeading: 'Preguntas frecuentes',
+      faqBody: 'Casi todas las respuestas están en nuestras preguntas frecuentes.',
+      faqLink: 'Leer las preguntas frecuentes',
+    },
+
+    assistantPage: {
+      metaTitle: 'Asistente de IA para sastres: pregúntele por su taller, por texto o por voz | SeamFlow',
+      metaDescription:
+        'El asistente de IA de SeamFlow responde preguntas sobre sus propios pedidos, clientes y facturas, y crea registros por usted tras su confirmación. Escriba o hable, en su propio idioma. Gratis en acceso anticipado.',
+      eyebrow: 'Dentro de SeamFlow',
+      title: 'El asistente de IA para su taller de costura.',
+      subtitle:
+        'Cualquier app de sastrería puede guardar sus pedidos. El asistente de SeamFlow puede responder preguntas sobre ellos y hacer el archivo por usted, en su propio idioma, escribiendo o hablando.',
+      askHeading: 'Pregúntele por su negocio',
+      askBody:
+        'El asistente lee sus datos reales antes de responder, así que no son respuestas enlatadas. Hablan de su taller, hoy.',
+      askItems: [
+        '¿Qué se entrega esta semana?',
+        '¿Quién me sigue debiendo dinero?',
+        '¿Cómo va el negocio este mes?',
+        '¿Qué fue lo último que le hice a Amina?',
+        '¿Qué pedidos están esperando una prueba?',
+        '¿Cuántos uniformes faltan en el pedido de grupo de la escuela?',
+      ],
+      doHeading: 'Dígale qué hacer',
+      doBody:
+        'El asistente puede crear y actualizar registros, pero nunca escribe nada en silencio. Prepara el cambio, le muestra una tarjeta de confirmación con cada campo detallado, y no se guarda nada hasta que usted toca Confirmar.',
+      doItems: [
+        'Crea un cliente llamado Amina, número 6xx xx xx xx.',
+        'Nuevo pedido para Amina, agbada, para el día 20.',
+        'Pasa el pedido n.º 14 a prueba.',
+        'Guarda estas medidas para Joseph.',
+        'Prepara una factura para el pedido de la boda.',
+        'Mándame el enlace para compartir ese pedido.',
+      ],
+      pillars: [
+        {
+          key: 'voice',
+          title: 'Manos libres cuando tiene las manos ocupadas',
+          body: 'Háblele mientras corta o prende alfileres, y haga que le lea las respuestas en voz alta. Unos indicadores claros muestran cuándo está escuchando y cuándo está hablando, para que siempre sepa qué pasa.',
+        },
+        {
+          key: 'shield',
+          title: 'Pregunta antes de guardar',
+          body: 'Cualquier acción que cambie sus datos llega como una tarjeta de confirmación con exactamente lo que se va a escribir. Léala, cambie de opinión o confirme. Nada ocurre a sus espaldas.',
+        },
+        {
+          key: 'globe',
+          title: 'Respuestas en su idioma',
+          body: 'Pregunte en su propio idioma y le responde en el mismo. Entiende el vocabulario del oficio en todos: pecho, poitrine y chest son la misma medida para él.',
+        },
+        {
+          key: 'offline',
+          title: 'Privado por defecto',
+          body: 'Su conversación vive en su dispositivo, no en nuestros servidores. No guardamos nada de ella. Los mensajes antiguos van desapareciendo a medida que crece el hilo, y puede borrarla cuando quiera. El asistente solo lee los datos de su propio taller.',
+        },
+      ] as Feature[],
+      ctaTitle: 'Ponga un asistente en su taller.',
+      ctaBody: 'Gratis mientras SeamFlow esté en acceso anticipado.',
+      backToFeatures: 'Ver todas las funciones',
+    },
+
+    alternativesPage: {
+      metaTitle: 'Una alternativa a Tailor Assist: SeamFlow, comparado con honestidad | SeamFlow',
+      metaDescription:
+        '¿Compara SeamFlow y Tailor Assist? Ambas son apps gratuitas para sastres que funcionan sin conexión. SeamFlow suma un asistente de IA con el que puede hablar, escaneo de medidas desde papel y un estudio de diseño. Una mirada honesta a dónde gana cada una.',
+      eyebrow: 'Comparación',
+      title: '¿Busca una alternativa a Tailor Assist?',
+      subtitle:
+        'Tailor Assist y SeamFlow salieron a resolver el mismo problema: un negocio de sastrería llevado con libretas y memoria. Lo hacen de forma distinta. Esta es una comparación directa, incluidas las partes en las que salimos peor parados.',
+
+      disclosureTitle: 'Quién escribió esto',
+      disclosureBody:
+        'Nosotros. Nosotros hacemos SeamFlow, así que lea esto como leería cualquier comparación escrita por una de las dos partes. Lo que sí podemos prometer es exactitud: todo lo que se dice aquí de Tailor Assist sale de su propio sitio público, y todo lo que se dice de SeamFlow es una función que ya puede usar hoy, no un punto en la hoja de ruta. Pruebe las dos; ambas son gratuitas.',
+      updatedLabel: 'Comparado con información pública de {date}.',
+
+      strengthsHeading: 'En qué es distinto SeamFlow',
+      strengthsBody:
+        'Estas son las cosas que nos llevaron a construir otra app de sastrería en lugar de usar una que ya existía.',
+      strengths: [
+        {
+          key: 'assistant',
+          title: 'Un asistente con el que puede hablar',
+          body: 'SeamFlow trae un asistente de IA integrado y conectado a sus propios datos. Pregunte «¿qué se entrega esta semana?» o «¿quién me debe?» y le responde sobre su taller. Pídale que cree un pedido y prepara el registro, le muestra una tarjeta de confirmación y espera. Puede escribir o hablar, en su propio idioma. Por lo que vemos en su sitio, Tailor Assist no tiene nada equivalente.',
+        },
+        {
+          key: 'scan',
+          title: 'Las medidas directo del papel',
+          body: 'Fotografíe una hoja de medidas llenada y SeamFlow pasa las etiquetas y los números a un juego de medidas para que usted lo revise. Fotografíe una página en blanco de su libreta y se convierte en una plantilla reutilizable. Si tiene años de registros en papel, esta es la diferencia entre migrar en una tarde y no migrar nunca.',
+        },
+        {
+          key: 'design',
+          title: 'Un estudio de diseño, no solo un campo para fotos',
+          body: 'Reúna referencias de estilo y de tela en un tablero, abra cualquier imagen a pantalla completa y deje que la IA convierta una foto de referencia en notas de prenda ordenadas (corte, escote, manga, acabado) que usted edita antes de guardar. Luego adjúntela al pedido al que pertenece.',
+        },
+        {
+          key: 'groups',
+          title: 'Los pedidos de grupo como algo de primera clase',
+          body: 'Las bodas, el aso-ebi y los uniformes son un solo pedido con un titular, una tela compartida y medidas por persona, no una docena de pedidos sueltos que usted tiene que recordar que van juntos.',
+        },
+      ] as Feature[],
+
+      theirsHeading: 'En qué puede convenirle más Tailor Assist',
+      theirsBody:
+        'De verdad. Si su taller funciona de alguna de estas maneras, hoy son la mejor herramienta, y preferimos decírselo ahora antes que hacerle perder la tarde.',
+      theirs: [
+        {
+          title: 'Tiene empleados',
+          body: 'Tailor Assist ofrece cuentas para empleados, acceso por roles y asignación de tareas a lo largo de una cadena de producción. SeamFlow hoy está pensado para un sastre y sus propios registros. No hay forma de invitar a un empleado ni de pasarle un trabajo a otra persona.',
+        },
+        {
+          title: 'Necesita árabe',
+          body: 'Ellos listan inglés, francés, árabe y español. SeamFlow existe en inglés, francés, portugués, español y suajili. Las nuestras son traducciones completas y no parciales, pero si el árabe es el idioma que leen sus clientes, ellos lo tienen hoy y nosotros no.',
+        },
+        {
+          title: 'Quiere seguimiento de pagos',
+          body: 'Ellos anuncian seguimiento de pagos por dinero móvil. SeamFlow registra un anticipo y calcula el saldo de una factura, pero no se conecta a ningún proveedor de pagos. La conciliación del dinero la hace usted. Los pagos están en nuestra hoja de ruta, y una hoja de ruta no es una función.',
+        },
+        {
+          title: 'Quiere paneles e informes',
+          body: 'Ellos ofrecen pantallas de análisis e informes de negocio. SeamFlow no tiene una sección de informes; lo más cercano es preguntarle al asistente cómo va el negocio, que es una buena respuesta a una pregunta pero no un gráfico que se pueda estudiar.',
+        },
+      ],
+
+      sharedHeading: 'En qué se parecen bastante las dos',
+      sharedBody: 'En lo fundamental, con honestidad, estaría bien con cualquiera de las dos.',
+      shared: [
+        'Gratuitas para un sastre independiente',
+        'Funcionan sin señal y se sincronizan cuando vuelve la red',
+        'Clientes, medidas y estado de los pedidos en un solo lugar',
+        'Facturas que puede enviar a un cliente',
+        'Compartir por WhatsApp sin que el cliente instale nada',
+        'Funcionan en Android y en el navegador',
+      ],
+
+      ctaTitle: 'Pruébelo una tarde.',
+      ctaBody: 'Gratis mientras SeamFlow esté en acceso anticipado. Traiga un cliente y un pedido, y vea cómo se siente.',
+      backToFeatures: 'Ver todas las funciones',
+    },
+  },
+
+  // Kiswahili sanifu. Majina ya mavazi ya Afrika Magharibi (agbada, aso-ebi,
+  // kaftan) hayatafsiriwi — ni majina ya vazi lenyewe, si maelezo yake.
+  sw: {
+    seo: {
+      // Also-known-as name and category, for the SoftwareApplication JSON-LD.
+      altName: 'Msaidizi wa AI kwa washonaji SeamFlow',
+      subCategory: 'Msaidizi wa mshonaji',
+      title:
+        'SeamFlow: msaidizi wa AI kwa washonaji — vipimo, maagizo na ankara',
+      description:
+        'SeamFlow ni programu ya msaidizi kwa washonaji na wabunifu wa mavazi. Skani vipimo kutoka karatasi, fuatilia maagizo, tuma ankara, na muulize msaidizi wa AI kuhusu biashara yako. Lugha nyingi, hufanya kazi bila mtandao, bure katika awamu ya awali.',
+      keywords: [
+        'msaidizi wa mshonaji',
+        'programu ya mshonaji',
+        'msaidizi wa AI kwa washonaji',
+        'programu ya ushonaji',
+        'programu ya vipimo kwa washonaji',
+        'usimamizi wa maagizo ya ushonaji',
+        'programu ya biashara ya ushonaji',
+        'programu ya wabunifu wa mavazi',
+        'skana ya vipimo',
+        'ankara za mshonaji',
+        'usimamizi wa duka la ushonaji',
+      ],
+    },
+    nav: {
+      features: 'Vipengele',
+      assistant: 'Msaidizi wa AI',
+      how: 'Inavyofanya kazi',
+      faq: 'Maswali',
+      useOnBrowser: 'Tumia kwenye kivinjari',
+    },
+    hero: {
+      eyebrow: 'Msaidizi wa AI kwa maduka ya ushonaji',
+      title: 'Duka lako lote, mahali pamoja penye utulivu.',
+      subtitle:
+        'SeamFlow ni msaidizi anayeweka pamoja wateja wako, vipimo, maagizo na muda wa kukabidhi, akiwa na msaidizi wa AI anayejibu maswali kuhusu biashara yako na kukupangia kazi.',
+      ctaPrimary: 'Tumia kwenye kivinjari',
+      ctaSecondary: 'Ona inavyofanya kazi',
+      note: 'Hufanya kazi bila mtandao · Lugha tano · Bure katika awamu ya awali',
+    },
+    store: {
+      soon: 'Inakuja hivi karibuni',
+      appStore: 'Pakua kwenye App Store',
+      googlePlay: 'Ipate kwenye Google Play',
+      androidEyebrow: 'APK ya Android',
+      androidCta: 'Pakua kwa Android',
+    },
+    problem: {
+      eyebrow: 'Tatizo',
+      title: 'Vipimo kwenye karatasi. Tarehe kichwani. Picha za mtindo kwenye kundi la WhatsApp.',
+      body: 'Kila kitu kinapokaa mahali tofauti, tarehe ya kukabidhi hupita, kipimo hulazimika kuchukuliwa upya, na mteja huuliza “imekwisha?” kwa mara ya kumi. Ni mzigo mkubwa kuubeba.',
+      solutionTitle: 'SeamFlow inakubebea.',
+      solutionBody:
+        'Mahali pamoja kwa kila mteja, agizo, kipimo cha kufitisha na ankara. Msaidizi unayeweza kumuuliza tu, vikumbusho kabla ya kila tarehe, ukurasa wa agizo unaoweza kushiriki — na yote yanaendelea kufanya kazi hata mtandao ukikatika.',
+    },
+    features: {
+      heading: 'Kila kitu ambacho ufundi huu unahitaji',
+      subheading:
+        'Msaidizi uliojengwa kwa jinsi washonaji wanavyofanya kazi kweli, si orodha ya kazi ya kawaida.',
+      items: [
+        {
+          key: 'assistant',
+          title: 'Msaidizi wa AI, kwa maandishi au sauti',
+          body: 'Uliza “ni nini kinachokabidhiwa wiki hii?” au “nani ananidai?” upate jibu la moja kwa moja. Mwambie atengeneze mteja, agizo au ankara naye huandaa rekodi, hukuonyesha hasa kitakachohifadhiwa, na husubiri uthibitisho wako.',
+        },
+        {
+          key: 'scan',
+          title: 'Skani vipimo kutoka karatasi',
+          body: 'Piga picha ya karatasi ya vipimo iliyojazwa na SeamFlow husoma namba na kuziweka kwenye seti ya vipimo. Piga picha ya ukurasa mtupu wa kitabu chako nao huwa kiolezo cha kutumika tena. Wewe hukagua kila thamani kabla haijahifadhiwa.',
+        },
+        {
+          key: 'clients',
+          title: 'Wateja na vipimo',
+          body: 'Hifadhi kila mteja mara moja, akiwa na seti nyingi za vipimo kadri anavyohitaji. Jenga violezo vyako kwa kila vazi, na utumie tena vipimo vya mteja kwenye agizo lijalo.',
+        },
+        {
+          key: 'orders',
+          title: 'Maagizo yenye ufuatiliaji wa hali',
+          body: 'Limesajiliwa → linaendelea → kufitisha → limekabidhiwa. Kila mtu anajua hasa kazi ilipofika.',
+        },
+        {
+          key: 'invoices',
+          title: 'Ankara na kishika uchumba',
+          body: 'Geuza agizo lolote kuwa ankara: ujira, kitambaa na ziada kama vipengele tofauti, kishika uchumba kimeandikwa, salio limehesabiwa kwa ajili yako. Ishiriki kama kiungo au PDF.',
+        },
+        {
+          key: 'calendar',
+          title: 'Kalenda na vikumbusho',
+          body: 'Ona kila kufitisha na kila kukabidhi kwa siku, na upate kikumbusho laini kabla ya kila moja. Tarehe hazitakushtukiza tena.',
+        },
+        {
+          key: 'groups',
+          title: 'Maagizo ya kikundi',
+          body: 'Wasindikizaji wa harusi, aso-ebi, sare: ratibu kikundi kizima kikiwa na kitambaa cha pamoja na vipimo vya kila mwanachama.',
+        },
+        {
+          key: 'design',
+          title: 'Studio ya Ubunifu',
+          body: 'Kusanya msukumo na picha za vitambaa kwenye ubao mmoja, fungua picha yoyote skrini nzima, na acha AI igeuze picha ya rejeleo kuwa maelezo ya ubunifu yaliyo wazi na yenye mpangilio.',
+        },
+        {
+          key: 'share',
+          title: 'Shiriki na wateja',
+          body: 'Tuma kiungo na mteja wako ataona agizo lake, hali yake, tarehe ya kufitisha na picha — bila kusakinisha programu yoyote.',
+        },
+        {
+          key: 'fabric',
+          title: 'Maktaba ya vitambaa',
+          body: 'Piga picha ya vitambaa ulivyo navyo, fuatilia muuzaji na gharama kwa mita, na ambatisha kitambaa moja kwa moja kwenye agizo.',
+        },
+        {
+          key: 'devices',
+          title: 'Simu, kompyuta kibao au kivinjari',
+          body: 'Programu ya Android dukani, na SeamFlow ile ile kwenye kivinjari cha kompyuta. Isakinishe kwenye skrini yako ya mwanzo nayo hufanya kazi kama programu.',
+        },
+        {
+          key: 'offline',
+          title: 'Lugha nyingi na bila mtandao',
+          body: 'Lugha tano kamili. Pokea maagizo na uhariri papo hapo hata bila mtandao. Husawazisha ukirudi mtandaoni.',
+        },
+      ] as Feature[],
+    },
+    spotlight: {
+      eyebrow: 'Mpya',
+      title: 'Msaidizi wa ushonaji unayeweza kweli kuzungumza naye.',
+      body: 'Programu nyingi za ushonaji hukulazimisha kwenda kutafuta jibu mwenyewe. Msaidizi wa SeamFlow anawajua wateja wako, maagizo, vipimo na ankara zako, kwa hivyo unaweza kuuliza tu — kwa lugha yako, kwa kuandika au kwa kuzungumza.',
+      examples: [
+        'Ni nini kinachokabidhiwa wiki hii?',
+        'Nani bado ananidai pesa?',
+        'Biashara ikoje mwezi huu?',
+        'Tengeneza agizo la Amina, agbada, likabidhiwe tarehe 20.',
+      ],
+      cta: 'Ona msaidizi anachoweza kufanya',
+    },
+    steps: {
+      eyebrow: 'Hatua tatu',
+      heading: 'Uko tayari ndani ya dakika chache',
+      items: [
+        {
+          title: 'Ongeza mteja',
+          body: 'Jina, simu, vipimo: viandike, viingize kutoka anwani zako, au skani karatasi ya vipimo iliyojazwa kwa kamera.',
+        },
+        {
+          title: 'Tengeneza agizo',
+          body: 'Chagua vazi, weka tarehe ya kukabidhi, ongeza maelezo ya ubunifu na picha za rejeleo. Au mwambie tu msaidizi kisha uthibitishe.',
+        },
+        {
+          title: 'Kumbushwa, ulipwe',
+          body: 'SeamFlow hukukumbusha kabla ya kila kufitisha na kila tarehe, humweka mteja kwenye picha, na hugeuza agizo lililokamilika kuwa ankara.',
+        },
+      ] as Step[],
+    },
+    vision: {
+      eyebrow: 'Kwa nini tuliijenga',
+      title: 'Mwenzi wa biashara kwa ufundi unaostahili kuwa nao.',
+      body: 'Washonaji wa kujitegemea huendesha biashara halisi kwa madaftari na kumbukumbu ya kichwa. SeamFlow inaupa ufundi huo zana za kisasa: msaidizi mfukoni, lugha nyingi tangu siku ya kwanza, iliyojengwa kufanya kazi bila mtandao, na inayokua kuelekea kila lugha na soko ambapo nguo nzuri bado hushonwa kwa mikono.',
+      photoAlt:
+        'Meza ya kazi ya mshonaji: cherehani ya zamani ya Singer, mikasi na kitambaa cheusi, ndani ya duka linalofanya kazi.',
+    },
+    gallery: {
+      heading: 'Tazama ndani',
+      subheading:
+        'Programu halisi, kwenye simu halisi. Nuru au giza, hufuata mpangilio wa kifaa chako.',
+      altPhone:
+        'Skrini ya mwanzo ya SeamFlow kwenye simu ya Android katika hali ya giza, ikionyesha maagizo, wateja, vikundi, kalenda, violezo, vitambaa, Studio ya Ubunifu na msaidizi.',
+      altTablet:
+        'Skrini ya mwanzo ya SeamFlow kwenye kompyuta kibao katika hali ya nuru, ikiwa na vigae vile vile kwenye skrini pana zaidi.',
+    },
+    faq: {
+      heading: 'Maswali, yakijibiwa',
+      items: [
+        {
+          q: 'Je, SeamFlow ina msaidizi wa AI kwa washonaji?',
+          a: 'Ndiyo. SeamFlow ina msaidizi wa AI aliyejengwa ndani, unayeweza kumwandikia au kumzungumzia. Hujibu maswali kuhusu biashara yako mwenyewe: kinachokabidhiwa, anayekudai, mwezi unavyokwenda. Anaweza pia kukutengenezea wateja, maagizo, vipimo na ankara. Daima hukuonyesha hasa kile atakachohifadhi na husubiri uthibitisho wako kwanza.',
+          href: '/tailor-assistant',
+          linkLabel: 'Zaidi kuhusu msaidizi',
+        },
+        {
+          q: 'Naweza kuskani vipimo kutoka karatasi badala ya kuviandika?',
+          a: 'Ndiyo. Piga picha ya moja kwa moja ya karatasi ya vipimo iliyojazwa na SeamFlow husoma lebo na namba na kuziweka kwenye seti ya vipimo. Piga picha ya ukurasa mtupu wa kitabu chako cha vipimo nao huwa kiolezo cha kutumika tena. Hakuna kinachohifadhiwa hadi ukague kila mstari dhidi ya picha.',
+        },
+        {
+          q: 'Naweza kuwatumia wateja ankara?',
+          a: 'Ndiyo. Agizo lolote linaweza kuwa ankara yenye mistari tofauti ya ujira, kitambaa na ziada. Andika kishika uchumba na SeamFlow huhesabu salio linalodaiwa, kisha ushiriki ankara kama kiungo au PDF.',
+        },
+        {
+          q: 'Je, SeamFlow hufanya kazi kwenye kompyuta, au kwenye simu tu?',
+          a: 'Zote mbili. Kuna programu ya Android kwa matumizi dukani, na SeamFlow ile ile hufanya kazi kwenye kivinjari chochote cha kisasa cha kompyuta. Unaweza kuisakinisha kwenye skrini yako ya mwanzo au eneo-kazi nayo hufanya kazi kama programu halisi.',
+        },
+        {
+          q: 'Gharama yake ni kiasi gani?',
+          a: 'SeamFlow iko katika awamu ya awali. Vipengele vikuu ni bure tunapoendelea kuijenga; mpango wowote wa kulipia utakuwa wa hiari kwa uwazi.',
+        },
+        {
+          q: 'Ni nini kinachoitofautisha SeamFlow na programu nyingine za washonaji?',
+          a: 'Mambo matatu: hufanya kazi bila mtandao, kwa hivyo duka halisimami; imetafsiriwa kikamilifu kwa kila lugha inayotoa, si tafsiri ya haraka haraka; na msaidizi wake ameunganishwa na data yako halisi, kwa hivyo hujibu kuhusu maagizo na wateja wako badala ya kutoa ushauri wa jumla.',
+        },
+        {
+          q: 'Inatumia lugha gani?',
+          a: 'Leo Kiingereza, Kifaransa, Kireno, Kihispania na Kiswahili, kikamilifu. Kila skrini, si menyu tu. Nyingine zinakuja.',
+        },
+        {
+          q: 'Je, hufanya kazi bila mtandao?',
+          a: 'Ndiyo. Unaweza kutazama, kupokea maagizo na kufanya mabadiliko bila muunganisho; kila kitu husawazishwa utakaporudi mtandaoni.',
+        },
+        {
+          q: 'Je, wateja wangu wanahitaji kusakinisha kitu?',
+          a: 'Hapana. Unashiriki kiungo nao huona agizo au ankara yao kwenye kivinjari chochote.',
+        },
+        {
+          q: 'Naweza kufunga programu ili mtu mwingine asiifungue?',
+          a: 'Ndiyo. Unaweza kuweka PIN ya tarakimu nne, na SeamFlow hujifunga baada ya dakika chache ikiwa nyuma, hivyo orodha yako ya wateja hubaki yako hata mtu mwingine akichukua simu.',
+        },
+        {
+          q: 'Je, data yangu ni ya faragha?',
+          a: 'Data yako ni yako; hatuiuzi. Sera yetu ya Faragha inaeleza hasa kinachohifadhiwa na haki zako.',
+          href: '/privacy',
+          linkLabel: 'Soma Sera ya Faragha',
+        },
+        {
+          q: 'Hufanya kazi kwenye vifaa gani?',
+          a: 'Leo simu na kompyuta kibao za Android, kivinjari chochote cha kompyuta, na iOS hivi karibuni.',
+        },
+      ] as Faq[],
+    },
+    cta: {
+      title: 'Kusanya duka lako pamoja.',
+      body: 'Jiunge na washonaji waliofanya SeamFlow msaidizi wao wa kila siku.',
+    },
+    footer: {
+      tagline: 'Msaidizi wa AI na nyumba tulivu ya biashara yako ya ushonaji.',
+      product: 'Bidhaa',
+      legal: 'Kisheria',
+      contact: 'Wasiliana',
+      links: {
+        features: 'Vipengele',
+        assistant: 'Msaidizi wa AI',
+        compare: 'Tunavyolinganishwa',
+        how: 'Inavyofanya kazi',
+        faq: 'Maswali',
+        privacy: 'Sera ya Faragha',
+        terms: 'Masharti',
+        support: 'Msaada',
+        deleteAccount: 'Futa akaunti',
+      },
+      email: 'contactseamflow@gmail.com',
+      phone: '+237 670 15 19 73',
+      rights: '© {year} SeamFlow. Haki zote zimehifadhiwa.',
+      madeWith: 'Imetengenezwa kwa washonaji, kila mahali.',
+    },
+    legal: {
+      lastUpdated: 'Ilisasishwa mwisho',
+      backToHome: 'Rudi mwanzo',
+      privacyTitle: 'Sera ya Faragha',
+      termsTitle: 'Masharti ya Huduma',
+      supportTitle: 'Msaada',
+    },
+    deleteAccount: {
+      metaTitle: 'Futa akaunti yako ya SeamFlow',
+      metaDescription:
+        'Jinsi ya kufuta akaunti yako ya SeamFlow na kila kilichohifadhiwa nayo — kutoka ndani ya programu, au kwa kutuandikia kama huna tena programu.',
+      title: 'Futa akaunti yako',
+      intro:
+        'Unaweza kufunga akaunti yako ya SeamFlow wakati wowote, na kuchukua nakala ya kumbukumbu zako kwanza.',
+
+      inAppHeading: 'Kutoka ndani ya programu (njia ya haraka)',
+      inAppBody:
+        'Kama bado unaweza kuingia, hii ndiyo njia ya haraka zaidi na unabaki na udhibiti wote.',
+      inAppStep1: 'Fungua SeamFlow kisha uende Mipangilio.',
+      inAppStep2: 'Chini ya Akaunti, gusa “Futa akaunti yangu”.',
+      inAppStep3:
+        'Pakua nakala ya data yako kama unaitaka, thibitisha ni wewe, kisha uthibitishe ufutaji.',
+
+      emailHeading: 'Kama huna tena programu',
+      emailBody:
+        'Tuandikie kutoka barua pepe iliyo kwenye akaunti nasi tutaanzisha mchakato ule ule kwa niaba yako. Huenda tukauliza swali moja au mawili kuthibitisha kuwa akaunti ni yako — hatutakuomba nenosiri lako kamwe.',
+      emailCta: 'Tuandikie tufute akaunti yangu',
+      mailSubject: 'Tafadhali futeni akaunti yangu ya SeamFlow',
+      mailBody:
+        'Habari,\n\nTafadhali futeni akaunti yangu ya SeamFlow na data iliyohifadhiwa nayo.\n\nBarua pepe iliyo kwenye akaunti yangu ni: \n\nAsanteni.',
+
+      whatHappensHeading: 'Kitakachotokea',
+      whatHappensIntro:
+        'Ufutaji huondoa akaunti yako na kumbukumbu zilizoambatanishwa nayo. Haya ndiyo hasa yanayohusika.',
+
+      erasedHeading: 'Kinachofutwa',
+      erased1: 'Wasifu wako na uwezo wako wa kuingia — hutaweza kuingia tena',
+      erased2: 'Wateja wako na vipimo vyao, maagizo, maagizo ya kikundi na ankara',
+      erased3: 'Kila picha uliyopakia, pamoja na ukurasa wako wa umma',
+      erased4: 'Maombi yako, ofa na vipimo vilivyohifadhiwa',
+
+      keptHeading: 'Kinachobaki',
+      kept1:
+        'Ujumbe uliotuma hubaki kwenye mazungumzo ya mtu mwingine, ukiwa umeondolewa jina lako na maudhui yake.',
+      kept2:
+        'Kumbukumbu zisizo na kitu chochote cha binafsi, pale zinapohitajika ili programu iendelee kufanya kazi kwa wengine.',
+
+      graceHeading: 'Una siku 30 za kubadilisha nia',
+      graceBody:
+        'Hakuna kinachofutwa mara moja. Ukurasa wako wa umma hutoweka papo hapo na arifa husimama, lakini kumbukumbu zako hubaki bila kuguswa kwa siku 30 — ingia ndani ya muda huo kisha ugusa “Weka akaunti yangu” ili kughairi. Baada ya siku 30 ni ya kudumu na hatuwezi kuirudisha.',
+
+      privacyNote: 'Kwa maelezo zaidi ya tunachohifadhi na kwa nini, angalia',
+    },
+
+    support: {
+      intro: 'Unahitaji msaada? Tuko tayari kukusaidia.',
+      emailHeading: 'Tuandikie',
+      emailBody: 'Tutumie barua pepe nasi tutakujibu ndani ya siku chache.',
+      faqHeading: 'Maswali ya kawaida',
+      faqBody: 'Majibu mengi yapo kwenye ukurasa wetu wa maswali.',
+      faqLink: 'Soma maswali',
+    },
+
+    assistantPage: {
+      metaTitle: 'Msaidizi wa AI kwa washonaji: muulize kuhusu duka lako, kwa maandishi au sauti | SeamFlow',
+      metaDescription:
+        'Msaidizi wa AI wa SeamFlow hujibu maswali kuhusu maagizo, wateja na ankara zako mwenyewe, na hutengeneza rekodi kwa niaba yako baada ya uthibitisho. Andika au zungumza, kwa lugha yako. Bure katika awamu ya awali.',
+      eyebrow: 'Ndani ya SeamFlow',
+      title: 'Msaidizi wa AI kwa duka lako la ushonaji.',
+      subtitle:
+        'Kila programu ya ushonaji inaweza kuhifadhi maagizo yako. Msaidizi wa SeamFlow anaweza kujibu maswali kuyahusu, na kukupangia kazi — kwa lugha yako, kwa kuandika au kwa kuzungumza.',
+      askHeading: 'Muulize kuhusu biashara yako',
+      askBody:
+        'Msaidizi husoma data yako halisi kabla ya kujibu, kwa hivyo haya si majibu yaliyotayarishwa. Yanahusu duka lako, leo.',
+      askItems: [
+        'Ni nini kinachokabidhiwa wiki hii?',
+        'Nani bado ananidai pesa?',
+        'Biashara ikoje mwezi huu?',
+        'Nilimshonea nini Amina mara ya mwisho?',
+        'Ni maagizo gani yanayosubiri kufitisha?',
+        'Zimebaki sare ngapi kwenye agizo la kikundi cha shule?',
+      ],
+      doHeading: 'Mwambie afanye nini',
+      doBody:
+        'Msaidizi anaweza kutengeneza na kusasisha rekodi, lakini haandiki chochote kimyakimya. Huandaa mabadiliko, hukuonyesha kadi ya uthibitisho ikiwa na kila sehemu imeelezwa, na hakuna kinachohifadhiwa hadi uguse Thibitisha.',
+      doItems: [
+        'Tengeneza mteja anayeitwa Amina, namba 6xx xx xx xx.',
+        'Agizo jipya la Amina, agbada, likabidhiwe tarehe 20.',
+        'Peleka agizo #14 kwenye hatua ya kufitisha.',
+        'Hifadhi vipimo hivi kwa Joseph.',
+        'Andaa rasimu ya ankara ya agizo la harusi.',
+        'Nitumie kiungo cha kushiriki agizo hilo.',
+      ],
+      pillars: [
+        {
+          key: 'voice',
+          title: 'Bila mikono pale mikono yako ilipo kazini',
+          body: 'Zungumza naye ukiwa unakata au unachoma pini, na uyasikilize majibu yakisomwa kwa sauti. Viashiria vilivyo wazi huonyesha anaposikiliza na anapozungumza, ili ujue kila wakati kinachoendelea.',
+        },
+        {
+          key: 'shield',
+          title: 'Huuliza kabla ya kuhifadhi',
+          body: 'Hatua yoyote inayobadilisha data yako huja kama kadi ya uthibitisho inayoorodhesha hasa kitakachoandikwa. Isome, ubadilishe nia, au uthibitishe. Hakuna kinachotokea kwa siri.',
+        },
+        {
+          key: 'globe',
+          title: 'Majibu kwa lugha yako',
+          body: 'Uliza kwa lugha yako naye hujibu kwa lugha hiyo hiyo. Anaelewa msamiati wa ufundi huu katika zote: kifua, poitrine na chest ni kipimo kile kile kwake.',
+        },
+        {
+          key: 'offline',
+          title: 'Faragha kwa msingi',
+          body: 'Mazungumzo yako hukaa kwenye kifaa chako, si kwenye seva zetu. Hatuyahifadhi hata kidogo. Ujumbe wa zamani huondoka mazungumzo yanapokua, na unaweza kuyafuta wakati wowote. Msaidizi husoma data ya duka lako pekee.',
+        },
+      ] as Feature[],
+      ctaTitle: 'Weka msaidizi ndani ya duka lako.',
+      ctaBody: 'Bure wakati SeamFlow ikiwa katika awamu ya awali.',
+      backToFeatures: 'Ona vipengele vyote',
+    },
+
+    alternativesPage: {
+      metaTitle: 'Mbadala wa Tailor Assist: SeamFlow, ikilinganishwa kwa uwazi | SeamFlow',
+      metaDescription:
+        'Unalinganisha SeamFlow na Tailor Assist? Zote ni programu za bure kwa washonaji zinazofanya kazi bila mtandao. SeamFlow inaongeza msaidizi wa AI unayeweza kuzungumza naye, uskanaji wa vipimo kutoka karatasi, na studio ya ubunifu. Mtazamo wa uwazi wa mahali kila moja inaposhinda.',
+      eyebrow: 'Ulinganisho',
+      title: 'Unatafuta mbadala wa Tailor Assist?',
+      subtitle:
+        'Tailor Assist na SeamFlow zilianza kutatua tatizo lile lile: biashara ya ushonaji inayoendeshwa kwa madaftari na kumbukumbu ya kichwa. Zinalifanya kwa njia tofauti. Huu ni ulinganisho wa moja kwa moja, pamoja na sehemu ambazo sisi tunashindwa.',
+
+      disclosureTitle: 'Nani aliandika haya',
+      disclosureBody:
+        'Sisi. Sisi ndio tunaotengeneza SeamFlow, kwa hivyo yasome kama ungesoma ulinganisho wowote ulioandikwa na upande mmoja kati ya wawili. Tunachoweza kuahidi ni usahihi: kila kinachosemwa hapa kuhusu Tailor Assist kinatoka kwenye tovuti yao ya umma, na kila kinachosemwa kuhusu SeamFlow ni kipengele unachoweza kutumia leo, si ahadi ya baadaye. Jaribu zote mbili; zote ni bure.',
+      updatedLabel: 'Imelinganishwa na taarifa za umma za {date}.',
+
+      strengthsHeading: 'Mahali SeamFlow inapotofautiana',
+      strengthsBody:
+        'Haya ndiyo yaliyotufanya tujenge programu nyingine ya ushonaji badala ya kutumia iliyokuwepo.',
+      strengths: [
+        {
+          key: 'assistant',
+          title: 'Msaidizi unayeweza kuzungumza naye',
+          body: 'SeamFlow ina msaidizi wa AI aliyejengwa ndani na kuunganishwa na data yako mwenyewe. Uliza “ni nini kinachokabidhiwa wiki hii?” au “nani ananidai?” naye hujibu kuhusu duka lako. Mwambie atengeneze agizo naye huandaa rekodi, hukuonyesha kadi ya uthibitisho, na husubiri. Unaweza kuandika au kuzungumza, kwa lugha yako. Kwa tunavyoona kwenye tovuti yao, Tailor Assist haina kitu kama hiki.',
+        },
+        {
+          key: 'scan',
+          title: 'Vipimo moja kwa moja kutoka karatasi',
+          body: 'Piga picha ya karatasi ya vipimo iliyojazwa na SeamFlow husoma lebo na namba na kuziweka kwenye seti ya vipimo ili uikague. Piga picha ya ukurasa mtupu wa kitabu chako nao huwa kiolezo cha kutumika tena. Kama una miaka ya kumbukumbu za karatasi, hii ndiyo tofauti kati ya kuhamia ndani ya jioni moja na kutohamia kabisa.',
+        },
+        {
+          key: 'design',
+          title: 'Studio ya ubunifu, si sehemu ya picha tu',
+          body: 'Kusanya marejeo ya mitindo na vitambaa kwenye ubao mmoja, fungua picha yoyote skrini nzima, na acha AI igeuze picha ya rejeleo kuwa maelezo ya vazi yenye mpangilio (mkato, shingo, mkono, umaliziaji) unayoyahariri kabla ya kuhifadhi. Kisha uambatishe kwenye agizo linalohusika.',
+        },
+        {
+          key: 'groups',
+          title: 'Maagizo ya kikundi kama kitu cha msingi',
+          body: 'Harusi, aso-ebi na sare ni agizo moja lenye mwenye agizo, kitambaa cha pamoja na vipimo vya kila mwanachama — si maagizo kumi na mbili yaliyotawanyika unayolazimika kukumbuka kuwa yanahusiana.',
+        },
+      ] as Feature[],
+
+      theirsHeading: 'Mahali Tailor Assist inapoweza kukufaa zaidi',
+      theirsBody:
+        'Kwa kweli. Kama duka lako linafanya kazi kwa mojawapo ya njia hizi, wao ndio zana bora leo, na tunapendelea kukwambia sasa kuliko kupoteza jioni yako.',
+      theirs: [
+        {
+          title: 'Una wafanyakazi',
+          body: 'Tailor Assist inatoa akaunti za wafanyakazi, ufikiaji kwa nafasi na ugawaji wa kazi kwenye mfumo wa uzalishaji. SeamFlow leo imejengwa kwa mshonaji mmoja na kumbukumbu zake mwenyewe. Hakuna namna ya kumwalika mfanyakazi au kumkabidhi mtu mwingine kazi.',
+        },
+        {
+          title: 'Unahitaji Kiarabu',
+          body: 'Wao wanaorodhesha Kiingereza, Kifaransa, Kiarabu na Kihispania. SeamFlow ipo kwa Kiingereza, Kifaransa, Kireno, Kihispania na Kiswahili. Zetu ni tafsiri kamili si za nusunusu, lakini kama Kiarabu ndiyo lugha wateja wako wanayoisoma, wao wanayo leo na sisi hatuna.',
+        },
+        {
+          title: 'Unataka ufuatiliaji wa malipo',
+          body: 'Wao wanatangaza ufuatiliaji wa malipo ya pesa za simu. SeamFlow huandika kishika uchumba na kuhesabu salio la ankara, lakini haiunganishi na mtoa huduma yeyote wa malipo. Upatanishi wa pesa unaufanya mwenyewe. Malipo yapo kwenye mipango yetu, na mpango si kipengele.',
+        },
+        {
+          title: 'Unataka dashibodi na ripoti',
+          body: 'Wao wanatoa skrini za uchambuzi na ripoti za biashara. SeamFlow haina sehemu ya ripoti; kilicho karibu zaidi ni kumuuliza msaidizi biashara inavyokwenda — ambalo ni jibu zuri la swali lakini si chati ya kuisoma.',
+        },
+      ],
+
+      sharedHeading: 'Mahali zote mbili zinapofanana sana',
+      sharedBody: 'Katika mambo ya msingi, kwa uwazi, ungekuwa sawa na yoyote kati yao.',
+      shared: [
+        'Bure kwa mshonaji wa kujitegemea',
+        'Hufanya kazi bila mtandao, husawazisha mtandao unaporudi',
+        'Wateja, vipimo na hali ya maagizo mahali pamoja',
+        'Ankara unazoweza kumtumia mteja',
+        'Kushiriki kwa WhatsApp bila mteja kusakinisha chochote',
+        'Hufanya kazi kwenye Android, na kwenye kivinjari',
+      ],
+
+      ctaTitle: 'Ijaribu kwa jioni moja.',
+      ctaBody: 'Bure wakati SeamFlow ikiwa katika awamu ya awali. Lete mteja mmoja na agizo moja, uone inavyokuwa.',
+      backToFeatures: 'Ona vipengele vyote',
     },
   },
 };

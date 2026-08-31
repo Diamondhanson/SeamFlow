@@ -13,7 +13,7 @@
 
 import Link from 'next/link';
 import type { Lang } from '../../lib/i18n';
-import { getDict, withLang, COMPARISON_UPDATED, SITE } from '../../lib/i18n';
+import { getDict, withLang, COMPARISON_UPDATED, SITE, INTL_LOCALE } from '../../lib/i18n';
 import { Nav } from '../Nav';
 import { Footer } from '../Footer';
 import { StoreBadges } from '../StoreBadges';
@@ -23,7 +23,7 @@ import { BreadcrumbLd, OrganizationLd, SoftwareApplicationLd } from '../JsonLd';
 /** "August 2026" / "août 2026" from the YYYY-MM constant. */
 function formatMonth(ym: string, lang: Lang): string {
   const [y, m] = ym.split('-').map(Number);
-  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-US', {
+  return new Intl.DateTimeFormat(INTL_LOCALE[lang], {
     month: 'long',
     year: 'numeric',
   }).format(new Date(Date.UTC(y, m - 1, 1)));

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Dict, Lang } from '../lib/i18n';
-import { getDict, withLang } from '../lib/i18n';
+import { getDict, withLang, INTL_LOCALE } from '../lib/i18n';
 import type { LegalDoc } from '../lib/legal';
 import { LEGAL_UPDATED } from '../lib/legal';
 import { Icon } from './icons';
@@ -9,7 +9,7 @@ import { LangToggle } from './LangToggle';
 import { Footer } from './Footer';
 
 function formatDate(iso: string, lang: Lang): string {
-  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-US', {
+  return new Intl.DateTimeFormat(INTL_LOCALE[lang], {
     dateStyle: 'long',
   }).format(new Date(iso + 'T00:00:00'));
 }

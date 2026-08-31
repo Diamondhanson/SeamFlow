@@ -1,5 +1,5 @@
 // ============================================================================
-// Legal page content (Privacy Policy + Terms), EN/FR. Kept out of components
+// Legal page content (Privacy Policy + Terms), one block per language. Kept out of components
 // so wording is easy to edit. Rendered by app/privacy and app/terms.
 //
 // These are PUBLISHED, not drafts: Google Play's Data safety form points at
@@ -254,6 +254,160 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
     ],
   },
+  es: {
+    intro:
+      'Esta Política de Privacidad explica qué recopila SeamFlow («nosotros»), cómo lo usamos y qué opciones tiene usted. SeamFlow es una herramienta para que sastres y diseñadores de moda gestionen clientes, medidas y pedidos.',
+    sections: [
+      {
+        heading: '1. Información que recopilamos',
+        paragraphs: [
+          'Información de la cuenta: el correo electrónico o el número de teléfono con el que se registra, el nombre de su negocio, y sus preferencias de idioma, moneda y país.',
+          'Datos que usted introduce sobre su trabajo: nombres, teléfonos, direcciones y medidas de sus clientes; detalles, notas y fechas de los pedidos; pedidos de grupo y sus miembros; telas; y cualquier foto que suba (imágenes de referencia, muestras de tela, inspiración de diseño y fotos de trabajos terminados).',
+          'Datos del dispositivo y de uso: un identificador para notificaciones push que nos permite enviarle recordatorios, información básica del dispositivo y de la app, y registros estándar que usamos para mantener el servicio en marcha y diagnosticar problemas.',
+        ],
+      },
+      {
+        heading: '2. Cómo usamos su información',
+        paragraphs: [
+          'Para prestar el servicio principal: guardar y sincronizar sus clientes, pedidos y medidas entre sus dispositivos.',
+          'Para enviar las notificaciones y recordatorios que usted haya activado (por ejemplo, pruebas y fechas de entrega próximas).',
+          'Para dar soporte, mantener el servicio seguro, prevenir abusos y mejorar el funcionamiento de SeamFlow.',
+          'No vendemos su información personal, y no usamos el contenido que usted introduce para mostrarle publicidad.',
+        ],
+      },
+      {
+        heading: '3. Proveedores de servicios',
+        paragraphs: [
+          'Nos apoyamos en un pequeño número de proveedores de confianza para operar SeamFlow: Supabase (base de datos, autenticación y almacenamiento de archivos), Expo (entrega de notificaciones push) y Upstash (colas de trabajos en segundo plano).',
+          'Si usa la función opcional de IA «describir imagen», la imagen concreta que elija se envía a Anthropic para generar notas de diseño. Esto solo ocurre cuando usted usa activamente esa función.',
+          'Estos proveedores tratan los datos por cuenta nuestra, bajo sus propios compromisos de seguridad y privacidad.',
+        ],
+      },
+      {
+        heading: '4. Datos sobre sus clientes',
+        paragraphs: [
+          'La información de clientes que usted introduce son datos que usted controla. Usted es responsable de tener una base adecuada para recopilar y guardar los datos de sus clientes, y del uso que haga de ellos.',
+          'Nosotros tratamos esa información por cuenta suya, únicamente para prestarle SeamFlow.',
+        ],
+      },
+      {
+        heading: '5. Almacenamiento, ubicación y conservación',
+        paragraphs: [
+          'Sus datos se guardan en la infraestructura en la nube de nuestros proveedores. Pueden tratarse en países distintos al suyo; cuando eso ocurre nos apoyamos en las salvaguardas adecuadas.',
+          'Conservamos sus datos mientras su cuenta esté activa. Cuando nos pide eliminar su cuenta, su página pública deja de ser visible de inmediato y todo se borra 30 días después. La demora existe para que pueda cambiar de opinión: inicie sesión en cualquier momento de esos 30 días y elija «Conservar mi cuenta» para cancelarlo. Después de eso es definitivo y no podemos recuperarlo.',
+          'Dos cosas sobreviven a una eliminación, y ninguna lo identifica. Los mensajes que envió quedan en la conversación de la otra persona sin su nombre y sin su contenido, para que su lado del hilo siga teniendo sentido. Y conservamos registros que no identifican a nadie cuando hacen falta para que el servicio siga funcionando para los demás.',
+        ],
+      },
+      {
+        heading: '6. Sus derechos',
+        paragraphs: [
+          'Puede acceder a sus datos, corregirlos, exportarlos o eliminarlos. Para eliminar su cuenta, abra la app y vaya a Ajustes → Cuenta → Eliminar mi cuenta, donde además se le ofrece descargar antes una copia de todo. Si ya no tiene la app instalada, seamflowtech.com/delete-account explica cómo pedírnoslo. Para cualquier otra cosa, escríbanos y le ayudamos.',
+          'Según dónde viva, puede tener derechos adicionales conforme a la ley local (como el derecho a oponerse a determinados tratamientos o a limitarlos).',
+        ],
+      },
+      {
+        heading: '7. Seguridad',
+        paragraphs: [
+          'Protegemos sus datos con cifrado en tránsito, controles de acceso y un bloqueo opcional con PIN en el dispositivo. Ningún método de transmisión o almacenamiento es 100 % seguro, pero trabajamos para proteger su información y responder rápido ante cualquier incidencia.',
+        ],
+      },
+      {
+        heading: '8. Menores',
+        paragraphs: [
+          'SeamFlow es una herramienta de negocio y no está dirigida a menores. No recopilamos conscientemente información personal de menores de 16 años.',
+        ],
+      },
+      {
+        heading: '9. Cambios en esta política',
+        paragraphs: [
+          'Podemos actualizar esta política a medida que SeamFlow evoluciona. La fecha de «última actualización» en la parte superior refleja la versión más reciente, y haremos esfuerzos razonables por avisarle de los cambios importantes.',
+        ],
+      },
+      {
+        heading: '10. Contacto',
+        paragraphs: [
+          '¿Preguntas sobre privacidad? Escríbanos a contactseamflow@gmail.com y le responderemos.',
+        ],
+      },
+    ],
+  },
+  sw: {
+    intro:
+      'Sera hii ya Faragha inaeleza SeamFlow (“sisi”) tunachokusanya, jinsi tunavyokitumia, na chaguo ulizo nazo. SeamFlow ni zana ya washonaji na wabunifu wa mavazi kusimamia wateja, vipimo na maagizo.',
+    sections: [
+      {
+        heading: '1. Taarifa tunazokusanya',
+        paragraphs: [
+          'Taarifa za akaunti: barua pepe na/au namba ya simu unayojisajili nayo, jina la biashara yako, na mapendeleo yako ya lugha, sarafu na nchi.',
+          'Data unayoweka kuhusu kazi yako: majina ya wateja wako, namba za simu, anwani na vipimo vyao; maelezo ya maagizo, madokezo na tarehe; maagizo ya kikundi na wanachama wake; vitambaa; na picha zozote unazopakia (picha za rejeleo, sampuli za vitambaa, msukumo wa ubunifu na picha za kazi zilizokamilika).',
+          'Data ya kifaa na matumizi: tokeni ya arifa za papo hapo ili tuweze kukutumia vikumbusho, taarifa za msingi za kifaa na programu, na kumbukumbu za kawaida tunazotumia kuendesha huduma na kuchunguza matatizo.',
+        ],
+      },
+      {
+        heading: '2. Jinsi tunavyotumia taarifa zako',
+        paragraphs: [
+          'Kutoa huduma kuu: kuhifadhi na kusawazisha wateja, maagizo na vipimo vyako kwenye vifaa vyako.',
+          'Kutuma arifa na vikumbusho ulivyowasha (kwa mfano, kufitisha kunakokuja na tarehe za kukabidhi).',
+          'Kutoa msaada, kuweka huduma salama, kuzuia matumizi mabaya, na kuboresha jinsi SeamFlow inavyofanya kazi.',
+          'Hatuuzi taarifa zako binafsi, wala hatutumii maudhui unayoweka kukutangazia bidhaa.',
+        ],
+      },
+      {
+        heading: '3. Watoa huduma',
+        paragraphs: [
+          'Tunategemea watoa huduma wachache wa kuaminika kuendesha SeamFlow: Supabase (hifadhidata, uthibitishaji na uhifadhi wa faili), Expo (utoaji wa arifa za papo hapo), na Upstash (foleni za kazi za nyuma).',
+          'Ukitumia kipengele cha hiari cha AI cha “eleza picha”, picha uliyoichagua hutumwa kwa Anthropic ili kutengeneza maelezo ya ubunifu. Hili hutokea tu unapokitumia kipengele hicho kwa makusudi.',
+          'Watoa huduma hawa hushughulikia data kwa niaba yetu chini ya ahadi zao za usalama na faragha.',
+        ],
+      },
+      {
+        heading: '4. Data kuhusu wateja wako',
+        paragraphs: [
+          'Taarifa za wateja unazoweka ni data unayoidhibiti wewe. Wewe ndiye unayewajibika kuwa na msingi sahihi wa kukusanya na kuhifadhi taarifa za wateja wako, na jinsi unavyozitumia.',
+          'Sisi tunashughulikia taarifa hizo kwa niaba yako, kwa lengo la kukupatia SeamFlow pekee.',
+        ],
+      },
+      {
+        heading: '5. Uhifadhi, mahali na muda',
+        paragraphs: [
+          'Data yako huhifadhiwa kwenye miundombinu ya wingu ya watoa huduma wetu. Inaweza kushughulikiwa katika nchi tofauti na yako; hilo linapotokea tunategemea kinga zinazostahili.',
+          'Tunahifadhi data yako muda wote akaunti yako ikiwa hai. Unapotuomba tufute akaunti yako, ukurasa wako wa umma huacha kuonekana mara moja na kila kitu hufutwa baada ya siku 30. Ucheleweshaji huu upo ili uweze kubadilisha nia: ingia wakati wowote ndani ya siku hizo 30 kisha uchague “Weka akaunti yangu” ili kughairi. Baada ya hapo ni ya kudumu na hatuwezi kukurudishia.',
+          'Vitu viwili hubaki baada ya ufutaji, na hakuna kinachokutambulisha. Ujumbe uliotuma hubaki kwenye mazungumzo ya mtu mwingine ukiwa umeondolewa jina lako na maudhui yake, ili upande wake wa mazungumzo uendelee kueleweka. Na tunahifadhi kumbukumbu zisizomtambulisha mtu yeyote pale zinapohitajika ili huduma iendelee kufanya kazi kwa wengine.',
+        ],
+      },
+      {
+        heading: '6. Haki zako',
+        paragraphs: [
+          'Unaweza kufikia, kusahihisha, kuhamisha au kufuta data yako. Ili kufuta akaunti yako, fungua programu kisha uende Mipangilio → Akaunti → Futa akaunti yangu, ambapo pia unapewa nafasi ya kupakua nakala ya kila kitu kwanza. Kama huna tena programu, seamflowtech.com/delete-account inaeleza jinsi ya kutuomba. Kwa jambo lolote jingine, tuandikie nasi tutakusaidia.',
+          'Kutegemea unapoishi, unaweza kuwa na haki za ziada chini ya sheria za nchi yako (kama haki ya kupinga au kuzuia baadhi ya matumizi ya data).',
+        ],
+      },
+      {
+        heading: '7. Usalama',
+        paragraphs: [
+          'Tunailinda data yako kwa usimbaji fiche wakati wa usafirishaji, udhibiti wa ufikiaji, na kufuli ya hiari ya PIN kwenye kifaa. Hakuna njia ya kusafirisha au kuhifadhi data iliyo salama kwa asilimia 100, lakini tunafanya kazi kulinda taarifa zako na kujibu haraka tatizo lolote.',
+        ],
+      },
+      {
+        heading: '8. Watoto',
+        paragraphs: [
+          'SeamFlow ni zana ya biashara na haikusudiwi watoto. Hatukusanyi kwa kujua taarifa binafsi za watoto walio chini ya miaka 16.',
+        ],
+      },
+      {
+        heading: '9. Mabadiliko ya sera hii',
+        paragraphs: [
+          'Tunaweza kusasisha sera hii SeamFlow inapokua. Tarehe ya “ilisasishwa mwisho” iliyo juu inaonyesha toleo la hivi punde, nasi tutafanya juhudi zinazostahili kukujulisha mabadiliko makubwa.',
+        ],
+      },
+      {
+        heading: '10. Wasiliana nasi',
+        paragraphs: [
+          'Una maswali kuhusu faragha? Tuandikie kwa contactseamflow@gmail.com nasi tutakujibu.',
+        ],
+      },
+    ],
+  },
 };
 
 export const terms: Record<Lang, LegalDoc> = {
@@ -454,6 +608,140 @@ export const terms: Record<Lang, LegalDoc> = {
         heading: '10. Alterações e contacto',
         paragraphs: [
           'Podemos atualizar estes Termos; a utilização continuada após uma atualização significa que aceita a alteração. Dúvidas? Escreva para contactseamflow@gmail.com.',
+        ],
+      },
+    ],
+  },
+  es: {
+    intro:
+      'Estos Términos rigen su uso de SeamFlow. Al crear una cuenta o usar la app, usted los acepta.',
+    sections: [
+      {
+        heading: '1. El servicio',
+        paragraphs: [
+          'SeamFlow es una herramienta para gestionar clientes de sastrería, medidas, pedidos y el trabajo relacionado. Está en desarrollo activo y sus funciones pueden cambiar, añadirse o retirarse.',
+        ],
+      },
+      {
+        heading: '2. Su cuenta',
+        paragraphs: [
+          'Usted es responsable de mantener seguras sus credenciales de acceso y de la actividad realizada bajo su cuenta. Avísenos enseguida si sospecha de un uso no autorizado.',
+        ],
+      },
+      {
+        heading: '3. Uso aceptable',
+        paragraphs: [
+          'Use SeamFlow solo con fines lícitos. No haga un uso indebido del servicio, no intente interrumpirlo ni aplicarle ingeniería inversa, ni lo utilice para guardar o compartir contenido ilícito.',
+          'Usted es responsable de la información de clientes y pedidos que introduce, y de respetar la privacidad y los derechos de las personas cuyos datos registra.',
+        ],
+      },
+      {
+        heading: '4. Su contenido',
+        paragraphs: [
+          'Usted conserva la propiedad de los datos que introduce. Nos concede los derechos limitados necesarios para alojar, tratar y mostrar esos datos con el único fin de prestarle SeamFlow.',
+        ],
+      },
+      {
+        heading: '5. Disponibilidad',
+        paragraphs: [
+          'Procuramos que SeamFlow sea fiable, pero se presta «según disponibilidad». Podemos modificar, suspender o retirar partes del servicio, especialmente durante el acceso anticipado.',
+        ],
+      },
+      {
+        heading: '6. Exención de garantías',
+        paragraphs: [
+          'En la máxima medida permitida por la ley, SeamFlow se presta «tal cual» y «según disponibilidad», sin garantías de ningún tipo, expresas o implícitas.',
+        ],
+      },
+      {
+        heading: '7. Limitación de responsabilidad',
+        paragraphs: [
+          'En la máxima medida permitida por la ley, no respondemos de daños indirectos, incidentales, especiales o consecuentes, ni de la pérdida de datos o de beneficios derivada de su uso del servicio. Nuestra responsabilidad total se limita al importe que usted nos haya pagado en los doce meses anteriores a la reclamación (que puede ser cero durante el acceso anticipado gratuito).',
+        ],
+      },
+      {
+        heading: '8. Terminación',
+        paragraphs: [
+          'Puede dejar de usar SeamFlow cuando quiera. Podemos suspender o cancelar el acceso si se incumplen estos Términos o para proteger el servicio y a sus usuarios.',
+        ],
+      },
+      {
+        heading: '9. Ley aplicable',
+        paragraphs: [
+          'Estos Términos se rigen por las leyes de la jurisdicción en la que se opera SeamFlow. (Pendiente de concretar antes del lanzamiento.)',
+        ],
+      },
+      {
+        heading: '10. Cambios y contacto',
+        paragraphs: [
+          'Podemos actualizar estos Términos; seguir usando el servicio tras una actualización significa que acepta el cambio. ¿Preguntas? Escriba a contactseamflow@gmail.com.',
+        ],
+      },
+    ],
+  },
+  sw: {
+    intro:
+      'Masharti haya yanaongoza matumizi yako ya SeamFlow. Kwa kufungua akaunti au kutumia programu, unayakubali.',
+    sections: [
+      {
+        heading: '1. Huduma',
+        paragraphs: [
+          'SeamFlow ni zana ya kusimamia wateja wa ushonaji, vipimo, maagizo na kazi zinazohusiana. Ipo katika ujenzi unaoendelea na vipengele vyake vinaweza kubadilika, kuongezwa au kuondolewa.',
+        ],
+      },
+      {
+        heading: '2. Akaunti yako',
+        paragraphs: [
+          'Wewe ndiye unayewajibika kuweka salama taarifa zako za kuingia na shughuli zote zinazofanyika chini ya akaunti yako. Tujulishe mara moja ukishuku matumizi yasiyoruhusiwa.',
+        ],
+      },
+      {
+        heading: '3. Matumizi yanayokubalika',
+        paragraphs: [
+          'Tumia SeamFlow kwa madhumuni halali pekee. Usitumie vibaya huduma hii, usijaribu kuiharibu au kuichambua kinyume cha sheria, wala usiitumie kuhifadhi au kushiriki maudhui yasiyo halali.',
+          'Wewe ndiye unayewajibika kwa taarifa za wateja na maagizo unazoweka, na kwa kuheshimu faragha na haki za watu ambao taarifa zao unaziandika.',
+        ],
+      },
+      {
+        heading: '4. Maudhui yako',
+        paragraphs: [
+          'Unabaki na umiliki wa data unayoweka. Unatupa haki chache zinazohitajika kuhifadhi, kushughulikia na kuonyesha data hiyo kwa lengo la kukupatia SeamFlow pekee.',
+        ],
+      },
+      {
+        heading: '5. Upatikanaji',
+        paragraphs: [
+          'Tunalenga kuweka SeamFlow ikitegemewa, lakini hutolewa “kadri inavyopatikana”. Tunaweza kubadilisha, kusimamisha au kuondoa sehemu za huduma, hasa wakati wa awamu ya awali.',
+        ],
+      },
+      {
+        heading: '6. Kanusho',
+        paragraphs: [
+          'Kwa kadri sheria inavyoruhusu, SeamFlow hutolewa “kama ilivyo” na “kadri inavyopatikana”, bila dhamana ya aina yoyote, iwe iliyotamkwa au inayodokezwa.',
+        ],
+      },
+      {
+        heading: '7. Ukomo wa dhima',
+        paragraphs: [
+          'Kwa kadri sheria inavyoruhusu, hatuwajibiki kwa hasara zisizo za moja kwa moja, za bahati mbaya, maalum au zinazofuatia, wala kwa upotevu wa data au faida, unaotokana na matumizi yako ya huduma. Dhima yetu yote ina ukomo wa kiasi ulichotulipa katika miezi kumi na miwili kabla ya dai (ambacho kinaweza kuwa sifuri wakati wa awamu ya awali ya bure).',
+        ],
+      },
+      {
+        heading: '8. Kusitisha',
+        paragraphs: [
+          'Unaweza kuacha kutumia SeamFlow wakati wowote. Tunaweza kusimamisha au kusitisha ufikiaji kama Masharti haya yatavunjwa au ili kulinda huduma na watumiaji wake.',
+        ],
+      },
+      {
+        heading: '9. Sheria inayotumika',
+        paragraphs: [
+          'Masharti haya yanaongozwa na sheria za eneo ambalo SeamFlow inaendeshwa. (Yatakamilishwa kabla ya uzinduzi.)',
+        ],
+      },
+      {
+        heading: '10. Mabadiliko na mawasiliano',
+        paragraphs: [
+          'Tunaweza kusasisha Masharti haya; kuendelea kutumia baada ya sasisho kunamaanisha umekubali mabadiliko. Una maswali? Andika kwa contactseamflow@gmail.com.',
         ],
       },
     ],

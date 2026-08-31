@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import type { Lang } from '../../lib/i18n';
-import { SITE, withLang } from '../../lib/i18n';
+import { SITE, withLang, LANGS, OG_LOCALE } from '../../lib/i18n';
 import { getCatalogueCopy } from '../../lib/catalogue';
 import { loadCatalogue } from '../../lib/catalogue-data';
 import { CatalogueView } from './CatalogueView';
@@ -69,8 +69,9 @@ export async function catalogueMetadata(slug: string, lang: Lang): Promise<Metad
     alternates: {
       canonical: `${SITE.url}${withLang(path, lang)}`,
       languages: {
-        en: `${SITE.url}${withLang(path, 'en')}`,
-        fr: `${SITE.url}${withLang(path, 'fr')}`,
+        ...Object.fromEntries(
+          LANGS.map((l) => [l, `${SITE.url}${withLang(path, l)}`]),
+        ),
         'x-default': `${SITE.url}${withLang(path, 'en')}`,
       },
     },
@@ -80,7 +81,7 @@ export async function catalogueMetadata(slug: string, lang: Lang): Promise<Metad
       type: 'profile',
       url: `${SITE.url}${withLang(path, lang)}`,
       siteName: SITE.name,
-      locale: lang === 'fr' ? 'fr_FR' : 'en_US',
+      locale: OG_LOCALE[lang],
     },
     twitter: { card: 'summary_large_image', title, description },
   };
