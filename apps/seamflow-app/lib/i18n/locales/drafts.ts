@@ -79,4 +79,52 @@ export const drafts = {
 
     keptOnDevice: 'Guardado neste dispositivo enquanto escreve',
   },
+  es: {
+    resumeTitle: '¿Retomar donde lo dejó?',
+    resumeBodyNamed:
+      'Estaba trabajando en {what} {ago} y no guardó. Todo lo que escribió sigue aquí.',
+    resumeBody: 'Tenía trabajo sin guardar de {ago}. Todo lo que escribió sigue aquí.',
+    resumeConfirm: 'Continuar',
+    resumeDiscard: 'Empezar de nuevo',
+
+    // Fragmentos, no frases: en español el "hace" va delante, como en francés.
+    agoMinute: 'hace un minuto',
+    agoMinutes: 'hace {count} minutos',
+    agoHour: 'hace una hora',
+    agoHours: 'hace {count} horas',
+    agoDay: 'ayer',
+    agoDays: 'hace {count} días',
+
+    leaveTitle: '¿Salir sin guardar?',
+    leaveBody:
+      'Sus medidas quedan guardadas en este dispositivo, así que puede volver a ellas. No entran en sus registros hasta que guarde.',
+    leaveConfirm: 'Salir',
+    leaveStay: 'Seguir editando',
+
+    keptOnDevice: 'Se guarda en este dispositivo mientras escribe',
+  },
+  sw: {
+    resumeTitle: 'Uendelee pale ulipoishia?',
+    resumeBodyNamed:
+      'Ulikuwa unafanyia kazi {what} {ago} na hukuhifadhi. Kila ulichoandika bado kipo.',
+    resumeBody: 'Ulikuwa na kazi isiyohifadhiwa ya {ago}. Kila ulichoandika bado kipo.',
+    resumeConfirm: 'Endelea',
+    resumeDiscard: 'Anza upya',
+
+    // Vipande vya maneno, si sentensi kamili.
+    agoMinute: 'dakika moja iliyopita',
+    agoMinutes: 'dakika {count} zilizopita',
+    agoHour: 'saa moja iliyopita',
+    agoHours: 'saa {count} zilizopita',
+    agoDay: 'jana',
+    agoDays: 'siku {count} zilizopita',
+
+    leaveTitle: 'Utoke bila kuhifadhi?',
+    leaveBody:
+      'Vipimo vyako vimehifadhiwa kwenye kifaa hiki, kwa hivyo unaweza kurudi. Havitaingia kwenye kumbukumbu zako mpaka uhifadhi.',
+    leaveConfirm: 'Toka',
+    leaveStay: 'Endelea kuhariri',
+
+    keptOnDevice: 'Huhifadhiwa kwenye kifaa hiki unapoandika',
+  },
 };

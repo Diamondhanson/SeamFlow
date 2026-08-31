@@ -146,4 +146,102 @@ export const account = {
     keptTitle: 'Bem-vindo de volta',
     keptBody: 'A sua conta está segura e a sua loja voltou a ficar visível.',
   },
+  es: {
+    // ── Pantalla de eliminación ──────────────────────────────────────────
+    deleteTitle: 'Eliminar mi cuenta',
+    warningBody:
+      'Esto cierra su taller y borra sus registros. No pasa nada durante {days} días: puede cambiar de opinión en cualquier momento antes de eso.',
+
+    whatGoesTitle: 'Qué se borra',
+    goesClients: 'Cada cliente, con sus medidas',
+    goesOrders: 'Cada pedido, pedido de grupo y factura',
+    goesPhotos: 'Cada foto que haya subido',
+    goesFeed: 'Su página pública y todo lo que hay en ella',
+    goesAccount: 'Su acceso: ya no podrá iniciar sesión',
+
+    takeItTitle: 'Llévese primero sus registros',
+    takeItBody:
+      'Guarde una copia de todo antes de que desaparezca. Pasados los {days} días, no podemos recuperarlo.',
+    exportAction: 'Descargar mis datos',
+    exportTitle: 'Sus datos de SeamFlow',
+    exportSavedTitle: 'Guardado',
+    exportSavedBody: 'El archivo con sus datos se guardó en este dispositivo.',
+
+    confirmItTitle: 'Confirme que es usted',
+    passwordLabel: 'Su contraseña',
+    passwordPlaceholder: 'Escriba su contraseña',
+    reauthProviderBody:
+      'Se le pedirá iniciar sesión de nuevo para confirmar que es usted.',
+    typeNameLabel: 'Escriba “{name}” para confirmar',
+    deleteAction: 'Eliminar mi cuenta',
+    needed: 'Escriba su contraseña y el nombre de su negocio para continuar.',
+    neededName: 'Escriba el nombre de su negocio exactamente para continuar.',
+
+    confirmTitle: '¿Eliminar esta cuenta?',
+    confirmBody:
+      '“{name}” y todos sus registros se borrarán en 30 días. Puede cancelar antes.',
+    confirmAction: 'Sí, eliminarla',
+
+    scheduledTitle: 'Su cuenta se cerrará',
+    scheduledBody:
+      'Borraremos todo en {days} días. Hasta entonces puede iniciar sesión y tocar “Conservar mi cuenta” para detenerlo.',
+
+    // ── Aviso pendiente ──────────────────────────────────────────────────
+    pendingTitle: 'Su cuenta se cierra en {days} días',
+    pendingTitleToday: 'Su cuenta se cierra hoy',
+    pendingBody:
+      'Su taller está oculto y sus registros siguen aquí. Toque abajo para detenerlo y continuar con normalidad.',
+    keepAccount: 'Conservar mi cuenta',
+    keptTitle: 'Bienvenido de nuevo',
+    keptBody: 'Su cuenta está a salvo y su taller vuelve a estar visible.',
+  },
+  sw: {
+    // ── Skrini ya kufuta ─────────────────────────────────────────────────
+    deleteTitle: 'Futa akaunti yangu',
+    warningBody:
+      'Hii inafunga duka lako na kufuta kumbukumbu zako. Hakuna kitakachotokea kwa siku {days} — unaweza kubadilisha nia wakati wowote kabla ya hapo.',
+
+    whatGoesTitle: 'Kitakachofutwa',
+    goesClients: 'Kila mteja, pamoja na vipimo vyake',
+    goesOrders: 'Kila agizo, agizo la kikundi na ankara',
+    goesPhotos: 'Kila picha uliyopakia',
+    goesFeed: 'Ukurasa wako wa umma na kila kilichomo',
+    goesAccount: 'Uwezo wako wa kuingia — hutaweza kuingia tena',
+
+    takeItTitle: 'Chukua kumbukumbu zako kwanza',
+    takeItBody:
+      'Hifadhi nakala ya kila kitu kabla hakijaondoka. Siku {days} zikipita, hatuwezi kukurudishia.',
+    exportAction: 'Pakua data yangu',
+    exportTitle: 'Data yako ya SeamFlow',
+    exportSavedTitle: 'Imehifadhiwa',
+    exportSavedBody: 'Faili la data yako limehifadhiwa kwenye kifaa hiki.',
+
+    confirmItTitle: 'Thibitisha ni wewe',
+    passwordLabel: 'Nenosiri lako',
+    passwordPlaceholder: 'Weka nenosiri lako',
+    reauthProviderBody:
+      'Utaombwa kuingia tena ili kuthibitisha kuwa ni wewe.',
+    typeNameLabel: 'Andika “{name}” ili kuthibitisha',
+    deleteAction: 'Futa akaunti yangu',
+    needed: 'Weka nenosiri lako na uandike jina la biashara yako ili kuendelea.',
+    neededName: 'Andika jina la biashara yako hasa ili kuendelea.',
+
+    confirmTitle: 'Ufute akaunti hii?',
+    confirmBody:
+      '“{name}” na kumbukumbu zake zote zitafutwa baada ya siku 30. Unaweza kughairi kabla ya hapo.',
+    confirmAction: 'Ndiyo, ifute',
+
+    scheduledTitle: 'Akaunti yako itafungwa',
+    scheduledBody:
+      'Tutafuta kila kitu baada ya siku {days}. Hadi wakati huo unaweza kuingia na kugusa “Weka akaunti yangu” ili kusimamisha.',
+
+    // ── Taarifa inayosubiri ──────────────────────────────────────────────
+    pendingTitle: 'Akaunti yako inafungwa baada ya siku {days}',
+    pendingTitleToday: 'Akaunti yako inafungwa leo',
+    pendingBody:
+      'Duka lako limefichwa na kumbukumbu zako bado zipo. Gusa hapa chini ili kusimamisha na kuendelea kama kawaida.',
+    keepAccount: 'Weka akaunti yangu',
+    keptTitle: 'Karibu tena',
+    keptBody: 'Akaunti yako iko salama na duka lako linaonekana tena.',
+  },
 } as const;

@@ -75,6 +75,10 @@ const VOICE_LOCALES: Record<LanguageCode, string> = {
   // pt-PT rather than pt-BR: the markets this was added for are Angola and
   // Mozambique, whose speech is closer to European Portuguese.
   pt: 'pt-PT',
+  // es-419 (Latin American Spanish) rather than es-ES: the speaker base this
+  // was added for is overwhelmingly the Americas.
+  es: 'es-419',
+  sw: 'sw-KE',
 };
 
 function localeFor(lang: LanguageCode): string {

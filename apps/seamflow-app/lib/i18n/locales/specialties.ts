@@ -62,4 +62,40 @@ export const specialties = {
     storefrontEmpty: 'Ainda por definir — toque para escolher',
     storefrontCount: '{count} escolhidas',
   },
+  es: {
+    title: '¿Qué confecciona?',
+    intro:
+      'Elija las prendas que realmente cose. Así lo encuentran los clientes que buscan su tipo de trabajo, y así sabemos qué solicitudes mostrarle.',
+    count: '{count} de {max} elegidas',
+    atCap: 'Son {max}, el máximo que puede elegir. Desmarque una para cambiarla.',
+
+    checklistLabel: 'Cuéntenos qué confecciona',
+    promptTitle: '¿Qué confecciona?',
+    promptBody:
+      'Elija las prendas que cose para que los clientes que buscan su tipo de trabajo lo encuentren. Son unos pocos toques.',
+    promptGo: 'Elegir ahora',
+    promptLater: 'Más tarde',
+
+    storefrontLabel: 'Lo que confecciona',
+    storefrontEmpty: 'Sin definir todavía: toque para elegir',
+    storefrontCount: '{count} elegidas',
+  },
+  sw: {
+    title: 'Unashona nini?',
+    intro:
+      'Chagua nguo unazoshona kweli. Ndivyo wateja wanaotafuta kazi ya aina yako wanavyokupata, na ndivyo tunavyojua maombi ya kukuonyesha.',
+    count: '{count} kati ya {max} zimechaguliwa',
+    atCap: 'Ni {max} — kiwango cha juu unachoweza kuchagua. Ondoa moja ili kubadilisha.',
+
+    checklistLabel: 'Tuambie unashona nini',
+    promptTitle: 'Unashona nini?',
+    promptBody:
+      'Chagua nguo unazoshona ili wateja wanaotafuta kazi ya aina yako wakupate. Ni mibonyezo michache tu.',
+    promptGo: 'Chagua sasa',
+    promptLater: 'Baadaye',
+
+    storefrontLabel: 'Unachoshona',
+    storefrontEmpty: 'Bado haijawekwa — gusa ili kuchagua',
+    storefrontCount: '{count} zimechaguliwa',
+  },
 };
