@@ -151,6 +151,48 @@ export const catalogueCopy: Record<Lang, CatalogueCopy> = {
         url,
       ].join('\n'),
   },
+  pt: {
+    eyebrow: 'Catálogo',
+    worksTitle: 'Trabalhos recentes',
+    metaTitle: (name) => `${name} — catálogo`,
+    metaDescription: (name, count, city) => {
+      const where = city ? ` em ${city}` : '';
+      if (count === 0) return `${name}${where} no SeamFlow.`;
+      return `${count} peça${count === 1 ? '' : 's'} feita${count === 1 ? '' : 's'} por ${name}${where}. Veja o catálogo e fale diretamente com o atelier.`;
+    },
+    whatsappCta: 'Enviar mensagem no WhatsApp',
+    whatsappHint: 'Pergunte sobre uma peça, um preço ou as suas medidas.',
+    appCta: 'Obter a aplicação SeamFlow',
+    appSoon: 'Em breve',
+    emptyTitle: 'Ainda sem nada publicado',
+    emptyBody:
+      'Este atelier ainda não acrescentou peças ao catálogo. Volte em breve.',
+    notFoundTitle: 'Catálogo não encontrado',
+    notFoundBody:
+      'A ligação pode estar mal escrita, ou o atelier pode já não estar listado.',
+    memberSince: (year) => `No SeamFlow desde ${year}`,
+    pieces: (n) => `${n} ${n === 1 ? 'peça' : 'peças'}`,
+    verified: 'Verificado',
+    acceptsRemote: 'Aceita encomendas à distância',
+    respondsIn: (h) =>
+      h <= 1 ? 'Costuma responder em menos de uma hora' : `Costuma responder em ${h}h`,
+    whatsappPrefill: (name) => `Olá ${name}, vi o seu catálogo no SeamFlow.`,
+    footerNote: 'Feito com cuidado.',
+    poweredBy: 'Catálogo com tecnologia SeamFlow',
+    viewMore: 'Ver mais',
+    closeLabel: 'Fechar',
+    fromPrice: (price) => `A partir de ${price}`,
+    photoCount: (n) => `${n} fotos`,
+    nextPhoto: 'Foto seguinte',
+    prevPhoto: 'Foto anterior',
+    inquire: 'Perguntar sobre esta peça',
+    inquiryMessage: ({ shop, design, price, url }) =>
+      [
+        `Olá ${shop}, estou interessado(a) em ${design}${price ? ` (${price})` : ''}.`,
+        '',
+        url,
+      ].join('\n'),
+  },
 };
 
 export const getCatalogueCopy = (lang: Lang): CatalogueCopy => catalogueCopy[lang];

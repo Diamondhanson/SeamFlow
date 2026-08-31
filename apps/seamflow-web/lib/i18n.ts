@@ -12,39 +12,65 @@
 // to both readers and search engines.
 // ============================================================================
 
-export type Lang = 'en' | 'fr';
-export const LANGS: Lang[] = ['en', 'fr'];
+export type Lang = 'en' | 'fr' | 'pt';
+
+/**
+ * Every language the site publishes, English first.
+ *
+ * English is the UNPREFIXED default (`/privacy`); every other language lives
+ * under its own code (`/fr/privacy`, `/pt/privacy`). The helpers below derive
+ * their behaviour from this array, so adding a language means adding a code
+ * here and a route folder — no prefix logic to update.
+ */
+export const LANGS: Lang[] = ['en', 'fr', 'pt'];
+
+/** The default language, which carries no URL prefix. */
+export const DEFAULT_LANG: Lang = 'en';
+
+/** Languages that DO carry a prefix — i.e. everything except the default. */
+const PREFIXED = LANGS.filter((l) => l !== DEFAULT_LANG);
 
 /** Coerce an unknown value into a supported language (English default). */
 export function resolveLang(v: string | string[] | undefined): Lang {
   const s = Array.isArray(v) ? v[0] : v;
-  return s === 'fr' ? 'fr' : 'en';
+  return LANGS.find((l) => l === s) ?? DEFAULT_LANG;
 }
 
 /**
- * Strip a leading `/fr` so a path can be re-prefixed for either language.
- * `/fr/privacy` → `/privacy`, `/fr` → `/`, `/privacy` → `/privacy`.
+ * Strip a leading language prefix so a path can be re-prefixed for any
+ * language. `/fr/privacy` → `/privacy`, `/pt` → `/`, `/privacy` → `/privacy`.
  */
 export function stripLang(path: string): string {
-  const [base, hash] = path.split('#');
-  const bare = base === '/fr' ? '/' : base.replace(/^\/fr(?=\/)/, '');
+  const [base = '/', hash] = path.split('#');
+  let bare = base;
+  for (const code of PREFIXED) {
+    if (bare === `/${code}`) {
+      bare = '/';
+      break;
+    }
+    if (bare.startsWith(`/${code}/`)) {
+      bare = bare.slice(code.length + 1);
+      break;
+    }
+  }
   return `${bare || '/'}${hash ? `#${hash}` : ''}`;
 }
 
 /**
  * Prefix a language-neutral path for the given language, preserving hash
- * anchors. English is the un-prefixed default; French lives under `/fr`.
+ * anchors. English is the un-prefixed default; the rest live under their code.
  *
  * French used to be a `?lang=fr` query on the same URL, which meant Google saw
  * one page in two languages and indexed neither cleanly. Distinct paths plus
- * the hreflang tags in lib/seo.ts is what makes the French half crawlable.
+ * the hreflang tags in lib/seo.ts is what makes each translation crawlable.
  *
  * Accepts an already-prefixed path (it strips first), so passing a live
  * `usePathname()` through is safe.
  */
 export function withLang(path: string, lang: Lang): string {
-  const [base, hash] = stripLang(path).split('#');
-  const p = lang === 'fr' ? (base === '/' ? '/fr' : `/fr${base}`) : base;
+  const [base = '/', hash] = stripLang(path).split('#');
+  const p =
+    lang === DEFAULT_LANG ? base : base === '/' ? `/${lang}` : `/${lang}${base}`;
   return `${p}${hash ? `#${hash}` : ''}`;
 }
 
@@ -266,7 +292,7 @@ export const copy = {
         },
         {
           q: 'What languages does it support?',
-          a: 'English and French today, fully. Every screen, not just the menus. More on the way.',
+          a: 'English, French and Portuguese today, fully. Every screen, not just the menus. More on the way.',
         },
         {
           q: 'Does it work offline?',
@@ -494,7 +520,7 @@ export const copy = {
         },
         {
           title: 'You need Arabic or Spanish',
-          body: 'They list English, French, Arabic and Spanish. SeamFlow is English and French only. Ours are complete rather than partial translations, but two languages is two languages.',
+          body: 'They list English, French, Arabic and Spanish. SeamFlow is English, French and Portuguese. Ours are complete rather than partial translations, but if Arabic or Spanish is the language your clients read, they have it today and we do not.',
         },
         {
           title: 'You want payment tracking',
@@ -721,7 +747,7 @@ export const copy = {
         },
         {
           q: 'Quelles langues sont prises en charge ?',
-          a: 'Le français et l’anglais aujourd’hui, entièrement. Chaque écran, pas seulement les menus. D’autres à venir.',
+          a: 'Le français, l’anglais et le portugais aujourd’hui, entièrement. Chaque écran, pas seulement les menus. D’autres à venir.',
         },
         {
           q: 'Est-ce que ça marche hors ligne ?',
@@ -946,7 +972,7 @@ export const copy = {
         },
         {
           title: 'Vous avez besoin de l’arabe ou de l’espagnol',
-          body: 'Ils annoncent l’anglais, le français, l’arabe et l’espagnol. SeamFlow n’existe qu’en anglais et en français. Les nôtres sont complètes plutôt que partielles, mais deux langues restent deux langues.',
+          body: 'Ils annoncent l’anglais, le français, l’arabe et l’espagnol. SeamFlow existe en anglais, en français et en portugais. Les nôtres sont complètes plutôt que partielles, mais si vos clients lisent l’arabe ou l’espagnol, ils l’ont aujourd’hui et nous non.',
         },
         {
           title: 'Vous voulez suivre les paiements',
@@ -973,6 +999,465 @@ export const copy = {
       ctaBody:
         'Gratuit pendant l’accès anticipé. Prenez un client et une commande, et voyez ce que ça donne.',
       backToFeatures: 'Voir toutes les fonctionnalités',
+    },
+  },
+  pt: {
+    // Strings viradas para pesquisa. Deliberadamente mais literais do que a
+    // copy da página — uma tag de título tem de dizer o que o produto *é*.
+    seo: {
+      title:
+        'SeamFlow: o assistente de IA para alfaiates — medidas, encomendas e faturas',
+      description:
+        'O SeamFlow é uma aplicação de assistente para alfaiates e criadores de moda. Digitalize medidas do papel, acompanhe encomendas, envie faturas e pergunte a um assistente de IA sobre o seu negócio. Multilingue, funciona offline, gratuito em acesso antecipado.',
+      keywords: [
+        'assistente para alfaiates',
+        'aplicação para alfaiates',
+        'assistente de IA para alfaiates',
+        'software de alfaiataria',
+        'aplicação de medidas para alfaiates',
+        'gestão de encomendas de alfaiataria',
+        'aplicação para atelier',
+        'aplicação para criadores de moda',
+        'digitalizar medidas',
+        'faturação para alfaiates',
+        'gestão de atelier',
+      ],
+    },
+    // Nav labels are kept short on purpose. Portuguese runs longer than English
+    // almost everywhere, and the full "Perguntas frequentes" pushed this row to
+    // 87 characters against English's 55 — enough to wrap the bar at tablet
+    // widths. "FAQ" is understood in Portuguese and is already what the French
+    // nav uses; the long form still appears as the section heading below.
+    nav: {
+      features: 'Funcionalidades',
+      assistant: 'Assistente IA',
+      how: 'Como funciona',
+      faq: 'FAQ',
+      useOnBrowser: 'No navegador',
+    },
+    hero: {
+      eyebrow: 'O assistente de IA para ateliers de alfaiataria',
+      title: 'Todo o seu atelier, num só lugar tranquilo.',
+      subtitle:
+        'O SeamFlow é o assistente que mantém juntos os seus clientes, medidas, encomendas e prazos, com um assistente de IA que responde a perguntas sobre o seu negócio e trata dos registos por si.',
+      ctaPrimary: 'Usar no navegador',
+      ctaSecondary: 'Ver como funciona',
+      note: 'Funciona offline · Português, inglês e francês · Gratuito em acesso antecipado',
+    },
+    store: {
+      soon: 'Em breve',
+      appStore: 'Descarregar na App Store',
+      googlePlay: 'Disponível no Google Play',
+      androidEyebrow: 'APK Android',
+      androidCta: 'Descarregar para Android',
+    },
+    problem: {
+      eyebrow: 'O problema',
+      title:
+        'Medidas no papel. Datas de cabeça. Referências de design no grupo de conversa.',
+      body: 'Quando tudo vive em sítios diferentes, um prazo escapa, uma medida tem de ser tirada outra vez e um cliente pergunta “já está?” pela décima vez. É muito para segurar.',
+      solutionTitle: 'O SeamFlow segura isso por si.',
+      solutionBody:
+        'Um lugar para cada cliente, encomenda, prova e fatura. Um assistente a quem pode simplesmente perguntar, lembretes antes de cada prazo, uma página de encomenda para partilhar — e tudo continua a funcionar mesmo quando a rede não funciona.',
+    },
+    features: {
+      heading: 'Tudo o que o ofício precisa',
+      subheading:
+        'Um assistente feito de propósito para a forma como os alfaiates realmente trabalham, não uma lista de tarefas genérica.',
+      items: [
+        {
+          key: 'assistant',
+          title: 'Assistente de IA, por texto ou por voz',
+          body: 'Pergunte “o que vence esta semana?” ou “quem me deve?” e receba uma resposta direta. Diga-lhe para criar um cliente, uma encomenda ou uma fatura e ele prepara o registo, mostra-lhe exatamente o que vai ser guardado e espera pela sua confirmação.',
+        },
+        {
+          key: 'scan',
+          title: 'Digitalize medidas a partir do papel',
+          body: 'Fotografe uma folha de medidas preenchida e o SeamFlow lê os números para um conjunto de medidas. Fotografe uma página em branco do caderno e ela torna-se um modelo reutilizável. Verifica cada valor antes de guardar.',
+        },
+        {
+          key: 'clients',
+          title: 'Clientes e medidas',
+          body: 'Guarde cada cliente uma vez, com tantos conjuntos de medidas quantos precisar. Crie os seus próprios modelos por peça e reutilize as medidas guardadas na encomenda seguinte.',
+        },
+        {
+          key: 'orders',
+          title: 'Encomendas com acompanhamento de estado',
+          body: 'Registada → em curso → prova → entregue. Toda a gente sabe exatamente em que ponto está o trabalho.',
+        },
+        {
+          key: 'invoices',
+          title: 'Faturas e sinais',
+          body: 'Transforme qualquer encomenda numa fatura: mão de obra, tecido e extras em linhas separadas, o sinal registado e o saldo calculado por si. Partilhe como ligação ou PDF.',
+        },
+        {
+          key: 'calendar',
+          title: 'Calendário e lembretes',
+          body: 'Veja cada prova e entrega dispostas por dia e receba um aviso antes de cada uma. Os prazos deixam de o apanhar desprevenido.',
+        },
+        {
+          key: 'groups',
+          title: 'Encomendas de grupo',
+          body: 'Cortejos de casamento, aso-ebi, fardas: coordene um grupo inteiro com tecido partilhado e medidas por membro.',
+        },
+        {
+          key: 'design',
+          title: 'Estúdio de Design',
+          body: 'Reúna inspiração e fotos de tecidos num quadro, abra qualquer imagem em ecrã inteiro e deixe a IA transformar uma foto de referência em notas de design claras e estruturadas.',
+        },
+        {
+          key: 'share',
+          title: 'Partilhe com os clientes',
+          body: 'Envie uma ligação e o seu cliente vê a encomenda, o estado, a data da prova e as fotos, sem ter de instalar nada.',
+        },
+        {
+          key: 'fabric',
+          title: 'Biblioteca de tecidos',
+          body: 'Fotografe o seu stock, registe o fornecedor e o custo por metro, e junte o tecido diretamente a uma encomenda.',
+        },
+        {
+          key: 'devices',
+          title: 'Telemóvel, tablet ou navegador',
+          body: 'A aplicação Android no atelier, o mesmo SeamFlow no navegador de um portátil. Instale-o no ecrã principal e comporta-se como uma aplicação.',
+        },
+        {
+          key: 'offline',
+          title: 'Multilingue e offline',
+          body: 'Português, inglês e francês completos. Registe encomendas e faça alterações no momento, mesmo sem rede. Sincroniza quando voltar.',
+        },
+      ] as Feature[],
+    },
+    spotlight: {
+      eyebrow: 'Novo',
+      title: 'Um assistente com quem pode mesmo falar.',
+      body: 'A maioria dos programas de alfaiataria obriga-o a ir procurar a resposta. O assistente do SeamFlow conhece os seus clientes, encomendas, medidas e faturas — basta perguntar, na sua língua, a escrever ou a falar.',
+      examples: [
+        'O que vence esta semana?',
+        'Quem ainda me deve dinheiro?',
+        'Como está o negócio este mês?',
+        'Cria uma encomenda para a Amina, agbada, para o dia 20.',
+      ],
+      cta: 'Ver o que o assistente consegue fazer',
+    },
+    steps: {
+      eyebrow: 'Três passos',
+      heading: 'A funcionar em minutos',
+      items: [
+        {
+          title: 'Adicione um cliente',
+          body: 'Nome, telefone, medidas: escreva-os, importe dos contactos ou digitalize uma folha de medidas preenchida com a câmara.',
+        },
+        {
+          title: 'Crie uma encomenda',
+          body: 'Escolha uma peça, defina a data de entrega, junte notas de design e fotos de referência. Ou basta dizer ao assistente e confirmar.',
+        },
+        {
+          title: 'Seja lembrado, receba o pagamento',
+          body: 'O SeamFlow avisa-o antes de cada prova e prazo, mantém o cliente a par e transforma a encomenda terminada numa fatura.',
+        },
+      ] as Step[],
+    },
+    vision: {
+      eyebrow: 'Porque o construímos',
+      title: 'O companheiro de negócio para um ofício que o merece.',
+      body: 'Os alfaiates independentes gerem negócios a sério com cadernos e memória. O SeamFlow dá a esse ofício ferramentas modernas: um assistente no bolso, multilingue desde o primeiro dia, feito para funcionar offline, e a crescer para todas as línguas e mercados onde ainda se faz roupa boa à mão.',
+      photoAlt:
+        'A bancada de um alfaiate: uma velha máquina de costura Singer, tesouras e tecido escuro, num atelier em funcionamento.',
+    },
+    gallery: {
+      heading: 'Um olhar por dentro',
+      subheading:
+        'A aplicação real, num telemóvel real. Claro ou escuro, acompanha aquilo que o seu dispositivo estiver a usar.',
+      altPhone:
+        'Ecrã principal do SeamFlow num telemóvel Android em modo escuro, com encomendas, clientes, grupos, calendário, modelos, tecidos, Estúdio de Design e o assistente.',
+      altTablet:
+        'Ecrã principal do SeamFlow num tablet em modo claro, com os mesmos mosaicos distribuídos por um ecrã mais largo.',
+    },
+    faq: {
+      heading: 'Perguntas, respondidas',
+      items: [
+        {
+          q: 'O SeamFlow tem um assistente de IA para alfaiates?',
+          a: 'Tem. O SeamFlow inclui um assistente de IA integrado a quem pode escrever ou falar. Responde a perguntas sobre o seu próprio negócio: o que vence, quem lhe deve, como está a correr o mês. Também pode criar clientes, encomendas, medidas e faturas por si. Mostra sempre exatamente o que está prestes a guardar e espera pela sua confirmação.',
+          href: '/tailor-assistant',
+          linkLabel: 'Mais sobre o assistente',
+        },
+        {
+          q: 'Posso digitalizar medidas do papel em vez de as escrever?',
+          a: 'Pode. Tire uma foto de frente de uma folha de medidas preenchida e o SeamFlow lê as etiquetas e os números para um conjunto de medidas. Fotografe uma página em branco do seu caderno e ela torna-se um modelo reutilizável. Nada é guardado antes de verificar cada linha com a foto.',
+        },
+        {
+          q: 'Posso enviar faturas aos clientes?',
+          a: 'Pode. Qualquer encomenda pode tornar-se uma fatura com linhas separadas para mão de obra, tecido e extras. Registe um sinal e o SeamFlow calcula o saldo devido; depois partilhe a fatura como ligação ou PDF.',
+        },
+        {
+          q: 'O SeamFlow funciona no computador ou só no telemóvel?',
+          a: 'Nos dois. Há uma aplicação Android para o atelier e o mesmo SeamFlow corre em qualquer navegador moderno num portátil ou computador. Pode instalá-lo no ecrã principal ou no ambiente de trabalho e comporta-se como uma aplicação nativa.',
+        },
+        {
+          q: 'Quanto custa?',
+          a: 'O SeamFlow está em acesso antecipado. As funcionalidades principais são gratuitas enquanto o construímos; qualquer plano pago será claramente opcional.',
+        },
+        {
+          q: 'O que distingue o SeamFlow de outras aplicações para alfaiates?',
+          a: 'Três coisas: funciona sem rede, por isso o atelier nunca para; é realmente multilingue em vez de traduzido à pressa; e o assistente está ligado aos seus dados reais, por isso responde sobre as suas encomendas e clientes em vez de dar conselhos genéricos.',
+        },
+        {
+          q: 'Que línguas são suportadas?',
+          a: 'Português, inglês e francês hoje, na totalidade. Todos os ecrãs, não apenas os menus. Mais a caminho.',
+        },
+        {
+          q: 'Funciona offline?',
+          a: 'Sim. Pode navegar, registar encomendas e fazer alterações sem ligação; tudo sincroniza quando voltar a estar online.',
+        },
+        {
+          q: 'Os meus clientes precisam de instalar alguma coisa?',
+          a: 'Não. Partilha uma ligação e eles veem a encomenda ou a fatura em qualquer navegador.',
+        },
+        {
+          q: 'Posso bloquear a aplicação para mais ninguém a abrir?',
+          a: 'Pode. Pode definir um PIN de quatro dígitos e o SeamFlow bloqueia-se ao fim de alguns minutos em segundo plano, para que a sua lista de clientes continue a ser sua mesmo que outra pessoa pegue no telemóvel.',
+        },
+        {
+          q: 'Os meus dados são privados?',
+          a: 'Os seus dados são seus; não os vendemos. A nossa Política de Privacidade explica exatamente o que é guardado e quais são os seus direitos.',
+          href: '/privacy',
+          linkLabel: 'Ler a Política de Privacidade',
+        },
+        {
+          q: 'Em que dispositivos funciona?',
+          a: 'Telemóveis e tablets Android hoje, qualquer navegador em portátil ou computador, e iOS em breve.',
+        },
+      ] as Faq[],
+    },
+    cta: {
+      title: 'Junte o seu atelier num só lugar.',
+      body: 'Junte-se aos alfaiates que fazem do SeamFlow o seu assistente diário.',
+    },
+    footer: {
+      tagline:
+        'O assistente de IA para alfaiates e a casa tranquila do seu negócio de alfaiataria.',
+      product: 'Produto',
+      legal: 'Legal',
+      contact: 'Contacto',
+      links: {
+        features: 'Funcionalidades',
+        assistant: 'Assistente de IA para alfaiates',
+        compare: 'Como nos comparamos',
+        how: 'Como funciona',
+        faq: 'Perguntas frequentes',
+        privacy: 'Política de Privacidade',
+        terms: 'Termos',
+        support: 'Apoio',
+        deleteAccount: 'Eliminar conta',
+      },
+      email: 'contactseamflow@gmail.com',
+      phone: '+237 670 15 19 73',
+      rights: '© {year} SeamFlow. Todos os direitos reservados.',
+      madeWith: 'Feito para alfaiates, em todo o lado.',
+    },
+    legal: {
+      lastUpdated: 'Última atualização',
+      backToHome: 'Voltar ao início',
+      privacyTitle: 'Política de Privacidade',
+      termsTitle: 'Termos de Serviço',
+      supportTitle: 'Apoio',
+    },
+    deleteAccount: {
+      metaTitle: 'Eliminar a sua conta SeamFlow',
+      metaDescription:
+        'Como eliminar a sua conta SeamFlow e tudo o que está guardado com ela — a partir da aplicação, ou escrevendo-nos se já não a tiver instalada.',
+      title: 'Eliminar a sua conta',
+      intro:
+        'Pode encerrar a sua conta SeamFlow a qualquer momento, e levar antes uma cópia dos seus registos.',
+
+      inAppHeading: 'A partir da aplicação (mais rápido)',
+      inAppBody:
+        'Se ainda conseguir iniciar sessão, este é o caminho mais rápido e mantém o controlo do princípio ao fim.',
+      inAppStep1: 'Abra o SeamFlow e vá a Definições.',
+      inAppStep2: 'Em Conta, toque em “Eliminar a minha conta”.',
+      inAppStep3:
+        'Transfira uma cópia dos seus dados se quiser, confirme que é você e confirme a eliminação.',
+
+      emailHeading: 'Se já não tiver a aplicação',
+      emailBody:
+        'Escreva-nos a partir do endereço de e-mail da conta e iniciaremos o mesmo processo por si. Podemos fazer uma pergunta ou duas para confirmar que a conta é sua — nunca lhe pediremos a palavra-passe.',
+      emailCta: 'Enviar e-mail para eliminar a minha conta',
+      mailSubject: 'Por favor, eliminem a minha conta SeamFlow',
+      mailBody:
+        'Olá,\n\nPor favor, eliminem a minha conta SeamFlow e os dados guardados com ela.\n\nO endereço de e-mail da minha conta é: \n\nObrigado.',
+
+      whatHappensHeading: 'O que acontece',
+      whatHappensIntro:
+        'A eliminação remove a sua conta e os registos associados. É exatamente isto que abrange.',
+
+      erasedHeading: 'Apagado',
+      erased1: 'O seu perfil e o seu acesso — deixará de conseguir iniciar sessão',
+      erased2:
+        'Os seus clientes e as respetivas medidas, encomendas, encomendas de grupo e faturas',
+      erased3: 'Todas as fotos que carregou, incluindo a sua página pública',
+      erased4: 'Os seus pedidos, propostas e medidas guardadas',
+
+      keptHeading: 'Mantido',
+      kept1:
+        'As mensagens que enviou ficam na conversa da outra pessoa, sem o seu nome e sem o conteúdo.',
+      kept2:
+        'Registos anónimos, sem nada de pessoal, quando são necessários para a aplicação continuar a funcionar para os outros.',
+
+      graceHeading: 'Tem 30 dias para mudar de ideias',
+      graceBody:
+        'Nada é apagado de imediato. A sua página pública desaparece logo e as notificações param, mas os seus registos ficam intactos durante 30 dias — inicie sessão nesse período e toque em “Manter a minha conta” para cancelar. Passados 30 dias é definitivo e não conseguimos recuperar.',
+
+      privacyNote: 'Para saber mais sobre o que guardamos e porquê, consulte a nossa',
+    },
+
+    support: {
+      intro: 'Precisa de ajuda? Teremos todo o gosto em ajudar.',
+      emailHeading: 'Escreva-nos',
+      emailBody: 'Escreva-nos e respondemos dentro de alguns dias.',
+      faqHeading: 'Perguntas comuns',
+      faqBody: 'A maioria das respostas está nas nossas perguntas frequentes.',
+      faqLink: 'Ler as perguntas frequentes',
+    },
+
+    // ── /tailor-assistant ───────────────────────────────────────────────────
+    assistantPage: {
+      metaTitle:
+        'Assistente de IA para alfaiates: pergunte sobre o seu atelier, por texto ou voz | SeamFlow',
+      metaDescription:
+        'O assistente de IA do SeamFlow responde a perguntas sobre as suas encomendas, clientes e faturas, e cria registos por si mediante confirmação. Escreva ou fale, em português, inglês ou francês. Gratuito em acesso antecipado.',
+      eyebrow: 'Dentro do SeamFlow',
+      title: 'O assistente de IA para o seu atelier.',
+      subtitle:
+        'Qualquer aplicação de alfaiataria guarda as suas encomendas. O assistente do SeamFlow responde a perguntas sobre elas e trata dos registos por si, na sua língua, a escrever ou a falar.',
+      askHeading: 'Pergunte-lhe sobre o seu negócio',
+      askBody:
+        'O assistente lê os seus dados reais antes de responder, por isso estas não são respostas enlatadas. São sobre o seu atelier, hoje.',
+      askItems: [
+        'O que vence esta semana?',
+        'Quem ainda me deve dinheiro?',
+        'Como está o negócio este mês?',
+        'O que fiz para a Amina da última vez?',
+        'Que encomendas estão à espera de prova?',
+        'Quantas fardas faltam na encomenda de grupo da escola?',
+      ],
+      doHeading: 'Diga-lhe o que fazer',
+      doBody:
+        'O assistente pode criar e atualizar registos, mas nunca escreve nada em silêncio. Prepara a alteração, mostra-lhe um cartão de confirmação com todos os campos discriminados, e nada é guardado até tocar em Confirmar.',
+      doItems: [
+        'Cria um cliente chamado Amina, número 6xx xx xx xx.',
+        'Nova encomenda para a Amina, agbada, para o dia 20.',
+        'Passa a encomenda #14 para prova.',
+        'Guarda estas medidas no Joseph.',
+        'Prepara uma fatura para a encomenda do casamento.',
+        'Envia-me a ligação de partilha dessa encomenda.',
+      ],
+      pillars: [
+        {
+          key: 'voice',
+          title: 'Mãos livres quando tem as mãos ocupadas',
+          body: 'Fale com ele enquanto corta ou alfineta, e ouça as respostas em voz alta. Indicadores claros mostram quando está a ouvir e quando está a falar, para saber sempre o que se passa.',
+        },
+        {
+          key: 'shield',
+          title: 'Pergunta antes de guardar',
+          body: 'Qualquer ação que altere os seus dados chega como um cartão de confirmação com tudo o que vai ser escrito. Leia, mude de ideias ou confirme. Nada acontece nas suas costas.',
+        },
+        {
+          key: 'globe',
+          title: 'Respostas na sua língua',
+          body: 'Pergunte em português, inglês ou francês e ele responde na mesma língua. Percebe o vocabulário do ofício em todas: peito, poitrine e chest são a mesma medida para ele.',
+        },
+        {
+          key: 'offline',
+          title: 'Privado por definição',
+          body: 'A sua conversa fica no seu dispositivo, não nos nossos servidores. Não guardamos nada dela. As mensagens antigas vão caindo à medida que a conversa cresce, e pode apagá-la quando quiser. O assistente só lê os dados do seu próprio atelier.',
+        },
+      ] as Feature[],
+      ctaTitle: 'Ponha um assistente no seu atelier.',
+      ctaBody: 'Gratuito enquanto o SeamFlow estiver em acesso antecipado.',
+      backToFeatures: 'Ver todas as funcionalidades',
+    },
+
+    // ── /alternatives/tailor-assist ─────────────────────────────────────────
+    alternativesPage: {
+      metaTitle:
+        'Uma alternativa ao Tailor Assist: o SeamFlow, comparado com honestidade | SeamFlow',
+      metaDescription:
+        'A comparar o SeamFlow com o Tailor Assist? Ambos são gratuitos e funcionam offline. O SeamFlow acrescenta um assistente de IA com quem pode falar, digitalização de medidas a partir do papel e um estúdio de design. Um olhar honesto sobre onde cada um ganha.',
+      eyebrow: 'Comparação',
+      title: 'À procura de uma alternativa ao Tailor Assist?',
+      subtitle:
+        'O Tailor Assist e o SeamFlow partem do mesmo problema: um negócio de alfaiataria gerido a cadernos e memória. Abordam-no de formas diferentes. Aqui fica uma comparação direta, incluindo as partes em que ficamos a perder.',
+
+      disclosureTitle: 'Quem escreveu isto',
+      disclosureBody:
+        'Fomos nós. Fazemos o SeamFlow, por isso leia isto como leria qualquer comparação escrita por uma das partes. O que podemos prometer é rigor: tudo o que se diz abaixo sobre o Tailor Assist vem do site público deles, e tudo o que se diz sobre o SeamFlow é uma funcionalidade que pode usar hoje, não uma promessa. Experimente os dois; são ambos gratuitos.',
+      updatedLabel: 'Comparado com informação pública disponível em {date}.',
+
+      strengthsHeading: 'Onde o SeamFlow é diferente',
+      strengthsBody:
+        'Foram estas as coisas que nos levaram a construir mais uma aplicação de alfaiataria em vez de usar uma existente.',
+      strengths: [
+        {
+          key: 'assistant',
+          title: 'Um assistente com quem pode falar',
+          body: 'O SeamFlow tem um assistente de IA integrado, ligado aos seus próprios dados. Pergunte “o que vence esta semana?” ou “quem me deve?” e ele responde sobre o seu atelier. Diga-lhe para criar uma encomenda e ele prepara o registo, mostra um cartão de confirmação e espera. Pode escrever ou falar. Tanto quanto vemos no site deles, o Tailor Assist não tem equivalente.',
+        },
+        {
+          key: 'scan',
+          title: 'Medidas tiradas diretamente do papel',
+          body: 'Fotografe uma folha de medidas preenchida e o SeamFlow lê as etiquetas e os números para um conjunto de medidas que pode verificar. Fotografe uma página em branco do caderno e ela torna-se um modelo reutilizável. Se tem anos de registos em papel, é a diferença entre migrar numa noite e nunca migrar.',
+        },
+        {
+          key: 'design',
+          title: 'Um estúdio de design, não só um campo para fotos',
+          body: 'Reúna referências de estilo e tecido num quadro, abra qualquer imagem em ecrã inteiro e deixe a IA transformar uma foto de referência em notas estruturadas (corte, decote, manga, acabamento) que edita antes de guardar. Depois junte-a à encomenda a que pertence.',
+        },
+        {
+          key: 'groups',
+          title: 'Encomendas de grupo tratadas a sério',
+          body: 'Casamentos, aso-ebi e fardas são uma encomenda com um responsável, um tecido partilhado e medidas por membro — não uma dúzia de encomendas soltas que tem de se lembrar que andam juntas.',
+        },
+      ] as Feature[],
+
+      theirsHeading: 'Onde o Tailor Assist lhe pode servir melhor',
+      theirsBody:
+        'A sério. Se alguma destas coisas descreve o seu atelier, hoje a ferramenta melhor é a deles — e preferimos dizê-lo já a fazê-lo perder a noite.',
+      theirs: [
+        {
+          title: 'Tem funcionários',
+          body: 'O Tailor Assist oferece contas de funcionário, acesso por função e atribuição de tarefas ao longo de uma linha de produção. O SeamFlow é hoje feito para um alfaiate e os seus próprios registos. Não há forma de convidar um empregado nem de passar um trabalho a outra pessoa.',
+        },
+        {
+          title: 'Precisa de árabe ou espanhol',
+          body: 'Eles anunciam inglês, francês, árabe e espanhol. O SeamFlow existe em inglês, francês e português. As nossas são traduções completas e não parciais, mas se os seus clientes leem árabe ou espanhol, eles têm-no hoje e nós não.',
+        },
+        {
+          title: 'Quer acompanhamento de pagamentos',
+          body: 'Eles anunciam acompanhamento de pagamentos por dinheiro móvel. O SeamFlow regista um sinal e calcula o saldo numa fatura, mas não liga a nenhum fornecedor de pagamentos. A reconciliação do dinheiro é sua. Os pagamentos estão no nosso plano, e um plano não é uma funcionalidade.',
+        },
+        {
+          title: 'Quer painéis e relatórios',
+          body: 'Eles oferecem análises de negócio e ecrãs de relatórios. O SeamFlow não tem secção de relatórios; o mais próximo é perguntar ao assistente como vai o negócio, o que é uma boa resposta a uma pergunta mas não um gráfico para estudar.',
+        },
+      ],
+
+      sharedHeading: 'Onde os dois são muito parecidos',
+      sharedBody: 'No essencial, honestamente, ficaria bem com qualquer um.',
+      shared: [
+        'Gratuito para um alfaiate independente',
+        'Funciona sem rede e sincroniza quando ela volta',
+        'Clientes, medidas e estado das encomendas num só lugar',
+        'Faturas que pode enviar a um cliente',
+        'Partilha para o WhatsApp sem o cliente instalar nada',
+        'Funciona em Android e no navegador',
+      ],
+
+      ctaTitle: 'Experimente durante uma noite.',
+      ctaBody:
+        'Gratuito enquanto o SeamFlow estiver em acesso antecipado. Traga um cliente e uma encomenda e veja como é.',
+      backToFeatures: 'Ver todas as funcionalidades',
     },
   },
 };

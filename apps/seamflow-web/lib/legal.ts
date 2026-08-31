@@ -177,6 +177,83 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
     ],
   },
+  pt: {
+    intro:
+      'Esta Política de Privacidade explica o que o SeamFlow («nós») recolhe, como o utilizamos e que escolhas tem. O SeamFlow é uma ferramenta para alfaiates e criadores de moda gerirem clientes, medidas e encomendas.',
+    sections: [
+      {
+        heading: '1. Informação que recolhemos',
+        paragraphs: [
+          'Dados da conta: o endereço de e-mail e/ou número de telefone com que se regista, o nome do seu negócio e as suas preferências de idioma, moeda e país.',
+          'Dados que introduz sobre o seu trabalho: nomes, números de telefone, moradas e medidas dos seus clientes; detalhes, notas e datas das encomendas; encomendas de grupo e os seus membros; tecidos; e quaisquer fotos que carregue (imagens de referência, amostras de tecido, inspiração de design e fotos de trabalho terminado).',
+          'Dados do dispositivo e de utilização: um token de notificações para lhe podermos enviar lembretes, informação básica do dispositivo e da aplicação, e registos habituais usados para manter o serviço a funcionar e diagnosticar problemas.',
+        ],
+      },
+      {
+        heading: '2. Como usamos a sua informação',
+        paragraphs: [
+          'Para prestar o serviço: guardar e sincronizar os seus clientes, encomendas e medidas entre os seus dispositivos.',
+          'Para enviar as notificações e lembretes que ativou (por exemplo, provas e datas de entrega próximas).',
+          'Para dar apoio, manter o serviço seguro, prevenir abusos e melhorar o funcionamento do SeamFlow.',
+          'Não vendemos a sua informação pessoal e não usamos o conteúdo que introduz para lhe fazer publicidade.',
+        ],
+      },
+      {
+        heading: '3. Prestadores de serviços',
+        paragraphs: [
+          'Recorremos a um número reduzido de prestadores de confiança para operar o SeamFlow: Supabase (base de dados, autenticação e armazenamento de ficheiros), Expo (entrega de notificações) e Upstash (filas de tarefas em segundo plano).',
+          'Se utilizar a funcionalidade opcional de IA «descrever imagem», a imagem que escolher é enviada à Anthropic para gerar notas de design. Isto só acontece quando utiliza ativamente essa funcionalidade.',
+          'Estes prestadores tratam os dados em nosso nome, ao abrigo dos seus próprios compromissos de segurança e privacidade.',
+        ],
+      },
+      {
+        heading: '4. Dados sobre os seus clientes',
+        paragraphs: [
+          'A informação de clientes que introduz é sua e está sob o seu controlo. É da sua responsabilidade ter fundamento adequado para recolher e guardar os dados dos seus clientes, e para a utilização que lhes dá.',
+          'Tratamos essa informação em seu nome, exclusivamente para lhe prestar o SeamFlow.',
+        ],
+      },
+      {
+        heading: '5. Armazenamento, localização e conservação',
+        paragraphs: [
+          'Os seus dados são guardados na infraestrutura na nuvem dos nossos prestadores. Podem ser tratados em países diferentes do seu; quando isso acontece, apoiamo-nos em salvaguardas adequadas.',
+          'Conservamos os seus dados enquanto a sua conta estiver ativa. Quando nos pede para eliminar a conta, a sua página pública deixa de estar visível imediatamente e tudo é apagado 30 dias depois. O atraso existe para poder mudar de ideias: inicie sessão a qualquer momento durante esses 30 dias e escolha «Manter a minha conta» para cancelar. Depois disso é definitivo e não conseguimos recuperar.',
+          'Duas coisas sobrevivem a uma eliminação, e nenhuma delas o identifica. As mensagens que enviou permanecem na conversa da outra pessoa, sem o seu nome e sem o conteúdo, para que o lado dela da conversa continue a fazer sentido. E conservamos registos que não identificam ninguém, quando são necessários para manter o serviço a funcionar para outras pessoas.',
+        ],
+      },
+      {
+        heading: '6. Os seus direitos',
+        paragraphs: [
+          'Pode aceder, corrigir, exportar ou eliminar os seus dados. Para eliminar a conta, abra a aplicação e vá a Definições → Conta → Eliminar a minha conta, onde também lhe é oferecida uma cópia de tudo para transferir primeiro. Se já não tiver a aplicação instalada, seamflowtech.com/delete-account explica como nos pedir. Para tudo o resto, escreva-nos e ajudaremos.',
+          'Consoante o local onde vive, poderá ter direitos adicionais ao abrigo da lei local (como o direito de se opor a determinados tratamentos ou de os limitar).',
+        ],
+      },
+      {
+        heading: '7. Segurança',
+        paragraphs: [
+          'Protegemos os seus dados com encriptação em trânsito, controlos de acesso e um bloqueio opcional por PIN no dispositivo. Nenhum método de transmissão ou armazenamento é 100% seguro, mas trabalhamos para proteger a sua informação e responder rapidamente a qualquer problema.',
+        ],
+      },
+      {
+        heading: '8. Crianças',
+        paragraphs: [
+          'O SeamFlow é uma ferramenta profissional e não se dirige a crianças. Não recolhemos conscientemente informação pessoal de menores de 16 anos.',
+        ],
+      },
+      {
+        heading: '9. Alterações a esta política',
+        paragraphs: [
+          'Podemos atualizar esta política à medida que o SeamFlow evolui. A data de «última atualização» no topo reflete a versão mais recente e faremos esforços razoáveis para o informar de alterações materiais.',
+        ],
+      },
+      {
+        heading: '10. Contacto',
+        paragraphs: [
+          'Dúvidas sobre privacidade? Escreva-nos para contactseamflow@gmail.com e responderemos.',
+        ],
+      },
+    ],
+  },
 };
 
 export const terms: Record<Lang, LegalDoc> = {
@@ -310,6 +387,73 @@ export const terms: Record<Lang, LegalDoc> = {
         heading: '10. Modifications et contact',
         paragraphs: [
           'Nous pouvons mettre à jour ces Conditions ; poursuivre l’utilisation après une mise à jour vaut acceptation. Des questions ? Écrivez à contactseamflow@gmail.com.',
+        ],
+      },
+    ],
+  },
+  pt: {
+    intro:
+      'Estes Termos regem a sua utilização do SeamFlow. Ao criar uma conta ou utilizar a aplicação, aceita-os.',
+    sections: [
+      {
+        heading: '1. O serviço',
+        paragraphs: [
+          'O SeamFlow é uma ferramenta para gerir clientes de alfaiataria, medidas, encomendas e trabalho relacionado. Está em desenvolvimento ativo e as funcionalidades podem mudar, ser acrescentadas ou removidas.',
+        ],
+      },
+      {
+        heading: '2. A sua conta',
+        paragraphs: [
+          'É responsável por manter seguras as suas credenciais de acesso e pela atividade realizada na sua conta. Avise-nos com prontidão se suspeitar de utilização não autorizada.',
+        ],
+      },
+      {
+        heading: '3. Utilização aceitável',
+        paragraphs: [
+          'Utilize o SeamFlow apenas para fins lícitos. Não faça uso indevido do serviço, não tente perturbá-lo nem submetê-lo a engenharia inversa, e não o utilize para guardar ou partilhar conteúdos ilícitos.',
+          'É responsável pela informação de clientes e encomendas que introduz, e por respeitar a privacidade e os direitos das pessoas cujos dados regista.',
+        ],
+      },
+      {
+        heading: '4. Os seus conteúdos',
+        paragraphs: [
+          'Mantém a titularidade dos dados que introduz. Concede-nos os direitos limitados necessários para alojar, tratar e apresentar esses dados exclusivamente para lhe prestar o SeamFlow.',
+        ],
+      },
+      {
+        heading: '5. Disponibilidade',
+        paragraphs: [
+          'Procuramos manter o SeamFlow fiável, mas é disponibilizado «conforme disponível». Podemos alterar, suspender ou descontinuar partes do serviço, sobretudo durante o acesso antecipado.',
+        ],
+      },
+      {
+        heading: '6. Exclusão de garantias',
+        paragraphs: [
+          'Na máxima medida permitida por lei, o SeamFlow é fornecido «tal como está» e «conforme disponível», sem garantias de qualquer tipo, expressas ou implícitas.',
+        ],
+      },
+      {
+        heading: '7. Limitação de responsabilidade',
+        paragraphs: [
+          'Na máxima medida permitida por lei, não somos responsáveis por quaisquer danos indiretos, incidentais, especiais ou consequenciais, nem pela perda de dados ou lucros, decorrentes da sua utilização do serviço. A nossa responsabilidade total está limitada ao montante que nos pagou nos doze meses anteriores à reclamação (que pode ser zero durante o acesso antecipado gratuito).',
+        ],
+      },
+      {
+        heading: '8. Cessação',
+        paragraphs: [
+          'Pode deixar de utilizar o SeamFlow a qualquer momento. Podemos suspender ou cessar o acesso caso estes Termos sejam violados ou para proteger o serviço e os seus utilizadores.',
+        ],
+      },
+      {
+        heading: '9. Lei aplicável',
+        paragraphs: [
+          'Estes Termos regem-se pelas leis da jurisdição em que o SeamFlow é operado. (A finalizar antes do lançamento.)',
+        ],
+      },
+      {
+        heading: '10. Alterações e contacto',
+        paragraphs: [
+          'Podemos atualizar estes Termos; a utilização continuada após uma atualização significa que aceita a alteração. Dúvidas? Escreva para contactseamflow@gmail.com.',
         ],
       },
     ],

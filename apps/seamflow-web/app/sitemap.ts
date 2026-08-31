@@ -1,10 +1,13 @@
 import type { MetadataRoute } from 'next';
 import { SITE, withLang, LANGS } from '../lib/i18n';
 
-// Both languages are listed as their own entries — they're separate URLs with
+// Every language is listed as its own entry — they're separate URLs with
 // separate content, and omitting one is the usual reason a translated site
 // never gets indexed. Each entry also declares the full alternates set, which
-// is what tells Google the two are translations rather than competitors.
+// is what tells Google they are translations rather than competitors.
+//
+// Derived from LANGS, so a new language enters the sitemap with its route tree
+// and nothing here needs editing.
 const ROUTES: { path: string; priority: number }[] = [
   { path: '/', priority: 1 },
   { path: '/tailor-assistant', priority: 0.9 },
@@ -21,7 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   return ROUTES.flatMap(({ path, priority }) => {
-    // Identical on every entry for a given path — both languages point at the
+    // Identical on every entry for a given path — every language points at the
     // same reciprocal set, which is what makes the annotation valid.
     const languages = Object.fromEntries(
       LANGS.map((l) => [l, `${SITE.url}${withLang(path, l)}`]),
@@ -31,8 +34,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE.url}${withLang(path, lang)}`,
       lastModified: now,
       changeFrequency: 'monthly' as const,
-      // The French variants sit just below their English counterparts rather
-      // than competing with them at the same weight.
+      // Translations sit just below their English counterparts rather than
+      // competing with them at the same weight.
       priority: lang === 'en' ? priority : Math.max(0.1, priority - 0.1),
       alternates: { languages },
     }));

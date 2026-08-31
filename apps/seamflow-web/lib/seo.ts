@@ -14,7 +14,7 @@
 // ============================================================================
 
 import type { Lang } from './i18n';
-import { withLang, SITE } from './i18n';
+import { withLang, LANGS, SITE } from './i18n';
 
 /** Language-neutral paths that exist in both English and French. */
 export const LOCALIZED_ROUTES = [
@@ -36,9 +36,12 @@ export const LOCALIZED_ROUTES = [
 export function alternatesFor(path: string, lang: Lang) {
   return {
     canonical: withLang(path, lang),
+    // Built from LANGS so a new language is declared reciprocally everywhere
+    // the moment it is added. A translation Google cannot see the hreflang for
+    // competes with its own siblings instead of being served to the right
+    // reader.
     languages: {
-      en: withLang(path, 'en'),
-      fr: withLang(path, 'fr'),
+      ...Object.fromEntries(LANGS.map((l) => [l, withLang(path, l)])),
       // Unmatched languages get English.
       'x-default': withLang(path, 'en'),
     },
