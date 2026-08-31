@@ -53,7 +53,6 @@ export default function SpecialtiesScreen() {
     setSeeded(true);
   }, [me?.tailor, seeded]);
 
-  const lang = language === 'fr' ? 'fr' : 'en';
   const groups = garmentsByCategory();
   const atCap = picked.length >= MAX_SPECIALTIES;
 
@@ -90,7 +89,7 @@ export default function SpecialtiesScreen() {
         {groups.map(({ category, items }) => (
           <View key={category} style={styles.group}>
             <Text variant="label" tone="textMuted" style={styles.groupTitle}>
-              {GARMENT_CATEGORY_LABELS[category as GarmentCategory][lang]}
+              {GARMENT_CATEGORY_LABELS[category as GarmentCategory][language]}
             </Text>
             <View style={styles.chips}>
               {items.map((g) => {
@@ -98,7 +97,7 @@ export default function SpecialtiesScreen() {
                 return (
                   <Chip
                     key={g.key}
-                    label={on ? `✓ ${g[lang]}` : g[lang]}
+                    label={on ? `✓ ${g[language]}` : g[language]}
                     tone={on ? 'success' : 'primary'}
                     onPress={() => toggle(g.key)}
                   />

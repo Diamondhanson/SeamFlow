@@ -16,7 +16,6 @@ import { useTranslation } from '../../../lib/i18n';
 
 export default function MyRequests() {
   const { t, language } = useTranslation();
-  const lang = language === 'fr' ? 'fr' : 'en';
   const colors = useThemeColors();
   const q = useMyRequests();
   const items = q.data?.items ?? [];
@@ -44,7 +43,7 @@ export default function MyRequests() {
           items.map((r) => (
             <Pressable key={r.id} onPress={() => router.push(`/(app)/requests/${r.id}`)}>
               <Card>
-                <CardTitle>{r.title || garmentLabel(r.garmentType, lang)}</CardTitle>
+                <CardTitle>{r.title || garmentLabel(r.garmentType, language)}</CardTitle>
                 <CardLine>{t('requests.statusLine', { status: r.status })}</CardLine>
                 <CardLine>{t('requests.offerCount', { count: r.offersCount })}</CardLine>
               </Card>

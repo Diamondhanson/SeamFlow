@@ -28,7 +28,6 @@ import { draftKey, useDraft } from '../../../lib/drafts';
 
 export default function RequestDetail() {
   const { t, language } = useTranslation();
-  const lang = language === 'fr' ? 'fr' : 'en';
   const colors = useThemeColors();
   const dialog = useDialog();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -106,14 +105,14 @@ export default function RequestDetail() {
 
   return (
     <Screen>
-      <ScreenHeader title={request.title || garmentLabel(request.garmentType, lang)} />
+      <ScreenHeader title={request.title || garmentLabel(request.garmentType, language)} />
       <FormScroll contentContainerStyle={{ paddingBottom: 120 }}>
         {photo ? (
           <Image source={{ uri: photo }} style={styles.hero} resizeMode="cover" />
         ) : null}
 
         <Card>
-          <CardTitle>{garmentLabel(request.garmentType, lang)}</CardTitle>
+          <CardTitle>{garmentLabel(request.garmentType, language)}</CardTitle>
           <CardLine>{request.description}</CardLine>
           {request.locationValue ? <CardLine>{request.locationValue}</CardLine> : null}
           <CardLine>

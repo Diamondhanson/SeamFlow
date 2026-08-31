@@ -167,12 +167,21 @@ export function garmentByKey(key: string | null | undefined): GarmentTypeDef | n
   return key ? (BY_KEY.get(key) ?? null) : null;
 }
 
-/** The label for a key in the given language, falling back to the raw value so
- *  legacy free-text garment types still render as something readable. */
+/**
+ * The label for a key in the given language, falling back to the raw value so
+ * legacy free-text garment types still render as something readable.
+ *
+ * The `?? def.en` matters more than it looks: this package is consumed from
+ * `dist`, so a caller compiled against a newer `GarmentLang` than the built
+ * output can ask for a language the shipped table does not have. Without the
+ * fallback that returns `undefined`, which React renders as nothing — a blank
+ * chip on the specialties picker with no error anywhere.
+ */
 export function garmentLabel(key: string | null | undefined, lang: GarmentLang): string {
   if (!key) return '';
   const def = BY_KEY.get(key);
-  return def ? def[lang] : key;
+  if (!def) return key;
+  return def[lang] ?? def.en;
 }
 
 export function garmentsByCategory(): { category: GarmentCategory; items: GarmentTypeDef[] }[] {

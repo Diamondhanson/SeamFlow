@@ -35,7 +35,6 @@ import { useTranslation } from '../../../lib/i18n';
 
 export default function NewRequest() {
   const { t, language } = useTranslation();
-  const lang = language === 'fr' ? 'fr' : 'en';
   const colors = useThemeColors();
   const dialog = useDialog();
   const { session } = useAuth();
@@ -156,13 +155,13 @@ export default function NewRequest() {
         {garmentsByCategory().map(({ category, items }) => (
           <View key={category} style={styles.group}>
             <Text variant="caption" tone="textMuted" style={styles.groupTitle}>
-              {GARMENT_CATEGORY_LABELS[category as GarmentCategory][lang]}
+              {GARMENT_CATEGORY_LABELS[category as GarmentCategory][language]}
             </Text>
             <View style={styles.chips}>
               {items.map((g) => (
                 <Chip
                   key={g.key}
-                  label={garmentType === g.key ? `✓ ${g[lang]}` : g[lang]}
+                  label={garmentType === g.key ? `✓ ${g[language]}` : g[language]}
                   tone={garmentType === g.key ? 'success' : 'primary'}
                   onPress={() => setGarmentType(garmentType === g.key ? null : g.key)}
                 />

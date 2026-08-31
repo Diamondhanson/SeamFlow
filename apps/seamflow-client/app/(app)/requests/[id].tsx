@@ -30,7 +30,6 @@ import { useTranslation } from '../../../lib/i18n';
 
 export default function RequestDetail() {
   const { t, language } = useTranslation();
-  const lang = language === 'fr' ? 'fr' : 'en';
   const colors = useThemeColors();
   const dialog = useDialog();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -90,12 +89,12 @@ export default function RequestDetail() {
 
   return (
     <Screen>
-      <ScreenHeader title={request.title || garmentLabel(request.garmentType, lang)} />
+      <ScreenHeader title={request.title || garmentLabel(request.garmentType, language)} />
       <FormScroll contentContainerStyle={{ paddingBottom: 96 }}>
         {photo ? <Image source={{ uri: photo }} style={styles.hero} resizeMode="cover" /> : null}
 
         <Card>
-          <CardTitle>{garmentLabel(request.garmentType, lang)}</CardTitle>
+          <CardTitle>{garmentLabel(request.garmentType, language)}</CardTitle>
           <CardLine>{request.description}</CardLine>
           <CardLine>{t('requests.statusLine', { status: request.status })}</CardLine>
         </Card>

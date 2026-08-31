@@ -25,12 +25,11 @@ import { HelpCard } from '../../../components/HelpCard';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { useMe, useOpenRequests } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
-import { useTranslation } from '../../../lib/i18n';
+import { useTranslation, type LanguageCode } from '../../../lib/i18n';
 
 export default function RequestsBoard() {
   const { t, language } = useTranslation();
   const colors = useThemeColors();
-  const lang = language === 'fr' ? 'fr' : 'en';
 
   const { data: me } = useMe();
   const [garmentType, setGarmentType] = useState<string | undefined>(undefined);
@@ -66,7 +65,7 @@ export default function RequestsBoard() {
           {filterKeys.map((key) => (
             <Chip
               key={key}
-              label={garmentLabel(key, lang)}
+              label={garmentLabel(key, language)}
               tone={garmentType === key ? 'success' : 'primary'}
               onPress={() => setGarmentType(garmentType === key ? undefined : key)}
             />
@@ -92,14 +91,14 @@ export default function RequestsBoard() {
             </Text>
           </View>
         ) : (
-          items.map((r) => <RequestCard key={r.id} request={r} lang={lang} />)
+          items.map((r) => <RequestCard key={r.id} request={r} lang={language} />)
         )}
       </FormScroll>
     </Screen>
   );
 }
 
-function RequestCard({ request, lang }: { request: RequestSummary; lang: 'en' | 'fr' }) {
+function RequestCard({ request, lang }: { request: RequestSummary; lang: LanguageCode }) {
   const { t } = useTranslation();
 
   // How many people are already in front of you, and whether it is still worth
