@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { Lang } from '../lib/i18n';
-import { LANGS, LANG_LABELS, withLang } from '../lib/i18n';
+import { LANGS, LANG_LABELS, LANG_SHORT, withLang } from '../lib/i18n';
 import { Icon } from './icons';
 
 /**
@@ -74,9 +74,11 @@ export function LangToggle({
       >
         <Icon name="globe" className="h-4 w-4 shrink-0 text-brand-muted" />
         {/* The endonym is the useful label, but it is also the widest thing in
-            a phone header. Below `sm` the code stands in for it. */}
+            a phone header. Below `sm` a short label stands in — from a map, not
+            `lang.toUpperCase()`, which would put "AR" in Latin capitals inside
+            an Arabic page. */}
         <span className="hidden sm:inline">{LANG_LABELS[lang]}</span>
-        <span className="uppercase sm:hidden">{lang}</span>
+        <span className="sm:hidden">{LANG_SHORT[lang]}</span>
         <Icon
           name="chevron"
           className={`h-3.5 w-3.5 shrink-0 text-brand-muted transition-transform duration-200 ${

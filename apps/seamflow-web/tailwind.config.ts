@@ -61,9 +61,28 @@ const config: Config = {
           success: '#2FBF95', // brighter mint
         },
       },
+      // The Arabic faces are listed here as a last resort only. They do NOT
+      // pick up Arabic text by themselves: next/font injects a metric-matched
+      // "<Family> Fallback" face (a local system font with size-adjust) right
+      // after each Latin family, and on most platforms that local font DOES
+      // have Arabic glyphs — so the browser's per-character coverage search
+      // stops there and never reaches Kufi/Plex. The actual switch is the
+      // :lang(ar) block in globals.css, which puts the Arabic face first.
+      //
+      // Mono is deliberately Latin-only: digits stay Western (see INTL_LOCALE),
+      // so JetBrains Mono still covers them and keeps `tnum` alignment for the
+      // stacked measurement columns.
       fontFamily: {
-        display: ['var(--font-display)', 'Georgia', 'serif'],
-        sans: ['var(--font-body)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'var(--font-display-ar)', 'Georgia', 'serif'],
+        sans: [
+          'var(--font-body)',
+          'var(--font-body-ar)',
+          'SF Arabic',
+          'Geeza Pro',
+          'ui-sans-serif',
+          'system-ui',
+          'sans-serif',
+        ],
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
       boxShadow: {

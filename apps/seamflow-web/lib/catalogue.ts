@@ -277,6 +277,54 @@ export const catalogueCopy: Record<Lang, CatalogueCopy> = {
         url,
       ].join('\n'),
   },
+  ar: {
+    eyebrow: 'كتالوج',
+    worksTitle: 'أعمال حديثة',
+    metaTitle: (name) => `${name} — كتالوج`,
+    metaDescription: (name, count, city) => {
+      const where = city ? ` في ${city}` : '';
+      if (count === 0) return `${name}${where} على SeamFlow.`;
+      return `${count} قطعة من تنفيذ ${name}${where}. تصفّح الكتالوج وراسل الورشة مباشرة.`;
+    },
+    whatsappCta: 'راسلنا على واتساب',
+    whatsappHint: 'اسأل عن قطعة أو سعر أو عن مقاساتك أنت.',
+    appCta: 'احصل على تطبيق SeamFlow',
+    appSoon: 'قريبًا',
+    emptyTitle: 'لا يوجد شيء منشور بعد',
+    emptyBody: 'لم تُضِف هذه الورشة أي قطع إلى كتالوجها بعد. عُد إلينا قريبًا.',
+    notFoundTitle: 'الكتالوج غير موجود',
+    notFoundBody: 'قد يكون الرابط مكتوبًا بشكل خاطئ، أو لم تعد الورشة مُدرجة.',
+    memberSince: (year) => `على SeamFlow منذ ${year}`,
+    // Arabic has six plural categories, and the `one`/`two` forms carry the
+    // number inside the noun itself — "قطعتان" already means "two pieces", so
+    // prefixing it with 2 would read as "2 two-pieces".
+    pieces: (n) => {
+      if (n === 0) return 'لا توجد قطع';
+      if (n === 1) return 'قطعة واحدة';
+      if (n === 2) return 'قطعتان';
+      if (n <= 10) return `${n} قطع`;
+      return `${n} قطعة`;
+    },
+    verified: 'موثّق',
+    acceptsRemote: 'يقبل الطلبات عن بُعد',
+    respondsIn: (h) => (h <= 1 ? 'يردّ عادةً خلال ساعة' : `يردّ عادةً خلال ${h} ساعة`),
+    whatsappPrefill: (name) => `مرحبًا ${name}، رأيت كتالوجك على SeamFlow.`,
+    footerNote: 'صُنع بعناية.',
+    poweredBy: 'كتالوج مدعوم من SeamFlow',
+    viewMore: 'عرض المزيد',
+    closeLabel: 'إغلاق',
+    fromPrice: (price) => `ابتداءً من ${price}`,
+    photoCount: (n) => (n === 2 ? 'صورتان' : n <= 10 ? `${n} صور` : `${n} صورة`),
+    nextPhoto: 'الصورة التالية',
+    prevPhoto: 'الصورة السابقة',
+    inquire: 'اسأل عن هذه القطعة',
+    inquiryMessage: ({ shop, design, price, url }) =>
+      [
+        `مرحبًا ${shop}، أنا مهتم بـ ${design}${price ? ` (${price})` : ''}.`,
+        '',
+        url,
+      ].join('\n'),
+  },
 };
 
 export const getCatalogueCopy = (lang: Lang): CatalogueCopy => catalogueCopy[lang];

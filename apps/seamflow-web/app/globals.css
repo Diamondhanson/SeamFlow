@@ -115,3 +115,61 @@ html {
       rgba(240, 135, 90, 0) 55%
     );
 }
+
+/* ── Arabic typography ────────────────────────────────────────────────────
+   Two things Latin type gets away with and Arabic does not.
+
+   1. LETTER-SPACING MUST BE NORMAL. Arabic is cursive: the letters within a
+      word are joined, and tracking pulls those joins apart. Negative tracking
+      (`tracking-tight` on the hero and most h2s) crushes them; positive
+      tracking (`uppercase tracking-wide` on the eyebrows) can break the
+      connections outright on Android. This is a rendering defect, not taste,
+      which is why it is a blanket override rather than a per-component fix.
+      `!important` because it has to beat Tailwind's tracking-* utilities,
+      which are emitted in a later layer than this one.
+
+   2. MORE LEADING. Arabic ascenders, descenders and diacritics need roughly
+      15% more vertical room than Latin at the same nominal size, or they clip.
+
+   `text-transform: uppercase` is left alone — Arabic has no case, so it is a
+   harmless no-op, and stripping it would only add rules. */
+:lang(ar) {
+  letter-spacing: normal !important;
+}
+
+:lang(ar) h1,
+:lang(ar) h2,
+:lang(ar) h3,
+:lang(ar) .font-display {
+  line-height: 1.45;
+}
+
+:lang(ar) p,
+:lang(ar) li {
+  line-height: 1.9;
+}
+
+/* ── Arabic faces ─────────────────────────────────────────────────────────
+   The Arabic family is put FIRST here, ahead of the Latin one.
+
+   Listing it after the Latin face in the Tailwind chain looks like it should
+   work — font fallback is per-character — but it does not. next/font emits a
+   metric-matched `"Fraunces Fallback"` / `"Inter Fallback"` face immediately
+   after each family, backed by a local system font, and on most platforms that
+   local font has Arabic glyphs. The browser finds coverage there and never
+   reaches Noto Kufi or Plex. Verified: zero Arabic font files were fetched.
+
+   Putting the Arabic face first inverts it, and the per-character behaviour we
+   wanted still falls out — these are loaded with `subsets: ['arabic']`, so
+   they contain no Latin glyphs at all, and a Latin run inside an Arabic
+   sentence ("SeamFlow", "WhatsApp") drops straight through to Inter. */
+:lang(ar) {
+  font-family: var(--font-body-ar), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+:lang(ar) .font-display,
+:lang(ar) h1,
+:lang(ar) h2,
+:lang(ar) h3 {
+  font-family: var(--font-display-ar), var(--font-display), Georgia, serif;
+}

@@ -12,7 +12,13 @@
 // separate copies of every face.
 // ============================================================================
 
-import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google';
+import {
+  Fraunces,
+  IBM_Plex_Sans_Arabic,
+  Inter,
+  JetBrains_Mono,
+  Noto_Kufi_Arabic,
+} from 'next/font/google';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -36,5 +42,42 @@ const jetbrains = JetBrains_Mono({
   display: 'swap',
 });
 
+// ── Arabic ──────────────────────────────────────────────────────────────────
+// None of the three faces above ships Arabic glyphs, and all are loaded with
+// `subsets: ['latin']`, so Arabic would fall through to whatever the OS picks.
+//
+// These are wired into the Tailwind FALLBACK arrays rather than swapped in
+// under `:lang(ar)`. Font fallback is resolved per character, so a mixed run —
+// "SeamFlow" or "WhatsApp" inside an Arabic sentence — keeps the Latin word in
+// Inter and renders the Arabic in Plex, with no conditional CSS anywhere.
+//
+// `preload: false` because the overwhelming majority of visitors read a Latin
+// language: browsers only fetch a face once a character actually maps into it,
+// so English pages never pay for these. Verified in the resource list.
+const plexArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600'], // matches Inter's ladder exactly
+  variable: '--font-body-ar',
+  display: 'swap',
+  preload: false,
+});
+
+// Kufi rather than a second naskh: Fraunces' job is textural contrast against
+// Inter at large sizes, and a naskh display face beside Plex Sans Arabic would
+// read as two slightly different naskhs rather than a deliberate pairing.
+const kufiArabic = Noto_Kufi_Arabic({
+  subsets: ['arabic'],
+  weight: ['600', '700'],
+  variable: '--font-display-ar',
+  display: 'swap',
+  preload: false,
+});
+
 /** Every font variable, for the <html> className of each root layout. */
-export const fontVariables = `${fraunces.variable} ${inter.variable} ${jetbrains.variable}`;
+export const fontVariables = [
+  fraunces.variable,
+  inter.variable,
+  jetbrains.variable,
+  plexArabic.variable,
+  kufiArabic.variable,
+].join(' ');
