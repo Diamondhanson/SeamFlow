@@ -73,6 +73,10 @@ function interpolate(s: string, vars?: Record<string, string | number>): string 
 
 interface I18nState {
   language: LanguageCode;
+  /** Writing direction of the active language. */
+  dir: 'ltr' | 'rtl';
+  /** BCP-47 tag for the active language, for `Intl` formatting. */
+  intl: string;
   /** Returns `{ requiresRestart }` — true when the direction changed. */
   setLanguage: (l: LanguageCode) => { requiresRestart: boolean };
   t: (key: string, vars?: Record<string, string | number>) => string;
@@ -146,7 +150,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<I18nState>(
-    () => ({ language, setLanguage, t, ready }),
+    () => {
+      const def = LANGUAGES.find((x) => x.code === language);
+      return {
+        language,
+        setLanguage,
+        t,
+        ready,
+        dir: def?.dir ?? 'ltr',
+        intl: def?.intl ?? 'en-US',
+      };
+    },
     [language, setLanguage, t, ready],
   );
 

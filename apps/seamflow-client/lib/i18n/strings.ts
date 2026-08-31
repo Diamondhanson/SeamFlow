@@ -32,16 +32,26 @@ export interface LanguageDef {
    * right-to-left one cannot silently ship rendering left-to-right.
    */
   dir: 'ltr' | 'rtl';
+  /**
+   * BCP-47 tag for `Intl` formatting — dates, money, plurals.
+   *
+   * Arabic is pinned to `ar-u-nu-latn-ca-gregory` rather than bare `ar`:
+   * without it, `Intl` renders Eastern Arabic numerals (٠١٢٣), which would
+   * break the tabular alignment of stacked measurement columns and put two
+   * numeral systems on the same invoice. `ca-gregory` means a future CLDR
+   * bump cannot silently switch the calendar to Hijri.
+   */
+  intl: string;
 }
 
 export const LANGUAGES: LanguageDef[] = [
-  { code: 'en', label: 'English', dir: 'ltr' },
-  { code: 'fr', label: 'Français', dir: 'ltr' },
+  { code: 'en', intl: 'en-US', label: 'English', dir: 'ltr' },
+  { code: 'fr', intl: 'fr-FR', label: 'Français', dir: 'ltr' },
   // Endonyms, not English names: a Portuguese speaker scanning a language list
   // is looking for "Português", not "Portuguese".
-  { code: 'pt', label: 'Português', dir: 'ltr' },
-  { code: 'es', label: 'Español', dir: 'ltr' },
-  { code: 'sw', label: 'Kiswahili', dir: 'ltr' },
+  { code: 'pt', intl: 'pt-PT', label: 'Português', dir: 'ltr' },
+  { code: 'es', intl: 'es-419', label: 'Español', dir: 'ltr' },
+  { code: 'sw', intl: 'sw-KE', label: 'Kiswahili', dir: 'ltr' },
 ];
 
 /**

@@ -4,8 +4,14 @@
 // sheet (`expo-sharing`). No server, works offline; the PDF mirrors the public
 // web invoice page.
 //
-// Labels are passed in (localized by the caller via t()) so the document is
-// EN/FR just like the rest of the app.
+// Labels are passed in (localized by the caller via t()) so the document is in
+// the tailor's language just like the rest of the app.
+//
+// This is a SEPARATE rendering path from every screen: it produces HTML for a
+// print engine, so none of the app's I18nManager work reaches it. Direction and
+// locale are therefore passed in explicitly rather than inferred — an Arabic
+// tailor's invoices are read by their clients, and getting them wrong is a
+// customer-facing failure, not an internal one.
 // ============================================================================
 
 import * as Print from 'expo-print';
@@ -26,6 +32,15 @@ export interface InvoicePdfLabels {
 }
 
 export interface InvoicePdfData {
+  /** Writing direction of the tailor's language. Sets `dir` on the document. */
+  dir: 'ltr' | 'rtl';
+  /**
+   * BCP-47 tag for dates and money. Passed in rather than left to
+   * `toLocaleDateString(undefined)`, which follows the DEVICE locale — so an
+   * Arabic-UI tailor on an English handset was getting an English month name
+   * inside an otherwise-Arabic invoice.
+   */
+  locale: string;
   number: string;
   dateIso: string;
   clientName: string | null;
@@ -41,13 +56,14 @@ const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels): string {
-  const money = (n: number) => (data.currency ? formatCurrency(n, data.currency) : String(n));
+  const money = (n: number) =>
+    data.currency ? formatCurrency(n, data.currency, data.locale) : String(n);
   // Quantities can be fractional (2.5 m of fabric). Round off float noise
   // and drop trailing zeros so a whole number still reads as "3", not "3.00".
   const qty = (n: number) => String(Math.round(n * 1000) / 1000);
   const subtotal = data.lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
   const balance = subtotal - data.deposit;
-  const date = new Date(data.dateIso).toLocaleDateString(undefined, {
+  const date = new Date(data.dateIso).toLocaleDateString(data.locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -72,7 +88,7 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
     .join('');
 
   return `<!doctype html>
-<html>
+<html dir="${data.dir}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -103,8 +119,21 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
      run past the card edge — names are never truncated here. */
   .client { font-size: 26px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
   table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-  th { text-align: left; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: #8A8178; padding: 8px 0; border-bottom: 1px solid #E1D9CB; }
-  th.r, td.amt { text-align: right; }
+  th { text-align: start; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: #8A8178; padding: 8px 0; border-bottom: 1px solid #E1D9CB; }
+  th.r, td.amt { text-align: end; }
+  /* Numbers are LTR runs inside what may be an RTL paragraph. Without
+     isolation the bidi algorithm reorders a currency symbol or the '×' in
+     "2.5 × FCFA 3,000" to the wrong side of its number — the same failure the
+     status-transition arrow had, wearing different clothes. */
+  .amt, .val, .num, .date { unicode-bidi: isolate; }
+  .amt, .val { direction: ltr; text-align: end; }
+  /* Arabic is cursive; tracking pulls the joins apart. */
+  [dir="rtl"] .eyebrow, [dir="rtl"] th, [dir="rtl"] .biz { letter-spacing: normal; }
+  /* Georgia and Times have no Arabic glyphs, so the serif runs need a fallback
+     that does, or they land on something arbitrary and heavier than intended. */
+  [dir="rtl"] .biz, [dir="rtl"] .num, [dir="rtl"] .balance .lbl {
+    font-family: "Noto Naskh Arabic", "Geeza Pro", Georgia, serif;
+  }
   td { padding: 13px 0; border-bottom: 1px solid #EFE9DE; vertical-align: top; }
   .desc { font-size: 24px; }
   .cat { color: #8A8178; font-size: 17px; margin-top: 3px; }

@@ -64,7 +64,7 @@ export default function InvoiceEditor() {
   // one for an order (`orderId` set — we create-or-open it here so the tap on
   // the list navigates instantly instead of waiting on the create round-trip).
   const { id, orderId } = useLocalSearchParams<{ id: string; orderId?: string }>();
-  const { t } = useTranslation();
+  const { t, dir, intl } = useTranslation();
   const { colors: atelier } = useAtelierTheme();
   const colors = useThemeColors();
   const dialog = useDialog();
@@ -242,6 +242,8 @@ export default function InvoiceEditor() {
       };
       const html = buildInvoiceHtml(
         {
+          dir,
+          locale: intl,
           number: invoice.number,
           dateIso: invoice.issuedAt ?? invoice.createdAt,
           clientName: invoice.clientName ?? null,
