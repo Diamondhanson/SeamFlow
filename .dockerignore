@@ -35,3 +35,8 @@ apps/seamflow-app/ios
 scratchpad
 coverage
 **/*.md
+
+# Locally-built app binaries. ~99MB each, and irrelevant to the API image —
+# they would otherwise be uploaded as part of the repo-root build context.
+*.apk
+*.aab

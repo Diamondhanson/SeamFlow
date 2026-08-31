@@ -10,6 +10,15 @@ type HealthStatus = 'up' | 'down' | 'not_configured' | 'disabled';
 interface HealthResponse {
   ok: true;
   version: string;
+  /**
+   * Short SHA of the commit this process was built from, or 'unknown' locally.
+   *
+   * Exists because "did my deploy actually land?" was otherwise unanswerable:
+   * `version` is always '0.0.0' (npm_package_version is unset when the app runs
+   * as `node dist/main.js`), and `uptime_s` resets on a free-tier spin-down as
+   * well as on a deploy, so neither distinguishes a new build from a wake-up.
+   */
+  commit: string;
   uptime_s: number;
   db: HealthStatus;
   redis: HealthStatus;
@@ -52,6 +61,14 @@ export class HealthController {
     return {
       ok: true,
       version: process.env.npm_package_version ?? '0.0.0',
+      // RENDER_GIT_COMMIT is injected by Render; the others cover Fly, Vercel
+      // and a plain Docker build that passes it in.
+      commit: (
+        process.env.RENDER_GIT_COMMIT ??
+        process.env.GIT_COMMIT_SHA ??
+        process.env.SOURCE_COMMIT ??
+        'unknown'
+      ).slice(0, 7),
       uptime_s: Math.floor(process.uptime()),
       db: !this.db.isConfigured() ? 'not_configured' : dbUp ? 'up' : 'down',
       redis: !this.queue.isConfigured() ? 'disabled' : redisUp ? 'up' : 'down',
