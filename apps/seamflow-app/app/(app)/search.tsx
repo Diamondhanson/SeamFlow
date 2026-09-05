@@ -13,6 +13,7 @@ import { Avatar, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SearchField } from '../../components/SearchField';
+import { SkeletonList } from '../../components/Skeleton';
 import { OrderCard } from '../../components/OrderCard';
 import { useClients, useOrders } from '../../lib/queries';
 import { useDebouncedValue } from '../../lib/use-debounced-value';
@@ -26,18 +27,22 @@ export default function Search() {
   const debounced = useDebouncedValue(q, 250);
   const active = debounced.trim().length > 0;
 
-  const { data: clientsData } = useClients(active ? debounced : '');
-  const { data: ordersData } = useOrders(active ? { q: debounced } : {});
+  const clientsQ = useClients(active ? debounced : '');
+  const ordersQ = useOrders(active ? { q: debounced } : {});
+
+  // A new query string is a fresh key with no cache → isLoading. Show a skeleton
+  // while either half is still resolving so the screen never just sits blank.
+  const searching = active && (clientsQ.isLoading || ordersQ.isLoading);
 
   const clients = useMemo(
-    () => (active ? (clientsData?.items ?? []).slice(0, 8) : []),
-    [active, clientsData],
+    () => (active ? (clientsQ.data?.items ?? []).slice(0, 8) : []),
+    [active, clientsQ.data],
   );
   const orders = useMemo(
-    () => (active ? (ordersData?.items ?? []).slice(0, 12) : []),
-    [active, ordersData],
+    () => (active ? (ordersQ.data?.items ?? []).slice(0, 12) : []),
+    [active, ordersQ.data],
   );
-  const empty = active && clients.length === 0 && orders.length === 0;
+  const empty = active && !searching && clients.length === 0 && orders.length === 0;
 
   return (
     <Screen padded={false}>
@@ -56,13 +61,19 @@ export default function Search() {
           </Text>
         ) : null}
 
+        {searching ? (
+          <View style={styles.section}>
+            <SkeletonList count={6} leading="circle" lines={2} />
+          </View>
+        ) : null}
+
         {empty ? (
           <Text variant="bodySm" tone="textMuted" style={styles.hint}>
             {t('home.searchNoResults')}
           </Text>
         ) : null}
 
-        {clients.length > 0 ? (
+        {!searching && clients.length > 0 ? (
           <>
             <Text variant="label" tone="textMuted" style={styles.section}>
               {t('home.clients')}
@@ -95,7 +106,7 @@ export default function Search() {
           </>
         ) : null}
 
-        {orders.length > 0 ? (
+        {!searching && orders.length > 0 ? (
           <>
             <Text variant="label" tone="textMuted" style={styles.section}>
               {t('home.orders')}
