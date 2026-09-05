@@ -2,6 +2,8 @@ import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '../../lib/auth-context';
 import { LockProvider, useLock } from '../../lib/lock-context';
+import { ProfileGateProvider } from '../../lib/profile-gate';
+import { BottomChrome } from '../../components/BottomNav';
 import { PinLockScreen } from '../../components/PinLockScreen';
 import { FloatingScrollProvider } from '../../lib/floating-scroll';
 import { useNotificationTapHandler } from '../../lib/notifications';
@@ -30,10 +32,16 @@ export default function AppLayout() {
   // to lock when no one is signed in, and pin-state should be re-probed
   // on each sign-in (useful when two tailors share a device and only one
   // has set a PIN).
+  //
+  // ProfileGateProvider also lives here (not at the root): it reads `useMe`,
+  // which only makes sense once authenticated — mounting it over the sign-in
+  // screens would fire an unauthenticated /me on every launch.
   return (
-    <LockProvider>
-      <GatedStack />
-    </LockProvider>
+    <ProfileGateProvider>
+      <LockProvider>
+        <GatedStack />
+      </LockProvider>
+    </ProfileGateProvider>
   );
 }
 
@@ -104,6 +112,11 @@ function GatedStack() {
         </Stack>
         </View>
         </View>
+
+        {/* Persistent phone navigation + Ask pill. Renders itself only on the
+            top-level routes and only below the `expanded` breakpoint (where the
+            SideRail takes over). Sits above the Stack, below the PIN gate. */}
+        <BottomChrome />
 
         {/* PIN gate rendered as an overlay ON TOP of the Stack — not in place
             of it. Swapping the Stack out unmounts the whole navigator, so on

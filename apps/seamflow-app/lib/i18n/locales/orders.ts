@@ -9,6 +9,8 @@ export const orders = {
     newTitle: 'New order',
 
     // Status labels (displayed value; enum keys stay as data)
+    advanceTo: 'Advance to {status}',
+    createInvoice: 'Create invoice',
     status_registered: 'Registered',
     status_in_progress: 'In progress',
     status_testing: 'Testing / fitting',
@@ -163,6 +165,8 @@ export const orders = {
     newTitle: 'Nouvelle commande',
 
     // Status labels
+    advanceTo: 'Faire passer à {status}',
+    createInvoice: 'Créer une facture',
     status_registered: 'Enregistrée',
     status_in_progress: 'En cours',
     status_testing: 'Essayage',
@@ -314,6 +318,8 @@ export const orders = {
     newTitle: 'Nova encomenda',
 
     // Estados (o valor apresentado; as chaves do enum ficam como dados)
+    advanceTo: 'Avançar para {status}',
+    createInvoice: 'Criar fatura',
     status_registered: 'Registada',
     status_in_progress: 'Em curso',
     status_testing: 'Prova',
@@ -472,6 +478,8 @@ export const orders = {
     newTitle: 'Nuevo pedido',
 
     // Etiquetas de estado (valor mostrado; las claves del enum siguen siendo datos)
+    advanceTo: 'Avanzar a {status}',
+    createInvoice: 'Crear factura',
     status_registered: 'Registrado',
     status_in_progress: 'En proceso',
     status_testing: 'Prueba / ajuste',
@@ -624,6 +632,8 @@ export const orders = {
     newTitle: 'Agizo jipya',
 
     // Lebo za hali (thamani inayoonyeshwa; funguo za enum hubaki data)
+    advanceTo: 'Sogeza hadi {status}',
+    createInvoice: 'Tengeneza ankara',
     status_registered: 'Limesajiliwa',
     status_in_progress: 'Linaendelea',
     status_testing: 'Kupima / kufitisha',
@@ -774,6 +784,8 @@ export const orders = {
     detailTitle: 'طلب',
     newTitle: 'طلب جديد',
 
+    advanceTo: 'التقدّم إلى {status}',
+    createInvoice: 'إنشاء فاتورة',
     status_registered: 'مُسجَّل',
     status_in_progress: 'قيد التنفيذ',
     status_testing: 'قياس / بروفة',

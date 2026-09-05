@@ -9,6 +9,7 @@ import { ScreenHeader } from '../../../components/ScreenHeader';
 import { HelpCard } from '../../../components/HelpCard';
 import { SearchField } from '../../../components/SearchField';
 import { SwipeableClientRow } from '../../../components/SwipeableClientRow';
+import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useClients } from '../../../lib/queries';
 import { useFavorites } from '../../../lib/favorites';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: 96,
+    paddingBottom: BOTTOM_CHROME_SPACE + spacing.lg,
   },
   muted: { textAlign: 'center', marginTop: spacing.xl },
   skeletonWrap: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },

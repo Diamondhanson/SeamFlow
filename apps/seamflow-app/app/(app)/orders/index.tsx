@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { OrderStatus } from '@seamflow/schemas';
 import { Text, IconButton, useAtelierTheme, withAlpha } from '@seamflow/ui';
@@ -17,6 +17,7 @@ import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
+import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 
 // ============================================================================
 // Global orders list with filters — Phase 1.10, restyled to the redesign.
@@ -31,9 +32,14 @@ type TimeFilter = 'all' | 'overdue' | 'thisWeek';
 export default function OrdersList() {
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
+  // Deep-linkable: home's "Overdue" pill and global search open this list with
+  // a filter / query already applied (e.g. /(app)/orders?time=overdue).
+  const params = useLocalSearchParams<{ time?: string; q?: string }>();
   const [status, setStatus] = useState<OrderStatus | null>(null);
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
-  const [q, setQ] = useState('');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>(
+    params.time === 'overdue' ? 'overdue' : params.time === 'thisWeek' ? 'thisWeek' : 'all',
+  );
+  const [q, setQ] = useState(typeof params.q === 'string' ? params.q : '');
   const [sheet, setSheet] = useState<'status' | 'time' | null>(null);
   const debouncedQ = useDebouncedValue(q, 250);
   const scroll = useFloatingScroll();
@@ -249,7 +255,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: 96,
+    paddingBottom: BOTTOM_CHROME_SPACE + spacing.lg,
     rowGap: spacing.md,
   },
   rowWrap: { gap: spacing.md },

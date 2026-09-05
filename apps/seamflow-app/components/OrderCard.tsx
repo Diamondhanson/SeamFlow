@@ -14,19 +14,21 @@
 // narrower fixed-width card used in the home "Due soon" horizontal rail.
 // ============================================================================
 
-import { StyleSheet, View } from 'react-native';
-import { Pressable } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import type { Order } from '@seamflow/schemas';
+import type { Order, OrderStatus } from '@seamflow/schemas';
+import { nextOrderStatuses } from '@seamflow/schemas';
+import { Ionicons } from '@expo/vector-icons';
 import {
   Avatar,
   Chip,
   Text,
   useAtelierTheme,
+  withAlpha,
   spacing,
   press as motionPress,
 } from '@seamflow/ui';
@@ -39,15 +41,20 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export function OrderCard({
   order,
   onPress,
+  onAdvance,
   variant = 'wide',
 }: {
   order: Pick<Order, 'orderName' | 'status' | 'dateDelivery'>;
   onPress: () => void;
+  /** When provided, a compact "Advance to {next}" control appears (rail variant)
+   *  so the tailor can move an order forward without opening it. */
+  onAdvance?: (next: OrderStatus) => void;
   variant?: 'wide' | 'rail';
 }) {
   const { t } = useTranslation();
   const theme = useAtelierTheme();
   const c = theme.colors;
+  const nextStatus = onAdvance ? nextOrderStatuses(order.status)[0] : undefined;
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -101,6 +108,29 @@ export function OrderCard({
                 </Text>
               ) : null}
             </View>
+            {nextStatus && onAdvance ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('orders.advanceTo', {
+                  status: t(`orders.status_${nextStatus}`),
+                })}
+                hitSlop={6}
+                onPress={() => onAdvance(nextStatus)}
+                style={({ pressed }) => [
+                  styles.advance,
+                  {
+                    backgroundColor: withAlpha(c.primary, 0.14),
+                    borderColor: withAlpha(c.primary, 0.34),
+                  },
+                  pressed && { opacity: 0.7 },
+                ]}
+              >
+                <Text variant="bodySm" tone="primary" numberOfLines={1} style={styles.advanceLabel}>
+                  {t(`orders.status_${nextStatus}`)}
+                </Text>
+                <Ionicons name="arrow-forward" size={14} color={c.primary} />
+              </Pressable>
+            ) : null}
           </View>
         </AnimatedPressable>
       </Animated.View>
@@ -171,4 +201,15 @@ const styles = StyleSheet.create({
     marginTop: spacing.s,
   },
   due: { fontSize: 13 },
+  advance: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: spacing.m,
+    paddingVertical: 9,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  advanceLabel: { fontWeight: '600' },
 });

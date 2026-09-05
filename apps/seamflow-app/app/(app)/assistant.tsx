@@ -34,6 +34,7 @@ import {
   useReanimatedKeyboardAnimation,
 } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -118,7 +119,20 @@ export default function AssistantScreen() {
   const [speakingId, setSpeakingId] = useState<string | null>(null);
 
   const listRef = useRef<FlatList<LocalChatMessage>>(null);
+  const inputRef = useRef<TextInput>(null);
   const voice = useMemo(() => getVoiceSupport(), []);
+
+  // Opened from the "Ask" pill (/(app)/assistant?focus=1): focus the composer
+  // so the keyboard is already up and the tailor can start typing immediately.
+  const params = useLocalSearchParams<{ focus?: string }>();
+  const didAutofocus = useRef(false);
+  useEffect(() => {
+    if (params.focus === '1' && !didAutofocus.current && tailorId) {
+      didAutofocus.current = true;
+      const id = setTimeout(() => inputRef.current?.focus(), 350);
+      return () => clearTimeout(id);
+    }
+  }, [params.focus, tailorId]);
 
   // Keyboard-follow: the composer translates up by (keyboard − bottom inset)
   // via KeyboardStickyView; the list gets the same amount of animated bottom
@@ -545,6 +559,7 @@ export default function AssistantScreen() {
             ]}
           >
             <TextInput
+              ref={inputRef}
               value={input}
               onChangeText={setInput}
               placeholder={t('assistant.inputPlaceholder')}

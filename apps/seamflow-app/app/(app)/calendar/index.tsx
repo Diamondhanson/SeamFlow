@@ -8,6 +8,7 @@ import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { OrderCard } from '../../../components/OrderCard';
+import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useOrders } from '../../../lib/queries';
 import { useTranslation } from '../../../lib/i18n';
 import { radii, spacing } from '../../../lib/theme';
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
-    paddingBottom: 96,
+    paddingBottom: BOTTOM_CHROME_SPACE + spacing.lg,
   },
   calCard: {
     borderWidth: 1,

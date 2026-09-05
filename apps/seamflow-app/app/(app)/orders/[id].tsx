@@ -42,6 +42,7 @@ import {
   useUpdateOrderItem,
 } from '../../../lib/queries';
 import { useShareOrder } from '../../../lib/share-order';
+import { useRequireProfile } from '../../../lib/profile-gate';
 import { pickPhoto, uploadAndRegister } from '../../../lib/photo-upload';
 import {
   LibraryPickerSheet,
@@ -91,6 +92,7 @@ export default function OrderDetailScreen() {
   const deleteOrderM = useDeleteOrder(id);
   const updateOrderM = useUpdateOrder(id);
   const shareOrderHook = useShareOrder(id);
+  const requireProfile = useRequireProfile();
   const meQ = useMe();
   // Pull client lazily so we have a phone for the WhatsApp deep link.
   // `enabled` in useClient already short-circuits when the id is empty.
@@ -224,16 +226,19 @@ export default function OrderDetailScreen() {
     if (!action) return;
 
     if (action === 'publish') {
-      router.push({
-        pathname: '/(app)/feed/publish',
-        params: {
-          photoId,
-          orderId: id,
-          previewUrl: previewUrl ?? '',
-          // Prefill the garment from the order's first item — we already know it.
-          garmentType: order?.items?.[0]?.garmentType ?? '',
-        },
-      });
+      // Posting to the feed exposes the tailor publicly — gate on a profile.
+      requireProfile(() => {
+        router.push({
+          pathname: '/(app)/feed/publish',
+          params: {
+            photoId,
+            orderId: id,
+            previewUrl: previewUrl ?? '',
+            // Prefill the garment from the order's first item — we already know it.
+            garmentType: order?.items?.[0]?.garmentType ?? '',
+          },
+        });
+      }, 'gate.needsProfileToPost');
       return;
     }
 
@@ -266,16 +271,20 @@ export default function OrderDetailScreen() {
 
   const shareWithClient = () => {
     if (!order) return;
-    // We pass client + tailor info so the hook can build a friendly message
-    // and use WhatsApp deep link when the client has a phone number.
-    // The promise is fire-and-forget — every error path is already handled
-    // inside the hook (it never throws).
-    void shareOrderHook.share({
-      orderName: order.orderName,
-      clientName: clientQ.data?.fullName ?? null,
-      clientPhone: clientQ.data?.phone ?? null,
-      tailorBusinessName: meQ.data?.tailor?.businessName ?? null,
-    });
+    // Sharing mints a public link exposing the tailor — gate on a profile first,
+    // then resume the share automatically once it's set up.
+    requireProfile(() => {
+      // We pass client + tailor info so the hook can build a friendly message
+      // and use WhatsApp deep link when the client has a phone number.
+      // The promise is fire-and-forget — every error path is already handled
+      // inside the hook (it never throws).
+      void shareOrderHook.share({
+        orderName: order.orderName,
+        clientName: clientQ.data?.fullName ?? null,
+        clientPhone: clientQ.data?.phone ?? null,
+        tailorBusinessName: meQ.data?.tailor?.businessName ?? null,
+      });
+    }, 'gate.needsProfileToShareOrder');
   };
 
   const deleteOrder = async () => {
@@ -365,6 +374,19 @@ export default function OrderDetailScreen() {
               }
               onPress={shareWithClient}
               disabled={shareOrderHook.isPending}
+            />
+          </View>
+          <View style={styles.heroAction}>
+            <Button
+              label={t('orders.createInvoice')}
+              variant="secondary"
+              iconStart={<Ionicons name="receipt-outline" size={18} color={colors.text} />}
+              onPress={() =>
+                router.push({
+                  pathname: '/(app)/invoices/[id]',
+                  params: { id: 'new', orderId: id },
+                })
+              }
             />
           </View>
         </Card>
