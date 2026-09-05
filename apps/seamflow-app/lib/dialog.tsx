@@ -44,6 +44,7 @@ import { Button } from '../components/Button';
 import { OptionSheet, type SheetOption } from '../components/OptionSheet';
 import { useResponsiveValue } from './use-breakpoint';
 import { useTranslation } from './i18n';
+import { toUserMessage } from './error-message';
 
 // ----------------------------------------------------------------------------
 // Public types
@@ -159,13 +160,18 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const api = useMemo<DialogApi>(
     () => ({
       alert: (o) => enqueue({ kind: 'alert', tone: 'info', ...o }) as Promise<void>,
-      error: (err, o) =>
-        enqueue({
+      // Never surface a raw `err.message`: `toUserMessage` classifies the error
+      // (type, then HTTP status) and returns clear, localized copy. The raw
+      // error is logged for debugging inside the mapper.
+      error: (err, o) => {
+        const mapped = toUserMessage(err, t);
+        return enqueue({
           kind: 'alert',
           tone: 'error',
-          title: o?.title ?? t('common.error'),
-          message: err instanceof Error ? err.message : String(err),
-        }) as Promise<void>,
+          title: o?.title ?? mapped.title,
+          message: mapped.message,
+        }) as Promise<void>;
+      },
       confirm: (o) => enqueue({ kind: 'confirm', ...o }) as Promise<boolean>,
       prompt: (o) => enqueue({ kind: 'prompt', ...o }) as Promise<string | null>,
       choose: <T,>(o: ChooseOptions<T>) =>

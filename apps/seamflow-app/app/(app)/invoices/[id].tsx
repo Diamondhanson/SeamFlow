@@ -24,6 +24,7 @@ import {
   useUpdateInvoice,
 } from '../../../lib/queries';
 import { useShareInvoice } from '../../../lib/share-invoice';
+import { useRequireProfile } from '../../../lib/profile-gate';
 import {
   buildInvoiceHtml,
   shareInvoicePdf,
@@ -90,6 +91,7 @@ export default function InvoiceEditor() {
   const updateM = useUpdateInvoice(invoiceId);
   const deleteM = useDeleteInvoice(invoiceId);
   const share = useShareInvoice(invoiceId);
+  const requireProfile = useRequireProfile();
   const { data: me } = useMe();
   // Resolve the client's phone for the WhatsApp option (best-effort).
   const orderQ = useOrder(invoice?.orderId ?? '');
@@ -201,20 +203,24 @@ export default function InvoiceEditor() {
     }
   };
 
-  const send = async () => {
-    // Persist the latest edits, then hand the link to the client.
-    try {
-      await updateM.mutateAsync(buildPayload());
-    } catch (err) {
-      await dialog.error(err);
-      return;
-    }
-    void share.share({
-      invoiceNumber: invoice?.number ?? '',
-      clientName: invoice?.clientName ?? null,
-      clientPhone: clientQ.data?.phone ?? null,
-      tailorBusinessName: me?.tailor?.businessName ?? null,
-    });
+  const send = () => {
+    // Sharing mints a public invoice link (and marks it sent) — gate on a
+    // profile, then resume the whole send automatically once it's set up.
+    requireProfile(async () => {
+      // Persist the latest edits, then hand the link to the client.
+      try {
+        await updateM.mutateAsync(buildPayload());
+      } catch (err) {
+        await dialog.error(err);
+        return;
+      }
+      void share.share({
+        invoiceNumber: invoice?.number ?? '',
+        clientName: invoice?.clientName ?? null,
+        clientPhone: clientQ.data?.phone ?? null,
+        tailorBusinessName: me?.tailor?.businessName ?? null,
+      });
+    }, 'gate.needsProfileToShareInvoice');
   };
 
   const onSharePdf = async () => {

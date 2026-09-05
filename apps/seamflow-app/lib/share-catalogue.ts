@@ -27,6 +27,7 @@ import * as Clipboard from 'expo-clipboard';
 import { formatCatalogueShareMessage } from '@seamflow/utils';
 import { useCatalogueLink } from './queries';
 import { useDialog } from './dialog';
+import { useRequireProfile } from './profile-gate';
 import { useTranslation } from './i18n';
 
 export interface ShareCatalogueInput {
@@ -40,6 +41,7 @@ export function useShareCatalogue() {
   const mint = useCatalogueLink();
   const dialog = useDialog();
   const { t } = useTranslation();
+  const requireProfile = useRequireProfile();
 
   const copyLink = useCallback(
     async (url: string): Promise<void> => {
@@ -76,7 +78,7 @@ export function useShareCatalogue() {
     [runShareSheet],
   );
 
-  const share = useCallback(
+  const shareNow = useCallback(
     async (input: ShareCatalogueInput): Promise<void> => {
       try {
         const link = await mint.mutateAsync();
@@ -122,6 +124,15 @@ export function useShareCatalogue() {
       }
     },
     [mint, dialog, t, runWhatsApp, runShareSheet, copyLink],
+  );
+
+  // Minting the catalogue link is tailor-scoped: gate on a profile first, then
+  // resume the share automatically once it's set up.
+  const share = useCallback(
+    (input: ShareCatalogueInput): void => {
+      void requireProfile(() => void shareNow(input), 'gate.needsProfileToPublish');
+    },
+    [requireProfile, shareNow],
   );
 
   return { share, isPending: mint.isPending };

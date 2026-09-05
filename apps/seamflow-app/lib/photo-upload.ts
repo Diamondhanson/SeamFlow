@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { onlineManager } from '@tanstack/react-query';
 import { PermissionDeniedError, PhotoOfflineError } from './permissions';
+import { UploadError } from './errors';
 import { supabase } from './supabase';
 import { api } from './api';
 import type {
@@ -27,7 +28,8 @@ function getIM(): IMModule {
     ImageManipulatorMod = require('expo-image-manipulator') as IMModule;
     return ImageManipulatorMod;
   } catch {
-    throw new Error(
+    // Technical detail for logs only; users see the friendly `errors.uploadFailed`.
+    throw new UploadError(
       'Photo features need an APK rebuilt with expo-image-manipulator. Run `pnpm expo run:android` to refresh.',
     );
   }
@@ -333,13 +335,13 @@ async function uploadOne(
   variant: CompressedOutput,
 ): Promise<void> {
   if (!variant.base64) {
-    throw new Error(`Upload failed (${storagePath}): image encoding produced no data`);
+    throw new UploadError(`Upload failed (${storagePath}): image encoding produced no data`);
   }
   const bytes = base64ToBytes(variant.base64);
   const { error } = await supabase.storage
     .from(bucket)
     .upload(storagePath, bytes, { contentType: variant.contentType, upsert: false });
-  if (error) throw new Error(`Upload failed (${storagePath}): ${error.message}`);
+  if (error) throw new UploadError(`Upload failed (${storagePath}): ${error.message}`);
 }
 
 /**
@@ -551,7 +553,7 @@ export async function uploadWork(args: {
   onProgress?: (done: number, total: number) => void;
 }): Promise<Work> {
   const { tailorId, assets, meta, onProgress } = args;
-  if (assets.length === 0) throw new Error('No photos to upload');
+  if (assets.length === 0) throw new UploadError('No photos to upload');
 
   const folder = `${tailorId}/works`;
   const uploaded: WorkImageCreateInput[] = [];
@@ -599,7 +601,7 @@ export async function uploadWorkImages(args: {
   onProgress?: (done: number, total: number) => void;
 }): Promise<Work> {
   const { tailorId, workId, assets, onProgress } = args;
-  if (assets.length === 0) throw new Error('No photos to upload');
+  if (assets.length === 0) throw new UploadError('No photos to upload');
 
   const folder = `${tailorId}/works`;
   const uploaded: WorkImageCreateInput[] = [];

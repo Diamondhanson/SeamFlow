@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -15,18 +15,37 @@ import { currencyForCountry } from '@seamflow/utils';
 import { spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 import { useDialog } from '../../lib/dialog';
+import { useProfileGateControls } from '../../lib/profile-gate';
 
 export default function ProfileEdit() {
   const { data: me } = useMe();
   const upsert = useUpsertMyTailor();
   const { t } = useTranslation();
   const dialog = useDialog();
+  const gate = useProfileGateControls();
+
+  // `?onboarding=1` — brand-new user ushered here after signup: show a "Skip for
+  // now" escape and return them to the dashboard on save.
+  // `?returnTo=1` — sent here by a gated action (share/publish): on save, return
+  // and resume what they were doing (lib/profile-gate).
+  const params = useLocalSearchParams<{ onboarding?: string; returnTo?: string }>();
+  const isOnboarding = params.onboarding === '1';
+  const isReturnTo = params.returnTo === '1';
 
   const [businessName, setBusinessName] = useState('');
-  const [countryCode, setCountryCode] = useState('NG');
+  const [countryCode, setCountryCode] = useState('CM');
   const [location, setLocation] = useState('');
-  const [currency, setCurrency] = useState('NGN');
+  const [currency, setCurrency] = useState('XAF');
   const [pickerOpen, setPickerOpen] = useState(false);
+  const savedRef = useRef(false);
+
+  // If we were opened by a gated action but the user leaves without saving,
+  // drop the pending action so it can't fire on some later, unrelated save.
+  useEffect(() => {
+    return () => {
+      if (isReturnTo && !savedRef.current) gate.clearPending();
+    };
+  }, [isReturnTo, gate]);
 
   // Picking a new country defaults the currency to that country's currency
   // (the tailor can still edit it below).
@@ -55,6 +74,18 @@ export default function ProfileEdit() {
       },
       {
         onSuccess: async () => {
+          savedRef.current = true;
+          // Came from a gated action: slip back and resume it, no interstitial.
+          if (isReturnTo) {
+            gate.resolvePending();
+            router.back();
+            return;
+          }
+          // First-run setup: straight to the dashboard.
+          if (isOnboarding) {
+            router.replace('/(app)');
+            return;
+          }
           await dialog.alert({
             title: t('settings.saved'),
             message: t('settings.savedBody'),
@@ -109,6 +140,17 @@ export default function ProfileEdit() {
           loading={upsert.isPending}
           disabled={!businessName.trim() || countryCode.length !== 2 || currency.trim().length !== 3}
         />
+
+        {isOnboarding ? (
+          <>
+            <View style={{ height: spacing.sm }} />
+            <Button
+              label={t('settings.skipForNow')}
+              variant="ghost"
+              onPress={() => router.replace('/(app)')}
+            />
+          </>
+        ) : null}
       </FormScroll>
 
       <CountryPickerModal

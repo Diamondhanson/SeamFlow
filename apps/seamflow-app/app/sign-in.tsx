@@ -85,8 +85,7 @@ export default function SignIn() {
       router.replace('/(app)');
     } catch (err) {
       if (err instanceof GoogleCancelledError) return;
-      const msg = err instanceof Error ? err.message : t('auth.googleSignInFailed');
-      await dialog.alert({ title: t('auth.googleSignInFailed'), message: msg, tone: 'error' });
+      await dialog.error(err, { title: t('auth.googleSignInFailed') });
     } finally {
       setGoogleBusy(false);
     }
@@ -111,8 +110,7 @@ export default function SignIn() {
       router.replace('/(app)');
     } catch (err) {
       if (err instanceof AppleCancelledError) return;
-      const msg = err instanceof Error ? err.message : t('auth.appleSignInFailed');
-      await dialog.alert({ title: t('auth.appleSignInFailed'), message: msg, tone: 'error' });
+      await dialog.error(err, { title: t('auth.appleSignInFailed') });
     } finally {
       setAppleBusy(false);
     }
@@ -141,8 +139,7 @@ export default function SignIn() {
         return;
       }
       const title = mode === 'signIn' ? t('auth.signInFailed') : t('auth.signUpFailed');
-      const msg = err instanceof Error ? err.message : title;
-      await dialog.alert({ title, message: msg, tone: 'error' });
+      await dialog.error(err, { title });
     } finally {
       setSubmitting(false);
     }

@@ -153,7 +153,7 @@ export default function NewOrderWizard() {
 
   // Default region for normalizing contact numbers to E.164.
   const { data: me } = useMe();
-  const defaultCountry = ((me?.tailor?.countryCode as CountryCode) || 'NG');
+  const defaultCountry = ((me?.tailor?.countryCode as CountryCode) || 'CM');
 
   // "Duplicate / repeat order": ?duplicateFrom=<orderId> pre-fills the wizard
   // from an existing order (same client, garments, measurements, notes, fabric).

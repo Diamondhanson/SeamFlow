@@ -56,12 +56,12 @@ export default function VerifyOtp() {
     setVerifying(true);
     try {
       await verifyOtpSignup(email, code);
-      // verifyOtp creates the session. The auth-context listener will pick
-      // up the SIGNED_IN event and the router can land us inside (app).
-      router.replace('/(app)');
+      // verifyOtp creates the session. The auth-context listener picks up the
+      // SIGNED_IN event. Usher the brand-new user straight into profile setup
+      // (skippable) rather than dropping them on a bare home screen.
+      router.replace('/(app)/profile-edit?onboarding=1');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('auth.verificationFailed');
-      await dialog.alert({ title: t('auth.verificationFailed'), message: msg, tone: 'error' });
+      await dialog.error(err, { title: t('auth.verificationFailed') });
     } finally {
       setVerifying(false);
     }
@@ -80,8 +80,7 @@ export default function VerifyOtp() {
         tone: 'success',
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('auth.resendFailed');
-      await dialog.alert({ title: t('auth.resendFailed'), message: msg, tone: 'error' });
+      await dialog.error(err, { title: t('auth.resendFailed') });
     } finally {
       setResending(false);
     }

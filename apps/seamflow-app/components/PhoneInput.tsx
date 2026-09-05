@@ -1,7 +1,7 @@
 // ============================================================================
 // <PhoneInput> — rich international phone field.
 //
-//   [ 🇳🇬 +234 ▾ ] [ 803 123 4567 ............ ]
+//   [ 🇨🇲 +237 ▾ ] [ 6 71 23 45 67 ............ ]
 //
 // - Tap the country chip to pick a dial code from a searchable list.
 // - As you type, the number formats to the selected country's convention
@@ -9,7 +9,7 @@
 // - Emits an E.164 string ("+2348031234567") to `onChangeText`, so callers
 //   store a normalized number regardless of how the user typed it.
 //
-// Defaults the country to the tailor's profile country (falls back to NG).
+// Defaults the country to the tailor's profile country (falls back to CM).
 // ============================================================================
 
 import { useMemo, useState } from 'react';
@@ -79,7 +79,7 @@ export function PhoneInput({
   const { data: me } = useMe();
   const placeholderText = placeholder ?? t('misc.phoneNumber');
   const initialCountry =
-    defaultCountry ?? ((me?.tailor?.countryCode as CountryCode) || 'NG');
+    defaultCountry ?? ((me?.tailor?.countryCode as CountryCode) || 'CM');
 
   const [country, setCountry] = useState<CountryCode>(initialCountry);
   const [raw, setRaw] = useState(''); // digits only

@@ -30,6 +30,7 @@ import { pickPhoto, uploadTailorLogo } from '../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
 import { canUsePinLock } from '../../lib/platform-capabilities';
 import { useDialog } from '../../lib/dialog';
+import { useRequireProfile } from '../../lib/profile-gate';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode } from '../../lib/theme-mode';
@@ -62,6 +63,7 @@ export default function Me() {
   const scroll = useFloatingScroll();
   const colors = useThemeColors();
   const dialog = useDialog();
+  const requireProfile = useRequireProfile();
   const upsert = useUpsertMyTailor();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -141,6 +143,13 @@ export default function Me() {
   };
 
   const promptPhoto = async () => {
+    // A profile photo lives on the tailor row, which doesn't exist yet for a
+    // brand-new user. Guide them to set up the profile first (clear CTA) instead
+    // of silently doing nothing or surfacing the server's raw "no tailor" error.
+    if (!me?.tailor) {
+      await requireProfile(() => {}, 'gate.needsProfileToUploadPhoto');
+      return;
+    }
     const action = await dialog.choose<'camera' | 'library' | 'remove'>({
       title: t('settings.changePhoto'),
       actions: [

@@ -111,9 +111,7 @@ export function TidyNotesSheet({ visible, onClose, notes, onAccept }: Props) {
 
             {summarize.isError && !text ? (
               <Text variant="bodySm" tone="danger" style={styles.errorText}>
-                {summarize.error instanceof Error
-                  ? summarize.error.message
-                  : t('orders.tidyError')}
+                {t('orders.tidyError')}
               </Text>
             ) : null}
 

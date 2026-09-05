@@ -74,7 +74,7 @@ export default function NewGroup() {
   const [contactsOpen, setContactsOpen] = useState(false);
 
   const { data: me } = useMe();
-  const defaultCountry = ((me?.tailor?.countryCode as CountryCode) || 'NG');
+  const defaultCountry = ((me?.tailor?.countryCode as CountryCode) || 'CM');
 
   // ----- members state -----
   const [members, setMembers] = useState<DraftMember[]>([]);

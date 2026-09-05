@@ -11,6 +11,8 @@
 // ============================================================================
 
 import { common } from './locales/common';
+import { errors } from './locales/errors';
+import { gate } from './locales/gate';
 import { settings } from './locales/settings';
 import { account } from './locales/account';
 import { auth } from './locales/auth';
@@ -79,6 +81,8 @@ export const LANGUAGES: LanguageDef[] = [
  */
 const NAMESPACES = {
   common,
+  errors,
+  gate,
   settings,
   account,
   auth,

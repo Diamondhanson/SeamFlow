@@ -69,8 +69,7 @@ export default function ResetPassword() {
         tone: 'success',
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('auth.sendCodeFailed');
-      await dialog.alert({ title: t('auth.sendCodeFailed'), message: msg, tone: 'error' });
+      await dialog.error(err, { title: t('auth.sendCodeFailed') });
     } finally {
       setSending(false);
     }
@@ -89,8 +88,7 @@ export default function ResetPassword() {
       // confirmPasswordReset left us with a session; land inside the app.
       router.replace('/(app)');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('auth.resetPasswordFailed');
-      await dialog.alert({ title: t('auth.resetPasswordFailed'), message: msg, tone: 'error' });
+      await dialog.error(err, { title: t('auth.resetPasswordFailed') });
     } finally {
       setResetting(false);
     }

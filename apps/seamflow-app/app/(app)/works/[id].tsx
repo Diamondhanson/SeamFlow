@@ -34,6 +34,7 @@ import {
 import { MAX_MULTI_SELECT, pickPhotos, uploadWorkImages } from '../../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
 import { useDialog } from '../../../lib/dialog';
+import { useRequireProfile } from '../../../lib/profile-gate';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 
@@ -55,6 +56,7 @@ export default function EditWork() {
   const workQ = useWork(id);
   const updateM = useUpdateWork();
   const publishM = usePublishWork();
+  const requireProfile = useRequireProfile();
   const unpublishM = useUnpublishWork();
   const work = workQ.data;
 
@@ -194,7 +196,10 @@ export default function EditWork() {
 
   const togglePublished = (next: boolean) => {
     if (next) {
-      publishM.mutate({ id, input: {} }, { onError: (err) => void dialog.error(err) });
+      // Publishing makes the design public — gate on a profile, then resume.
+      requireProfile(() => {
+        publishM.mutate({ id, input: {} }, { onError: (err) => void dialog.error(err) });
+      }, 'gate.needsProfileToPublish');
     } else {
       unpublishM.mutate(id, { onError: (err) => void dialog.error(err) });
     }

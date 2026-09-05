@@ -104,7 +104,8 @@ export function AiDescribeSheet({
       // Tags-only run: show the tags line as the editable text.
       if (prose.length === 0 && tagRes) setText(tagRes.tags?.join(', ') ?? '');
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('designs.describeError'));
+      if (__DEV__) console.warn('[AiDescribe]', err);
+      setError(t('designs.describeError'));
     } finally {
       setPending(false);
     }
