@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   Text,
   useAtelierTheme,
+  withAlpha,
   spacing,
   type SemanticColors,
 } from '@seamflow/ui';
@@ -31,6 +32,9 @@ export function OptionSheet({
   selectedKey,
   onSelect,
   onClose,
+  onCreate,
+  createLabel,
+  emptyText,
 }: {
   visible: boolean;
   title: string;
@@ -38,6 +42,12 @@ export function OptionSheet({
   selectedKey: string;
   onSelect: (key: string) => void;
   onClose: () => void;
+  /** When set, a "＋ createLabel" row sits above the list so the user can add a
+   *  new item instead of hitting a dead end (especially when the list is empty). */
+  onCreate?: () => void;
+  createLabel?: string;
+  /** Shown in place of the list when there are no options. */
+  emptyText?: string;
 }) {
   const { colors } = useAtelierTheme();
 
@@ -58,6 +68,29 @@ export function OptionSheet({
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
+
+          {/* Create row — above the list so it's reachable without scrolling past
+              a long library, and the way out when the list is empty. */}
+          {onCreate && createLabel ? (
+            <Pressable
+              style={[styles.createRow, { borderColor: colors.hairline }]}
+              onPress={onCreate}
+              accessibilityRole="button"
+            >
+              <View style={[styles.createIcon, { backgroundColor: withAlpha(colors.primary, 0.14) }]}>
+                <Ionicons name="add" size={18} color={colors.primary} />
+              </View>
+              <Text variant="body" tone="primary" style={styles.createLabel}>
+                {createLabel}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {options.length === 0 && emptyText ? (
+            <Text variant="bodySm" tone="textMuted" style={styles.emptyText}>
+              {emptyText}
+            </Text>
+          ) : null}
 
           <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
           {options.map((opt, i) => {
@@ -133,4 +166,21 @@ const styles = StyleSheet.create({
   },
   dot: { width: 10, height: 10, borderRadius: 5 },
   rowLabel: { flex: 1 },
+  createRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.m,
+    paddingVertical: spacing.m,
+    borderBottomWidth: 1,
+    marginBottom: spacing.xs,
+  },
+  createIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createLabel: { flex: 1, fontWeight: '600' },
+  emptyText: { textAlign: 'center', paddingVertical: spacing.l },
 });

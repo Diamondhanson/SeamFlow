@@ -94,6 +94,13 @@ export interface PickOptions {
   title: string;
   options: SheetOption[];
   selectedKey?: string;
+  /** Adds a "＋ createLabel" row above the list. Tapping it closes the sheet
+   *  (the pick resolves `null`) and runs `onCreate` — typically navigation to a
+   *  create screen. Lets a picker offer a way out instead of a dead end. */
+  onCreate?: () => void;
+  createLabel?: string;
+  /** Shown in place of the list when there are no options. */
+  emptyText?: string;
 }
 
 export interface DialogApi {
@@ -219,6 +226,16 @@ function DialogHost({
         selectedKey={req.selectedKey ?? ''}
         onSelect={(key) => onResolve(key)}
         onClose={() => onResolve(null)}
+        createLabel={req.createLabel}
+        emptyText={req.emptyText}
+        onCreate={
+          req.onCreate
+            ? () => {
+                onResolve(null);
+                req.onCreate!();
+              }
+            : undefined
+        }
       />
     );
   }

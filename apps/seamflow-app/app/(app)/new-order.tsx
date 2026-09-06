@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import type { CountryCode } from 'libphonenumber-js';
 import type {
   Client,
@@ -284,6 +284,13 @@ export default function NewOrderWizard() {
   useEffect(() => {
     if (step === 'measurements') loadTemplates();
   }, [step, loadTemplates]);
+  // Returning from "Create a template" (the picker's create row): refetch so the
+  // one they just made is in the list to pick.
+  useFocusEffect(
+    useCallback(() => {
+      if (step === 'measurements') loadTemplates();
+    }, [step, loadTemplates]),
+  );
 
   // Load the picked client's saved measurements as soon as they're chosen —
   // best-effort: if it fails, the flow just behaves like a new client.
@@ -779,6 +786,8 @@ export default function NewOrderWizard() {
                   const key = await dialog.pick({
                     title: t('orders.pickTemplate'),
                     selectedKey: g.template?.id ?? '__none__',
+                    createLabel: t('orders.createTemplate'),
+                    onCreate: () => router.push('/(app)/templates/new'),
                     options: [
                       { key: '__none__', label: t('orders.noTemplateOption') },
                       ...templates.map((tpl) => ({ key: tpl.id, label: tpl.name })),

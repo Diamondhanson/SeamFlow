@@ -21,6 +21,7 @@
 
 import { useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Button } from './Button';
@@ -139,6 +140,15 @@ export function LibraryPickerSheet({
                   ? t('orders.attachNoDesigns')
                   : t('orders.attachNoWorks')}
               </Text>
+              <Button
+                label={tab === 'designs' ? t('orders.attachAddDesign') : t('orders.attachAddWork')}
+                variant="secondary"
+                iconStart={<Ionicons name="add" size={18} color={colors.text} />}
+                onPress={() => {
+                  close();
+                  router.push(tab === 'designs' ? '/(app)/designs' : '/(app)/works');
+                }}
+              />
             </View>
           ) : (
             <ScrollView contentContainerStyle={styles.grid}>
@@ -208,7 +218,7 @@ const styles = StyleSheet.create({
   tabs: { flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.lg },
   tab: { paddingVertical: spacing.sm, borderBottomWidth: 2 },
   tabActive: { fontWeight: '600' },
-  center: { padding: spacing.xl, alignItems: 'center' },
+  center: { padding: spacing.xl, alignItems: 'center', gap: spacing.md },
   emptyText: { textAlign: 'center' },
   grid: {
     flexDirection: 'row',

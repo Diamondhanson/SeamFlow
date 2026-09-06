@@ -11,6 +11,7 @@ export const orders = {
     // Status labels (displayed value; enum keys stay as data)
     advanceTo: 'Advance to {status}',
     createInvoice: 'Create invoice',
+    createTemplate: 'Create a template',
     status_registered: 'Registered',
     status_in_progress: 'In progress',
     status_testing: 'Testing / fitting',
@@ -136,6 +137,8 @@ export const orders = {
     attachUntitled: 'Untitled image',
     attachNoDesigns: 'Nothing in your Design Studio yet. Save inspiration there and it will show up here.',
     attachNoWorks: 'Nothing in My Designs yet. Photos you keep from finished orders show up here.',
+    attachAddDesign: 'Add to Design Studio',
+    attachAddWork: 'Add your work',
     attachedTitle: 'Attached',
     attachedBody: 'Added {count} to this order. The originals are still where they were.',
     camera: 'Camera',
@@ -167,6 +170,7 @@ export const orders = {
     // Status labels
     advanceTo: 'Faire passer à {status}',
     createInvoice: 'Créer une facture',
+    createTemplate: 'Créer un modèle',
     status_registered: 'Enregistrée',
     status_in_progress: 'En cours',
     status_testing: 'Essayage',
@@ -289,6 +293,8 @@ export const orders = {
     attachUntitled: 'Image sans titre',
     attachNoDesigns: 'Votre Studio de création est vide. Enregistrez-y des inspirations et elles apparaîtront ici.',
     attachNoWorks: 'Mes créations est vide. Les photos que vous conservez des commandes terminées apparaissent ici.',
+    attachAddDesign: 'Ajouter au Design Studio',
+    attachAddWork: 'Ajouter votre travail',
     attachedTitle: 'Ajouté',
     attachedBody: '{count} ajoutée(s) à cette commande. Les originaux sont restés à leur place.',
     camera: 'Caméra',
@@ -320,6 +326,7 @@ export const orders = {
     // Estados (o valor apresentado; as chaves do enum ficam como dados)
     advanceTo: 'Avançar para {status}',
     createInvoice: 'Criar fatura',
+    createTemplate: 'Criar um modelo',
     status_registered: 'Registada',
     status_in_progress: 'Em curso',
     status_testing: 'Prova',
@@ -448,6 +455,8 @@ export const orders = {
       'Ainda nada no seu Estúdio de Design. Guarde inspiração lá e aparecerá aqui.',
     attachNoWorks:
       'Ainda nada em As Minhas Criações. As fotos que guardar de encomendas terminadas aparecem aqui.',
+    attachAddDesign: 'Adicionar ao Design Studio',
+    attachAddWork: 'Adicionar o seu trabalho',
     attachedTitle: 'Juntas',
     attachedBody:
       'Adicionadas {count} a esta encomenda. Os originais continuam onde estavam.',
@@ -480,6 +489,7 @@ export const orders = {
     // Etiquetas de estado (valor mostrado; las claves del enum siguen siendo datos)
     advanceTo: 'Avanzar a {status}',
     createInvoice: 'Crear factura',
+    createTemplate: 'Crear una plantilla',
     status_registered: 'Registrado',
     status_in_progress: 'En proceso',
     status_testing: 'Prueba / ajuste',
@@ -603,6 +613,8 @@ export const orders = {
     attachUntitled: 'Imagen sin título',
     attachNoDesigns: 'Aún no hay nada en su Estudio de Diseño. Guarde inspiración ahí y aparecerá aquí.',
     attachNoWorks: 'Aún no hay nada en Mis Diseños. Las fotos que conserve de pedidos terminados aparecerán aquí.',
+    attachAddDesign: 'Añadir a Design Studio',
+    attachAddWork: 'Añadir tu trabajo',
     attachedTitle: 'Adjuntado',
     attachedBody: 'Se agregaron {count} a este pedido. Los originales siguen donde estaban.',
     camera: 'Cámara',
@@ -634,6 +646,7 @@ export const orders = {
     // Lebo za hali (thamani inayoonyeshwa; funguo za enum hubaki data)
     advanceTo: 'Sogeza hadi {status}',
     createInvoice: 'Tengeneza ankara',
+    createTemplate: 'Tengeneza kiolezo',
     status_registered: 'Limesajiliwa',
     status_in_progress: 'Linaendelea',
     status_testing: 'Kupima / kufitisha',
@@ -757,6 +770,8 @@ export const orders = {
     attachUntitled: 'Picha isiyo na jina',
     attachNoDesigns: 'Bado hakuna kitu kwenye Studio yako ya Ubunifu. Hifadhi msukumo hapo na utaonekana hapa.',
     attachNoWorks: 'Bado hakuna kitu kwenye Ubunifu Wangu. Picha unazoweka kutoka maagizo yaliyokamilika huonekana hapa.',
+    attachAddDesign: 'Ongeza kwenye Design Studio',
+    attachAddWork: 'Ongeza kazi yako',
     attachedTitle: 'Imeambatishwa',
     attachedBody: 'Zimeongezwa {count} kwenye agizo hili. Asili zake bado zipo zilipokuwa.',
     camera: 'Kamera',
@@ -786,6 +801,7 @@ export const orders = {
 
     advanceTo: 'التقدّم إلى {status}',
     createInvoice: 'إنشاء فاتورة',
+    createTemplate: 'إنشاء قالب',
     status_registered: 'مُسجَّل',
     status_in_progress: 'قيد التنفيذ',
     status_testing: 'قياس / بروفة',
@@ -902,6 +918,8 @@ export const orders = {
     attachUntitled: 'صورة بلا عنوان',
     attachNoDesigns: 'لا شيء في استوديو التصميم بعد. احفظ الإلهام هناك وسيظهر هنا.',
     attachNoWorks: 'لا شيء في ابتكاراتي بعد. الصور التي تحتفظ بها من الطلبات المنجزة تظهر هنا.',
+    attachAddDesign: 'أضف إلى استوديو التصميم',
+    attachAddWork: 'أضف عملك',
     attachedTitle: 'أُرفقت',
     attachedBody: 'أُضيفت {count} إلى هذا الطلب. الأصول لا تزال في مكانها.',
     camera: 'الكاميرا',

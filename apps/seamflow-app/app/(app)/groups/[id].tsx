@@ -337,6 +337,8 @@ export default function GroupDetail() {
             const key = await dialog.pick({
               title: t('groups.pickTemplateTitle'),
               selectedKey: group.templateId ?? '__none__',
+              createLabel: t('orders.createTemplate'),
+              onCreate: () => router.push('/(app)/templates/new'),
               options: [
                 { key: '__none__', label: t('groups.templateNone') },
                 ...templates.map((tpl) => ({ key: tpl.id, label: tpl.name })),
@@ -477,17 +479,12 @@ export default function GroupDetail() {
                 }
                 variant="secondary"
                 onPress={async () => {
-                  if (clients.length === 0) {
-                    await dialog.alert({
-                      title: t('groups.noClientsTitle'),
-                      message: t('groups.noClientsMessage'),
-                      tone: 'info',
-                    });
-                    return;
-                  }
                   const key = await dialog.pick({
                     title: t('groups.pickClientTitle'),
                     selectedKey: memberClientId ?? '',
+                    createLabel: t('groups.addClient'),
+                    onCreate: () => router.push('/(app)/clients/new'),
+                    emptyText: clients.length === 0 ? t('groups.noClientsMessage') : undefined,
                     options: [
                       { key: '__none__', label: t('groups.noneOption') },
                       ...clients.map((c) => ({ key: c.id, label: c.fullName })),
@@ -764,6 +761,8 @@ function MemberCard({
     const key = await dialog.pick({
       title: t('groups.memberGarmentTitle', { name: member.fullName }),
       selectedKey: member.templateId ?? '__inherit__',
+      createLabel: t('orders.createTemplate'),
+      onCreate: () => router.push('/(app)/templates/new'),
       options: [
         { key: '__inherit__', label: t('groups.backToGroupGarment') },
         { key: '__none__', label: t('groups.templateNone') },
