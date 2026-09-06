@@ -189,7 +189,7 @@ function TabButton({
   const labelStyle = useAnimatedStyle(() => ({
     maxWidth: p.value * 90,
     opacity: p.value,
-    marginStart: p.value * 7,
+    marginStart: p.value * 12,
   }));
 
   return (
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     flexDirection: 'row',
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 22,
+    borderRadius: 999,
     padding: NAV_PAD,
   },
   blob: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     top: NAV_PAD,
     bottom: NAV_PAD,
     left: NAV_PAD,
-    borderRadius: 15,
+    borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
   },
   tabWrap: { overflow: 'hidden' },
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 11,
-    borderRadius: 15,
+    borderRadius: 999,
   },
   labelWrap: { overflow: 'hidden' },
   label: { fontWeight: '600' },
