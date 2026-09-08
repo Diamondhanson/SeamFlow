@@ -13,6 +13,7 @@
 import { common } from './locales/common';
 import { errors } from './locales/errors';
 import { gate } from './locales/gate';
+import { discover } from './locales/discover';
 import { settings } from './locales/settings';
 import { account } from './locales/account';
 import { auth } from './locales/auth';
@@ -83,6 +84,7 @@ const NAMESPACES = {
   common,
   errors,
   gate,
+  discover,
   settings,
   account,
   auth,

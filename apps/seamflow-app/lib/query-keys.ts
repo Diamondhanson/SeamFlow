@@ -55,6 +55,15 @@ export const qk = {
   // ── Discovery feed (ROADMAP D.4) ──────────────────────────────────────────
   feedPostsMine: () => ['feed-posts', 'mine'] as const,
 
+  // ── Client experience: public discovery + consumer inbox ──────────────────
+  feed: (filter?: Record<string, string | undefined>) => ['feed', filter ?? {}] as const,
+  feedPost: (id: string) => ['feed', id] as const,
+  storefront: (tailorId: string) => ['storefront', tailorId] as const,
+  catalogue: (slug: string) => ['catalogue', slug] as const,
+  consumerOrders: () => ['consumer', 'orders'] as const,
+  consumerOrder: (id: string) => ['consumer', 'orders', id] as const,
+  consumerMeasurements: () => ['consumer', 'measurements'] as const,
+
   // ── My Designs: the tailor's own finished work ────────────────────────────
   works: (filter?: Record<string, string | undefined>) =>
     ['works', filter ?? {}] as const,
