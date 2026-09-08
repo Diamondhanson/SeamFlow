@@ -14,6 +14,22 @@ import { common } from './locales/common';
 import { errors } from './locales/errors';
 import { gate } from './locales/gate';
 import { discover } from './locales/discover';
+// Client experience namespaces. The client app reuses generic names (home,
+// orders, chat…) that collide with the tailor's, so they're registered under a
+// `c` prefix here and the client screens call t('chome.…'). `claim` is
+// client-only (no tailor equivalent) so it keeps its name.
+import { ccommon } from './locales/ccommon';
+import { cauth } from './locales/cauth';
+import { chome } from './locales/chome';
+import { caccount } from './locales/caccount';
+import { corders } from './locales/corders';
+import { cmeasurements } from './locales/cmeasurements';
+import { cguides } from './locales/cguides';
+import { cmisc } from './locales/cmisc';
+import { cchat } from './locales/cchat';
+import { cnotifications } from './locales/cnotifications';
+import { crequests } from './locales/crequests';
+import { claim } from './locales/claim';
 import { settings } from './locales/settings';
 import { account } from './locales/account';
 import { auth } from './locales/auth';
@@ -85,6 +101,18 @@ const NAMESPACES = {
   errors,
   gate,
   discover,
+  ccommon,
+  cauth,
+  chome,
+  caccount,
+  corders,
+  cmeasurements,
+  cguides,
+  cmisc,
+  cchat,
+  cnotifications,
+  crequests,
+  claim,
   settings,
   account,
   auth,
