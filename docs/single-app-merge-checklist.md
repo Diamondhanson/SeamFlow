@@ -5,17 +5,17 @@ runtime check happens on-device. Tick items as they land. **One phase at a time 
 wait for the go-ahead before starting the next.**
 
 ## Phase 0 — Prep
-- [ ] Branch `feat/single-app` created
-- [ ] Plan + checklist committed to the branch
+- [x] Branch `feat/single-app` created
+- [x] Plan + checklist committed to the branch
 - [ ] Inventory the client `lib/` files that duplicate the tailor's (delete-list for Phase 2)
 
-## Phase 1 — Root + shell + role skeleton (dormant; tailors unaffected)
-- [ ] `lib/role.ts` — `Mode` type + `resolveMode(me, preferred)`
-- [ ] `lib/mode.tsx` — `ModeProvider` + `useMode()` (+ on-device `preferredMode`)
-- [ ] Role-aware theme — client mode → rose palette; tailor mode → midnight (unchanged)
-- [ ] `app/(client)/_layout.tsx` + placeholder `app/(client)/index.tsx` (rose stub)
-- [ ] Root routes by mode: tailor→`(app)`, signed-in-non-tailor→`(client)`, else sign-in
-- [ ] `tsc` + `i18n:check` green; tailor experience visually identical to today
+## Phase 1 — Root + shell + role skeleton (dormant; tailors unaffected) ✅
+- [x] `lib/role.ts` — `Mode` type + `resolveMode(me, preferred)`
+- [x] `lib/mode.tsx` — `ModeProvider` + `useMode()` (+ on-device `preferredMode`)
+- [x] Role-aware theme — client tree wraps in rose (lib/client-theme); tailor stays midnight
+- [x] `app/(client)/_layout.tsx` + placeholder `app/(client)/index.tsx` (rose stub)
+- [x] Root routes by mode: tailor→`(app)`, signed-in-non-tailor→`(client)`, else sign-in
+- [x] `tsc` + `i18n:check` green; boots clean; tailor experience visually identical
 
 ## Phase 2 — Port the client experience
 - [ ] Copy `seamflow-client/app/**` → `app/(client)/**`, repoint imports to shared `lib/*` + `@seamflow/ui`

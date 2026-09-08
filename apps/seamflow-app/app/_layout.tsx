@@ -46,6 +46,7 @@ import { ThemeModeProvider, useThemeMode } from '../lib/theme-mode';
 import { DialogProvider } from '../lib/dialog';
 import { FavoritesProvider } from '../lib/favorites';
 import { GuidesProvider } from '../lib/guides';
+import { ModeProvider } from '../lib/mode';
 import { LanguageProvider } from '../lib/i18n';
 
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -161,6 +162,7 @@ function ThemedRoot() {
             <FavoritesProvider>
             <GuidesProvider>
             <AuthProvider>
+            <ModeProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
               <OfflineBanner />
               <Stack
@@ -180,7 +182,9 @@ function ThemedRoot() {
                 <Stack.Screen name="verify-otp" options={{ headerShown: false }} />
                 <Stack.Screen name="reset-password" options={{ headerShown: false }} />
                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
+                <Stack.Screen name="(client)" options={{ headerShown: false }} />
               </Stack>
+            </ModeProvider>
             </AuthProvider>
             </GuidesProvider>
             </FavoritesProvider>
