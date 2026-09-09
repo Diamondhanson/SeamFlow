@@ -18,6 +18,7 @@ import { Avatar, Text } from '@seamflow/ui';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
+import { BOTTOM_CHROME_SPACE } from '../../../../components/BottomNav';
 import { Button } from '../../../../components/Button';
 import { useConversations } from '../../../../lib/queries';
 import { useFloatingScroll } from '../../../../lib/floating-scroll';
@@ -168,7 +169,7 @@ export default function Messages() {
 
 const styles = StyleSheet.create({
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: BOTTOM_CHROME_SPACE, gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
   rowText: { flex: 1, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

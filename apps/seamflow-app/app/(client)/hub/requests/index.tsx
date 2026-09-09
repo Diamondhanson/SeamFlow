@@ -6,6 +6,7 @@ import { garmentLabel } from '@seamflow/schemas';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../../../components/Screen';
 import { FormScroll } from '../../../../components/FormScroll';
+import { BOTTOM_CHROME_SPACE } from '../../../../components/BottomNav';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
 import { Card, CardLine, CardTitle } from '../../../../components/Card';
@@ -23,7 +24,7 @@ export default function MyRequests() {
   return (
     <Screen>
       <ScreenHeader title={t('crequests.mineTitle')} />
-      <FormScroll contentContainerStyle={{ paddingBottom: 96 }}>
+      <FormScroll contentContainerStyle={{ paddingBottom: BOTTOM_CHROME_SPACE }}>
         <Button
           label={t('crequests.askForSomething')}
           onPress={() => router.push('/hub/requests/new')}

@@ -17,6 +17,12 @@ export const chome = {
     tailorsTileSub: 'The people who make your clothes',
     comingSoon: 'Coming soon',
     settings: 'Settings',
+    // ----- bottom tab bar -----
+    navDiscover: 'Discover',
+    navRequests: 'Requests',
+    navMessages: 'Messages',
+    navOrders: 'Orders',
+    navMore: 'More',
   },
   fr: {
     // ----- greeting -----
@@ -41,6 +47,11 @@ export const chome = {
     tailorsTileSub: 'Les personnes qui confectionnent vos vêtements',
     comingSoon: 'Bientôt disponible',
     settings: 'Paramètres',
+    navDiscover: 'Découvrir',
+    navRequests: 'Demandes',
+    navMessages: 'Messages',
+    navOrders: 'Commandes',
+    navMore: 'Plus',
   },
   pt: {
     // ----- saudação -----
@@ -60,6 +71,11 @@ export const chome = {
     tailorsTileSub: 'As pessoas que fazem a sua roupa',
     comingSoon: 'Em breve',
     settings: 'Definições',
+    navDiscover: 'Descobrir',
+    navRequests: 'Pedidos',
+    navMessages: 'Mensagens',
+    navOrders: 'Encomendas',
+    navMore: 'Mais',
   },
   es: {
     // ----- saludo -----
@@ -79,6 +95,11 @@ export const chome = {
     tailorsTileSub: 'Las personas que hacen su ropa',
     comingSoon: 'Próximamente',
     settings: 'Ajustes',
+    navDiscover: 'Descubrir',
+    navRequests: 'Solicitudes',
+    navMessages: 'Mensajes',
+    navOrders: 'Pedidos',
+    navMore: 'Más',
   },
   sw: {
     // ----- salamu -----
@@ -98,6 +119,11 @@ export const chome = {
     tailorsTileSub: 'Watu wanaokushonea nguo zako',
     comingSoon: 'Inakuja hivi karibuni',
     settings: 'Mipangilio',
+    navDiscover: 'Gundua',
+    navRequests: 'Maombi',
+    navMessages: 'Ujumbe',
+    navOrders: 'Maagizo',
+    navMore: 'Zaidi',
   },
   ar: {
     goodMorning: 'صباح الخير',
@@ -115,5 +141,10 @@ export const chome = {
     tailorsTileSub: 'من يخيطون ملابسك',
     comingSoon: 'قريبًا',
     settings: 'الإعدادات',
+    navDiscover: 'اكتشف',
+    navRequests: 'الطلبات',
+    navMessages: 'الرسائل',
+    navOrders: 'طلباتي',
+    navMore: 'المزيد',
   },
 } as const;

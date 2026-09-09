@@ -6,6 +6,7 @@ import type { OrderStatus } from '@seamflow/schemas';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
+import { BOTTOM_CHROME_SPACE } from '../../../../components/BottomNav';
 import { useConsumerOrders } from '../../../../lib/consumer-queries';
 import { spacing, radii } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
@@ -114,7 +115,7 @@ export default function OrdersInbox() {
 const styles = StyleSheet.create({
   padded: { paddingHorizontal: spacing.lg },
   add: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 96 },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: BOTTOM_CHROME_SPACE },
   empty: { alignItems: 'center', marginTop: spacing.xl * 2, paddingHorizontal: spacing.xl },
   emptyHint: { textAlign: 'center', marginTop: spacing.sm },
   emptyBtn: {

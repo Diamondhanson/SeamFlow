@@ -13,9 +13,10 @@
 // the active icon pops, and its label reveals. Mirrors the approved mockup.
 // ============================================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { router, usePathname } from 'expo-router';
+import { useAuth } from '../lib/auth-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -57,6 +58,19 @@ const TABS: Tab[] = [
 // The chrome renders only on these exact top-level routes.
 const SHOW_ON = new Set(['/', '/(app)', '/orders', '/clients', '/calendar', '/more']);
 
+// ── Client experience ───────────────────────────────────────────────────────
+// The customer side gets the same bar. Discover is its home; the four promoted
+// destinations mirror the journey (browse → ask → chat → track), and "More"
+// opens the /hub tile launcher, which already carries the long tail.
+const CLIENT_TABS: Tab[] = [
+  { href: '/discover', match: ['/', '/discover'], icon: 'compass-outline', iconActive: 'compass', labelKey: 'chome.navDiscover' },
+  { href: '/hub/requests', match: ['/hub/requests'], icon: 'megaphone-outline', iconActive: 'megaphone', labelKey: 'chome.navRequests' },
+  { href: '/hub/messages', match: ['/hub/messages'], icon: 'chatbubbles-outline', iconActive: 'chatbubbles', labelKey: 'chome.navMessages' },
+  { href: '/hub/orders', match: ['/hub/orders'], icon: 'shirt-outline', iconActive: 'shirt', labelKey: 'chome.navOrders' },
+  { href: '/hub', match: ['/hub'], icon: 'ellipsis-horizontal', iconActive: 'ellipsis-horizontal', labelKey: 'chome.navMore' },
+];
+const CLIENT_SHOW_ON = new Set(['/discover', '/hub/requests', '/hub/messages', '/hub/orders', '/hub']);
+
 function haptic() {
   if (Platform.OS !== 'web') void Haptics.selectionAsync().catch(() => {});
 }
@@ -67,23 +81,45 @@ export function BottomChrome() {
 
   // Wide screens use the SideRail; detail/modal screens go full-bleed.
   if (isExpanded || !SHOW_ON.has(pathname)) return null;
-  return <Chrome pathname={pathname} />;
+  return <Chrome pathname={pathname} tabs={TABS} ask={<AskPill />} />;
 }
 
-function Chrome({ pathname }: { pathname: string }) {
+/**
+ * The customer-side bar. Same animated chrome, different tabs, no Ask pill (the
+ * assistant is a tailor tool). Shown only once signed in — Discover is browsable
+ * signed-out, but every tab past it needs an account — and on all widths, since
+ * the client experience has no side rail to fall back to.
+ */
+export function ClientBottomChrome() {
+  const pathname = usePathname();
+  const { session } = useAuth();
+
+  if (!session || !CLIENT_SHOW_ON.has(pathname)) return null;
+  return <Chrome pathname={pathname} tabs={CLIENT_TABS} />;
+}
+
+function Chrome({
+  pathname,
+  tabs,
+  ask,
+}: {
+  pathname: string;
+  tabs: Tab[];
+  ask?: ReactNode;
+}) {
   const { colors, shadows } = useAtelierTheme();
   const insets = useSafeAreaInsets();
 
   const active = Math.max(
     0,
-    TABS.findIndex((tab) => tab.match.includes(pathname)),
+    tabs.findIndex((tab) => tab.match.includes(pathname)),
   );
 
   const [rowW, setRowW] = useState(0);
-  // Variable-width tabs: the active tab grows to hug its label, the other four
+  // Variable-width tabs: the active tab grows to hug its label, the others
   // shrink to icon-only. The active pill (blob) hugs the active width and slides.
   const activeW = rowW > 0 ? Math.min(150, rowW * 0.42) : 0;
-  const inactiveW = rowW > 0 ? (rowW - activeW) / (TABS.length - 1) : 0;
+  const inactiveW = rowW > 0 ? (rowW - activeW) / (tabs.length - 1) : 0;
   const ready = rowW > 0;
 
   return (
@@ -92,7 +128,7 @@ function Chrome({ pathname }: { pathname: string }) {
       pointerEvents="box-none"
     >
       <View style={styles.inner} pointerEvents="box-none">
-        <AskPill />
+        {ask}
         <View
           style={[
             styles.nav,
@@ -108,7 +144,7 @@ function Chrome({ pathname }: { pathname: string }) {
               color={colors.primary}
             />
           ) : null}
-          {TABS.map((tab, i) => (
+          {tabs.map((tab, i) => (
             <TabButton
               key={tab.href}
               tab={tab}

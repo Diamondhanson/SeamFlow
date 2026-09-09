@@ -4,6 +4,7 @@ import { PendingDeletionBanner } from '../../../components/PendingDeletionBanner
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useAuth } from '../../../lib/auth-context';
 import { useDialog } from '../../../lib/dialog';
 import { useMode } from '../../../lib/mode';
@@ -184,7 +185,7 @@ export default function ClientHome() {
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 96 },
+  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: BOTTOM_CHROME_SPACE },
   hero: {
     borderRadius: 24,
     borderWidth: 1,

@@ -26,6 +26,7 @@ import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SkeletonGrid } from '../../../components/Skeleton';
+import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useFeed } from '../../../lib/consumer-queries';
 import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
@@ -85,18 +86,17 @@ export default function Discover() {
           title={t('discover.title')}
           right={
             <View style={styles.headerActions}>
-              {/* Direct chat entry from the front door. Browsing customers had
-                  to go profile → hub → Messages tile (two hops) to reach a
-                  thread; this puts their inbox one tap away. Signed-out browsers
-                  have no inbox, so it only shows once there's a session. */}
+              {/* Notifications live in the header (they're not a tab). Messages
+                  moved to the bottom bar. Signed-out browsers have neither, so
+                  the bell only shows once there's a session. */}
               {session ? (
                 <Pressable
-                  onPress={() => router.push('/hub/messages' as never)}
+                  onPress={() => router.push('/hub/notifications' as never)}
                   hitSlop={8}
                   accessibilityRole="button"
-                  accessibilityLabel={t('discover.tabMessages')}
+                  accessibilityLabel={t('cnotifications.title')}
                 >
-                  <Ionicons name="chatbubbles-outline" size={25} color={colors.textMuted} />
+                  <Ionicons name="notifications-outline" size={24} color={colors.textMuted} />
                 </Pressable>
               ) : null}
               <Pressable
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
-  grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
+  grid: { paddingHorizontal: spacing.lg, paddingBottom: BOTTOM_CHROME_SPACE },
   masonry: { flexDirection: 'row', gap: spacing.md },
   empty: { alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.xl * 2 },
   emptyTitle: { marginTop: spacing.md, textAlign: 'center' },
