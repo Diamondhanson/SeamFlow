@@ -353,16 +353,6 @@ export default function Me() {
           ) : null}
         </SettingsCard>
 
-        {/* Soft switch to the customer side. */}
-        <SettingsCard>
-          <SettingsRow
-            first
-            icon="sparkles-outline"
-            label={t('role.switchToClient')}
-            onPress={goClient}
-          />
-        </SettingsCard>
-
         {/* Legal */}
         <SectionTitle>{t('settings.legal')}</SectionTitle>
         <SettingsCard>
@@ -415,6 +405,16 @@ export default function Me() {
             <View style={{ height: spacing.md }} />
           </>
         ) : null}
+        {/* Switch to the customer experience — a distinct, primary (accent)
+            action kept apart from the settings rows and sitting directly above
+            sign-out, so it reads as its own thing, not another preference. */}
+        <Button
+          label={t('role.switchToClient')}
+          variant="primary"
+          iconStart={<Ionicons name="sparkles-outline" size={18} color={colors.accentText} />}
+          onPress={goClient}
+        />
+        <View style={{ height: spacing.md }} />
         <Button
           label={t('settings.signOut')}
           variant="danger"
