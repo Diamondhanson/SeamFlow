@@ -84,18 +84,34 @@ export default function Discover() {
         <ScreenHeader
           title={t('discover.title')}
           right={
-            <Pressable
-              onPress={() => router.push((session ? '/hub' : '/sign-in') as never)}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={session ? t('chome.tagline') : t('auth.signIn')}
-            >
-              <Ionicons
-                name={session ? 'person-circle' : 'person-circle-outline'}
-                size={28}
-                color={colors.textMuted}
-              />
-            </Pressable>
+            <View style={styles.headerActions}>
+              {/* Direct chat entry from the front door. Browsing customers had
+                  to go profile → hub → Messages tile (two hops) to reach a
+                  thread; this puts their inbox one tap away. Signed-out browsers
+                  have no inbox, so it only shows once there's a session. */}
+              {session ? (
+                <Pressable
+                  onPress={() => router.push('/hub/messages' as never)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('discover.tabMessages')}
+                >
+                  <Ionicons name="chatbubbles-outline" size={25} color={colors.textMuted} />
+                </Pressable>
+              ) : null}
+              <Pressable
+                onPress={() => router.push((session ? '/hub' : '/sign-in') as never)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={session ? t('chome.tagline') : t('auth.signIn')}
+              >
+                <Ionicons
+                  name={session ? 'person-circle' : 'person-circle-outline'}
+                  size={28}
+                  color={colors.textMuted}
+                />
+              </Pressable>
+            </View>
           }
         />
         <Text variant="bodySm" tone="textMuted">
@@ -233,6 +249,7 @@ function Chip({
 }
 
 const styles = StyleSheet.create({
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   // alignItems keeps each chip its own height instead of stretching to the
   // row; flexGrow stops the row itself claiming the leftover column height.
