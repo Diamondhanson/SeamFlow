@@ -56,10 +56,25 @@ const config: Config = {
           primary: '#7B30E8', // brand purple (wordmark)
           primaryDeep: '#5A18C9', // brand gradient deep stop
           lavender: '#C45BFF', // brand gradient light stop
+          // Fixed customer rose — the mirror of the purple. Unlike the `accent`
+          // CSS-var tokens (which track the audience toggle), these never move,
+          // so the loop band can show purple and rose side by side at once.
+          rose: '#E14685',
+          roseDeep: '#B62E67',
+          roseLight: '#F58AB6',
           accent: '#F0875A', // bright coral-peach
           accentSoft: '#F8B79A',
           success: '#2FBF95', // brighter mint
         },
+        // Audience accent — resolves to purple (tailor) or rose (customer) via
+        // the [data-aud] CSS variables in globals.css. Use these on any landing
+        // element that should reskin with the audience toggle. (Named `audience`
+        // rather than `accent` to avoid the top-level copper `accent` above,
+        // which the calm linen share pages rely on.)
+        audience: 'var(--accent)',
+        audienceDeep: 'var(--accent-deep)',
+        audienceLight: 'var(--accent-light)',
+        audienceWash: 'var(--accent-wash)',
       },
       // The Arabic faces are listed here as a last resort only. They do NOT
       // pick up Arabic text by themselves: next/font injects a metric-matched

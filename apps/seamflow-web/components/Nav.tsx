@@ -6,6 +6,7 @@ import { withLang, WEB_APP_URL } from '../lib/i18n';
 import { Icon } from './icons';
 import { Wordmark } from './Wordmark';
 import { LangToggle } from './LangToggle';
+import { AudienceToggle } from './AudienceToggle';
 
 /**
  * `onHome` tells the nav whether its anchor links can stay as bare hashes.
@@ -53,27 +54,40 @@ export function Nav({ d, lang, onHome = true }: { d: Dict; lang: Lang; onHome?: 
           <Wordmark className="h-[18px] w-auto" />
         </a>
 
-        <div className="hidden items-center gap-6 md:flex">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-sm font-medium text-brand-muted transition hover:text-brand-ink"
-            >
-              {l.label}
-            </a>
-          ))}
+        {/* Tailor-only: these anchors point to sections that are hidden in the
+            customer view. Wrapped (not classed directly) so the outer `t-only`
+            doesn't fight the inner responsive `hidden md:flex`. */}
+        <div className="t-only">
+          <div className="hidden items-center gap-6 md:flex">
+            {links.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-sm font-medium text-brand-muted transition hover:text-brand-ink"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* The audience switch — the primary control of the page. Desktop-only
+              here; the hero carries a full-width one on phones (nav space at
+              375px can't hold wordmark + toggle + CTA on one line). */}
+          <AudienceToggle
+            tailorLabel={d.audience.toggle.tailor}
+            customerLabel={d.audience.toggle.customer}
+            className="hidden md:inline-flex"
+          />
           {/* Hidden on phones on purpose: at 375px the header already has
               to fit the wordmark and a CTA that wraps in the longer
               languages, and a third control pushes it to three lines. The
               footer toggle is the mobile route. */}
-          <LangToggle lang={lang} className="hidden sm:block" />
+          <LangToggle lang={lang} className="hidden lg:block" />
           <a
             href={WEB_APP_URL || `${home}#get-app`}
-            className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:bg-brand-primaryDeep"
+            className="rounded-full bg-audience px-4 py-2 text-sm font-semibold text-white shadow-glow transition hover:bg-audienceDeep"
           >
             {d.nav.useOnBrowser}
           </a>

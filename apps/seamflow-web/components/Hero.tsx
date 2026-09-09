@@ -3,36 +3,59 @@ import { WEB_APP_URL } from '../lib/i18n';
 import { Icon } from './icons';
 import { PhoneFrame, TabletFrame } from './DeviceFrame';
 import { StoreBadges } from './StoreBadges';
+import { AudienceToggle } from './AudienceToggle';
 
 export function Hero({ d }: { d: Dict }) {
+  const c = d.audience.customerHero;
   return (
     <section id="top" className="relative overflow-hidden">
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-8 pt-12 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:pb-16">
         <div>
+          {/* The nav toggle is desktop-only (header space at 375px), so the hero
+              carries the audience switch on phones. */}
+          <div className="mb-6 md:hidden">
+            <AudienceToggle
+              tailorLabel={d.audience.toggle.tailor}
+              customerLabel={d.audience.toggle.customer}
+            />
+          </div>
+
           <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-surface/70 px-3 py-1 text-xs font-medium text-brand-muted">
-            <Icon name="spark" className="h-3.5 w-3.5 text-brand-primary" />
-            {d.hero.eyebrow}
+            <Icon name="spark" className="h-3.5 w-3.5 text-audience" />
+            <span className="t-only">{d.hero.eyebrow}</span>
+            <span className="c-only">{c.eyebrow}</span>
           </span>
 
-          <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-brand-ink sm:text-5xl lg:text-6xl">
-            {d.hero.title}
+          <h1 className="mt-5 text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-brand-ink sm:text-5xl lg:text-6xl">
+            <span className="t-only">{d.hero.title}</span>
+            <span className="c-only">{c.title}</span>
           </h1>
 
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-brand-muted">
-            {d.hero.subtitle}
+            <span className="t-only">{d.hero.subtitle}</span>
+            <span className="c-only">{c.subtitle}</span>
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <a
               href={WEB_APP_URL || '#get-app'}
-              className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-6 py-3 text-base font-semibold text-white shadow-glow transition hover:bg-brand-primaryDeep"
+              className="inline-flex items-center gap-2 rounded-full bg-audience px-6 py-3 text-base font-semibold text-white shadow-glow transition hover:bg-audienceDeep"
             >
-              {d.hero.ctaPrimary}
+              <span className="t-only">{d.hero.ctaPrimary}</span>
+              <span className="c-only">{c.ctaPrimary}</span>
               <Icon name="arrow" className="h-4 w-4" />
             </a>
+            {/* Secondary points at the narrative the visitor can actually see:
+                tailors get the "how it works" walkthrough, customers the loop. */}
             <a
               href="#how"
-              className="inline-flex items-center rounded-full border border-brand-border bg-brand-surface/60 px-6 py-3 text-base font-semibold text-brand-ink transition hover:bg-brand-surface"
+              className="t-only items-center rounded-full border border-brand-border bg-brand-surface/60 px-6 py-3 text-base font-semibold text-brand-ink transition hover:bg-brand-surface"
+            >
+              {d.hero.ctaSecondary}
+            </a>
+            <a
+              href="#loop"
+              className="c-only items-center rounded-full border border-brand-border bg-brand-surface/60 px-6 py-3 text-base font-semibold text-brand-ink transition hover:bg-brand-surface"
             >
               {d.hero.ctaSecondary}
             </a>
@@ -40,10 +63,13 @@ export function Hero({ d }: { d: Dict }) {
 
           <p className="mt-4 flex items-center gap-2 text-sm text-brand-muted">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-success" />
-            {d.hero.note}
+            <span className="t-only">{d.hero.note}</span>
+            <span className="c-only">{c.note}</span>
           </p>
 
-          <div className="mt-8">
+          {/* App-store badges are tailor-facing; customers reach the app straight
+              from the primary CTA above. */}
+          <div className="mt-8 t-only">
             <StoreBadges d={d} />
           </div>
         </div>
@@ -61,7 +87,7 @@ export function Hero({ d }: { d: Dict }) {
               <div className="relative h-[540px] w-[640px]">
                 <div
                   aria-hidden="true"
-                  className="absolute -inset-2 transform-gpu rounded-[80px] bg-gradient-to-tr from-brand-primary/50 via-brand-lavender/40 to-brand-accent/30 blur-3xl rtl:bg-gradient-to-tl"
+                  className="absolute -inset-2 transform-gpu rounded-[80px] bg-gradient-to-tr from-audience/50 via-audienceLight/40 to-audience/20 blur-3xl rtl:bg-gradient-to-tl"
                 />
                 {/* Phone — behind, shifted toward the inline end */}
                 <div className="absolute start-[380px] top-[6px] z-0 animate-floaty">

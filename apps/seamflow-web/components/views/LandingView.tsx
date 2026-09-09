@@ -5,6 +5,7 @@ import type { Lang } from '../../lib/i18n';
 import { getDict } from '../../lib/i18n';
 import { Nav } from '../Nav';
 import { Hero } from '../Hero';
+import { Loop } from '../Loop';
 import {
   Problem,
   Features,
@@ -34,13 +35,23 @@ export function LandingView({ lang }: { lang: Lang }) {
       <Nav d={d} lang={lang} />
       <main>
         <Hero d={d} />
-        <Problem d={d} />
-        <Features d={d} />
-        <AssistantSpotlight d={d} lang={lang} />
-        <Steps d={d} />
-        <Vision d={d} />
+        {/* The loop band is the one section both audiences always see — it's
+            where the two-sided story is told in both colours. */}
+        <Loop d={d} />
+        {/* Tailor-facing narrative. Hidden for customers (who get the hero, the
+            loop, the gallery and their own CTA); customer-specific copy for
+            these sections is the next phase. */}
+        <div className="t-only">
+          <Problem d={d} />
+          <Features d={d} />
+          <AssistantSpotlight d={d} lang={lang} />
+          <Steps d={d} />
+          <Vision d={d} />
+        </div>
         <Gallery d={d} />
-        <Faq d={d} lang={lang} />
+        <div className="t-only">
+          <Faq d={d} lang={lang} />
+        </div>
         <Cta d={d} />
       </main>
       <Footer d={d} lang={lang} year={year} />

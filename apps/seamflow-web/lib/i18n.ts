@@ -208,6 +208,56 @@ export const copy = {
       faq: 'FAQ',
       useOnBrowser: 'Use on browser',
     },
+    audience: {
+      toggle: { tailor: 'For tailors', customer: 'For customers' },
+      customerHero: {
+        eyebrow: 'Find a tailor you can trust',
+        title: 'Clothes made for you, by a tailor who gets it.',
+        subtitle:
+          'Browse real tailors near you, share your measurements and inspiration once, and follow your order from the first fitting to the finished piece — all in one place.',
+        ctaPrimary: 'Find a tailor',
+        note: 'Free to use · Six languages · No app needed to track your order',
+      },
+      loop: {
+        eyebrow: 'Two sides, one thread',
+        title: 'One marketplace, both ends of the needle.',
+        subtitle:
+          'Customers and tailors meet in the same place — and every order runs the full loop.',
+        nodes: [
+          {
+            side: 'customer',
+            title: 'You describe the piece',
+            body: 'Post what you want made, with photos and your budget — or save your measurements once and reuse them.',
+          },
+          {
+            side: 'tailor',
+            title: 'Tailors respond',
+            body: 'Tailors near you see the request and send offers with their price and timeline.',
+          },
+          {
+            side: 'both',
+            title: 'You agree and order',
+            body: 'Pick the tailor you like, confirm the details, and the order opens for both of you.',
+          },
+          {
+            side: 'tailor',
+            title: 'The work gets made',
+            body: 'The tailor tracks every stage in SeamFlow — registered, in progress, fitting, delivered.',
+          },
+          {
+            side: 'both',
+            title: 'Delivered, and trusted',
+            body: 'You get your piece and leave a review. The tailor gets paid and builds a reputation.',
+          },
+        ],
+      },
+      loopRoles: { customer: 'You', tailor: 'Tailor', both: 'Together' },
+      customerCta: {
+        title: 'Your next favourite outfit starts here.',
+        body: 'Find a tailor, share your vision, and wear something made just for you.',
+        cta: 'Browse tailors',
+      },
+    },
     hero: {
       eyebrow: 'The AI tailor assistant for workshops',
       title: 'Your whole workshop, in one calm place.',
@@ -667,6 +717,56 @@ export const copy = {
       faq: 'FAQ',
       useOnBrowser: 'Utiliser sur navigateur',
     },
+    audience: {
+      toggle: { tailor: 'Pour les tailleurs', customer: 'Pour les clients' },
+      customerHero: {
+        eyebrow: 'Trouvez un tailleur de confiance',
+        title: 'Des vêtements faits pour vous, par un vrai tailleur.',
+        subtitle:
+          'Parcourez les tailleurs près de chez vous, partagez vos mesures et vos inspirations une seule fois, et suivez votre commande du premier essayage à la pièce finie — le tout au même endroit.',
+        ctaPrimary: 'Trouver un tailleur',
+        note: 'Gratuit · Six langues · Aucune appli pour suivre votre commande',
+      },
+      loop: {
+        eyebrow: 'Deux côtés, un seul fil',
+        title: 'Une place de marché, les deux bouts de l’aiguille.',
+        subtitle:
+          'Clients et tailleurs se retrouvent au même endroit — et chaque commande parcourt toute la boucle.',
+        nodes: [
+          {
+            side: 'customer',
+            title: 'Vous décrivez la pièce',
+            body: 'Publiez ce que vous voulez faire réaliser, avec des photos et votre budget — ou enregistrez vos mesures une fois pour les réutiliser.',
+          },
+          {
+            side: 'tailor',
+            title: 'Les tailleurs répondent',
+            body: 'Les tailleurs près de chez vous voient la demande et envoient des offres avec leur prix et leur délai.',
+          },
+          {
+            side: 'both',
+            title: 'Vous vous mettez d’accord',
+            body: 'Choisissez le tailleur qui vous plaît, confirmez les détails, et la commande s’ouvre pour vous deux.',
+          },
+          {
+            side: 'tailor',
+            title: 'Le travail se fait',
+            body: 'Le tailleur suit chaque étape dans SeamFlow — enregistrée, en cours, essayage, livrée.',
+          },
+          {
+            side: 'both',
+            title: 'Livré, en toute confiance',
+            body: 'Vous recevez votre pièce et laissez un avis. Le tailleur est payé et bâtit sa réputation.',
+          },
+        ],
+      },
+      loopRoles: { customer: 'Vous', tailor: 'Tailleur', both: 'Ensemble' },
+      customerCta: {
+        title: 'Votre prochaine tenue préférée commence ici.',
+        body: 'Trouvez un tailleur, partagez votre vision, et portez une pièce faite pour vous.',
+        cta: 'Parcourir les tailleurs',
+      },
+    },
     hero: {
       eyebrow: 'L’assistant tailleur IA pour les ateliers',
       title: 'Tout votre atelier, en un seul endroit serein.',
@@ -1125,6 +1225,56 @@ export const copy = {
       how: 'Como funciona',
       faq: 'FAQ',
       useOnBrowser: 'No navegador',
+    },
+    audience: {
+      toggle: { tailor: 'Para alfaiates', customer: 'Para clientes' },
+      customerHero: {
+        eyebrow: 'Encontre um alfaiate de confiança',
+        title: 'Roupas feitas para você, por um alfaiate de verdade.',
+        subtitle:
+          'Explore alfaiates perto de você, compartilhe suas medidas e inspirações uma única vez e acompanhe seu pedido da primeira prova à peça pronta — tudo num só lugar.',
+        ctaPrimary: 'Encontrar um alfaiate',
+        note: 'Grátis · Seis idiomas · Nenhum app para acompanhar o pedido',
+      },
+      loop: {
+        eyebrow: 'Dois lados, um só fio',
+        title: 'Um mercado, as duas pontas da agulha.',
+        subtitle:
+          'Clientes e alfaiates se encontram no mesmo lugar — e cada pedido percorre todo o ciclo.',
+        nodes: [
+          {
+            side: 'customer',
+            title: 'Você descreve a peça',
+            body: 'Publique o que quer mandar fazer, com fotos e seu orçamento — ou salve suas medidas uma vez para reutilizar.',
+          },
+          {
+            side: 'tailor',
+            title: 'Os alfaiates respondem',
+            body: 'Os alfaiates perto de você veem o pedido e enviam ofertas com preço e prazo.',
+          },
+          {
+            side: 'both',
+            title: 'Vocês combinam e pedem',
+            body: 'Escolha o alfaiate que preferir, confirme os detalhes, e o pedido abre para os dois.',
+          },
+          {
+            side: 'tailor',
+            title: 'O trabalho é feito',
+            body: 'O alfaiate acompanha cada etapa no SeamFlow — registrado, em andamento, prova, entregue.',
+          },
+          {
+            side: 'both',
+            title: 'Entregue, com confiança',
+            body: 'Você recebe sua peça e deixa uma avaliação. O alfaiate é pago e constrói sua reputação.',
+          },
+        ],
+      },
+      loopRoles: { customer: 'Você', tailor: 'Alfaiate', both: 'Juntos' },
+      customerCta: {
+        title: 'Seu próximo look favorito começa aqui.',
+        body: 'Encontre um alfaiate, compartilhe sua ideia e vista algo feito só para você.',
+        cta: 'Explorar alfaiates',
+      },
     },
     hero: {
       eyebrow: 'O assistente de IA para ateliers de alfaiataria',
@@ -1586,6 +1736,56 @@ export const copy = {
       faq: 'Preguntas',
       useOnBrowser: 'Usar en el navegador',
     },
+    audience: {
+      toggle: { tailor: 'Para sastres', customer: 'Para clientes' },
+      customerHero: {
+        eyebrow: 'Encuentra un sastre de confianza',
+        title: 'Ropa hecha para ti, por un sastre de verdad.',
+        subtitle:
+          'Explora sastres cerca de ti, comparte tus medidas e inspiración una sola vez y sigue tu pedido desde la primera prueba hasta la pieza terminada — todo en un mismo lugar.',
+        ctaPrimary: 'Encontrar un sastre',
+        note: 'Gratis · Seis idiomas · Sin app para seguir tu pedido',
+      },
+      loop: {
+        eyebrow: 'Dos lados, un mismo hilo',
+        title: 'Un mercado, los dos extremos de la aguja.',
+        subtitle:
+          'Clientes y sastres se encuentran en el mismo lugar — y cada pedido recorre todo el ciclo.',
+        nodes: [
+          {
+            side: 'customer',
+            title: 'Describes la prenda',
+            body: 'Publica lo que quieres que te hagan, con fotos y tu presupuesto — o guarda tus medidas una vez para reutilizarlas.',
+          },
+          {
+            side: 'tailor',
+            title: 'Los sastres responden',
+            body: 'Los sastres cerca de ti ven la solicitud y envían ofertas con su precio y plazo.',
+          },
+          {
+            side: 'both',
+            title: 'Acordáis y se pide',
+            body: 'Elige el sastre que prefieras, confirma los detalles, y el pedido se abre para ambos.',
+          },
+          {
+            side: 'tailor',
+            title: 'Se hace el trabajo',
+            body: 'El sastre sigue cada etapa en SeamFlow — registrado, en curso, prueba, entregado.',
+          },
+          {
+            side: 'both',
+            title: 'Entregado, con confianza',
+            body: 'Recibes tu prenda y dejas una reseña. El sastre cobra y construye su reputación.',
+          },
+        ],
+      },
+      loopRoles: { customer: 'Tú', tailor: 'Sastre', both: 'Juntos' },
+      customerCta: {
+        title: 'Tu próximo look favorito empieza aquí.',
+        body: 'Encuentra un sastre, comparte tu idea y viste algo hecho solo para ti.',
+        cta: 'Explorar sastres',
+      },
+    },
     hero: {
       eyebrow: 'El asistente de IA para talleres de costura',
       title: 'Todo su taller, en un solo lugar tranquilo.',
@@ -2036,6 +2236,56 @@ export const copy = {
       faq: 'Maswali',
       useOnBrowser: 'Tumia kwenye kivinjari',
     },
+    audience: {
+      toggle: { tailor: 'Kwa mafundi cherehani', customer: 'Kwa wateja' },
+      customerHero: {
+        eyebrow: 'Pata fundi cherehani unayemwamini',
+        title: 'Nguo zilizoshonwa kwa ajili yako, na fundi halisi.',
+        subtitle:
+          'Vinjari mafundi cherehani walio karibu nawe, shiriki vipimo na mawazo yako mara moja, na fuatilia oda yako tangu kipimo cha kwanza hadi nguo kukamilika — vyote mahali pamoja.',
+        ctaPrimary: 'Tafuta fundi cherehani',
+        note: 'Bila malipo · Lugha sita · Huhitaji programu kufuatilia oda',
+      },
+      loop: {
+        eyebrow: 'Pande mbili, uzi mmoja',
+        title: 'Soko moja, ncha zote mbili za sindano.',
+        subtitle:
+          'Wateja na mafundi hukutana mahali pamoja — na kila oda hupitia mzunguko mzima.',
+        nodes: [
+          {
+            side: 'customer',
+            title: 'Unaeleza nguo',
+            body: 'Chapisha unachotaka kushonewa, na picha na bajeti yako — au hifadhi vipimo vyako mara moja kuvitumia tena.',
+          },
+          {
+            side: 'tailor',
+            title: 'Mafundi hujibu',
+            body: 'Mafundi walio karibu nawe huona ombi na kutuma ofa zenye bei na muda wao.',
+          },
+          {
+            side: 'both',
+            title: 'Mnakubaliana na kuagiza',
+            body: 'Chagua fundi unayempenda, thibitisha maelezo, na oda hufunguka kwa nyote wawili.',
+          },
+          {
+            side: 'tailor',
+            title: 'Kazi inafanyika',
+            body: 'Fundi hufuatilia kila hatua katika SeamFlow — imesajiliwa, inaendelea, kipimo, imefikishwa.',
+          },
+          {
+            side: 'both',
+            title: 'Imefikishwa, kwa imani',
+            body: 'Unapokea nguo yako na kuacha tathmini. Fundi hulipwa na kujenga sifa yake.',
+          },
+        ],
+      },
+      loopRoles: { customer: 'Wewe', tailor: 'Fundi', both: 'Pamoja' },
+      customerCta: {
+        title: 'Vazi lako pendwa lijalo linaanzia hapa.',
+        body: 'Pata fundi cherehani, shiriki wazo lako, na uvae kitu kilichoshonwa kwa ajili yako.',
+        cta: 'Vinjari mafundi cherehani',
+      },
+    },
     hero: {
       eyebrow: 'Msaidizi wa AI kwa maduka ya ushonaji',
       title: 'Duka lako lote, mahali pamoja penye utulivu.',
@@ -2484,6 +2734,55 @@ export const copy = {
       how: 'كيف يعمل',
       faq: 'أسئلة شائعة',
       useOnBrowser: 'استخدمه في المتصفح',
+    },
+    audience: {
+      toggle: { tailor: 'للخياطين', customer: 'للعملاء' },
+      customerHero: {
+        eyebrow: 'اعثر على خياط تثق به',
+        title: 'ملابس مصنوعة من أجلك، على يد خياط ماهر.',
+        subtitle:
+          'تصفّح الخياطين القريبين منك، شارك مقاساتك وأفكارك مرة واحدة، وتابع طلبك من القياس الأول حتى القطعة النهائية — كل ذلك في مكان واحد.',
+        ctaPrimary: 'ابحث عن خياط',
+        note: 'مجاني · ست لغات · لا حاجة لتطبيق لتتبع طلبك',
+      },
+      loop: {
+        eyebrow: 'طرفان، خيط واحد',
+        title: 'سوق واحد، طرفا الإبرة معًا.',
+        subtitle: 'يلتقي العملاء والخياطون في المكان نفسه — وكل طلب يمرّ بالدورة كاملة.',
+        nodes: [
+          {
+            side: 'customer',
+            title: 'تصف القطعة',
+            body: 'انشر ما تريد تفصيله، مع الصور وميزانيتك — أو احفظ مقاساتك مرة واحدة لإعادة استخدامها.',
+          },
+          {
+            side: 'tailor',
+            title: 'يردّ الخياطون',
+            body: 'يرى الخياطون القريبون منك الطلب ويرسلون عروضًا بأسعارهم ومواعيدهم.',
+          },
+          {
+            side: 'both',
+            title: 'تتفقان ويبدأ الطلب',
+            body: 'اختر الخياط الذي يعجبك، أكّد التفاصيل، وينفتح الطلب لكليكما.',
+          },
+          {
+            side: 'tailor',
+            title: 'يُنجز العمل',
+            body: 'يتابع الخياط كل مرحلة في SeamFlow — مسجّل، قيد التنفيذ، قياس، تم التسليم.',
+          },
+          {
+            side: 'both',
+            title: 'تم التسليم، بثقة',
+            body: 'تستلم قطعتك وتترك تقييمًا. يتقاضى الخياط أجره ويبني سمعته.',
+          },
+        ],
+      },
+      loopRoles: { customer: 'أنت', tailor: 'الخياط', both: 'معًا' },
+      customerCta: {
+        title: 'إطلالتك المفضلة القادمة تبدأ من هنا.',
+        body: 'اعثر على خياط، شارك رؤيتك، وارتدِ قطعة مصنوعة خصيصًا لك.',
+        cta: 'تصفّح الخياطين',
+      },
     },
     hero: {
       eyebrow: 'مساعد الذكاء الاصطناعي لورش الخياطة',
