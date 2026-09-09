@@ -36,7 +36,7 @@ export default function Storefront() {
       return;
     }
     router.push({
-      pathname: '/(app)/discover/inquire',
+      pathname: '/discover/inquire',
       params: { tailorId: tailor.id, tailorName: tailor.businessName },
     });
   };

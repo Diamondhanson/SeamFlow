@@ -64,7 +64,7 @@ export default function Inquire() {
         onSuccess: (conversation) => {
           // Straight into the thread — the reply is what they're waiting for.
           router.replace({
-            pathname: '/(app)/messages/[id]',
+            pathname: '/hub/messages/[id]',
             params: { id: conversation.id },
           });
         },

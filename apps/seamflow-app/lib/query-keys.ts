@@ -63,6 +63,10 @@ export const qk = {
   consumerOrders: () => ['consumer', 'orders'] as const,
   consumerOrder: (id: string) => ['consumer', 'orders', id] as const,
   consumerMeasurements: () => ['consumer', 'measurements'] as const,
+  // Client "Can you make this?" request board (consumer side).
+  myRequests: () => ['requests', 'mine'] as const,
+  myRequest: (id: string) => ['requests', 'mine', id] as const,
+  requestOffers: (id: string) => ['requests', id, 'offers'] as const,
 
   // ── My Designs: the tailor's own finished work ────────────────────────────
   works: (filter?: Record<string, string | undefined>) =>

@@ -111,7 +111,7 @@ export default function DesignDetail() {
           <Pressable
             onPress={() =>
               router.push({
-                pathname: '/(app)/discover/tailor/[tailorId]',
+                pathname: '/discover/tailor/[tailorId]',
                 params: { tailorId: tailor.id },
               })
             }

@@ -14,6 +14,7 @@ import type {
   GroupOrderPhoto,
   OrderPhoto,
   OrderPhotoRole,
+  RequestPhoto,
 } from '@seamflow/schemas';
 
 // Lazy-load image-manipulator so the auth/onboarding screens still load on
@@ -60,6 +61,8 @@ const AVATARS_BUCKET = 'avatars';
 const WORKS_BUCKET = 'works';
 /** Private. Chat attachments, readable only by the two participants. */
 const CHAT_BUCKET = 'chat-media';
+/** Client "Can you make this?" request reference photos. */
+const REQUESTS_BUCKET = 'requests';
 
 // A profile photo needs just one modest square-ish variant.
 const AVATAR_MAX_DIM = 512;
@@ -510,6 +513,26 @@ export async function uploadFabricImage(args: {
  * returned descriptor is what goes in the message's `attachments` array — the
  * API swaps the paths for short-lived signed URLs on read.
  */
+/** Upload a reference photo for a client's "Can you make this?" request. */
+export async function uploadRequestPhoto(args: {
+  userId: string;
+  asset: PickedAsset;
+}): Promise<RequestPhoto> {
+  const { userId, asset } = args;
+  const { full, thumb } = await compressBoth(asset);
+
+  const id = cryptoRandom();
+  const path = `${userId}/${id}.${full.ext}`;
+  const thumbPath = `${userId}/${id}_thumb.${thumb.ext}`;
+
+  await Promise.all([
+    uploadOne(REQUESTS_BUCKET, path, full),
+    uploadOne(REQUESTS_BUCKET, thumbPath, thumb),
+  ]);
+
+  return { path, thumbPath, width: asset.width ?? null, height: asset.height ?? null };
+}
+
 export async function uploadChatImage(args: {
   conversationId: string;
   asset: PickedAsset;

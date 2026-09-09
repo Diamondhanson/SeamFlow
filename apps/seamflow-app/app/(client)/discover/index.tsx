@@ -154,7 +154,7 @@ export default function Discover() {
                       key={post.id}
                       onPress={() =>
                         router.push({
-                          pathname: '/(app)/discover/[id]',
+                          pathname: '/discover/[id]',
                           params: { id: post.id },
                         })
                       }

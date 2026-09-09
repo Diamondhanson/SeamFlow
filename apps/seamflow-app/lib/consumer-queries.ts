@@ -15,7 +15,12 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import type { ConversationCreateInput, FeedQuery } from '@seamflow/schemas';
+import type {
+  ConversationCreateInput,
+  FeedQuery,
+  RequestCreateInput,
+  RequestUpdateInput,
+} from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
 
@@ -55,5 +60,100 @@ export function useCreateConversation() {
   return useMutation({
     mutationFn: (input: ConversationCreateInput) => api.conversations.create(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.conversations() }),
+  });
+}
+
+// ── Consumer inbox: orders claimed by share-link, and the measurement locker ──
+
+/** The user's unified orders inbox, across every tailor. */
+export const useConsumerOrders = () =>
+  useQuery({ queryKey: qk.consumerOrders(), queryFn: () => api.consumer.listOrders() });
+
+/** Full detail for one claimed order. */
+export const useConsumerOrder = (id: string) =>
+  useQuery({
+    queryKey: qk.consumerOrder(id),
+    queryFn: () => api.consumer.getOrder(id),
+    enabled: !!id,
+  });
+
+/** The user's measurement locker, grouped by tailor. */
+export const useConsumerMeasurements = () =>
+  useQuery({
+    queryKey: qk.consumerMeasurements(),
+    queryFn: () => api.consumer.listMeasurements(),
+  });
+
+/** Claim an order from its share-link token (or full share URL). */
+export function useClaimOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => api.consumer.claim({ token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: qk.consumerOrders() });
+      void qc.invalidateQueries({ queryKey: qk.consumerMeasurements() });
+    },
+  });
+}
+
+/** Pull the share code out of a pasted link (…/o/<code>) or return the raw input. */
+export function extractShareCode(input: string): string {
+  const trimmed = input.trim();
+  const match = trimmed.match(/\/o\/([A-Za-z0-9_-]+)/);
+  if (match) return match[1];
+  return trimmed.replace(/^.*\//, '');
+}
+
+// ── "Can you make this?" — the client request board + offers ─────────────────
+
+export const useMyRequests = () =>
+  useQuery({ queryKey: qk.myRequests(), queryFn: () => api.requests.listMine() });
+
+export const useMyRequest = (id: string) =>
+  useQuery({ queryKey: qk.myRequest(id), queryFn: () => api.requests.get(id), enabled: !!id });
+
+export const useRequestOffers = (id: string) =>
+  useQuery({ queryKey: qk.requestOffers(id), queryFn: () => api.requests.offers(id), enabled: !!id });
+
+export function useCreateRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: RequestCreateInput) => api.requests.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.myRequests() }),
+  });
+}
+
+export function useUpdateRequest(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: RequestUpdateInput) => api.requests.update(id, input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: qk.myRequests() });
+      void qc.invalidateQueries({ queryKey: qk.myRequest(id) });
+    },
+  });
+}
+
+export function useCloseRequest(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.requests.close(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: qk.myRequests() });
+      void qc.invalidateQueries({ queryKey: qk.myRequest(id) });
+    },
+  });
+}
+
+/** Accept a tailor's offer — also refreshes conversations (it opens the thread). */
+export function useAcceptOffer(requestId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (offerId: string) => api.requests.acceptOffer(offerId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: qk.myRequest(requestId) });
+      void qc.invalidateQueries({ queryKey: qk.requestOffers(requestId) });
+      void qc.invalidateQueries({ queryKey: qk.conversations() });
+    },
   });
 }

@@ -42,7 +42,7 @@ export default function Catalogue() {
       return;
     }
     router.push({
-      pathname: '/(app)/discover/inquire',
+      pathname: '/discover/inquire',
       params: { tailorId: tailor.id, tailorName: tailor.businessName },
     });
   };
