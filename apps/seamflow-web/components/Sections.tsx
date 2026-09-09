@@ -257,8 +257,11 @@ export function Cta({ d }: { d: Dict }) {
   const cc = d.audience.customerCta;
   return (
     <section id="get-app" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 sm:py-24">
-      {/* Tailor close — purple, with the app-store badges. */}
-      <div className="t-only relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-primary via-brand-primaryDeep to-[#41109B] p-10 text-center text-white shadow-glow sm:p-16">
+      {/* Tailor close — purple, with the app-store badges. Wrapped in a
+          transparent `t-only` so the audience toggle's display:contents can't
+          strip the card's own gradient/padding box. */}
+      <div className="t-only">
+      <div className="relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-primary via-brand-primaryDeep to-[#41109B] p-10 text-center text-white shadow-glow sm:p-16">
         <div aria-hidden="true" className="absolute -left-16 -top-16 h-56 w-56 transform-gpu rounded-full bg-brand-lavender/30 blur-3xl" />
         <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 transform-gpu rounded-full bg-brand-accent/25 blur-3xl" />
         <div className="relative">
@@ -271,9 +274,11 @@ export function Cta({ d }: { d: Dict }) {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Customer close — rose, with a single "browse tailors" button. */}
-      <div className="c-only relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-rose via-brand-roseDeep to-[#7A1F47] p-10 text-center text-white shadow-glow sm:p-16">
+      <div className="c-only">
+      <div className="relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-rose via-brand-roseDeep to-[#7A1F47] p-10 text-center text-white shadow-glow sm:p-16">
         <div aria-hidden="true" className="absolute -left-16 -top-16 h-56 w-56 transform-gpu rounded-full bg-brand-roseLight/30 blur-3xl" />
         <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 transform-gpu rounded-full bg-brand-accent/25 blur-3xl" />
         <div className="relative">
@@ -291,6 +296,7 @@ export function Cta({ d }: { d: Dict }) {
             </a>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

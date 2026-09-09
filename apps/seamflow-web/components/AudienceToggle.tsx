@@ -58,11 +58,11 @@ export function AudienceToggle({
       ref={wrapRef}
       role="group"
       aria-label="Choose audience"
-      className={`relative inline-flex rounded-full border border-brand-border bg-brand-surface p-1 ${className}`}
+      className={`relative inline-flex rounded-full border border-brand-border bg-white/70 p-1 shadow-pill backdrop-blur ${className}`}
     >
       <span
         aria-hidden
-        className="absolute bottom-1 top-1 rounded-full bg-gradient-to-b from-accentLight to-accent shadow-glow"
+        className="absolute bottom-1 top-1 rounded-full bg-gradient-to-b from-audience to-audienceDeep shadow-glow"
         style={{
           left: thumb.left,
           width: thumb.width,

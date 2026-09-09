@@ -46,19 +46,25 @@ export function Hero({ d }: { d: Dict }) {
               <Icon name="arrow" className="h-4 w-4" />
             </a>
             {/* Secondary points at the narrative the visitor can actually see:
-                tailors get the "how it works" walkthrough, customers the loop. */}
-            <a
-              href="#how"
-              className="t-only items-center rounded-full border border-brand-border bg-brand-surface/60 px-6 py-3 text-base font-semibold text-brand-ink transition hover:bg-brand-surface"
-            >
-              {d.hero.ctaSecondary}
-            </a>
-            <a
-              href="#loop"
-              className="c-only items-center rounded-full border border-brand-border bg-brand-surface/60 px-6 py-3 text-base font-semibold text-brand-ink transition hover:bg-brand-surface"
-            >
-              {d.hero.ctaSecondary}
-            </a>
+                tailors get the "how it works" walkthrough, customers the loop.
+                Wrapped in a transparent span so the audience toggle's
+                display:contents never strips the button's own box. */}
+            <span className="t-only">
+              <a
+                href="#how"
+                className="inline-flex items-center rounded-full border border-brand-border bg-brand-surface/60 px-6 py-3 text-base font-semibold text-brand-ink transition hover:bg-brand-surface"
+              >
+                {d.hero.ctaSecondary}
+              </a>
+            </span>
+            <span className="c-only">
+              <a
+                href="#loop"
+                className="inline-flex items-center rounded-full border border-brand-border bg-brand-surface/60 px-6 py-3 text-base font-semibold text-brand-ink transition hover:bg-brand-surface"
+              >
+                {d.hero.ctaSecondary}
+              </a>
+            </span>
           </div>
 
           <p className="mt-4 flex items-center gap-2 text-sm text-brand-muted">
@@ -68,9 +74,12 @@ export function Hero({ d }: { d: Dict }) {
           </p>
 
           {/* App-store badges are tailor-facing; customers reach the app straight
-              from the primary CTA above. */}
-          <div className="mt-8 t-only">
-            <StoreBadges d={d} />
+              from the primary CTA above. (Margin on the inner div so the
+              wrapper's display:contents doesn't drop the spacing.) */}
+          <div className="t-only">
+            <div className="mt-8">
+              <StoreBadges d={d} />
+            </div>
           </div>
         </div>
 

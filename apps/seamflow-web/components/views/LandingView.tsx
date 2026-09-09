@@ -47,9 +47,9 @@ export function LandingView({ lang }: { lang: Lang }) {
           <AssistantSpotlight d={d} lang={lang} />
           <Steps d={d} />
           <Vision d={d} />
-        </div>
-        <Gallery d={d} />
-        <div className="t-only">
+          {/* Gallery is tailor-app screenshots — off-message for customers, who
+              get their own visual story in Phase 2. */}
+          <Gallery d={d} />
           <Faq d={d} lang={lang} />
         </div>
         <Cta d={d} />

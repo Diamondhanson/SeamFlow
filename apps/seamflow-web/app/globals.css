@@ -88,6 +88,22 @@ html {
     );
 }
 
+/* Customer door: swap the ambient page wash from violet to rose so the whole
+   surface reads as the customer theme, not just the accent controls. */
+[data-aud='customer'] .marketing {
+  background-image:
+    radial-gradient(
+      110% 70% at 100% -8%,
+      rgba(225, 70, 133, 0.14) 0%,
+      rgba(225, 70, 133, 0) 55%
+    ),
+    radial-gradient(
+      95% 65% at -8% 30%,
+      rgba(245, 138, 182, 0.12) 0%,
+      rgba(245, 138, 182, 0) 55%
+    );
+}
+
 /* Honour the OS "reduce motion" setting: the hero's floating device and the
    toast's entrance are decoration, not information. Smooth anchor scrolling
    goes too — it's a common vestibular trigger. */
@@ -148,6 +164,20 @@ html {
       95% 65% at 108% 30%,
       rgba(240, 135, 90, 0.1) 0%,
       rgba(240, 135, 90, 0) 55%
+    );
+}
+
+[dir='rtl'][data-aud='customer'] .marketing {
+  background-image:
+    radial-gradient(
+      110% 70% at 0% -8%,
+      rgba(225, 70, 133, 0.14) 0%,
+      rgba(225, 70, 133, 0) 55%
+    ),
+    radial-gradient(
+      95% 65% at 108% 30%,
+      rgba(245, 138, 182, 0.12) 0%,
+      rgba(245, 138, 182, 0) 55%
     );
 }
 
