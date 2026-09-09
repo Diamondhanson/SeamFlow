@@ -1,7 +1,7 @@
 # SeamFlow — Phased Product Roadmap
 
 **Owner:** Diamond
-**Last updated:** July 6, 2026
+**Last updated:** September 9, 2026
 **Repo:** `SeamFlow/` monorepo
 
 **Current status:** Phase 0 complete (0.5 deferred). **Phase 1 is feature-complete and shippable**, and since the May snapshot the product has shipped several **Phase 2 and Phase 3 items early** (see "Shipped early" below). Only 1.7 (payments) is paused with all scope decisions parked, and 1.9.3 (Apple Sign-In) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program yet). Everything else end-to-end:
@@ -28,6 +28,25 @@
 - **Device contacts picker** — unlisted addition: pick a client/owner from the phone address book (expo-contacts, E.164 normalized).
 
 **Atelier design system (1.12):** `@seamflow/ui` foundation shipped — color tokens (Linen + Midnight palettes), Fraunces/Inter/JetBrains Mono typography, spacing/radii/shadows/motion tokens, primitives (Text/Button/Input/**Card**/**Chip**/**Avatar**/**IconButton**/**ListRow**), `AtelierThemeProvider`, font loading at app root. **Typography sweep + runtime light/dark mode complete.** **App-wide redesign shipped (2026-07-03):** composed dashboard, custom navigation shell (`ScreenHeader` + `FloatingLogo`), `OrderCard`, framed calendar grid. **Centered dialog system shipped (2026-07-05):** all 78 native `Alert` calls replaced by a themed `useDialog()` provider (alert/error/confirm/prompt/choose/pick), ESLint-enforced. **iOS readiness pass (2026-07-05, see 1.13):** image-picker Info.plist strings, iOS DateField sheet, permission-denial recovery. Remaining primitives: `Sheet` (in `@seamflow/ui`), `MeasurementInput`, `EmptyState`, `StitchLine`, `TabBar`, `Stepper`; bespoke/phosphor icons; on-device Linen validation — see `docs/design-system/CHANGELOG.md`.
+
+---
+
+### Since the July snapshot — the customer side shipped & the two apps became one (v1.2 → v1.3, Aug–Sep 2026)
+
+The single biggest change since this doc was last written: **the consumer experience is built and live, in-app chat shipped, and the client app was merged into the tailor app as one binary.** Phase numbering below is preserved, but a large slice of Phase 3 (client app, discovery) and Phase 4 (in-app chat) is now real.
+
+- **Single app, two experiences (v1.3.0).** `apps/seamflow-client` was folded into `apps/seamflow-app`; one binary now carries both a **tailor** interface (midnight theme, CRM) and a **customer** interface (rose theme, discovery) under expo-router route groups (`(app)` / `(client)`, with a real `/hub` segment for the signed-in customer area so its routes never collide with the tailor's). Which experience you see is **derived** — you're a tailor if you have a shop profile, and a dual user (a tailor who also shops) keeps a remembered `preferred` choice (`lib/mode.tsx` / `lib/role.ts`). Switching sides is one tap ("Browse as a customer" on the tailor side, a distinct accent button above sign-out; "Switch to tailor" on the customer side). Push registration, i18n, theming, and deep-links are all shared — the customer side inherited them for free. `apps/seamflow-client` is retired-in-place (kept in the tree, no longer built/shipped).
+- **In-app chat (Phase 4.1) — SHIPPED, custom build.** Not Stream/Sendbird — a custom stack on **Supabase Realtime + Postgres**: conversations + messages, an **optimistic offline outbox** (bubbles appear before the network is touched and survive a force-quit), typing/presence, read receipts, image attachments to a private bucket, and keyset-paginated history. Both sides have full inbox + thread screens (`(app)/messages`, `(client)/hub/messages`). Chat notifications carry `recipientSide` so a tap routes into the correct interface for a dual-role account.
+- **Discovery (Phase 3.6) — LIVE.** A Pinterest-style **Discover** feed of tailors' real finished work (`(client)/discover`), tailor **storefronts** and public share pages (`/t/<slug>`), audience/occasion filters, and an **Inquire → chat** loop. The customer front door renders signed-out (browsing needs no account; signing in is gated on action).
+- **"Can you make this?" requests + tailor offers — NEW marketplace primitive.** Customers post a request (photo + budget); nearby tailors send offers with price and timeline; accepting opens an order + conversation. (This is the marketplace loop under 4.4, arriving early via the discovery vision.)
+- **Consumer orders, measurement locker, notifications, order-claiming** — ported into the customer hub; a shared-order magic-link can be **claimed** into a customer account.
+- **Client bottom tab bar (Sep 2026).** The customer side now has the same animated bottom bar as the tailor: **Discover · Requests · Messages · Orders · More**, rose-themed, with a notification bell in the Discover header. Mirrors the tailor's redesign below.
+- **Tailor home/nav redesign.** Animated bottom tab bar (**Home · Orders · Clients · Calendar · More**), a floating **Ask** assistant pill, a **"Today"** dashboard (overdue pill + due-soon rail), and speed wins (advance status from a card, invoice from the order screen, one-tap overdue, global search).
+- **v1.2.0 hardening.** Default country **Cameroon / XAF** (was Nigeria); **every** user-facing error routed through a mapper (no raw `err.message`, new `errors` namespace); **guided, skippable onboarding** that ushers a new user into profile setup while still letting them use the app (public actions gated behind a profile check).
+- **i18n — now six languages (updates 2.8).** Both apps run through the `t()` layer in **English, French, Portuguese, Spanish, Swahili, and Arabic** (Arabic incl. full RTL), enforced by the build-time guard. The customer namespaces are `c`-prefixed (`chome`, `corders`, `cchat`, …) to avoid collision with the tailor's.
+- **Marketing site (3.12) — two-audience repositioning (on branch, not deployed).** The live site (`seamflowtech.com`) is being repositioned to speak to **tailors and customers from one page, tailor-led**: an audience toggle reskins the accent **purple ⇄ rose**, swaps hero/features/CTA copy, and adds a "two sides, one thread" marketplace-loop band — all six languages. On `feat/web-two-audience`, awaiting review before deploy.
+- **Native Google Sign-In** wired on `feat/google-native-signin` (dormant — the in-app dialog flow, `signInWithIdToken`); needs the Supabase Authorized Client IDs + native lib install before merge. The current PKCE/browser flow (1.9.2) still ships.
+- **Distribution.** Play Store **closed testing** live (`com.bambothanson.FashionApp`) since Aug 17; sideload **APK** via GitHub Releases; **API on Render** (`seamflow-api.onrender.com`, from `main`); marketing site + customer/tailor web app on **Vercel**.
 
 ---
 
@@ -485,9 +504,9 @@ Features that turn a useful tool into a tool tailors won't stop paying for. Most
 - **Approach:** Ship 10 starter templates (suit, shirt, trouser, dress, blouse, kaftan, agbada, sherwani, lehenga, abaya). Tailors can clone and customize. Templates are JSON Schema-shaped so we can validate on save.
 - **Dependencies:** 1.1.
 
-### 2.8 Multi-language i18n 🟡 PARTIAL — EN/FR shipped
+### 2.8 Multi-language i18n 🟡 SIX LANGUAGES SHIPPED (mobile); web landing i18n live
 
-**Status (2026-07):** PARTIAL — the tailor app is fully bilingual **English + French** through a custom lightweight `t()` layer (`lib/i18n/`, locale dicts per area) with a build-time guard (`npm run i18n:check`) that fails the build on a missing key, EN/FR key drift, or a hardcoded user-facing string. STILL AHEAD: Yoruba, Hausa, Hindi, Urdu, Tagalog, Arabic; RTL for Arabic/Urdu; and web (`seamflow-web`) i18n. Note: implemented as a custom dictionary, **not i18next** — revisit that choice if the language count grows.
+**Status (2026-09):** The mobile app now ships **six full languages — English, French, Portuguese, Spanish, Swahili, and Arabic** (Arabic incl. full **RTL**) — across BOTH the tailor and customer experiences, through the custom `t()` layer (`lib/i18n/`, locale dicts per area) with a build-time guard (`npm run i18n:check`) that fails the build on a missing key, cross-locale key drift, or a hardcoded user-facing string. Customer namespaces are `c`-prefixed to avoid collision. The **marketing site** (`seamflow-web`) also runs all six languages. STILL AHEAD: additional South-Asian / Nigerian languages (Yoruba, Hausa, Hindi, Urdu, Tagalog) if the market calls for them. Note: implemented as a custom dictionary, **not i18next** — revisit that choice only if the language count grows a lot further.
 
 - **What:** App and web run in English, French, Yoruba, Hausa, Hindi, Urdu, Tagalog, Arabic at minimum.
 - **Why:** Most target users aren't English-native.
@@ -519,16 +538,18 @@ Features that turn a useful tool into a tool tailors won't stop paying for. Most
 
 Features that build a real moat. By now you have product-market fit; this phase makes SeamFlow harder to leave and easier to discover.
 
-### 3.1 seamflow-client native mobile app
+### 3.1 seamflow-client native mobile app ✅ BUILT — then merged into the single app (v1.3, Sep 2026)
 
+- **Status:** DONE, but the architecture changed: rather than ship a **separate** consumer app, the client experience was built and then **merged into `apps/seamflow-app` as one binary** with role-based UIs (see "Since the July snapshot" at the top). Customers get the rose discovery experience, push notifications (shared registration), consumer orders, a measurement locker, requests, and in-app chat. `apps/seamflow-client` is retired-in-place. Native lookbook-offline and moodboard saving are the remaining long-tail (3.3/3.4).
 - **What:** A dedicated mobile app for the consumer side. They get push notifications, can browse their lookbook offline, save moodboards, share measurements via QR.
 - **Why:** Web is friction-free for one-off views; an app is for repeat users. By Phase 3 you've identified the clients who place 3+ orders.
 - **Tech:** Expo / React Native, shared `@seamflow/*` packages, Supabase client SDK, EAS for builds.
 - **Approach:** Reuse 60–80% of mobile patterns from `seamflow-app`. Different navigation (clients don't need a CRM). See **Appendix A** for the full feature list.
 - **Dependencies:** Phase 2 complete; existing magic-link conversion data to inform which features matter most.
 
-### 3.2 Measurement locker with QR sharing
+### 3.2 Measurement locker with QR sharing 🟡 LOCKER LIVE; QR sharing ahead
 
+- **Status:** The **measurement locker itself is shipped** — customers keep their own measurement sets in the hub (`(client)/hub/measurements`) and can share them into an order/conversation. STILL AHEAD: the **QR / one-time-token cross-tailor transfer** (the viral loop) and revoke UI.
 - **What:** A client's measurements live in their account, portable across tailors. At a new tailor, they show a QR code; the tailor scans it; measurements appear in the tailor's app.
 - **Why:** This is the consumer-side viral loop. "My measurements are saved in SeamFlow" becomes a thing people say.
 - **Tech:** `react-native-qrcode-svg` (display), `expo-camera` (scan), short-lived signed tokens server-side.
@@ -559,8 +580,9 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **Approach:** "Create order from recipe" flow in the tailor app. Recipes are private by default; later (Phase 4) a tailor can opt to publish recipes for the directory.
 - **Dependencies:** 2.7 (templates).
 
-### 3.6 Tailor directory & discovery
+### 3.6 Tailor directory & discovery 🟡 DISCOVERY FEED LIVE (Aug–Sep 2026)
 
+- **Status:** The **discovery feed is shipped** — a Pinterest-style grid of tailors' real finished work (`(client)/discover`), tailor **storefronts** + public share pages (`/t/<slug>`), audience/occasion filters, and an **Inquire → in-app chat** loop. STILL AHEAD: PostGIS **near-me geo** search, review/rating system tied to completed orders, and the fuzzy text-search backend. Built discovery-first per Appendix D / `docs/client-discovery-vision.md`.
 - **What:** Consumer-facing map and search of tailors near you, filterable by specialty, price tier, languages spoken, and rating.
 - **Why:** Network effects. Tailors invite their existing clients; the platform brings them new clients.
 - **Tech:** PostGIS extension on Supabase for geospatial queries. Algolia or Meilisearch for fuzzy text search. Next.js public pages for SEO.
@@ -623,13 +645,11 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **Cost & safety:** no free tier (funded provider account required); ~$0.03/image means quotas matter before real users can burn credits. Providers apply their own content moderation, which is acceptable for a tailoring context.
 - **Dependencies:** Design Studio M1–M3 (`docs/design-studio-moodboard-plan.md`); `QueueModule`; a funded fal.ai/Replicate account. Pairs naturally with 3.7 (embeddings → "generate variations of a saved design").
 
-### 3.12 Marketing landing page + legal pages + in-app policy links
+### 3.12 Marketing landing page + legal pages + in-app policy links ✅ LIVE — two-audience repositioning on branch
 
-> **Build only — do NOT deploy.** Build everything locally so it can be reviewed
-> (`pnpm --filter seamflow-web dev`) before we point a domain / ship to Vercel.
-> All work lives in the existing `apps/seamflow-web` (Next.js 15 App Router,
-> React 19, Tailwind 3.4) plus small additions to the mobile app. Use
-> `www.seamflowtech.com` as the placeholder domain everywhere (swap later).
+> **Status (2026-09):** SHIPPED and deployed — the marketing site is **live on Vercel at `seamflowtech.com`** (customer/tailor web app at `app.seamflowtech.com`), with the landing, Privacy Policy, Terms, Support, and delete-account pages, an AI-assistant sub-page, six-language i18n, and the in-app policy links. The APK download link points at the GitHub Releases APK.
+>
+> **In progress — two-audience repositioning (branch `feat/web-two-audience`, NOT deployed):** now that the product serves both tailors and customers, the site is being reworked to speak to both from one page, **tailor-led** — an audience toggle reskins the accent **purple ⇄ rose**, swaps hero/features/CTA copy, and adds a "two sides, one thread" marketplace-loop band, in all six languages. Awaiting review before it goes live.
 
 - **What:** A public marketing site for SeamFlow (what it does, the value, the
   vision) + a hosted **Privacy Policy** and **Terms** page, and links from inside
@@ -749,9 +769,10 @@ pass before we consider deploy.
 
 Long-horizon work. Don't plan these in detail today; this section is here so the architecture in Phases 0–3 doesn't paint itself into a corner.
 
-### 4.1 In-app chat between tailor and client
+### 4.1 In-app chat between tailor and client ✅ SHIPPED EARLY (Aug 2026)
 
-- **Tech:** Stream Chat or Sendbird, or a custom build on Supabase Realtime + Postgres.
+- **Status:** DONE — built during the customer-side push, well ahead of Phase 4. **Custom build on Supabase Realtime + Postgres** (not Stream/Sendbird): conversations + messages, an **optimistic offline outbox** (survives force-quit), typing/presence, read receipts, private-bucket image attachments, keyset-paginated history. Inbox + thread on both sides (`(app)/messages`, `(client)/hub/messages`). Push payloads carry `recipientSide` so a tap opens the thread in the correct interface for a dual-role account. Keyboard-avoiding composer + side-sticky routing fixed Sep 2026.
+- **Tech:** Stream Chat or Sendbird, or a custom build on Supabase Realtime + Postgres. *(Chose the custom Supabase Realtime build.)*
 - **Why:** Centralizes communication that currently spreads across WhatsApp, SMS, and phone calls.
 
 ### 4.2 Video fittings
@@ -764,8 +785,9 @@ Long-horizon work. Don't plan these in detail today; this section is here so the
 - **Tech:** Custom recommendation model on top of the embeddings infrastructure from 3.7.
 - **Why:** "You might also like" surface for both clients and tailors.
 
-### 4.4 Marketplace features
+### 4.4 Marketplace features 🟡 CUSTOMER↔TAILOR LOOP LIVE EARLY
 
+- **Status:** The core **two-sided marketplace loop arrived early** via the discovery vision: customers post **"Can you make this?" requests** (photo + budget), tailors send **offers** (price + timeline), and accepting opens an order + conversation. The vendor/seller marketplace below (fabric sellers, embellishment vendors, pattern-makers) is still the long-horizon Phase 4 scope.
 - **What:** Fabric sellers, embellishment vendors, and pattern-makers list products on the platform.
 - **Why:** Revenue diversification and lock-in.
 
