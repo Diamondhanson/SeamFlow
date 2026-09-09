@@ -10,6 +10,7 @@ import { useAuth } from '../../../lib/auth-context';
 import { LockProvider, useLock } from '../../../lib/lock-context';
 import { FloatingScrollProvider } from '../../../lib/floating-scroll';
 import { PinLockScreen } from '../../../components/PinLockScreen';
+import { useNotificationTapHandler } from '../../../lib/notifications';
 import { useThemeColors } from '../../../lib/theme';
 
 export default function ClientHubLayout() {
@@ -29,6 +30,10 @@ export default function ClientHubLayout() {
 function GatedStack() {
   const { ready, pinSet, locked } = useLock();
   const colors = useThemeColors();
+
+  // Route notification taps into the client tree (/hub/...). The handler is
+  // role-aware; only one tree is mounted at a time, so this doesn't double up.
+  useNotificationTapHandler();
 
   if (!ready) return <Center bg={colors.bg} tint={colors.accent} />;
   if (locked && pinSet) return <PinLockScreen />;

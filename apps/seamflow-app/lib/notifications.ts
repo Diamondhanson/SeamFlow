@@ -27,6 +27,7 @@ import type * as ExpoNotifications from 'expo-notifications';
 import type { DevicePlatform } from '@seamflow/schemas';
 import { api } from './api';
 import { canUsePushNotifications } from './platform-capabilities';
+import { useMode } from './mode';
 
 // Lazy-load native modules so a stale dev APK (built before 1.8 added push)
 // doesn't crash the whole app at module init. Each getter returns null when
@@ -173,10 +174,15 @@ export async function sendPushTest(): Promise<number> {
  * once, inside the authed router context.
  */
 export function useNotificationTapHandler(): void {
+  const { mode } = useMode();
   useEffect(() => {
     if (!canUsePushNotifications) return;
     const N = getNotifications();
     if (!N) return;
+
+    // Route into the active experience's tree: /hub for the client, /(app) for
+    // the tailor. Only one tree is mounted at a time (see the role router).
+    const base = mode === 'client' ? '/hub' : '/(app)';
 
     const routeTo = (data: unknown) => {
       const d = data as
@@ -190,11 +196,11 @@ export function useNotificationTapHandler(): void {
       const entityType = d?.entityType;
       if (typeof entityId === 'string' && entityId) {
         if (entityType === 'conversation') {
-          router.push(`/(app)/messages/${entityId}`);
+          router.push(`${base}/messages/${entityId}` as never);
           return;
         }
         // 'order' and 'invoice' both resolve to the order screen.
-        router.push(`/(app)/orders/${entityId}`);
+        router.push(`${base}/orders/${entityId}` as never);
         return;
       }
 
@@ -202,7 +208,7 @@ export function useNotificationTapHandler(): void {
       // and notifications already sitting in a tray predate the new shape.
       const orderId = d?.orderId;
       if (typeof orderId === 'string' && orderId) {
-        router.push(`/(app)/orders/${orderId}`);
+        router.push(`${base}/orders/${orderId}` as never);
       }
     };
 
@@ -218,7 +224,7 @@ export function useNotificationTapHandler(): void {
       routeTo(resp.notification.request.content.data);
     });
     return () => sub.remove();
-  }, []);
+  }, [mode]);
 }
 
 function currentPlatform(): DevicePlatform {
