@@ -610,6 +610,11 @@ export class ChatService {
           // silently did nothing.
           entityType: 'conversation',
           entityId: convo.id,
+          // Which side of this thread the RECIPIENT is on. A single account can
+          // be the tailor in one conversation and the customer in another, so
+          // the app routes the tap into this side's tree (tailor vs client) and
+          // switches mode to match — not into whichever interface is open.
+          recipientSide: senderSide === 'client' ? 'tailor' : 'client',
         },
       });
     } catch (err) {

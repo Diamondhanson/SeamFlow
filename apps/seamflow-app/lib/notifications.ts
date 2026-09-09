@@ -174,21 +174,39 @@ export async function sendPushTest(): Promise<number> {
  * once, inside the authed router context.
  */
 export function useNotificationTapHandler(): void {
-  const { mode } = useMode();
+  const { mode, setMode } = useMode();
   useEffect(() => {
     if (!canUsePushNotifications) return;
     const N = getNotifications();
     if (!N) return;
 
-    // Route into the active experience's tree: /hub for the client, /(app) for
-    // the tailor. Only one tree is mounted at a time (see the role router).
-    const base = mode === 'client' ? '/hub' : '/(app)';
+    // /hub is the client tree, /(app) the tailor tree. Only one is mounted at a
+    // time (see the role router).
+    const treeFor = (m: 'tailor' | 'client') => (m === 'client' ? '/hub' : '/(app)');
 
     const routeTo = (data: unknown) => {
       const d = data as
-        | { orderId?: unknown; entityType?: unknown; entityId?: unknown }
+        | {
+            orderId?: unknown;
+            entityType?: unknown;
+            entityId?: unknown;
+            recipientSide?: unknown;
+          }
         | null
         | undefined;
+
+      // A single account can be the tailor in one conversation and the customer
+      // in another. The notification says which side the recipient is on, so we
+      // route into THAT side's tree — and flip the app's mode to match — rather
+      // than into whichever interface happens to be open. Without this, tapping
+      // an enquiry-to-your-shop push while browsing as a customer would try to
+      // open it in the client tree, where the thread doesn't exist. Falls back
+      // to the current mode for pushes that carry no side (e.g. order reminders).
+      const side = d?.recipientSide;
+      const targetMode: 'tailor' | 'client' =
+        side === 'tailor' || side === 'client' ? side : mode;
+      const base = treeFor(targetMode);
+      if (targetMode !== mode) setMode(targetMode);
 
       // entityType/entityId is the current shape and mirrors the inbox row, so
       // tapping a push and tapping its inbox entry land in the same place.
@@ -224,7 +242,7 @@ export function useNotificationTapHandler(): void {
       routeTo(resp.notification.request.content.data);
     });
     return () => sub.remove();
-  }, [mode]);
+  }, [mode, setMode]);
 }
 
 function currentPlatform(): DevicePlatform {

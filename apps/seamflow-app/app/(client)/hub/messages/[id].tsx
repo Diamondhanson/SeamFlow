@@ -27,6 +27,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -377,13 +378,19 @@ export default function Thread() {
         </Pressable>
       ) : null}
 
+      {/* Keep the composer pinned directly above the keyboard, chat-app style.
+          react-native-keyboard-controller's KAV tracks the IME reliably on
+          edge-to-edge Android (where the window pan/resize modes are flaky) and
+          on iOS. Wraps only the list + composer so the header stays put. */}
+      <KeyboardAvoidingView style={styles.kav} behavior="padding" keyboardVerticalOffset={0}>
       {msgsQ.isLoading && messages.length === 0 ? (
-        <View style={styles.padded}>
+        <View style={[styles.padded, styles.kav]}>
           <SkeletonList leading="none" />
         </View>
       ) : (
         <FlatList
           ref={listRef}
+          style={styles.kav}
           data={rows}
           inverted
           keyExtractor={(r) =>
@@ -452,6 +459,7 @@ export default function Thread() {
           <Ionicons name="send" size={18} color={atelier.textOnPrimary} />
         </Pressable>
       </View>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
@@ -467,6 +475,7 @@ function dayLabel(dateString: string, t: (k: string) => string): string {
 }
 
 const styles = StyleSheet.create({
+  kav: { flex: 1 },
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   pinned: {
     flexDirection: 'row',

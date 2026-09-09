@@ -20,6 +20,7 @@ import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { useCreateConversation } from '../../../lib/consumer-queries';
 import { useAuth } from '../../../lib/auth-context';
+import { useMode } from '../../../lib/mode';
 import { useDialog } from '../../../lib/dialog';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
@@ -37,6 +38,7 @@ export default function Inquire() {
   }>();
 
   const { session } = useAuth();
+  const { setMode } = useMode();
   const create = useCreateConversation();
 
   // Name the piece when there is one. A tailor with thirty designs published
@@ -62,6 +64,13 @@ export default function Inquire() {
       },
       {
         onSuccess: (conversation) => {
+          // Sending an enquiry means you're acting as a customer — lock the app
+          // into client mode so a tailor who's browsing as a customer isn't
+          // bounced back into the tailor tree when they reach the thread (or
+          // when the reply notification later routes by mode). Without this a
+          // dual-role account (a tailor who also shops) resolves to 'tailor' and
+          // the messaging jumps to the tailor interface.
+          setMode('client');
           // Straight into the thread — the reply is what they're waiting for.
           router.replace({
             pathname: '/hub/messages/[id]',
