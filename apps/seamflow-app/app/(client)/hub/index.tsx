@@ -6,7 +6,8 @@ import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { useAuth } from '../../../lib/auth-context';
 import { useDialog } from '../../../lib/dialog';
-import { useUnreadNotificationCount } from '../../../lib/queries';
+import { useMode } from '../../../lib/mode';
+import { useMe, useUnreadNotificationCount } from '../../../lib/queries';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../../lib/i18n';
 
@@ -31,6 +32,15 @@ export default function ClientHome() {
   const themeColors = useThemeColors();
   const dialog = useDialog();
   const { signOut } = useAuth();
+  const { setMode } = useMode();
+  const { data: me } = useMe();
+
+  // Switch to the tailor experience. If they don't have a shop yet, drop them
+  // into the (skippable) shop-setup flow; otherwise straight to the CRM.
+  const goTailor = () => {
+    setMode('tailor');
+    router.replace((me?.tailor ? '/(app)' : '/(app)/profile-edit?onboarding=1') as never);
+  };
 
   const greeting = t(`chome.${greetingKey(new Date().getHours())}`);
   const unreadNotifications = useUnreadNotificationCount().data?.count ?? 0;
@@ -124,6 +134,24 @@ export default function ClientHome() {
           ))}
         </View>
 
+        {/* Soft switch to the tailor side — a client can open a shop anytime. */}
+        <Pressable
+          onPress={goTailor}
+          style={({ pressed }) => [
+            styles.switchRow,
+            { backgroundColor: colors.surface, borderColor: colors.hairline },
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <View style={[styles.switchIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
+            <Ionicons name="cut-outline" size={18} color={colors.primary} />
+          </View>
+          <Text variant="bodySm" style={{ flex: 1, fontWeight: '600' }}>
+            {t('role.switchToTailor')}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={themeColors.textMuted} />
+        </Pressable>
+
         <Pressable onPress={() => void onChooseLanguage()} hitSlop={8} style={styles.signOut}>
           <Ionicons name="language-outline" size={16} color={themeColors.textMuted} />
           <Text variant="bodySm" tone="textMuted">
@@ -193,5 +221,21 @@ const styles = StyleSheet.create({
     gap: 6,
     alignSelf: 'center',
     marginTop: spacing.xl,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderRadius: radii.lg,
+    marginTop: spacing.xl,
+  },
+  switchIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

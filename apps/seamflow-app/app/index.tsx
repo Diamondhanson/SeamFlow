@@ -18,8 +18,9 @@ export default function Index() {
     );
   }
 
-  // Signed out → sign in. (Public client discovery becomes the entry in Phase 2.)
-  if (!session) return <Redirect href="/sign-in" />;
+  // Signed out → public discovery (browsable without an account; signing in is
+  // gated on action). A tailor signs in from the account entry on discovery.
+  if (!session) return <Redirect href={'/(client)/discover' as Href} />;
 
   // Signed in → the experience their profile resolves to.
   return <Redirect href={(mode === 'tailor' ? '/(app)' : '/(client)') as Href} />;

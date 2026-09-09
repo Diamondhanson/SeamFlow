@@ -31,6 +31,7 @@ import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
 import { canUsePinLock } from '../../lib/platform-capabilities';
 import { useDialog } from '../../lib/dialog';
 import { useRequireProfile } from '../../lib/profile-gate';
+import { useMode } from '../../lib/mode';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode } from '../../lib/theme-mode';
@@ -64,6 +65,14 @@ export default function Me() {
   const colors = useThemeColors();
   const dialog = useDialog();
   const requireProfile = useRequireProfile();
+  const { setMode } = useMode();
+
+  // Soft switch to the customer experience (discovery). A tailor can browse and
+  // order as a customer too; their shop is still one tap back via the client hub.
+  const goClient = () => {
+    setMode('client');
+    router.replace('/(client)/discover' as never);
+  };
   const upsert = useUpsertMyTailor();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -342,6 +351,16 @@ export default function Me() {
               onPress={() => router.push('/(app)/pin')}
             />
           ) : null}
+        </SettingsCard>
+
+        {/* Soft switch to the customer side. */}
+        <SettingsCard>
+          <SettingsRow
+            first
+            icon="sparkles-outline"
+            label={t('role.switchToClient')}
+            onPress={goClient}
+          />
         </SettingsCard>
 
         {/* Legal */}

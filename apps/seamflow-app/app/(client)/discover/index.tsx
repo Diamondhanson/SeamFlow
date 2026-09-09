@@ -31,6 +31,7 @@ import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { useAuth } from '../../../lib/auth-context';
 
 const AUDIENCES: WorkAudience[] = ['women', 'men', 'unisex', 'children'];
 const OCCASIONS: WorkOccasion[] = [
@@ -45,6 +46,7 @@ export default function Discover() {
   const { t } = useTranslation();
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
+  const { session } = useAuth();
 
   const [audience, setAudience] = useState<WorkAudience | undefined>();
   const [occasion, setOccasion] = useState<WorkOccasion | undefined>();
@@ -79,7 +81,23 @@ export default function Discover() {
   return (
     <Screen padded={false} width="wide">
       <View style={styles.padded}>
-        <ScreenHeader title={t('discover.title')} />
+        <ScreenHeader
+          title={t('discover.title')}
+          right={
+            <Pressable
+              onPress={() => router.push((session ? '/hub' : '/sign-in') as never)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={session ? t('chome.tagline') : t('auth.signIn')}
+            >
+              <Ionicons
+                name={session ? 'person-circle' : 'person-circle-outline'}
+                size={28}
+                color={colors.textMuted}
+              />
+            </Pressable>
+          }
+        />
         <Text variant="bodySm" tone="textMuted">
           {t('discover.subtitle')}
         </Text>

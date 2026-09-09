@@ -57,9 +57,10 @@ export default function VerifyOtp() {
     try {
       await verifyOtpSignup(email, code);
       // verifyOtp creates the session. The auth-context listener picks up the
-      // SIGNED_IN event. Usher the brand-new user straight into profile setup
-      // (skippable) rather than dropping them on a bare home screen.
-      router.replace('/(app)/profile-edit?onboarding=1');
+      // SIGNED_IN event. Ask the brand-new user which experience they want —
+      // that seeds their mode and routes them (tailor → shop setup, client →
+      // discovery). See app/choose-role.tsx.
+      router.replace('/choose-role');
     } catch (err) {
       await dialog.error(err, { title: t('auth.verificationFailed') });
     } finally {

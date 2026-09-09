@@ -14,6 +14,7 @@ import { common } from './locales/common';
 import { errors } from './locales/errors';
 import { gate } from './locales/gate';
 import { discover } from './locales/discover';
+import { role } from './locales/role';
 // Client experience namespaces. The client app reuses generic names (home,
 // orders, chat…) that collide with the tailor's, so they're registered under a
 // `c` prefix here and the client screens call t('chome.…'). `claim` is
@@ -101,6 +102,7 @@ const NAMESPACES = {
   errors,
   gate,
   discover,
+  role,
   ccommon,
   cauth,
   chome,
