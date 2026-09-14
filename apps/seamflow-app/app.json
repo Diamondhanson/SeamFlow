@@ -25,7 +25,7 @@
       },
       "package": "com.bambothanson.FashionApp",
       "googleServicesFile": "./google-services.json",
-      "softwareKeyboardLayoutMode": "resize",
+      "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS"

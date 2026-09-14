@@ -147,7 +147,7 @@ export function StorefrontView({
                 <Pressable
                   key={post.id}
                   onPress={() =>
-                    router.push({ pathname: '/(app)/discover/[id]', params: { id: post.id } })
+                    router.push({ pathname: '/discover/[id]', params: { id: post.id } })
                   }
                   style={{ width: cellW, borderRadius: radii.md, overflow: 'hidden' }}
                 >

@@ -70,13 +70,10 @@ export default function ClientHome() {
     }
   };
 
+  // Note: Discover, Requests, Messages and Orders are the bottom-nav tabs, so
+  // they're intentionally NOT repeated here — this launcher holds only what the
+  // tab bar doesn't reach.
   const tiles: HomeTile[] = [
-    { key: 'discover', label: t('discover.tabDiscover'), sub: t('discover.subtitle'), icon: 'sparkles-outline', live: true, go: () => router.push('/discover') },
-    // Second, right after Discover. Browsing is one way in; asking is the
-    // other, and asking works even when nothing has been published yet.
-    { key: 'requests', label: t('crequests.tileLabel'), sub: t('crequests.tileSubtitle'), icon: 'megaphone-outline', live: true, go: () => router.push('/hub/requests') },
-    { key: 'messages', label: t('discover.tabMessages'), sub: t('cchat.listSubtitle'), icon: 'chatbubbles-outline', live: true, go: () => router.push('/hub/messages') },
-    { key: 'orders', label: t('chome.ordersTile'), sub: t('chome.ordersTileSub'), icon: 'shirt-outline', live: true, go: () => router.push('/hub/orders') },
     { key: 'measurements', label: t('chome.measurementsTile'), sub: t('chome.measurementsTileSub'), icon: 'body-outline', live: true, go: () => router.push('/hub/measurements') },
     // Durable record of what happened — push is best-effort, this isn't.
     { key: 'notifications', label: t('cnotifications.title'),

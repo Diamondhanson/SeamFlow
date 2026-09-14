@@ -26,6 +26,7 @@ import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SkeletonGrid } from '../../../components/Skeleton';
+import { ImageCaption } from '../../../components/client/ImageCaption';
 import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useFeed } from '../../../lib/consumer-queries';
 import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
@@ -193,21 +194,25 @@ export default function Discover() {
                         })
                       }
                     >
-                      <Image
-                        source={{ uri: post.thumbnailUrl }}
+                      {/* Attribution laid OVER the image in a gradient-blur bar
+                          (same treatment as a designer's profile grid), so the
+                          maker's name reads as part of the piece rather than a
+                          loose caption below it. */}
+                      <View
                         style={{
                           width: cellW,
                           height: cellW / ratio,
-                          backgroundColor: colors.card,
                           borderRadius: radii.md,
+                          overflow: 'hidden',
+                          backgroundColor: colors.card,
                         }}
-                      />
-                      {/* Attribution on the tile too, not just in the detail
-                          view — the maker is the point, and a grid of anonymous
-                          images teaches people to ignore the name. */}
-                      <Text variant="caption" tone="textMuted" numberOfLines={1}>
-                        {post.tailor.businessName}
-                      </Text>
+                      >
+                        <Image
+                          source={{ uri: post.thumbnailUrl }}
+                          style={{ width: cellW, height: cellW / ratio }}
+                        />
+                        <ImageCaption name={post.tailor.businessName} />
+                      </View>
                     </Pressable>
                   );
                 })}
