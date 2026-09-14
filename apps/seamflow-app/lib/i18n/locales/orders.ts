@@ -2,6 +2,12 @@
 // French mirrors it. Keys are camelCase and referenced as t('orders.key').
 export const orders = {
   en: {
+    shareChooseTitle: 'Share this order',
+    shareInApp: 'Send in the app',
+    shareLink: 'Share a link',
+    shareInAppPick: 'Choose a conversation',
+    shareInAppNone: 'You have no conversations yet.',
+    shareInAppSent: 'Order sent in the chat.',
     // Screen headers
     listTitle: 'Orders',
     newOrder: 'New order',
@@ -161,6 +167,12 @@ export const orders = {
     deleteOrderMessage: '{name} will be permanently deleted.',
   },
   fr: {
+    shareChooseTitle: 'Partager cette commande',
+    shareInApp: 'Envoyer dans l’app',
+    shareLink: 'Partager un lien',
+    shareInAppPick: 'Choisir une conversation',
+    shareInAppNone: 'Vous n’avez pas encore de conversation.',
+    shareInAppSent: 'Commande envoyée dans le chat.',
     // Screen headers
     listTitle: 'Commandes',
     newOrder: 'Nouvelle commande',
@@ -317,6 +329,12 @@ export const orders = {
     deleteOrderMessage: '{name} sera définitivement supprimée.',
   },
   pt: {
+    shareChooseTitle: 'Compartilhar este pedido',
+    shareInApp: 'Enviar no app',
+    shareLink: 'Compartilhar um link',
+    shareInAppPick: 'Escolha uma conversa',
+    shareInAppNone: 'Você ainda não tem conversas.',
+    shareInAppSent: 'Pedido enviado no chat.',
     // Cabeçalhos
     listTitle: 'Encomendas',
     newOrder: 'Nova encomenda',
@@ -480,6 +498,12 @@ export const orders = {
     deleteOrderMessage: '{name} será eliminada definitivamente.',
   },
   es: {
+    shareChooseTitle: 'Compartir este pedido',
+    shareInApp: 'Enviar en la app',
+    shareLink: 'Compartir un enlace',
+    shareInAppPick: 'Elige una conversación',
+    shareInAppNone: 'Aún no tienes conversaciones.',
+    shareInAppSent: 'Pedido enviado en el chat.',
     // Encabezados de pantalla
     listTitle: 'Pedidos',
     newOrder: 'Nuevo pedido',
@@ -637,6 +661,12 @@ export const orders = {
     deleteOrderMessage: '{name} se eliminará de forma permanente.',
   },
   sw: {
+    shareChooseTitle: 'Shiriki oda hii',
+    shareInApp: 'Tuma kwenye programu',
+    shareLink: 'Shiriki kiungo',
+    shareInAppPick: 'Chagua mazungumzo',
+    shareInAppNone: 'Huna mazungumzo bado.',
+    shareInAppSent: 'Oda imetumwa kwenye gumzo.',
     // Vichwa vya skrini
     listTitle: 'Maagizo',
     newOrder: 'Agizo jipya',
@@ -794,6 +824,12 @@ export const orders = {
     deleteOrderMessage: '{name} litafutwa kabisa.',
   },
   ar: {
+    shareChooseTitle: 'مشاركة هذا الطلب',
+    shareInApp: 'أرسل داخل التطبيق',
+    shareLink: 'مشاركة رابط',
+    shareInAppPick: 'اختر محادثة',
+    shareInAppNone: 'ليس لديك محادثات بعد.',
+    shareInAppSent: 'تم إرسال الطلب في المحادثة.',
     listTitle: 'الطلبات',
     newOrder: 'طلب جديد',
     detailTitle: 'طلب',

@@ -269,15 +269,57 @@ export default function OrderDetailScreen() {
     deletePhotoM.mutate(photoId, { onError: (err) => void dialog.error(err) });
   };
 
-  const shareWithClient = () => {
+  const shareWithClient = async () => {
+    if (!order) return;
+    // Two ways to hand an order to a client: post it straight into a chat you're
+    // already having with them in the app, or mint a public link / WhatsApp
+    // message for a client who isn't on SeamFlow.
+    const how = await dialog.choose<'inapp' | 'link'>({
+      title: t('orders.shareChooseTitle'),
+      actions: [
+        { label: t('orders.shareInApp'), value: 'inapp' },
+        { label: t('orders.shareLink'), value: 'link' },
+      ],
+    });
+    if (how === 'inapp') void shareOrderInApp();
+    else if (how === 'link') shareOrderViaLink();
+  };
+
+  // Post the order into an existing conversation — also links it to that
+  // client's account so it lands in their Orders list (server-side).
+  const shareOrderInApp = async () => {
+    try {
+      const res = await api.conversations.list({});
+      const convos = res.items ?? [];
+      if (convos.length === 0) {
+        await dialog.alert({
+          title: t('orders.shareInApp'),
+          message: t('orders.shareInAppNone'),
+          tone: 'info',
+        });
+        return;
+      }
+      const convId = await dialog.choose<string>({
+        title: t('orders.shareInAppPick'),
+        actions: convos.slice(0, 30).map((c) => ({ label: c.counterparty.name, value: c.id })),
+      });
+      if (!convId) return;
+      await api.conversations.shareOrder(convId, { orderId: id });
+      await dialog.alert({
+        title: t('orders.shareInApp'),
+        message: t('orders.shareInAppSent'),
+        tone: 'success',
+      });
+    } catch (err) {
+      await dialog.error(err);
+    }
+  };
+
+  const shareOrderViaLink = () => {
     if (!order) return;
     // Sharing mints a public link exposing the tailor — gate on a profile first,
     // then resume the share automatically once it's set up.
     requireProfile(() => {
-      // We pass client + tailor info so the hook can build a friendly message
-      // and use WhatsApp deep link when the client has a phone number.
-      // The promise is fire-and-forget — every error path is already handled
-      // inside the hook (it never throws).
       void shareOrderHook.share({
         orderName: order.orderName,
         clientName: clientQ.data?.fullName ?? null,
@@ -372,7 +414,7 @@ export default function OrderDetailScreen() {
                   <Ionicons name="share-social-outline" size={18} color={colors.text} />
                 )
               }
-              onPress={shareWithClient}
+              onPress={() => void shareWithClient()}
               disabled={shareOrderHook.isPending}
             />
           </View>
