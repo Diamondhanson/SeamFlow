@@ -2,6 +2,7 @@
 // this is human ↔ human. English is the source of truth; French mirrors it.
 export const chat = {
   en: {
+    copy: 'Copy',
     shareOrder: 'Share an order',
     shareOrderPick: 'Choose an order to share',
     shareOrderEmpty: 'You have no orders to share yet.',
@@ -93,6 +94,7 @@ export const chat = {
     aDesign: 'a design',
   },
   fr: {
+    copy: 'Copier',
     shareOrder: 'Partager une commande',
     shareOrderPick: 'Choisir une commande à partager',
     shareOrderEmpty: 'Vous n’avez pas encore de commande à partager.',
@@ -175,6 +177,7 @@ export const chat = {
     aDesign: 'une création',
   },
   pt: {
+    copy: 'Copiar',
     shareOrder: 'Compartilhar um pedido',
     shareOrderPick: 'Escolha um pedido para compartilhar',
     shareOrderEmpty: 'Você ainda não tem pedidos para compartilhar.',
@@ -263,6 +266,7 @@ export const chat = {
     aDesign: 'uma criação',
   },
   es: {
+    copy: 'Copiar',
     shareOrder: 'Compartir un pedido',
     shareOrderPick: 'Elige un pedido para compartir',
     shareOrderEmpty: 'Aún no tienes pedidos para compartir.',
@@ -350,6 +354,7 @@ export const chat = {
     aDesign: 'un diseño',
   },
   sw: {
+    copy: 'Nakili',
     shareOrder: 'Shiriki oda',
     shareOrderPick: 'Chagua oda ya kushiriki',
     shareOrderEmpty: 'Huna oda za kushiriki bado.',
@@ -437,6 +442,7 @@ export const chat = {
     aDesign: 'ubunifu',
   },
   ar: {
+    copy: 'نسخ',
     shareOrder: 'مشاركة طلب',
     shareOrderPick: 'اختر طلبًا للمشاركة',
     shareOrderEmpty: 'ليس لديك طلبات لمشاركتها بعد.',

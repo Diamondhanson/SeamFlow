@@ -20,11 +20,13 @@ import {
   FlatList,
   Image,
   Linking,
+  Modal,
   Pressable,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -93,6 +95,8 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
   const [pending, setPending] = useState<PendingMessage[]>([]);
   const [attaching, setAttaching] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  /** The message whose WhatsApp-style action overlay is open. */
+  const [menu, setMenu] = useState<Message | null>(null);
   const listRef = useRef<FlatList<Row>>(null);
 
   // ── Outbox ────────────────────────────────────────────────────────────────
@@ -249,18 +253,15 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
     if (chosen) shareOrderMut.mutate(chosen);
   };
 
-  // ── Reactions / reply menu ────────────────────────────────────────────────
-  const onLongPressBubble = async (msg: Message) => {
-    const choice = await dialog.choose<string>({
-      title: tk('messageActions'),
-      actions: [
-        ...REACTION_CHOICES.map((e) => ({ label: e, value: e })),
-        { label: tk('reply'), value: '__reply__' },
-      ],
-    });
-    if (!choice) return;
-    if (choice === '__reply__') setReplyingTo(msg);
-    else reactMut.mutate({ messageId: msg.id, emoji: choice });
+  // ── Reactions / reply overlay (WhatsApp-style) ────────────────────────────
+  const onLongPressBubble = (msg: Message) => setMenu(msg);
+  const react = (m: Message, emoji: string) => {
+    reactMut.mutate({ messageId: m.id, emoji });
+    setMenu(null);
+  };
+  const copyMessage = async (m: Message) => {
+    if (m.body) await Clipboard.setStringAsync(m.body);
+    setMenu(null);
   };
 
   const scrollToMessage = (messageId: string) => {
@@ -600,6 +601,74 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {/* WhatsApp-style long-press overlay: dim the thread, float the bubble in
+          the middle with an emoji reaction bar above and an action menu below. */}
+      <Modal visible={!!menu} transparent animationType="fade" onRequestClose={() => setMenu(null)}>
+        {menu
+          ? (() => {
+              const m = menu;
+              const mine = m.senderType === role;
+              const myEmoji = m.reactions.find((r) => r.side === role)?.emoji ?? null;
+              return (
+                <Pressable style={styles.overlayBackdrop} onPress={() => setMenu(null)}>
+                  <View style={[styles.overlayCol, mine ? styles.overlayEnd : styles.overlayStart]}>
+                    {/* Reaction bar */}
+                    <View style={[styles.reactionBar, { backgroundColor: colors.card }]}>
+                      {REACTION_CHOICES.map((e) => (
+                        <Pressable
+                          key={e}
+                          onPress={() => react(m, e)}
+                          style={[styles.reactionBtn, myEmoji === e && { backgroundColor: colors.bg }]}
+                        >
+                          <Text style={styles.reactionEmoji}>{e}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+
+                    {/* The elevated bubble */}
+                    <View
+                      style={[
+                        styles.overlayBubble,
+                        { backgroundColor: mine ? atelier.primary : colors.card, borderRadius: radii.lg },
+                      ]}
+                    >
+                      {m.attachments.map((a, i) => renderAttachment(a, i))}
+                      {m.body ? (
+                        <Text variant="body" style={{ color: mine ? atelier.textOnPrimary : colors.text }}>
+                          {m.body}
+                        </Text>
+                      ) : null}
+                    </View>
+
+                    {/* Action menu */}
+                    <View style={[styles.actionMenu, { backgroundColor: colors.card }]}>
+                      <Pressable
+                        style={styles.actionRow}
+                        onPress={() => {
+                          setReplyingTo(m);
+                          setMenu(null);
+                        }}
+                      >
+                        <Text variant="body">{tk('reply')}</Text>
+                        <Ionicons name="arrow-undo-outline" size={20} color={colors.text} />
+                      </Pressable>
+                      {m.body ? (
+                        <View style={[styles.actionSep, { backgroundColor: colors.hairline }]} />
+                      ) : null}
+                      {m.body ? (
+                        <Pressable style={styles.actionRow} onPress={() => copyMessage(m)}>
+                          <Text variant="body">{tk('copy')}</Text>
+                          <Ionicons name="copy-outline" size={20} color={colors.text} />
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            })()
+          : null}
+      </Modal>
     </Screen>
   );
 
@@ -738,6 +807,59 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
   },
+  // WhatsApp-style long-press overlay
+  overlayBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  overlayCol: { width: '100%', maxWidth: 380, alignSelf: 'center', gap: spacing.sm },
+  overlayStart: { alignItems: 'flex-start' },
+  overlayEnd: { alignItems: 'flex-end' },
+  reactionBar: {
+    flexDirection: 'row',
+    gap: 2,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: 999,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  reactionBtn: { paddingHorizontal: 6, paddingVertical: 4, borderRadius: 999 },
+  reactionEmoji: { fontSize: 26 },
+  overlayBubble: {
+    maxWidth: '85%',
+    padding: spacing.md,
+    gap: spacing.xs,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  actionMenu: {
+    minWidth: 200,
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  actionSep: { height: StyleSheet.hairlineWidth },
   linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
