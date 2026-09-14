@@ -23,6 +23,8 @@ import { BlurView } from 'expo-blur';
 import { Text } from '@seamflow/ui';
 
 export interface ImageCaptionProps {
+  /** A maker/designer name shown as the lead line — used by the discovery feed. */
+  name?: string | null;
   title?: string | null;
   price?: string | null;
 }
@@ -43,8 +45,8 @@ const SCRIM_BANDS = [
   { height: '28%' as const, opacity: 0.26 },
 ];
 
-export function ImageCaption({ title, price }: ImageCaptionProps) {
-  if (!title && !price) return null;
+export function ImageCaption({ name, title, price }: ImageCaptionProps) {
+  if (!title && !price && !name) return null;
 
   return (
     <View style={styles.wrap} pointerEvents="none">
@@ -64,6 +66,11 @@ export function ImageCaption({ title, price }: ImageCaptionProps) {
       ))}
 
       <View style={styles.content}>
+        {name ? (
+          <Text variant="bodySm" style={styles.title} numberOfLines={1}>
+            {name}
+          </Text>
+        ) : null}
         {title ? (
           <Text variant="bodySm" style={styles.title} numberOfLines={2}>
             {title}

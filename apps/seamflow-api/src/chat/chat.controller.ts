@@ -10,7 +10,13 @@ import {
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { ChatService } from './chat.service';
-import { CreateConversationDto, CreateMessageDto, QuoteDto } from './chat.dto';
+import {
+  CreateConversationDto,
+  CreateMessageDto,
+  QuoteDto,
+  ReactionDto,
+  ShareOrderDto,
+} from './chat.dto';
 
 /**
  * Chat routes (ROADMAP D.2.3). Used by BOTH apps — the caller's role is
@@ -81,6 +87,29 @@ export class ChatController {
   ) {
     const actor = await this.chat.resolveActor(user.id);
     return this.chat.markRead(actor, id);
+  }
+
+  /** Toggle the caller's emoji reaction on a message. */
+  @Post(':id/messages/:messageId/reactions')
+  async react(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('messageId', new ParseUUIDPipe()) messageId: string,
+    @Body() body: ReactionDto,
+  ) {
+    const actor = await this.chat.resolveActor(user.id);
+    return this.chat.toggleReaction(actor, id, messageId, body.emoji);
+  }
+
+  /** Tailor-only: share an existing order into the thread + claim it for the client. */
+  @Post(':id/share-order')
+  async shareOrder(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ShareOrderDto,
+  ) {
+    const actor = await this.chat.resolveActor(user.id);
+    return this.chat.shareOrder(actor, id, body);
   }
 
   /**

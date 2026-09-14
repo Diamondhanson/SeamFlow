@@ -66,6 +66,7 @@ import {
   makeConversationsResource,
   type ConversationsResource,
 } from './resources/conversations';
+import { makeLinksResource, type LinksResource } from './resources/links';
 import {
   makeTailorProfileResource,
   type TailorProfileResource,
@@ -99,6 +100,7 @@ export interface ApiClient {
   notificationPreferences: NotificationPreferencesResource;
   feed: FeedResource;
   conversations: ConversationsResource;
+  links: LinksResource;
   tailorProfile: TailorProfileResource;
   /** "Can you make this?" — client briefs and tailor offers (appendix H). */
   requests: RequestsResource;
@@ -146,6 +148,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     notificationPreferences: makeNotificationPreferencesResource(http),
     feed: makeFeedResource(http),
     conversations: makeConversationsResource(http),
+    links: makeLinksResource(http),
     tailorProfile: makeTailorProfileResource(http),
     requests: makeRequestsResource(http),
     works: makeWorksResource(http),

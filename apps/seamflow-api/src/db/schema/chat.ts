@@ -82,6 +82,10 @@ export const messages = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     body: text('body'),
     attachments: jsonb('attachments').notNull().default([]),
+    /** Emoji reactions: array of { emoji, side, actorId }. */
+    reactions: jsonb('reactions').notNull().default([]),
+    /** Reply-to: the message this one quotes (self-FK; added in migration). */
+    replyToId: uuid('reply_to_id'),
     clientId: text('client_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     readAt: timestamp('read_at', { withTimezone: true }),

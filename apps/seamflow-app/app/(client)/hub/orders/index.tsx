@@ -72,7 +72,17 @@ export default function OrdersInbox() {
           showsVerticalScrollIndicator={false}
           ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
           renderItem={({ item }) => {
-            const tone = colors[STATUS_TONE[item.status]];
+            // "Overdue" isn't a stored status — it's derived: a delivery date in
+            // the past on an order that hasn't been delivered. Shown in the
+            // danger tone so a client can see at a glance what's slipping.
+            const isOverdue =
+              !!item.dateDelivery &&
+              item.status !== 'delivered' &&
+              new Date(item.dateDelivery).getTime() < Date.now();
+            const tone = isOverdue ? colors.danger : colors[STATUS_TONE[item.status]];
+            const statusLabel = isOverdue
+              ? t('corders.status_overdue')
+              : t(`corders.status_${item.status}`);
             const due = fmt(item.dateDelivery);
             return (
               <Pressable
@@ -94,7 +104,7 @@ export default function OrdersInbox() {
                   <View style={styles.cardMeta}>
                     <View style={[styles.chip, { backgroundColor: withAlpha(tone, 0.16) }]}>
                       <Text variant="caption" style={{ color: tone }}>
-                        {t(`corders.status_${item.status}`)}
+                        {statusLabel}
                       </Text>
                     </View>
                     <Text variant="caption" tone="textMuted">

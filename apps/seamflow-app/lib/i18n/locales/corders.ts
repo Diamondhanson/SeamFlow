@@ -20,6 +20,7 @@ export const corders = {
     status_testing: 'Fitting',
     status_on_pause: 'On hold',
     status_delivered: 'Delivered',
+    status_overdue: 'Overdue',
     updatedTo: 'Updated to {status}',
   },
   fr: {
@@ -42,6 +43,7 @@ export const corders = {
     status_testing: 'Essayage',
     status_on_pause: 'En pause',
     status_delivered: 'Livrée',
+    status_overdue: 'En retard',
     updatedTo: 'Mise à jour : {status}',
   },
   pt: {
@@ -65,6 +67,7 @@ export const corders = {
     status_testing: 'Prova',
     status_on_pause: 'Em espera',
     status_delivered: 'Entregue',
+    status_overdue: 'Atrasado',
     updatedTo: 'Atualizada para {status}',
   },
   es: {
@@ -88,6 +91,7 @@ export const corders = {
     status_testing: 'Prueba',
     status_on_pause: 'En espera',
     status_delivered: 'Entregado',
+    status_overdue: 'Atrasado',
     updatedTo: 'Cambió a {status}',
   },
   sw: {
@@ -111,6 +115,7 @@ export const corders = {
     status_testing: 'Kufitisha',
     status_on_pause: 'Limesimamishwa',
     status_delivered: 'Limekabidhiwa',
+    status_overdue: 'Imechelewa',
     updatedTo: 'Limebadilika kuwa {status}',
   },
   ar: {
@@ -134,6 +139,7 @@ export const corders = {
     status_testing: 'قياس',
     status_on_pause: 'متوقّف مؤقتًا',
     status_delivered: 'سُلِّم',
+    status_overdue: 'متأخر',
     updatedTo: 'صار {status}',
   },
 } as const;

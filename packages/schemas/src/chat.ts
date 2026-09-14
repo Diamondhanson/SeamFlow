@@ -54,11 +54,56 @@ export const MessageDesignAttachmentSchema = z.object({
   thumbnailUrl: z.string().url().optional(),
 });
 
+/** A link the sender pasted; unfurled server-side into a preview card. */
+export const MessageLinkAttachmentSchema = z.object({
+  kind: z.literal('link'),
+  url: z.string().url(),
+  title: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  imageUrl: z.string().url().nullable().optional(),
+  siteName: z.string().nullable().optional(),
+});
+
+/**
+ * A reference to one of the tailor's orders, shared into the thread. Only the
+ * `orderId` is stored; the summary fields are hydrated on read so the card can
+ * render without a second fetch (same pattern as image signed URLs).
+ */
+export const MessageOrderAttachmentSchema = z.object({
+  kind: z.literal('order'),
+  orderId: z.string().uuid(),
+  orderName: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  dateDelivery: z.string().nullable().optional(),
+  thumbnailUrl: z.string().url().nullable().optional(),
+});
+
 export const MessageAttachmentSchema = z.discriminatedUnion('kind', [
   MessageImageAttachmentSchema,
   MessageDesignAttachmentSchema,
+  MessageLinkAttachmentSchema,
+  MessageOrderAttachmentSchema,
 ]);
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
+
+// ── Reactions & reply previews ──────────────────────────────────────────────
+
+/** One emoji reaction placed by one participant. */
+export const MessageReactionSchema = z.object({
+  emoji: z.string().min(1).max(16),
+  side: MessageSenderTypeSchema,
+  actorId: z.string().uuid(),
+});
+export type MessageReaction = z.infer<typeof MessageReactionSchema>;
+
+/** A compact quote of the message being replied to, resolved server-side. */
+export const MessageReplyPreviewSchema = z.object({
+  messageId: z.string().uuid(),
+  side: MessageSenderTypeSchema,
+  /** Text snippet, or a label like "Photo" / "Order" when there's no body. */
+  snippet: z.string(),
+});
+export type MessageReplyPreview = z.infer<typeof MessageReplyPreviewSchema>;
 
 // ── Messages ────────────────────────────────────────────────────────────────
 
@@ -69,6 +114,12 @@ export const MessageSchema = z.object({
   senderUserId: z.string().uuid(),
   body: z.string().nullable(),
   attachments: z.array(MessageAttachmentSchema),
+  /** Emoji reactions on this message, from either side. */
+  reactions: z.array(MessageReactionSchema).default([]),
+  /** The message this one replies to, if any. */
+  replyToId: z.string().uuid().nullable().default(null),
+  /** A compact quote of the replied-to message, hydrated on read. */
+  replyPreview: MessageReplyPreviewSchema.nullable().default(null),
   /** Echoed back so an optimistic bubble can be reconciled with the real row. */
   clientId: z.string().nullable(),
   createdAt: z.string().datetime(),
@@ -81,6 +132,8 @@ export const MessageCreateSchema = z
   .object({
     body: z.string().max(4000).nullable().optional(),
     attachments: z.array(MessageAttachmentSchema).max(10).optional(),
+    /** Reply-to: the id of the message this one quotes. */
+    replyToId: z.string().uuid().nullable().optional(),
     /** Mint this on the device before sending. See the note at the top. */
     clientId: z.string().min(8).max(64).optional(),
   })
@@ -194,6 +247,40 @@ export const ConversationQuoteResultSchema = z.object({
   clientId: z.string().uuid(),
 });
 export type ConversationQuoteResult = z.infer<typeof ConversationQuoteResultSchema>;
+
+// ── Reactions / share-order / link unfurl inputs ────────────────────────────
+
+/** Body for POST /conversations/:id/messages/:messageId/reactions — toggles. */
+export const MessageReactionInputSchema = z.object({
+  emoji: z.string().min(1).max(16),
+});
+export type MessageReactionInput = z.infer<typeof MessageReactionInputSchema>;
+
+/**
+ * Body for POST /conversations/:id/share-order — the tailor dropping an
+ * existing order into the thread. Also links the order to the client's account
+ * (an order_claim) so it appears in their Orders list.
+ */
+export const ShareOrderInputSchema = z.object({
+  orderId: z.string().uuid(),
+  /** Optional device-minted id for the accompanying message (outbox idempotency). */
+  clientId: z.string().min(8).max(64).optional(),
+});
+export type ShareOrderInput = z.infer<typeof ShareOrderInputSchema>;
+
+/** Body for POST /links/unfurl. */
+export const LinkUnfurlInputSchema = z.object({ url: z.string().url() });
+export type LinkUnfurlInput = z.infer<typeof LinkUnfurlInputSchema>;
+
+/** Open-graph-ish preview returned by the unfurl endpoint. */
+export const LinkPreviewSchema = z.object({
+  url: z.string().url(),
+  title: z.string().nullable(),
+  description: z.string().nullable(),
+  imageUrl: z.string().url().nullable(),
+  siteName: z.string().nullable(),
+});
+export type LinkPreview = z.infer<typeof LinkPreviewSchema>;
 
 // ── Ephemeral realtime payloads (not persisted) ─────────────────────────────
 

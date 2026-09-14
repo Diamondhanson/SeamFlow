@@ -22,7 +22,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onlineManager } from '@tanstack/react-query';
-import type { Message, MessageAttachment } from '@seamflow/schemas';
+import type { Message, MessageAttachment, MessageReplyPreview } from '@seamflow/schemas';
 import { api } from './api';
 
 const KEY = 'seamflow.chat.outbox.v1';
@@ -35,6 +35,10 @@ export interface PendingMessage {
   conversationId: string;
   body: string | null;
   attachments: MessageAttachment[];
+  /** Reply-to: the message this one quotes, if any. */
+  replyToId?: string | null;
+  /** A snapshot of the quoted message so the optimistic bubble can show it. */
+  replyPreview?: MessageReplyPreview | null;
   /** Local timestamp so optimistic bubbles sort correctly against real ones. */
   createdAt: string;
   attempts: number;
@@ -101,6 +105,8 @@ export async function enqueue(args: {
   conversationId: string;
   body?: string | null;
   attachments?: MessageAttachment[];
+  replyToId?: string | null;
+  replyPreview?: MessageReplyPreview | null;
 }): Promise<PendingMessage> {
   const all = await load();
   const entry: PendingMessage = {
@@ -108,6 +114,8 @@ export async function enqueue(args: {
     conversationId: args.conversationId,
     body: args.body?.trim() ? args.body.trim() : null,
     attachments: args.attachments ?? [],
+    replyToId: args.replyToId ?? null,
+    replyPreview: args.replyPreview ?? null,
     createdAt: new Date().toISOString(),
     attempts: 0,
     status: 'sending',
@@ -173,6 +181,7 @@ export async function flush(onSent?: (msg: Message) => void): Promise<void> {
         const sent = await api.conversations.sendMessage(next.conversationId, {
           body: next.body,
           attachments: next.attachments,
+          replyToId: next.replyToId ?? null,
           clientId: next.clientId,
         });
         cache = (cache ?? []).filter((m) => m.clientId !== next.clientId);

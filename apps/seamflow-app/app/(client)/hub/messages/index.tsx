@@ -10,7 +10,7 @@
 // ============================================================================
 
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Conversation } from '@seamflow/schemas';
@@ -110,10 +110,17 @@ export default function Messages() {
                   { backgroundColor: colors.card, borderRadius: radii.lg },
                 ]}
               >
-                {/* The design system's Avatar is initials-only — it derives
-                    both the letters and the colour from the name. Clients
-                    rarely have an avatar anyway, so initials are the norm. */}
-                <Avatar size="md" name={c.counterparty.name} />
+                {/* Show the design the thread is about, when there is one — the
+                    piece is more recognisable than an initials avatar. Mirrors
+                    the tailor inbox. */}
+                {c.design ? (
+                  <Image
+                    source={{ uri: c.design.thumbnailUrl }}
+                    style={[styles.designThumb, { borderRadius: radii.md }]}
+                  />
+                ) : (
+                  <Avatar size="md" name={c.counterparty.name} />
+                )}
                 <View style={styles.rowText}>
                   <View style={styles.rowTop}>
                     <Text
@@ -171,6 +178,7 @@ const styles = StyleSheet.create({
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   list: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: BOTTOM_CHROME_SPACE, gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md },
+  designThumb: { width: 48, height: 48 },
   rowText: { flex: 1, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rowBottom: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
