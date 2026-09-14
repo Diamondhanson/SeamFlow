@@ -2,6 +2,13 @@
 // this is human ↔ human. English is the source of truth; French mirrors it.
 export const chat = {
   en: {
+    shareOrder: 'Share an order',
+    shareOrderPick: 'Choose an order to share',
+    shareOrderEmpty: 'You have no orders to share yet.',
+    messageActions: 'Message',
+    reply: 'Reply',
+    replyingBanner: 'Replying',
+    orderMessage: 'Order',
     // ── Tab + list ──────────────────────────────────────────────────────────
     tabLabel: 'Messages',
     tabSubtitle: 'Enquiries · chat',
@@ -86,6 +93,13 @@ export const chat = {
     aDesign: 'a design',
   },
   fr: {
+    shareOrder: 'Partager une commande',
+    shareOrderPick: 'Choisir une commande à partager',
+    shareOrderEmpty: 'Vous n’avez pas encore de commande à partager.',
+    messageActions: 'Message',
+    reply: 'Répondre',
+    replyingBanner: 'Réponse',
+    orderMessage: 'Commande',
     tabLabel: 'Messages',
     tabSubtitle: 'Demandes · discussion',
     listTitle: 'Messages',
@@ -161,6 +175,13 @@ export const chat = {
     aDesign: 'une création',
   },
   pt: {
+    shareOrder: 'Compartilhar um pedido',
+    shareOrderPick: 'Escolha um pedido para compartilhar',
+    shareOrderEmpty: 'Você ainda não tem pedidos para compartilhar.',
+    messageActions: 'Mensagem',
+    reply: 'Responder',
+    replyingBanner: 'Respondendo',
+    orderMessage: 'Pedido',
     // ── Separador + lista ───────────────────────────────────────────────────
     tabLabel: 'Mensagens',
     tabSubtitle: 'Pedidos · conversa',
@@ -242,6 +263,13 @@ export const chat = {
     aDesign: 'uma criação',
   },
   es: {
+    shareOrder: 'Compartir un pedido',
+    shareOrderPick: 'Elige un pedido para compartir',
+    shareOrderEmpty: 'Aún no tienes pedidos para compartir.',
+    messageActions: 'Mensaje',
+    reply: 'Responder',
+    replyingBanner: 'Respondiendo',
+    orderMessage: 'Pedido',
     // ── Pestaña + lista ─────────────────────────────────────────────────────
     tabLabel: 'Mensajes',
     tabSubtitle: 'Consultas · chat',
@@ -322,6 +350,13 @@ export const chat = {
     aDesign: 'un diseño',
   },
   sw: {
+    shareOrder: 'Shiriki oda',
+    shareOrderPick: 'Chagua oda ya kushiriki',
+    shareOrderEmpty: 'Huna oda za kushiriki bado.',
+    messageActions: 'Ujumbe',
+    reply: 'Jibu',
+    replyingBanner: 'Unajibu',
+    orderMessage: 'Oda',
     // ── Kichupo + orodha ────────────────────────────────────────────────────
     tabLabel: 'Ujumbe',
     tabSubtitle: 'Maulizo · mazungumzo',
@@ -402,6 +437,13 @@ export const chat = {
     aDesign: 'ubunifu',
   },
   ar: {
+    shareOrder: 'مشاركة طلب',
+    shareOrderPick: 'اختر طلبًا للمشاركة',
+    shareOrderEmpty: 'ليس لديك طلبات لمشاركتها بعد.',
+    messageActions: 'رسالة',
+    reply: 'رد',
+    replyingBanner: 'جارٍ الرد',
+    orderMessage: 'طلب',
     tabLabel: 'الرسائل',
     tabSubtitle: 'استفسارات · محادثة',
     listTitle: 'الرسائل',
