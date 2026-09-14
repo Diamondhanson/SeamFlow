@@ -9,6 +9,7 @@ import type {
   Message,
   MessageCreateInput,
   MessagePage,
+  ShareOrderInput,
 } from '@seamflow/schemas';
 
 function toQuery(params: Record<string, string | number | undefined>): string {
@@ -83,6 +84,19 @@ export function makeConversationsResource(http: HttpClient) {
      */
     quote(id: string, input: ConversationQuoteInput): Promise<ConversationQuoteResult> {
       return http.post<ConversationQuoteResult>(`/conversations/${id}/quote`, input);
+    },
+
+    /** Toggle the caller's emoji reaction on a message; returns the updated message. */
+    react(id: string, messageId: string, emoji: string): Promise<Message> {
+      return http.post<Message>(`/conversations/${id}/messages/${messageId}/reactions`, { emoji });
+    },
+
+    /**
+     * Tailor-only. Share an existing order into the thread — posts an order card
+     * AND links the order to the client's account so it shows in their Orders list.
+     */
+    shareOrder(id: string, input: ShareOrderInput): Promise<Message> {
+      return http.post<Message>(`/conversations/${id}/share-order`, input);
     },
   };
 }

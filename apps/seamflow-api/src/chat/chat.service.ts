@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import type {
   Conversation,
   ConversationCreateInput,
@@ -15,6 +15,8 @@ import type {
   MessageAttachment,
   MessageCreateInput,
   MessagePage,
+  MessageReaction,
+  MessageReplyPreview,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -29,6 +31,7 @@ import {
   invoices,
   messages,
   orderClaims,
+  orders,
   tailors,
   users,
 } from '../db/schema';
@@ -138,16 +141,57 @@ export class ChatService {
 
   /** Resolve every attachment URL for a page of messages in ONE storage call. */
   private async hydrateAttachments(rows: MessageRow[]): Promise<Map<string, MessageAttachment[]>> {
+    const db = this.dbService.db;
     const imagePaths: string[] = [];
+    const designIds = new Set<string>();
+    const orderIds = new Set<string>();
     for (const r of rows) {
       for (const a of (r.attachments as MessageAttachment[]) ?? []) {
         if (a.kind === 'image') {
           imagePaths.push(a.storagePath);
           if (a.thumbnailPath) imagePaths.push(a.thumbnailPath);
+        } else if (a.kind === 'design') {
+          designIds.add(a.designPostId);
+        } else if (a.kind === 'order') {
+          orderIds.add(a.orderId);
         }
       }
     }
     const signed = await this.signChatPaths([...new Set(imagePaths)]);
+
+    // Design attachments → public feed thumbnail URL.
+    const designThumb = new Map<string, string>();
+    if (designIds.size > 0) {
+      const posts = await db
+        .select({ id: feedPosts.id, thumb: feedPosts.publicThumbPath })
+        .from(feedPosts)
+        .where(inArray(feedPosts.id, [...designIds]));
+      for (const p of posts) designThumb.set(p.id, this.publicUrl(FEED_BUCKET, p.thumb));
+    }
+
+    // Order attachments → a small summary so the card renders without a refetch.
+    const orderSummary = new Map<
+      string,
+      { orderName: string; status: string; dateDelivery: string | null }
+    >();
+    if (orderIds.size > 0) {
+      const rowsO = await db
+        .select({
+          id: orders.id,
+          orderName: orders.orderName,
+          status: orders.status,
+          dateDelivery: orders.dateDelivery,
+        })
+        .from(orders)
+        .where(inArray(orders.id, [...orderIds]));
+      for (const o of rowsO) {
+        orderSummary.set(o.id, {
+          orderName: o.orderName,
+          status: o.status,
+          dateDelivery: o.dateDelivery ? o.dateDelivery.toISOString() : null,
+        });
+      }
+    }
 
     const byMessage = new Map<string, MessageAttachment[]>();
     for (const r of rows) {
@@ -159,6 +203,14 @@ export class ChatService {
             thumbnailUrl: a.thumbnailPath ? signed.get(a.thumbnailPath) : undefined,
           };
         }
+        if (a.kind === 'design') {
+          const url = designThumb.get(a.designPostId);
+          return { ...a, imageUrl: a.imageUrl ?? url, thumbnailUrl: a.thumbnailUrl ?? url };
+        }
+        if (a.kind === 'order') {
+          const s = orderSummary.get(a.orderId);
+          return s ? { ...a, orderName: s.orderName, status: s.status, dateDelivery: s.dateDelivery } : a;
+        }
         return a;
       });
       byMessage.set(r.id, hydrated);
@@ -166,7 +218,54 @@ export class ChatService {
     return byMessage;
   }
 
-  private toMessage(row: MessageRow, attachments: MessageAttachment[]): Message {
+  /** Batch-resolve a compact quote of each replied-to message. */
+  private async hydrateReplyPreviews(
+    rows: MessageRow[],
+  ): Promise<Map<string, MessageReplyPreview>> {
+    const map = new Map<string, MessageReplyPreview>();
+    const parentIds = [...new Set(rows.map((r) => r.replyToId).filter(Boolean) as string[])];
+    if (parentIds.length === 0) return map;
+    const parents = await this.dbService.db
+      .select()
+      .from(messages)
+      .where(inArray(messages.id, parentIds));
+    for (const p of parents) {
+      map.set(p.id, { messageId: p.id, side: p.senderType, snippet: this.previewSnippet(p) });
+    }
+    return map;
+  }
+
+  /** Language-neutral one-line preview of a message (body text, else a marker). */
+  private previewSnippet(row: MessageRow): string {
+    if (row.body?.trim()) return row.body.trim().slice(0, 120);
+    const atts = (row.attachments as MessageAttachment[]) ?? [];
+    if (atts.some((a) => a.kind === 'image')) return '📷';
+    if (atts.some((a) => a.kind === 'order')) return '📦';
+    if (atts.some((a) => a.kind === 'design')) return '🖼️';
+    if (atts.some((a) => a.kind === 'link')) return '🔗';
+    return '';
+  }
+
+  /** Hydrate + project a batch of message rows into API `Message`s. */
+  private async projectMessages(rows: MessageRow[]): Promise<Message[]> {
+    const [attachments, replies] = await Promise.all([
+      this.hydrateAttachments(rows),
+      this.hydrateReplyPreviews(rows),
+    ]);
+    return rows.map((r) =>
+      this.toMessage(
+        r,
+        attachments.get(r.id) ?? [],
+        r.replyToId ? (replies.get(r.replyToId) ?? null) : null,
+      ),
+    );
+  }
+
+  private toMessage(
+    row: MessageRow,
+    attachments: MessageAttachment[],
+    replyPreview: MessageReplyPreview | null = null,
+  ): Message {
     return {
       id: row.id,
       conversationId: row.conversationId,
@@ -174,6 +273,9 @@ export class ChatService {
       senderUserId: row.senderUserId,
       body: row.body ?? null,
       attachments,
+      reactions: ((row.reactions as MessageReaction[]) ?? []),
+      replyToId: row.replyToId ?? null,
+      replyPreview,
       clientId: row.clientId ?? null,
       createdAt: row.createdAt.toISOString(),
       readAt: row.readAt ? row.readAt.toISOString() : null,
@@ -431,11 +533,10 @@ export class ChatService {
 
     const hasMore = rows.length > limit;
     const page = hasMore ? rows.slice(0, limit) : rows;
-    const attachments = await this.hydrateAttachments(page);
     const last = page[page.length - 1];
 
     return {
-      items: page.map((r) => this.toMessage(r, attachments.get(r.id) ?? [])),
+      items: await this.projectMessages(page),
       nextCursor: hasMore && last ? this.encodeCursor(last.createdAt, last.id) : null,
     };
   }
@@ -478,8 +579,7 @@ export class ChatService {
         )
         .limit(1);
       if (dup[0]) {
-        const hydrated = await this.hydrateAttachments([dup[0]]);
-        return this.toMessage(dup[0], hydrated.get(dup[0].id) ?? []);
+        return (await this.projectMessages([dup[0]]))[0]!;
       }
     }
 
@@ -491,6 +591,7 @@ export class ChatService {
         senderUserId: actor.userId,
         body: input.body ?? null,
         attachments,
+        replyToId: input.replyToId ?? null,
         clientId: input.clientId ?? null,
       })
       .returning();
@@ -519,8 +620,7 @@ export class ChatService {
 
     void this.notifyRecipient(convo, side, preview);
 
-    const hydrated = await this.hydrateAttachments([row]);
-    return this.toMessage(row, hydrated.get(row.id) ?? []);
+    return (await this.projectMessages([row]))[0]!;
   }
 
   /**
@@ -833,5 +933,83 @@ export class ChatService {
     });
 
     return { conversationId: convo.id, orderId: order.id, invoiceId, clientId };
+  }
+
+  // ── Reactions ─────────────────────────────────────────────────────────────
+
+  /**
+   * Toggle the caller's emoji reaction on a message (WhatsApp-style: one
+   * reaction per person — a new emoji replaces theirs, the same emoji removes
+   * it). The write lands on the `messages` row, so the other device learns of
+   * it through the existing Realtime UPDATE subscription.
+   */
+  async toggleReaction(
+    actor: ChatActor,
+    conversationId: string,
+    messageId: string,
+    emoji: string,
+  ): Promise<Message> {
+    const db = this.dbService.db;
+    const convo = await this.loadConversation(conversationId);
+    const side = this.sideOf(convo, actor);
+    const rows = await db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.id, messageId), eq(messages.conversationId, conversationId)))
+      .limit(1);
+    const row = rows[0];
+    if (!row) throw new NotFoundException('Message not found');
+
+    const current = (row.reactions as MessageReaction[]) ?? [];
+    const mine = current.find((r) => r.actorId === actor.userId);
+    const next: MessageReaction[] =
+      mine && mine.emoji === emoji
+        ? current.filter((r) => r.actorId !== actor.userId)
+        : [...current.filter((r) => r.actorId !== actor.userId), { emoji, side, actorId: actor.userId }];
+
+    const updated = await db
+      .update(messages)
+      .set({ reactions: next })
+      .where(eq(messages.id, messageId))
+      .returning();
+    return (await this.projectMessages([updated[0]!]))[0]!;
+  }
+
+  // ── Share an order into a thread ──────────────────────────────────────────
+
+  /**
+   * Tailor drops one of their orders into the conversation. Besides posting the
+   * order card, this links the order to the client's account via `order_claims`
+   * (the same bridge `createQuote` uses) so the order shows up in the client's
+   * Orders list with live status.
+   */
+  async shareOrder(
+    actor: ChatActor,
+    conversationId: string,
+    input: { orderId: string; clientId?: string },
+  ): Promise<Message> {
+    const db = this.dbService.db;
+    if (!actor.tailorId) throw new ForbiddenException('Only a tailor can share an order');
+    const convo = await this.loadConversation(conversationId);
+    const side = this.sideOf(convo, actor);
+    if (side !== 'tailor') throw new ForbiddenException('Only the tailor can share an order');
+
+    const found = await db
+      .select({ id: orders.id, tailorId: orders.tailorId })
+      .from(orders)
+      .where(eq(orders.id, input.orderId))
+      .limit(1);
+    const order = found[0];
+    if (!order || order.tailorId !== actor.tailorId) throw new NotFoundException('Order not found');
+
+    await db
+      .insert(orderClaims)
+      .values({ userId: convo.clientUserId, orderId: order.id, tailorId: actor.tailorId })
+      .onConflictDoNothing();
+
+    return this.postMessage(convo, actor, side, {
+      attachments: [{ kind: 'order', orderId: order.id }],
+      clientId: input.clientId,
+    });
   }
 }
