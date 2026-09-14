@@ -427,6 +427,10 @@ export class ChatService {
     await this.postMessage(convo, actor, 'client', {
       body: input.firstMessage,
       clientId: input.clientId,
+      // Attach the design to the OPENING message on a new thread, so the tailor
+      // leads with the actual piece being asked about (a picture is far more
+      // recognisable than a name). Reuses (re-inquiries) don't re-attach.
+      attachments: isNewThread && designPostId ? [{ kind: 'design', designPostId }] : undefined,
     });
 
     // A NEW enquiry is an event worth keeping; the messages inside it are not.
