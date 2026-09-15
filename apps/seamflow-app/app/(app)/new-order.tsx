@@ -33,13 +33,15 @@ import { FabricField } from '../../components/FabricField';
 import { api } from '../../lib/api';
 import { useMe, useOrder, useClient } from '../../lib/queries';
 import type { DeviceContact } from '../../lib/contacts';
-import { spacing, useThemeColors } from '../../lib/theme';
+import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useDialog } from '../../lib/dialog';
 import { useGuides } from '../../lib/guides';
 import { useTranslation } from '../../lib/i18n';
 import { canPickContacts } from '../../lib/platform-capabilities';
 import { draftKey, useDraft, useUnsavedWarning } from '../../lib/drafts';
-import { QUICK_MEASUREMENT_KEYS } from '../../lib/measurements';
+import { QUICK_MEASUREMENT_KEYS, matchMeasurementLabel } from '../../lib/measurements';
+import { scanMeasurementPage } from '../../lib/measurement-scan';
+import { ScanOverlay } from '../../components/ScanOverlay';
 
 /** A person chosen for the order who isn't a saved client yet (picked from
  *  phone contacts). Materialized into a client on the server at submit. */
@@ -434,6 +436,43 @@ export default function NewOrderWizard() {
   const updateGarment = (id: string, patch: Partial<GarmentDraft>) =>
     setGarments((gs) => gs.map((g) => (g.id === id ? { ...g, ...patch } : g)));
 
+  // Snap/upload a filled measurement sheet (e.g. a far client measured by
+  // another tailor) → AI-extract → merge the values straight into this garment's
+  // draft. Template-free: it just adds attribute/value rows the tailor can then
+  // correct before saving. No client record needed yet (the wizard persists on
+  // submit, offering save-as-template there).
+  const [scanning, setScanning] = useState(false);
+  const [scanPreview, setScanPreview] = useState<string | null>(null);
+  const scanIntoGarment = async (g: GarmentDraft) => {
+    const tailorId = me?.tailor?.id;
+    if (!tailorId) return;
+    try {
+      setScanning(true);
+      const res = await scanMeasurementPage({
+        tailorId,
+        source: 'library',
+        mode: 'measurements',
+        onPicked: (uri) => setScanPreview(uri),
+      });
+      if (!res) return;
+      const add: Record<string, string> = {};
+      for (const it of res.extraction.items) {
+        if (it.value == null) continue;
+        add[matchMeasurementLabel(it.label, t).label] = String(it.value);
+      }
+      if (Object.keys(add).length === 0) {
+        await dialog.alert({ title: t('orders.scanMeasurements'), message: t('orders.scanNoRows'), tone: 'info' });
+        return;
+      }
+      updateGarment(g.id, { values: { ...g.values, ...add } });
+    } catch (err) {
+      await dialog.error(err);
+    } finally {
+      setScanning(false);
+      setScanPreview(null);
+    }
+  };
+
   const setGarmentField = (id: string, key: string, v: string) =>
     setGarments((gs) =>
       gs.map((g) => (g.id === id ? { ...g, values: { ...g.values, [key]: v } } : g)),
@@ -819,6 +858,18 @@ export default function NewOrderWizard() {
               {/* Template fields or the free-form editor — the choice lives in
                   <MeasurementSheet> so the group-order screen makes it the
                   same way. Two editors for one concept is how they drift. */}
+              {/* Snap a filled sheet → AI-extract into these fields. For a far
+                  client another tailor measured: the tailor just uploads the photo. */}
+              <Pressable
+                onPress={() => void scanIntoGarment(g)}
+                style={[styles.scanBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+              >
+                <Ionicons name="scan-outline" size={18} color={colors.accent} />
+                <Text variant="bodySm" style={{ color: colors.accent }}>
+                  {t('orders.scanMeasurements')}
+                </Text>
+              </Pressable>
+
               <MeasurementSheet
                 template={g.template}
                 values={g.values}
@@ -920,6 +971,8 @@ export default function NewOrderWizard() {
         notes={orderNotes}
         onAccept={setOrderNotes}
       />
+
+      <ScanOverlay visible={scanning} imageUri={scanPreview} label={t('orders.scanReading')} />
     </Screen>
   );
 }
@@ -956,6 +1009,16 @@ function StepDot({
 }
 
 const styles = StyleSheet.create({
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderRadius: radii.md,
+  },
   prefilledNote: { marginTop: spacing.sm },
   nameHelp: { marginTop: 4, marginBottom: spacing.sm },
   stepRow: {

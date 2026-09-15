@@ -2,6 +2,9 @@
 // French mirrors it. Keys are camelCase and referenced as t('orders.key').
 export const orders = {
   en: {
+    scanMeasurements: 'Scan a filled sheet',
+    scanReading: 'Reading the measurements…',
+    scanNoRows: 'Could not read any measurements — try a clearer photo.',
     shareChooseTitle: 'Share this order',
     shareInApp: 'Send in the app',
     shareLink: 'Share a link',
@@ -167,6 +170,9 @@ export const orders = {
     deleteOrderMessage: '{name} will be permanently deleted.',
   },
   fr: {
+    scanMeasurements: 'Scanner une fiche remplie',
+    scanReading: 'Lecture des mesures…',
+    scanNoRows: 'Aucune mesure lisible — essayez une photo plus nette.',
     shareChooseTitle: 'Partager cette commande',
     shareInApp: 'Envoyer dans l’app',
     shareLink: 'Partager un lien',
@@ -329,6 +335,9 @@ export const orders = {
     deleteOrderMessage: '{name} sera définitivement supprimée.',
   },
   pt: {
+    scanMeasurements: 'Escanear uma ficha preenchida',
+    scanReading: 'Lendo as medidas…',
+    scanNoRows: 'Não foi possível ler medidas — tente uma foto mais nítida.',
     shareChooseTitle: 'Compartilhar este pedido',
     shareInApp: 'Enviar no app',
     shareLink: 'Compartilhar um link',
@@ -498,6 +507,9 @@ export const orders = {
     deleteOrderMessage: '{name} será eliminada definitivamente.',
   },
   es: {
+    scanMeasurements: 'Escanear una hoja rellenada',
+    scanReading: 'Leyendo las medidas…',
+    scanNoRows: 'No se pudieron leer medidas — prueba una foto más clara.',
     shareChooseTitle: 'Compartir este pedido',
     shareInApp: 'Enviar en la app',
     shareLink: 'Compartir un enlace',
@@ -661,6 +673,9 @@ export const orders = {
     deleteOrderMessage: '{name} se eliminará de forma permanente.',
   },
   sw: {
+    scanMeasurements: 'Changanua fomu iliyojazwa',
+    scanReading: 'Inasoma vipimo…',
+    scanNoRows: 'Hakuna vipimo vilivyosomeka — jaribu picha wazi zaidi.',
     shareChooseTitle: 'Shiriki oda hii',
     shareInApp: 'Tuma kwenye programu',
     shareLink: 'Shiriki kiungo',
@@ -824,6 +839,9 @@ export const orders = {
     deleteOrderMessage: '{name} litafutwa kabisa.',
   },
   ar: {
+    scanMeasurements: 'مسح ورقة مقاسات معبأة',
+    scanReading: 'جارٍ قراءة القياسات…',
+    scanNoRows: 'تعذّرت قراءة أي قياسات — جرّب صورة أوضح.',
     shareChooseTitle: 'مشاركة هذا الطلب',
     shareInApp: 'أرسل داخل التطبيق',
     shareLink: 'مشاركة رابط',
