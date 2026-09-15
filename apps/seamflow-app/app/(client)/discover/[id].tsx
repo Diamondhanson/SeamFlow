@@ -12,7 +12,7 @@
 // ============================================================================
 
 import { useState } from 'react';
-import { Dimensions, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Dimensions, Image, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { FeedImage } from '@seamflow/schemas';
@@ -22,6 +22,7 @@ import { Screen } from '../../../components/Screen';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { Button } from '../../../components/Button';
 import { useFeedPost } from '../../../lib/consumer-queries';
+import { config } from '../../../lib/config';
 import { useAuth } from '../../../lib/auth-context';
 import { useDialog } from '../../../lib/dialog';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
@@ -70,6 +71,18 @@ export default function DesignDetail() {
     });
   };
 
+  // Share the design OUTSIDE the app — hands the OS share sheet a link to the
+  // server-rendered /d/<id> page, which previews the dress on WhatsApp/FB/etc.
+  const onShare = async () => {
+    if (!post) return;
+    const url = `${config.webUrl}/d/${post.id}`;
+    try {
+      await Share.share({ message: url, url });
+    } catch {
+      /* user dismissed the sheet */
+    }
+  };
+
   if (postQ.isLoading && !post) {
     return (
       <Screen>
@@ -105,6 +118,15 @@ export default function DesignDetail() {
             accessibilityLabel="Close"
           >
             <Ionicons name="chevron-back" size={22} color="#fff" />
+          </Pressable>
+
+          {/* Share out of the app, top-right. */}
+          <Pressable
+            onPress={() => void onShare()}
+            style={styles.share}
+            accessibilityLabel={t('discover.share')}
+          >
+            <Ionicons name="share-outline" size={20} color="#fff" />
           </Pressable>
 
           {/* ── Tailor attribution overlay ── */}
@@ -269,6 +291,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     left: spacing.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  share: {
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
     width: 36,
     height: 36,
     borderRadius: 18,

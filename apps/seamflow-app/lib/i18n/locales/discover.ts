@@ -2,6 +2,7 @@
 // English is the source of truth; French mirrors it.
 export const discover = {
   en: {
+    share: 'Share',
     // ── Feed ────────────────────────────────────────────────────────────────
     title: 'Discover',
     subtitle: 'Real work, by real tailors near you.',
@@ -67,6 +68,7 @@ export const discover = {
     inquireDesignPinned: 'About {design}',
   },
   fr: {
+    share: 'Partager',
     title: 'Découvrir',
     subtitle: 'Du vrai travail, par de vrais tailleurs près de chez vous.',
     emptyTitle: 'Rien pour l’instant',
@@ -126,6 +128,7 @@ export const discover = {
     inquireDesignPinned: 'À propos de {design}',
   },
   pt: {
+    share: 'Compartilhar',
     // ── Feed ────────────────────────────────────────────────────────────────
     title: 'Descobrir',
     subtitle: 'Trabalho real, de alfaiates reais perto de si.',
@@ -190,6 +193,7 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   es: {
+    share: 'Compartir',
     // ── Muro ────────────────────────────────────────────────────────────────
     title: 'Descubrir',
     subtitle: 'Trabajo real, de sastres reales cerca de usted.',
@@ -253,6 +257,7 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   sw: {
+    share: 'Shiriki',
     // ── Mkondo ──────────────────────────────────────────────────────────────
     title: 'Gundua',
     subtitle: 'Kazi halisi, ya washonaji halisi walio karibu nawe.',
@@ -316,6 +321,7 @@ export const discover = {
     inquireDesignPinned: 'Kuhusu {design}',
   },
   ar: {
+    share: 'مشاركة',
     // ── الواجهة ────────────────────────────────────────────────────────────
     title: 'اكتشف',
     subtitle: 'أعمال حقيقية، من خيّاطين حقيقيين قريبين منك.',
