@@ -18,6 +18,7 @@ import {
 } from '../db/schema';
 import { ShareLinksService } from '../share-links/share-links.service';
 import { OrderPhotosService } from '../order-photos/order-photos.service';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class ConsumerService {
@@ -25,7 +26,13 @@ export class ConsumerService {
     private readonly dbService: DbService,
     private readonly shareLinks: ShareLinksService,
     private readonly orderPhotos: OrderPhotosService,
+    private readonly ai: AiService,
   ) {}
+
+  /** AI-extract measurements from a photo the customer uploaded (client scan). */
+  async scanMeasurements(userId: string, storagePath: string) {
+    return this.ai.extractMeasurementsForUser(userId, storagePath, 'measurements');
+  }
 
   private get db() {
     return this.dbService.db;

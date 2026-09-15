@@ -6,6 +6,7 @@ import type {
   ConsumerMeasurementSet,
   ConsumerMeasurementCreateInput,
   ConsumerMeasurementUpdateInput,
+  AiExtractMeasurementsResponse,
 } from '@seamflow/schemas';
 
 export interface ListConsumerOrdersResponse {
@@ -43,6 +44,10 @@ export function makeConsumerResource(http: HttpClient) {
     },
     deleteMeasurement(id: string): Promise<{ ok: true }> {
       return http.delete<{ ok: true }>(`/consumer/measurements/${id}`);
+    },
+    /** AI-extract measurements from a photo the customer uploaded (requests bucket). */
+    scanMeasurements(storagePath: string): Promise<AiExtractMeasurementsResponse> {
+      return http.post<AiExtractMeasurementsResponse>('/consumer/measurements/scan', { storagePath });
     },
   };
 }

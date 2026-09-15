@@ -15,6 +15,7 @@ import {
   ClaimOrderDto,
   ConsumerMeasurementCreateDto,
   ConsumerMeasurementUpdateDto,
+  ConsumerScanDto,
 } from './consumer.dto';
 
 // Consumer (seamflow-client) surface — scoped to the current auth user, never
@@ -54,6 +55,11 @@ export class ConsumerController {
     @Body() body: ConsumerMeasurementCreateDto,
   ) {
     return this.consumer.createMeasurement(user.id, body);
+  }
+
+  @Post('measurements/scan')
+  async scanMeasurements(@CurrentUser() user: AuthedUser, @Body() body: ConsumerScanDto) {
+    return this.consumer.scanMeasurements(user.id, body.storagePath);
   }
 
   @Patch('measurements/:id')

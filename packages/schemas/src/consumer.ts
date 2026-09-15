@@ -77,3 +77,10 @@ export type ConsumerMeasurementCreateInput = z.infer<typeof ConsumerMeasurementC
 
 export const ConsumerMeasurementUpdateSchema = ConsumerMeasurementCreateSchema.partial();
 export type ConsumerMeasurementUpdateInput = z.infer<typeof ConsumerMeasurementUpdateSchema>;
+
+/** Body for POST /consumer/measurements/scan — AI-extract from an uploaded photo. */
+export const ConsumerScanInputSchema = z.object({
+  /** Path in the `requests` bucket, under the caller's own user id. */
+  storagePath: z.string().min(1),
+});
+export type ConsumerScanInput = z.infer<typeof ConsumerScanInputSchema>;

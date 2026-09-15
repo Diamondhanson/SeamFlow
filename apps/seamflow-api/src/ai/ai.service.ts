@@ -226,16 +226,40 @@ export class AiService {
     storagePath: string,
     mode: AiExtractMode,
   ): Promise<AiExtractMeasurementsResponse> {
+    if (storagePath.split('/')[0] !== tailorId) {
+      throw new BadRequestException('storagePath does not belong to this tailor.');
+    }
+    return this.runExtract(storagePath, mode);
+  }
+
+  /**
+   * Consumer-side scan (client app): the customer uploads a photo of a filled
+   * sheet to the `requests` bucket under their own user id, then we extract it.
+   * Same AI path as the tailor scanner; ownership is by the user-id path prefix.
+   */
+  async extractMeasurementsForUser(
+    userId: string,
+    storagePath: string,
+    mode: AiExtractMode,
+  ): Promise<AiExtractMeasurementsResponse> {
+    if (storagePath.split('/')[0] !== userId) {
+      throw new BadRequestException('storagePath does not belong to this user.');
+    }
+    return this.runExtract(storagePath, mode, 'requests');
+  }
+
+  private async runExtract(
+    storagePath: string,
+    mode: AiExtractMode,
+    bucketOverride?: string,
+  ): Promise<AiExtractMeasurementsResponse> {
     if (!this.client) {
       throw new ServiceUnavailableException(
         'AI is not configured on the server (missing ANTHROPIC_API_KEY).',
       );
     }
-    if (storagePath.split('/')[0] !== tailorId) {
-      throw new BadRequestException('storagePath does not belong to this tailor.');
-    }
 
-    const { base64, mediaType } = await this.loadImage(storagePath);
+    const { base64, mediaType } = await this.loadImage(storagePath, bucketOverride);
 
     const msg = await this.client.messages.create({
       model: EXTRACT_MODELS[mode],
@@ -298,12 +322,14 @@ export class AiService {
    */
   private async loadImage(
     storagePath: string,
+    bucketOverride?: string,
   ): Promise<{ base64: string; mediaType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' }> {
     const area = storagePath.split('/')[1];
     const bucket =
-      area === 'designs' || area === 'templates' || area === 'fabrics'
+      bucketOverride ??
+      (area === 'designs' || area === 'templates' || area === 'fabrics'
         ? 'designs'
-        : 'order-photos';
+        : 'order-photos');
     const dl = await this.supabase.admin().storage.from(bucket).download(storagePath);
     if (dl.error || !dl.data) {
       throw new BadRequestException(
