@@ -2,6 +2,10 @@
 // this is human ↔ human. English is the source of truth; French mirrors it.
 export const cchat = {
   en: {
+    shareMeasurements: 'Share measurements',
+    shareMeasurementsEmpty: 'You have no saved measurements yet.',
+    shareMeasurementsPick: 'Choose measurements to share',
+    measurementMessage: 'Measurements',
     copy: 'Copy',
     shareOrder: 'Share an order',
     shareOrderPick: 'Choose an order to share',
@@ -92,6 +96,10 @@ export const cchat = {
     devSimulateDone: 'Simulated enquiry created',
   },
   fr: {
+    shareMeasurements: 'Partager les mesures',
+    shareMeasurementsEmpty: 'Vous n’avez pas encore de mesures enregistrées.',
+    shareMeasurementsPick: 'Choisir les mesures à partager',
+    measurementMessage: 'Mesures',
     copy: 'Copier',
     shareOrder: 'Partager une commande',
     shareOrderPick: 'Choisir une commande à partager',
@@ -173,6 +181,10 @@ export const cchat = {
     devSimulateDone: 'Demande simulée créée',
   },
   pt: {
+    shareMeasurements: 'Compartilhar medidas',
+    shareMeasurementsEmpty: 'Você ainda não tem medidas salvas.',
+    shareMeasurementsPick: 'Escolha as medidas para compartilhar',
+    measurementMessage: 'Medidas',
     copy: 'Copiar',
     shareOrder: 'Compartilhar um pedido',
     shareOrderPick: 'Escolha um pedido para compartilhar',
@@ -260,6 +272,10 @@ export const cchat = {
     devSimulateDone: 'Pedido simulado criado',
   },
   es: {
+    shareMeasurements: 'Compartir medidas',
+    shareMeasurementsEmpty: 'Aún no tienes medidas guardadas.',
+    shareMeasurementsPick: 'Elige las medidas para compartir',
+    measurementMessage: 'Medidas',
     copy: 'Copiar',
     shareOrder: 'Compartir un pedido',
     shareOrderPick: 'Elige un pedido para compartir',
@@ -345,6 +361,10 @@ export const cchat = {
     devSimulateDone: 'Consulta simulada creada',
   },
   sw: {
+    shareMeasurements: 'Shiriki vipimo',
+    shareMeasurementsEmpty: 'Huna vipimo vilivyohifadhiwa bado.',
+    shareMeasurementsPick: 'Chagua vipimo vya kushiriki',
+    measurementMessage: 'Vipimo',
     copy: 'Nakili',
     shareOrder: 'Shiriki oda',
     shareOrderPick: 'Chagua oda ya kushiriki',
@@ -430,6 +450,10 @@ export const cchat = {
     devSimulateDone: 'Ulizo la kuiga limetengenezwa',
   },
   ar: {
+    shareMeasurements: 'مشاركة القياسات',
+    shareMeasurementsEmpty: 'ليس لديك قياسات محفوظة بعد.',
+    shareMeasurementsPick: 'اختر القياسات للمشاركة',
+    measurementMessage: 'القياسات',
     copy: 'نسخ',
     shareOrder: 'مشاركة طلب',
     shareOrderPick: 'اختر طلبًا للمشاركة',

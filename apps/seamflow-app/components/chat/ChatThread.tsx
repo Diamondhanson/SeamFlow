@@ -37,6 +37,7 @@ import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
 import { SkeletonList } from '../Skeleton';
 import { useConversation, useMarkConversationRead, useMessages, useOrders } from '../../lib/queries';
+import { useConsumerMeasurements } from '../../lib/consumer-queries';
 import { useChatRealtime } from '../../lib/chat-realtime';
 import {
   discard,
@@ -181,9 +182,11 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
         ? '📷'
         : m.attachments.some((a) => a.kind === 'order')
           ? '📦'
-          : m.attachments.some((a) => a.kind === 'design')
-            ? '🖼️'
-            : '🔗';
+          : m.attachments.some((a) => a.kind === 'measurement')
+            ? '📏'
+            : m.attachments.some((a) => a.kind === 'design')
+              ? '🖼️'
+              : '🔗';
 
   const send = async () => {
     const body = draft.trim();
@@ -229,9 +232,14 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
       { label: t(`${ns}.attachTakePhoto`), value: 'camera' as const },
       { label: t(`${ns}.attachFromGallery`), value: 'library' as const },
       ...(role === 'tailor' ? [{ label: tk('shareOrder'), value: 'order' as const }] : []),
+      ...(role === 'client' ? [{ label: tk('shareMeasurements'), value: 'measurement' as const }] : []),
     ];
-    const action = await dialog.choose<'camera' | 'library' | 'order'>({ title: tk('attach'), actions });
+    const action = await dialog.choose<'camera' | 'library' | 'order' | 'measurement'>({
+      title: tk('attach'),
+      actions,
+    });
     if (action === 'order') void pickOrderToShare();
+    else if (action === 'measurement') void pickMeasurementToShare();
     else if (action) void attach(action);
   };
 
@@ -251,6 +259,42 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
       })),
     });
     if (chosen) shareOrderMut.mutate(chosen);
+  };
+
+  // ── Share measurements (client) ───────────────────────────────────────────
+  const measurementsQ = useConsumerMeasurements();
+  const pickMeasurementToShare = async () => {
+    const list = measurementsQ.data?.items ?? [];
+    if (list.length === 0) {
+      await dialog.alert({
+        title: tk('shareMeasurements'),
+        message: tk('shareMeasurementsEmpty'),
+        tone: 'info',
+      });
+      return;
+    }
+    const chosenId = await dialog.choose<string>({
+      title: tk('shareMeasurementsPick'),
+      actions: list.slice(0, 30).map((m) => ({
+        label: m.label ?? tk('measurementMessage'),
+        value: m.id,
+      })),
+    });
+    if (!chosenId) return;
+    const set = list.find((m) => m.id === chosenId);
+    if (!set) return;
+    await enqueue({
+      conversationId: id,
+      attachments: [
+        {
+          kind: 'measurement',
+          label: set.label,
+          values: set.values,
+          unitPreference: set.unitPreference,
+        },
+      ],
+    });
+    void flush(() => void qc.invalidateQueries({ queryKey: qk.conversationMessages(id) }));
   };
 
   // ── Reactions / reply overlay (WhatsApp-style) ────────────────────────────
@@ -436,6 +480,30 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </Pressable>
+      );
+    }
+    if (a.kind === 'measurement') {
+      const entries = Object.entries(a.values);
+      return (
+        <View
+          key={i}
+          style={[styles.measureCard, { backgroundColor: colors.bg, borderColor: colors.hairline, borderRadius: radii.md }]}
+        >
+          <View style={styles.measureHead}>
+            <Ionicons name="body-outline" size={16} color={atelier.primary} />
+            <Text variant="bodySm" numberOfLines={1} style={{ flex: 1 }}>
+              {a.label || tk('measurementMessage')}
+            </Text>
+          </View>
+          {entries.map(([k, v]) => (
+            <View key={k} style={[styles.measureRow, { borderTopColor: colors.hairline }]}>
+              <Text variant="caption" tone="textMuted" style={{ flex: 1 }}>
+                {k}
+              </Text>
+              <Text variant="caption">{`${v} ${a.unitPreference}`}</Text>
+            </View>
+          ))}
+        </View>
       );
     }
     return null;
@@ -795,6 +863,9 @@ const styles = StyleSheet.create({
   },
   orderIcon: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   orderThumb: { width: 40, height: 40 },
+  measureCard: { minWidth: 220, padding: spacing.sm, borderWidth: StyleSheet.hairlineWidth, gap: 2 },
+  measureHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs },
+  measureRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 2, borderTopWidth: StyleSheet.hairlineWidth },
   meta: { alignItems: 'flex-end' },
   reactions: { flexDirection: 'row', gap: 4, marginTop: -6 },
   reactionsMine: { justifyContent: 'flex-end' },

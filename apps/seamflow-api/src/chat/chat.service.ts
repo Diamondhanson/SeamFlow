@@ -241,6 +241,7 @@ export class ChatService {
     const atts = (row.attachments as MessageAttachment[]) ?? [];
     if (atts.some((a) => a.kind === 'image')) return '📷';
     if (atts.some((a) => a.kind === 'order')) return '📦';
+    if (atts.some((a) => a.kind === 'measurement')) return '📏';
     if (atts.some((a) => a.kind === 'design')) return '🖼️';
     if (atts.some((a) => a.kind === 'link')) return '🔗';
     return '';

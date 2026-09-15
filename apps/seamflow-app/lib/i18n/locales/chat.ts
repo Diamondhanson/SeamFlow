@@ -2,6 +2,7 @@
 // this is human ↔ human. English is the source of truth; French mirrors it.
 export const chat = {
   en: {
+    measurementMessage: 'Measurements',
     copy: 'Copy',
     shareOrder: 'Share an order',
     shareOrderPick: 'Choose an order to share',
@@ -94,6 +95,7 @@ export const chat = {
     aDesign: 'a design',
   },
   fr: {
+    measurementMessage: 'Mesures',
     copy: 'Copier',
     shareOrder: 'Partager une commande',
     shareOrderPick: 'Choisir une commande à partager',
@@ -177,6 +179,7 @@ export const chat = {
     aDesign: 'une création',
   },
   pt: {
+    measurementMessage: 'Medidas',
     copy: 'Copiar',
     shareOrder: 'Compartilhar um pedido',
     shareOrderPick: 'Escolha um pedido para compartilhar',
@@ -266,6 +269,7 @@ export const chat = {
     aDesign: 'uma criação',
   },
   es: {
+    measurementMessage: 'Medidas',
     copy: 'Copiar',
     shareOrder: 'Compartir un pedido',
     shareOrderPick: 'Elige un pedido para compartir',
@@ -354,6 +358,7 @@ export const chat = {
     aDesign: 'un diseño',
   },
   sw: {
+    measurementMessage: 'Vipimo',
     copy: 'Nakili',
     shareOrder: 'Shiriki oda',
     shareOrderPick: 'Chagua oda ya kushiriki',
@@ -442,6 +447,7 @@ export const chat = {
     aDesign: 'ubunifu',
   },
   ar: {
+    measurementMessage: 'القياسات',
     copy: 'نسخ',
     shareOrder: 'مشاركة طلب',
     shareOrderPick: 'اختر طلبًا للمشاركة',

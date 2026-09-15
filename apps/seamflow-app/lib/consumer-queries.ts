@@ -17,6 +17,8 @@ import {
 } from '@tanstack/react-query';
 import type {
   ConversationCreateInput,
+  ConsumerMeasurementCreateInput,
+  ConsumerMeasurementUpdateInput,
   FeedQuery,
   RequestCreateInput,
   RequestUpdateInput,
@@ -77,12 +79,40 @@ export const useConsumerOrder = (id: string) =>
     enabled: !!id,
   });
 
-/** The user's measurement locker, grouped by tailor. */
+/** The user's measurement locker: their own sets + tailor-saved ones. */
 export const useConsumerMeasurements = () =>
   useQuery({
     queryKey: qk.consumerMeasurements(),
     queryFn: () => api.consumer.listMeasurements(),
   });
+
+/** Create a customer-owned measurement set. */
+export function useCreateConsumerMeasurement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ConsumerMeasurementCreateInput) => api.consumer.createMeasurement(input),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: qk.consumerMeasurements() }),
+  });
+}
+
+/** Update a customer-owned measurement set. */
+export function useUpdateConsumerMeasurement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: ConsumerMeasurementUpdateInput }) =>
+      api.consumer.updateMeasurement(id, input),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: qk.consumerMeasurements() }),
+  });
+}
+
+/** Delete a customer-owned measurement set. */
+export function useDeleteConsumerMeasurement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.consumer.deleteMeasurement(id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: qk.consumerMeasurements() }),
+  });
+}
 
 /** Claim an order from its share-link token (or full share URL). */
 export function useClaimOrder() {
