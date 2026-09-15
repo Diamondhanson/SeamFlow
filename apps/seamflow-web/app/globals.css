@@ -2,6 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Audience accent ─────────────────────────────────────────────────────────
+   The landing serves two audiences from one page. The accent is a CSS variable
+   so a single [data-aud] on <html> reskins the whole marketing surface — purple
+   for tailors (default, the master brand), rose for customers — while the logo
+   and body stay constant. Elements opt in via the `accent` Tailwind tokens. */
+:root {
+  --accent: #7b30e8;
+  --accent-deep: #5a18c9;
+  --accent-light: #c45bff;
+  --accent-wash: rgba(123, 48, 232, 0.1);
+}
+[data-aud='customer'] {
+  --accent: #e14685;
+  --accent-deep: #b62e67;
+  --accent-light: #f58ab6;
+  --accent-wash: rgba(225, 70, 133, 0.12);
+}
+/* Audience-conditional content: both variants ship in the DOM (crawlable);
+   CSS shows the one that matches the chosen audience. `display: contents` is
+   deliberate — the wrapper generates no box of its own, so the element inside
+   keeps whatever display it set (e.g. a button's `inline-flex`), and a wrapper
+   around several sections lays them out exactly as if it weren't there. */
+.t-only {
+  display: contents;
+}
+.c-only {
+  display: none;
+}
+[data-aud='customer'] .t-only {
+  display: none;
+}
+[data-aud='customer'] .c-only {
+  display: contents;
+}
+
 html,
 body {
   color: theme('colors.ink');
@@ -50,6 +85,22 @@ html {
       95% 65% at -8% 30%,
       rgba(240, 135, 90, 0.1) 0%,
       rgba(240, 135, 90, 0) 55%
+    );
+}
+
+/* Customer door: swap the ambient page wash from violet to rose so the whole
+   surface reads as the customer theme, not just the accent controls. */
+[data-aud='customer'] .marketing {
+  background-image:
+    radial-gradient(
+      110% 70% at 100% -8%,
+      rgba(225, 70, 133, 0.14) 0%,
+      rgba(225, 70, 133, 0) 55%
+    ),
+    radial-gradient(
+      95% 65% at -8% 30%,
+      rgba(245, 138, 182, 0.12) 0%,
+      rgba(245, 138, 182, 0) 55%
     );
 }
 
@@ -113,6 +164,20 @@ html {
       95% 65% at 108% 30%,
       rgba(240, 135, 90, 0.1) 0%,
       rgba(240, 135, 90, 0) 55%
+    );
+}
+
+[dir='rtl'][data-aud='customer'] .marketing {
+  background-image:
+    radial-gradient(
+      110% 70% at 0% -8%,
+      rgba(225, 70, 133, 0.14) 0%,
+      rgba(225, 70, 133, 0) 55%
+    ),
+    radial-gradient(
+      95% 65% at 108% 30%,
+      rgba(245, 138, 182, 0.12) 0%,
+      rgba(245, 138, 182, 0) 55%
     );
 }
 

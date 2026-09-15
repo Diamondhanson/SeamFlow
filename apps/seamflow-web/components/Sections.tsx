@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Dict, Lang } from '../lib/i18n';
-import { withLang } from '../lib/i18n';
+import { withLang, WEB_APP_URL } from '../lib/i18n';
 import { Icon } from './icons';
 import { PhoneFrame, TabletFrame } from './DeviceFrame';
 import { StoreBadges } from './StoreBadges';
@@ -254,8 +254,13 @@ export function Gallery({ d }: { d: Dict }) {
 
 // ── Final CTA ───────────────────────────────────────────────────────────────
 export function Cta({ d }: { d: Dict }) {
+  const cc = d.audience.customerCta;
   return (
     <section id="get-app" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 sm:py-24">
+      {/* Tailor close — purple, with the app-store badges. Wrapped in a
+          transparent `t-only` so the audience toggle's display:contents can't
+          strip the card's own gradient/padding box. */}
+      <div className="t-only">
       <div className="relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-primary via-brand-primaryDeep to-[#41109B] p-10 text-center text-white shadow-glow sm:p-16">
         <div aria-hidden="true" className="absolute -left-16 -top-16 h-56 w-56 transform-gpu rounded-full bg-brand-lavender/30 blur-3xl" />
         <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 transform-gpu rounded-full bg-brand-accent/25 blur-3xl" />
@@ -268,6 +273,30 @@ export function Cta({ d }: { d: Dict }) {
             <StoreBadges d={d} />
           </div>
         </div>
+      </div>
+      </div>
+
+      {/* Customer close — rose, with a single "browse tailors" button. */}
+      <div className="c-only">
+      <div className="relative overflow-hidden rounded-5xl bg-gradient-to-br from-brand-rose via-brand-roseDeep to-[#7A1F47] p-10 text-center text-white shadow-glow sm:p-16">
+        <div aria-hidden="true" className="absolute -left-16 -top-16 h-56 w-56 transform-gpu rounded-full bg-brand-roseLight/30 blur-3xl" />
+        <div aria-hidden="true" className="absolute -bottom-16 -right-10 h-56 w-56 transform-gpu rounded-full bg-brand-accent/25 blur-3xl" />
+        <div className="relative">
+          <h2 className="mx-auto max-w-2xl font-display text-3xl font-bold leading-tight sm:text-4xl">
+            {cc.title}
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-white/85">{cc.body}</p>
+          <div className="mt-8 flex justify-center">
+            <a
+              href={WEB_APP_URL || '#top'}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-base font-semibold text-brand-rose shadow-lg transition hover:bg-white/90"
+            >
+              {cc.cta}
+              <Icon name="arrow" className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+      </div>
       </div>
     </section>
   );
