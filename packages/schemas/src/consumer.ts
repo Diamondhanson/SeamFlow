@@ -6,7 +6,7 @@ import {
   OrderStatusSchema,
 } from './order';
 import { OrderPhotoSchema } from './order-photo';
-import { MeasurementSetSchema } from './measurement';
+import { MeasurementValuesSchema, MeasurementUnitSchema } from './measurement';
 
 // ============================================================================
 // Consumer (seamflow-client) API contracts.
@@ -50,8 +50,30 @@ export const ConsumerOrderDetailSchema = z.object({
 });
 export type ConsumerOrderDetail = z.infer<typeof ConsumerOrderDetailSchema>;
 
-/** One measurement set in the consumer's locker, tagged with its tailor. */
-export const ConsumerMeasurementSetSchema = MeasurementSetSchema.extend({
-  tailorBusinessName: z.string(),
+/**
+ * One measurement set in the consumer's locker. Either the customer authored it
+ * (`owned: true`, editable/deletable, `tailorBusinessName: null`) or a tailor
+ * saved it for them (`owned: false`, tagged with the tailor's name, read-only).
+ */
+export const ConsumerMeasurementSetSchema = z.object({
+  id: z.string().uuid(),
+  label: z.string().nullable(),
+  values: MeasurementValuesSchema,
+  unitPreference: MeasurementUnitSchema,
+  owned: z.boolean(),
+  tailorBusinessName: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 export type ConsumerMeasurementSet = z.infer<typeof ConsumerMeasurementSetSchema>;
+
+/** Create/replace a customer-owned measurement set (client app). */
+export const ConsumerMeasurementCreateSchema = z.object({
+  label: z.string().max(80).nullable().optional(),
+  values: MeasurementValuesSchema,
+  unitPreference: MeasurementUnitSchema.optional(),
+});
+export type ConsumerMeasurementCreateInput = z.infer<typeof ConsumerMeasurementCreateSchema>;
+
+export const ConsumerMeasurementUpdateSchema = ConsumerMeasurementCreateSchema.partial();
+export type ConsumerMeasurementUpdateInput = z.infer<typeof ConsumerMeasurementUpdateSchema>;

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MeasurementValuesSchema, MeasurementUnitSchema } from './measurement';
 
 // ============================================================================
 // In-app chat between a consumer and a tailor (ROADMAP D.1.3 / D.1.4 / D.2.3).
@@ -78,11 +79,24 @@ export const MessageOrderAttachmentSchema = z.object({
   thumbnailUrl: z.string().url().nullable().optional(),
 });
 
+/**
+ * A snapshot of a measurement set forwarded into the thread (customer → tailor).
+ * Carries the values inline so the tailor sees them without any cross-account
+ * lookup, and can copy them onto the order.
+ */
+export const MessageMeasurementAttachmentSchema = z.object({
+  kind: z.literal('measurement'),
+  label: z.string().nullable().optional(),
+  values: MeasurementValuesSchema,
+  unitPreference: MeasurementUnitSchema,
+});
+
 export const MessageAttachmentSchema = z.discriminatedUnion('kind', [
   MessageImageAttachmentSchema,
   MessageDesignAttachmentSchema,
   MessageLinkAttachmentSchema,
   MessageOrderAttachmentSchema,
+  MessageMeasurementAttachmentSchema,
 ]);
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 

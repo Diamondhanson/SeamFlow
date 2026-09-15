@@ -4,6 +4,8 @@ import type {
   ConsumerOrderSummary,
   ConsumerOrderDetail,
   ConsumerMeasurementSet,
+  ConsumerMeasurementCreateInput,
+  ConsumerMeasurementUpdateInput,
 } from '@seamflow/schemas';
 
 export interface ListConsumerOrdersResponse {
@@ -28,6 +30,19 @@ export function makeConsumerResource(http: HttpClient) {
     },
     listMeasurements(): Promise<ListConsumerMeasurementsResponse> {
       return http.get<ListConsumerMeasurementsResponse>('/consumer/measurements');
+    },
+    /** Create a customer-owned measurement set. */
+    createMeasurement(input: ConsumerMeasurementCreateInput): Promise<ConsumerMeasurementSet> {
+      return http.post<ConsumerMeasurementSet>('/consumer/measurements', input);
+    },
+    updateMeasurement(
+      id: string,
+      input: ConsumerMeasurementUpdateInput,
+    ): Promise<ConsumerMeasurementSet> {
+      return http.patch<ConsumerMeasurementSet>(`/consumer/measurements/${id}`, input);
+    },
+    deleteMeasurement(id: string): Promise<{ ok: true }> {
+      return http.delete<{ ok: true }>(`/consumer/measurements/${id}`);
     },
   };
 }

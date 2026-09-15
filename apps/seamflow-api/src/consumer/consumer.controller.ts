@@ -1,15 +1,21 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { ConsumerService } from './consumer.service';
-import { ClaimOrderDto } from './consumer.dto';
+import {
+  ClaimOrderDto,
+  ConsumerMeasurementCreateDto,
+  ConsumerMeasurementUpdateDto,
+} from './consumer.dto';
 
 // Consumer (seamflow-client) surface — scoped to the current auth user, never
 // to a tailor. Any signed-in account can use these.
@@ -40,5 +46,30 @@ export class ConsumerController {
   async listMeasurements(@CurrentUser() user: AuthedUser) {
     const items = await this.consumer.listMeasurements(user.id);
     return { items };
+  }
+
+  @Post('measurements')
+  async createMeasurement(
+    @CurrentUser() user: AuthedUser,
+    @Body() body: ConsumerMeasurementCreateDto,
+  ) {
+    return this.consumer.createMeasurement(user.id, body);
+  }
+
+  @Patch('measurements/:id')
+  async updateMeasurement(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: ConsumerMeasurementUpdateDto,
+  ) {
+    return this.consumer.updateMeasurement(user.id, id, body);
+  }
+
+  @Delete('measurements/:id')
+  async deleteMeasurement(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    return this.consumer.deleteMeasurement(user.id, id);
   }
 }

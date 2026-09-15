@@ -1,5 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { and, desc, eq, inArray } from 'drizzle-orm';
+import type {
+  ConsumerMeasurementCreateInput,
+  ConsumerMeasurementUpdateInput,
+  ConsumerMeasurementSet,
+} from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
 import {
   orderClaims,
@@ -9,6 +14,7 @@ import {
   orderPhotos,
   tailors,
   measurementSets,
+  userMeasurementSets,
 } from '../db/schema';
 import { ShareLinksService } from '../share-links/share-links.service';
 import { OrderPhotosService } from '../order-photos/order-photos.service';
@@ -143,7 +149,26 @@ export class ConsumerService {
    * The user's measurement locker: every measurement set on the client records
    * tied to their claimed orders, tagged with the tailor that holds it.
    */
-  async listMeasurements(userId: string) {
+  async listMeasurements(userId: string): Promise<ConsumerMeasurementSet[]> {
+    // 1) Sets the CUSTOMER authored for themselves.
+    const owned = await this.db
+      .select()
+      .from(userMeasurementSets)
+      .where(eq(userMeasurementSets.userId, userId))
+      .orderBy(desc(userMeasurementSets.createdAt));
+
+    const ownedItems: ConsumerMeasurementSet[] = owned.map((s) => ({
+      id: s.id,
+      label: s.label,
+      values: s.values as ConsumerMeasurementSet['values'],
+      unitPreference: s.unitPreference,
+      owned: true,
+      tailorBusinessName: null,
+      createdAt: s.createdAt.toISOString(),
+      updatedAt: s.updatedAt.toISOString(),
+    }));
+
+    // 2) Sets a tailor saved for them, reached via claimed orders.
     const claimed = await this.db
       .select({ clientId: orders.clientId, tailorName: tailors.businessName })
       .from(orderClaims)
@@ -156,17 +181,91 @@ export class ConsumerService {
       if (!clientTailor.has(c.clientId)) clientTailor.set(c.clientId, c.tailorName);
     }
     const clientIds = [...clientTailor.keys()];
-    if (clientIds.length === 0) return [];
 
-    const sets = await this.db
-      .select()
-      .from(measurementSets)
-      .where(inArray(measurementSets.clientId, clientIds))
-      .orderBy(desc(measurementSets.createdAt));
+    let tailorItems: ConsumerMeasurementSet[] = [];
+    if (clientIds.length > 0) {
+      const sets = await this.db
+        .select()
+        .from(measurementSets)
+        .where(inArray(measurementSets.clientId, clientIds))
+        .orderBy(desc(measurementSets.createdAt));
+      tailorItems = sets.map((s) => ({
+        id: s.id,
+        label: s.label,
+        values: s.values as ConsumerMeasurementSet['values'],
+        unitPreference: s.unitPreference,
+        owned: false,
+        tailorBusinessName: clientTailor.get(s.clientId) ?? 'Tailor',
+        createdAt: s.createdAt.toISOString(),
+        updatedAt: s.updatedAt.toISOString(),
+      }));
+    }
 
-    return sets.map((s) => ({
-      ...s,
-      tailorBusinessName: clientTailor.get(s.clientId) ?? 'Tailor',
-    }));
+    // Customer's own sets first — they're the ones they'll forward to a tailor.
+    return [...ownedItems, ...tailorItems];
+  }
+
+  async createMeasurement(
+    userId: string,
+    input: ConsumerMeasurementCreateInput,
+  ): Promise<ConsumerMeasurementSet> {
+    const rows = await this.db
+      .insert(userMeasurementSets)
+      .values({
+        userId,
+        label: input.label ?? 'default',
+        values: input.values,
+        unitPreference: input.unitPreference ?? 'cm',
+      })
+      .returning();
+    return this.toOwned(rows[0]!);
+  }
+
+  async updateMeasurement(
+    userId: string,
+    id: string,
+    input: ConsumerMeasurementUpdateInput,
+  ): Promise<ConsumerMeasurementSet> {
+    await this.assertOwnsMeasurement(userId, id);
+    const rows = await this.db
+      .update(userMeasurementSets)
+      .set({
+        ...(input.label !== undefined ? { label: input.label ?? 'default' } : {}),
+        ...(input.values !== undefined ? { values: input.values } : {}),
+        ...(input.unitPreference !== undefined ? { unitPreference: input.unitPreference } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(userMeasurementSets.id, id))
+      .returning();
+    return this.toOwned(rows[0]!);
+  }
+
+  async deleteMeasurement(userId: string, id: string): Promise<{ ok: true }> {
+    await this.assertOwnsMeasurement(userId, id);
+    await this.db.delete(userMeasurementSets).where(eq(userMeasurementSets.id, id));
+    return { ok: true };
+  }
+
+  private async assertOwnsMeasurement(userId: string, id: string): Promise<void> {
+    const rows = await this.db
+      .select({ userId: userMeasurementSets.userId })
+      .from(userMeasurementSets)
+      .where(eq(userMeasurementSets.id, id))
+      .limit(1);
+    if (!rows[0]) throw new NotFoundException('Measurement not found');
+    if (rows[0].userId !== userId) throw new ForbiddenException('Not your measurement');
+  }
+
+  private toOwned(s: typeof userMeasurementSets.$inferSelect): ConsumerMeasurementSet {
+    return {
+      id: s.id,
+      label: s.label,
+      values: s.values as ConsumerMeasurementSet['values'],
+      unitPreference: s.unitPreference,
+      owned: true,
+      tailorBusinessName: null,
+      createdAt: s.createdAt.toISOString(),
+      updatedAt: s.updatedAt.toISOString(),
+    };
   }
 }

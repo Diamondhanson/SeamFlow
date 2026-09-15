@@ -1,5 +1,5 @@
 import { pgTable, uuid, text, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
-import { tailors } from './users';
+import { tailors, users } from './users';
 import { measurementTemplates } from './templates';
 import { measurementUnitEnum } from './enums';
 
@@ -48,4 +48,26 @@ export const measurementSets = pgTable(
     clientIdIdx: index('measurement_sets_client_id_idx').on(t.clientId),
     templateIdIdx: index('measurement_sets_template_id_idx').on(t.templateId),
   }),
+);
+
+/**
+ * A measurement set the CUSTOMER authored for themselves (client app), as
+ * opposed to `measurement_sets`, which a tailor keeps for one of their clients.
+ * Kept in its own table so the tailor-side logic and RLS stay untouched; the
+ * consumer locker reads both and the customer can share these into a chat.
+ */
+export const userMeasurementSets = pgTable(
+  'user_measurement_sets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    label: text('label').notNull().default('default'),
+    values: jsonb('values').notNull().default({}),
+    unitPreference: measurementUnitEnum('unit_preference').notNull().default('cm'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({ userIdIdx: index('user_measurement_sets_user_id_idx').on(t.userId) }),
 );
