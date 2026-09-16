@@ -1,7 +1,7 @@
 # SeamFlow — Phased Product Roadmap
 
 **Owner:** Diamond
-**Last updated:** September 9, 2026
+**Last updated:** September 17, 2026
 **Repo:** `SeamFlow/` monorepo
 
 **Current status:** Phase 0 complete (0.5 deferred). **Phase 1 is feature-complete and shippable**, and since the May snapshot the product has shipped several **Phase 2 and Phase 3 items early** (see "Shipped early" below). Only 1.7 (payments) is paused with all scope decisions parked, and 1.9.3 (Apple Sign-In) is deferred post-launch (user opted not to pay the $99/yr Apple Dev Program yet). Everything else end-to-end:
@@ -44,9 +44,23 @@ The single biggest change since this doc was last written: **the consumer experi
 - **Tailor home/nav redesign.** Animated bottom tab bar (**Home · Orders · Clients · Calendar · More**), a floating **Ask** assistant pill, a **"Today"** dashboard (overdue pill + due-soon rail), and speed wins (advance status from a card, invoice from the order screen, one-tap overdue, global search).
 - **v1.2.0 hardening.** Default country **Cameroon / XAF** (was Nigeria); **every** user-facing error routed through a mapper (no raw `err.message`, new `errors` namespace); **guided, skippable onboarding** that ushers a new user into profile setup while still letting them use the app (public actions gated behind a profile check).
 - **i18n — now six languages (updates 2.8).** Both apps run through the `t()` layer in **English, French, Portuguese, Spanish, Swahili, and Arabic** (Arabic incl. full RTL), enforced by the build-time guard. The customer namespaces are `c`-prefixed (`chome`, `corders`, `cchat`, …) to avoid collision with the tailor's.
-- **Marketing site (3.12) — two-audience repositioning (on branch, not deployed).** The live site (`seamflowtech.com`) is being repositioned to speak to **tailors and customers from one page, tailor-led**: an audience toggle reskins the accent **purple ⇄ rose**, swaps hero/features/CTA copy, and adds a "two sides, one thread" marketplace-loop band — all six languages. On `feat/web-two-audience`, awaiting review before deploy.
+- **Marketing site (3.12) — two-audience repositioning** (now **LIVE** — see the Sept 17 block below).
 - **Native Google Sign-In** wired on `feat/google-native-signin` (dormant — the in-app dialog flow, `signInWithIdToken`); needs the Supabase Authorized Client IDs + native lib install before merge. The current PKCE/browser flow (1.9.2) still ships.
 - **Distribution.** Play Store **closed testing** live (`com.bambothanson.FashionApp`) since Aug 17; sideload **APK** via GitHub Releases; **API on Render** (`seamflow-api.onrender.com`, from `main`); marketing site + customer/tailor web app on **Vercel**.
+
+### Since Sept 9 — rich chat, customer measurements, design sharing, one theme, two-audience site LIVE (Sept 2026)
+
+A second wave on top of the merged app, all shipped to `main` (API on Render, sites on Vercel). Two DB migrations added and applied to the live DB (`psql` on the session port, not `db push` — remote history has drifted).
+
+- **Rich in-app chat (extends 4.1).** The two duplicate thread screens were merged into one shared `components/chat/ChatThread.tsx` (both sides are thin wrappers), then leveled up: **emoji reactions** (WhatsApp-style long-press overlay — dim, emoji bar above the lifted bubble, Reply/Copy menu below), **reply-to-a-specific-message** (quoted preview + tap-to-scroll, carried through the offline outbox), **tappable links + rich link-preview cards** via a new **SSRF-hardened `POST /links/unfurl`** (`apps/seamflow-api/src/links/`). Migration: `messages.reactions` (jsonb) + `reply_to_id` (self-FK), riding the existing Realtime UPDATE stream. Android keyboard fixed: `softwareKeyboardLayoutMode: "pan"` so `react-native-keyboard-controller` owns the inset (composer clears the IME suggestion strip).
+- **Share an order into a chat (extends 4.1/4.4).** A tailor can drop one of their orders into a conversation — posts an order card **and** links it to the client's account via `order_claims`, so it appears in the client's Orders list. Reachable from the chat composer AND the order screen ("Send in the app" vs "Share a link"). New `POST /conversations/:id/share-order` + a `kind:'order'` message attachment; `kind:'design'`/`'link'`/`'measurement'` attachment kinds also added (JSONB, no migration). Client Orders list now derives an **Overdue** status.
+- **"Ask about this" dress preview.** An inquiry now attaches the design to its opening message, so the tailor's first thing in the thread is the actual piece (not just a name); design thumbnail added to the client inbox for parity.
+- **Customer-owned measurements (extends 3.2).** The client locker is no longer read-only: customers **create/edit/delete their own measurement sets** (new `user_measurement_sets` table + migration, RLS owner-only; `POST/PATCH/DELETE /consumer/measurements`; `GET` unions owned + tailor-saved), **AI-scan a filled sheet** themselves (`POST /consumer/measurements/scan` → `AiService.extractMeasurementsForUser`, uploads to the `requests` bucket under their own id), and **forward a set into a chat** (`kind:'measurement'` attachment carrying an inline values snapshot the tailor reads/uses).
+- **Tailor scan in the new-order wizard (1.x / 3.2).** "Scan a filled sheet" per garment in `new-order.tsx` → AI-extract → merges into the draft (reuses `scanMeasurementPage`/`/ai/extract-measurements`, refactored into a shared `runExtract(path, mode, bucket?)`), template-free, save-as-template still offered on submit.
+- **One theme everywhere.** The customer side dropped its rose palette and now renders the **same Atelier theme as the tailor side** (`(client)/_layout.tsx` uses `mode` not a custom theme; `lib/client-theme.ts` deleted). Feed cards moved the designer name **into** the image (gradient-blur `ImageCaption`); the client home launcher drops tiles that duplicate the bottom-nav tabs; fixed a 404 opening a design from a storefront (`StorefrontView` pointed at a nonexistent `/(app)/discover/[id]`).
+- **Shareable design pages (new — share OUT of the app, not client↔client).** A viewer can share a feed design outside the app: a new **SSR page `seamflowtech.com/d/<id>`** renders the design large with the tailor + price + "Message tailor" / "Browse more" CTAs and emits **Open Graph tags** (`og:image` = the public design photo) so WhatsApp/Facebook draw a preview. A recipient without the app lands there and sees the design directly; the only outbound is to the maker or into the app — deliberately **no person-to-person messaging** (product decision: not a social app). A **Share** icon on the large design view hands the OS share sheet the `/d/<id>` link. Verified live in production.
+- **Two-audience marketing site — MERGED + DEPLOYED (3.12).** `seamflowtech.com` now speaks to tailors and customers from one page, tailor-led: an audience toggle reskins the accent **purple ⇄ rose**, swaps hero/CTA copy, and adds a "two sides, one thread" loop band, in all six languages. (Was on `feat/web-two-audience`; merged to `main` and live.)
+- **Ops.** Resolved an "Ask assistant" outage caused by an **expired `ANTHROPIC_API_KEY`** (keys can carry an expiry; the server key had lapsed) — the fix is to rotate the key in Anthropic Console + update it on Render. The website's public APK download (a GitHub Release asset) is refreshed with each new build.
 
 ---
 
@@ -547,9 +561,9 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **Approach:** Reuse 60–80% of mobile patterns from `seamflow-app`. Different navigation (clients don't need a CRM). See **Appendix A** for the full feature list.
 - **Dependencies:** Phase 2 complete; existing magic-link conversion data to inform which features matter most.
 
-### 3.2 Measurement locker with QR sharing 🟡 LOCKER LIVE; QR sharing ahead
+### 3.2 Measurement locker with QR sharing 🟡 CUSTOMER-OWNED LOCKER + SCAN + CHAT-FORWARD LIVE; QR ahead
 
-- **Status:** The **measurement locker itself is shipped** — customers keep their own measurement sets in the hub (`(client)/hub/measurements`) and can share them into an order/conversation. STILL AHEAD: the **QR / one-time-token cross-tailor transfer** (the viral loop) and revoke UI.
+- **Status (Sept 2026):** The customer locker is fully live — customers **author their own sets** (create/edit/delete, `user_measurement_sets` table), **AI-scan a filled sheet** themselves (`POST /consumer/measurements/scan`), and **forward a set into a chat** with a tailor (a `kind:'measurement'` message attachment carrying the values). The locker reads owned + tailor-saved sets. STILL AHEAD: the **QR / one-time-token cross-tailor transfer** (the viral loop) and revoke UI. See the "Since Sept 9" block up top.
 - **What:** A client's measurements live in their account, portable across tailors. At a new tailor, they show a QR code; the tailor scans it; measurements appear in the tailor's app.
 - **Why:** This is the consumer-side viral loop. "My measurements are saved in SeamFlow" becomes a thing people say.
 - **Tech:** `react-native-qrcode-svg` (display), `expo-camera` (scan), short-lived signed tokens server-side.
@@ -645,11 +659,13 @@ Features that build a real moat. By now you have product-market fit; this phase 
 - **Cost & safety:** no free tier (funded provider account required); ~$0.03/image means quotas matter before real users can burn credits. Providers apply their own content moderation, which is acceptable for a tailoring context.
 - **Dependencies:** Design Studio M1–M3 (`docs/design-studio-moodboard-plan.md`); `QueueModule`; a funded fal.ai/Replicate account. Pairs naturally with 3.7 (embeddings → "generate variations of a saved design").
 
-### 3.12 Marketing landing page + legal pages + in-app policy links ✅ LIVE — two-audience repositioning on branch
+### 3.12 Marketing landing page + legal pages + in-app policy links ✅ LIVE (incl. two-audience site + design share pages)
 
-> **Status (2026-09):** SHIPPED and deployed — the marketing site is **live on Vercel at `seamflowtech.com`** (customer/tailor web app at `app.seamflowtech.com`), with the landing, Privacy Policy, Terms, Support, and delete-account pages, an AI-assistant sub-page, six-language i18n, and the in-app policy links. The APK download link points at the GitHub Releases APK.
+> **Status (2026-09-17):** SHIPPED and deployed on Vercel at `seamflowtech.com` (customer/tailor web app at `app.seamflowtech.com`): landing, Privacy/Terms/Support/delete-account, an AI-assistant sub-page, six-language i18n, in-app policy links, and the GitHub-Releases APK download.
 >
-> **In progress — two-audience repositioning (branch `feat/web-two-audience`, NOT deployed):** now that the product serves both tailors and customers, the site is being reworked to speak to both from one page, **tailor-led** — an audience toggle reskins the accent **purple ⇄ rose**, swaps hero/features/CTA copy, and adds a "two sides, one thread" marketplace-loop band, in all six languages. Awaiting review before it goes live.
+> **Two-audience site — DEPLOYED.** The landing now speaks to tailors and customers from one page, tailor-led: an audience toggle reskins the accent **purple ⇄ rose**, swaps hero/CTA copy, and adds a "two sides, one thread" loop band, in all six languages. (Was `feat/web-two-audience`; merged to `main` and live.)
+>
+> **Design share pages — DEPLOYED.** New SSR route **`/d/<id>`** renders one feed design with Open Graph tags (`og:image` = the public design photo) so a shared link previews the dress on WhatsApp/Facebook; the recipient lands on the design with CTAs to the tailor / the app. Fed by the public `GET /feed/:id`. Shared from a Share icon on the in-app large design view. Deliberately no client↔client messaging — sharing happens outside the app via link.
 
 - **What:** A public marketing site for SeamFlow (what it does, the value, the
   vision) + a hosted **Privacy Policy** and **Terms** page, and links from inside
@@ -769,9 +785,9 @@ pass before we consider deploy.
 
 Long-horizon work. Don't plan these in detail today; this section is here so the architecture in Phases 0–3 doesn't paint itself into a corner.
 
-### 4.1 In-app chat between tailor and client ✅ SHIPPED EARLY (Aug 2026)
+### 4.1 In-app chat between tailor and client ✅ SHIPPED EARLY + made rich (Aug–Sep 2026)
 
-- **Status:** DONE — built during the customer-side push, well ahead of Phase 4. **Custom build on Supabase Realtime + Postgres** (not Stream/Sendbird): conversations + messages, an **optimistic offline outbox** (survives force-quit), typing/presence, read receipts, private-bucket image attachments, keyset-paginated history. Inbox + thread on both sides (`(app)/messages`, `(client)/hub/messages`). Push payloads carry `recipientSide` so a tap opens the thread in the correct interface for a dual-role account. Keyboard-avoiding composer + side-sticky routing fixed Sep 2026.
+- **Status:** DONE, well ahead of Phase 4. **Custom build on Supabase Realtime + Postgres** (not Stream/Sendbird): conversations + messages, an **optimistic offline outbox** (survives force-quit), typing/presence, read receipts, private-bucket image attachments, keyset-paginated history, both sides (`(app)/messages`, `(client)/hub/messages`). Push payloads carry `recipientSide`. **Sept 2026 — made rich (one shared `ChatThread`):** WhatsApp-style **emoji reactions**, **reply-to-message**, **tappable links + rich link previews** (`/links/unfurl`), plus **order** and **measurement** share-cards. Keyboard fixed via `softwareKeyboardLayoutMode: "pan"`. Deliberately scoped to **tailor↔customer only** — no client↔client messaging (see the Sept 17 block + 3.12 design-share, which keeps social sharing OUTSIDE the app).
 - **Tech:** Stream Chat or Sendbird, or a custom build on Supabase Realtime + Postgres. *(Chose the custom Supabase Realtime build.)*
 - **Why:** Centralizes communication that currently spreads across WhatsApp, SMS, and phone calls.
 
