@@ -23,7 +23,8 @@
     "clean": "rm -rf dist .turbo *.tsbuildinfo",
     "test:order-library": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-order-library.ts",
     "test:requests": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-requests.ts",
-    "test:deletion": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-account-deletion.ts"
+    "test:deletion": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-account-deletion.ts",
+    "test:classify": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-classify-design.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

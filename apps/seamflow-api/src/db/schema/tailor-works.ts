@@ -53,6 +53,16 @@ export const tailorWorks = pgTable(
     /** Longer note shown under the design on the public catalogue. */
     description: text('description'),
     garmentType: text('garment_type'),
+    /**
+     * Taxonomy key — what we FILTER on. `garmentType` above stays the human
+     * label the tailor typed ("Long kaftan"); this is the stable key
+     * ("kaftan") that makes a French search find an English caption.
+     */
+    garmentKey: text('garment_key'),
+    /** [{key, hex, share}] — see DESIGN_COLORS. */
+    colors: jsonb('colors').notNull().default([]),
+    /** Style keys — see DESIGN_ATTRIBUTES. */
+    attributes: jsonb('attributes').notNull().default([]),
     audience: workAudienceEnum('audience'),
     fabric: text('fabric'),
     occasion: workOccasionEnum('occasion'),

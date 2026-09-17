@@ -6,6 +6,7 @@ export * from './measurement';
 export * from './template';
 export * from './order';
 export * from './garment';
+export * from './design-attributes';
 export * from './request';
 export * from './offer';
 export * from './order-photo';

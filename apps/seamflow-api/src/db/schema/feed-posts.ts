@@ -46,6 +46,16 @@ export const feedPosts = pgTable(
     title: text('title'),
     caption: text('caption'),
     garmentType: text('garment_type'),
+    /**
+     * Taxonomy key — what we FILTER on. `garmentType` above stays the human
+     * label the tailor typed ("Long kaftan"); this is the stable key
+     * ("kaftan") that makes a French search find an English caption.
+     */
+    garmentKey: text('garment_key'),
+    /** [{key, hex, share}] — see DESIGN_COLORS. */
+    colors: jsonb('colors').notNull().default([]),
+    /** Style keys — see DESIGN_ATTRIBUTES. */
+    attributes: jsonb('attributes').notNull().default([]),
     tags: jsonb('tags').notNull().default([]),
     fabric: text('fabric'),
     startingPrice: numeric('starting_price', { precision: 12, scale: 2 }),

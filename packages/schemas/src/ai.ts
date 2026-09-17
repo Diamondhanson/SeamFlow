@@ -96,3 +96,22 @@ export const AiExtractMeasurementsResponseSchema = z.object({
 export type AiExtractMeasurementsResponse = z.infer<
   typeof AiExtractMeasurementsResponseSchema
 >;
+
+// ── Design classification (feed publish) ─────────────────────────────────────
+//
+// The response is DesignClassificationSchema in design-attributes.ts, where
+// the vocabularies it draws from also live.
+
+export const AiClassifyDesignRequestSchema = z.object({
+  /** Object path inside the tailor's own storage prefix. */
+  storagePath: z.string().min(1),
+  /** Non-default bucket, when the photo is not in `designs`. */
+  bucket: z.string().min(1).optional(),
+  /**
+   * What the tailor already typed. Optional, but supplying it measurably
+   * changes the answer — see AiService.classifyDesign.
+   */
+  caption: z.string().max(500).nullable().optional(),
+  garmentType: z.string().max(80).nullable().optional(),
+});
+export type AiClassifyDesignRequest = z.infer<typeof AiClassifyDesignRequestSchema>;

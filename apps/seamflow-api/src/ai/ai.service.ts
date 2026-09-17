@@ -8,7 +8,14 @@ import { ConfigService } from '@nestjs/config';
 import Anthropic from '@anthropic-ai/sdk';
 import { SupabaseService } from '../supabase/supabase.service';
 import {
+  DESIGN_ATTRIBUTES,
+  DESIGN_COLORS,
+  DesignClassificationSchema,
   ExtractedMeasurementItemSchema,
+  normalizeAttributes,
+  normalizeColorKeys,
+  GARMENT_TYPES,
+  type DesignClassification,
   type AiDescribeImageResponse,
   type AiDescribeMode,
   type AiExtractMeasurementsResponse,
@@ -123,6 +130,84 @@ const EXTRACT_TOOL: Anthropic.Tool = {
   },
 };
 
+// ============================================================================
+// Design classification — the intake half of feed search.
+//
+// The publish screen used to be five empty text boxes. Of 38 designs published
+// through it, zero carried a tag and garment_type had fragmented into "dress",
+// "gown", "set" and "cover-up". People do not fill in boxes; they tap chips.
+//
+// So the model proposes and the tailor corrects. The critical constraint is
+// that it may ONLY propose from our vocabularies — an enum per field, built
+// from the same arrays the app renders. A free-text answer here would recreate
+// exactly the fragmentation this replaces, so the enums are generated rather
+// than written out, and widening a vocabulary widens the prompt automatically.
+//
+// Haiku, like the other single-image paths: this is "name what you see from a
+// fixed list", not reasoning, and it runs while the tailor watches.
+// ============================================================================
+
+const CLASSIFY_MAX_TOKENS = 768;
+
+const CLASSIFY_SYSTEM = `You are a tagging assistant for a tailor's public design feed in West and Central Africa. You will see one photo of a finished garment. Describe ONLY what is visible.
+
+Rules:
+- Every field must come from the allowed values in the tool schema. Never invent a value.
+- If the tailor's own words are supplied, TRUST THEM over your reading of the photo. They made the garment. If they call it a kaftan, it is a kaftan; if they say boat neck, use boat neck.
+- Prefer a specific West/Central African garment name (kaftan, agbada, boubou, kaba, senator, buba) over a generic one (dress, gown, set) when the garment is clearly that piece.
+- Colours: at most 3, most dominant first. Use "multicolour" ONLY on its own, for a busy print with no dominant colour — never alongside named colours.
+- Attributes: at most ONE shape, ONE length, ONE sleeve and ONE neckline. Details may be many. Emit the ones you are most confident about first.
+- Only what you can SEE. Four accurate attributes beat ten guessed ones. Omit a group entirely rather than guess it.
+- title: 2-4 words, the kind of name a tailor would give the piece. No punctuation.
+- caption: one short sentence a shopper would read. No hashtags, no emoji, no markdown.
+- If the photo is not of a garment, return nulls and empty arrays.`;
+
+const CLASSIFY_INSTRUCTION =
+  'Classify this design for the feed using the allowed values only.';
+
+/**
+ * Built from the vocabularies rather than hand-written, so the model can never
+ * be offered a value the app cannot render, and adding a colour or attribute
+ * needs no prompt edit.
+ */
+const CLASSIFY_TOOL: Anthropic.Tool = {
+  name: 'classify_design',
+  description: 'Record the garment, colours and style attributes visible in the photo.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      garmentKey: {
+        enum: [...GARMENT_TYPES.map((g) => g.key), null],
+        description: 'The garment taxonomy key, or null if unclear.',
+      },
+      audience: { enum: ['women', 'men', 'unisex', 'children', null] },
+      occasion: {
+        enum: ['wedding', 'traditional', 'corporate', 'casual', 'party', null],
+      },
+      fabric: {
+        type: ['string', 'null'],
+        description:
+          'Fabric if recognisable (ankara, lace, brocade, chiffon, linen…), else null.',
+      },
+      colors: {
+        type: 'array',
+        maxItems: 3,
+        items: { enum: DESIGN_COLORS.map((c) => c.key) },
+        description: 'Dominant colours first.',
+      },
+      attributes: {
+        type: 'array',
+        maxItems: 8,
+        items: { enum: DESIGN_ATTRIBUTES.map((a) => a.key) },
+        description: 'Only attributes clearly visible in the photo.',
+      },
+      title: { type: ['string', 'null'], description: '2-4 word name.' },
+      caption: { type: ['string', 'null'], description: 'One short sentence.' },
+    },
+    required: ['colors', 'attributes'],
+  },
+};
+
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
@@ -188,6 +273,98 @@ export class AiService {
       return { mode, text, tags };
     }
     return { mode, text };
+  }
+
+  /**
+   * Look at one design photo and propose how to file it.
+   *
+   * NOTHING here is stored directly — every value goes back to the publish
+   * screen as a pre-selected chip the tailor can remove. That is what makes a
+   * wrong guess cheap: the worst case is a tap, versus the current worst case
+   * of an empty tags column on every row.
+   *
+   * Field-by-field validation rather than all-or-nothing: if the model returns
+   * one attribute key we do not recognise, we drop that key and keep the rest.
+   * A single bad chip should not cost the tailor the other seven.
+   */
+  async classifyDesign(
+    storagePath: string,
+    bucketOverride?: string,
+    /**
+     * What the tailor has already told us — a caption they typed, or the
+     * garment type from the order this photo came off.
+     *
+     * This is the single biggest accuracy lever, and it was measured: without
+     * it the model read a photo captioned "ankle-length striped kaftan" as a
+     * wrapper set, and a "boat neck with three-quarter sleeves" as
+     * off-shoulder. The tailor sewed the thing. Their words win.
+     */
+    hint?: { caption?: string | null; garmentType?: string | null },
+  ): Promise<DesignClassification> {
+    if (!this.client) {
+      throw new ServiceUnavailableException(
+        'AI is not configured on the server (missing ANTHROPIC_API_KEY).',
+      );
+    }
+
+    const { base64, mediaType } = await this.loadImage(storagePath, bucketOverride);
+
+    const msg = await this.client.messages.create({
+      model: MODEL,
+      max_tokens: CLASSIFY_MAX_TOKENS,
+      system: CLASSIFY_SYSTEM,
+      tools: [CLASSIFY_TOOL],
+      tool_choice: { type: 'tool', name: CLASSIFY_TOOL.name },
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 },
+            },
+            { type: 'text', text: buildClassifyInstruction(hint) },
+          ],
+        },
+      ],
+    });
+
+    const toolUse = msg.content.find(
+      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use',
+    );
+    const raw = (toolUse?.input ?? {}) as Record<string, unknown>;
+
+    // Salvage per field. `catch` on the whole object would throw away a good
+    // classification because of one unknown enum member.
+    const empty: DesignClassification = {
+      garmentKey: null,
+      audience: null,
+      occasion: null,
+      fabric: null,
+      colors: [],
+      attributes: [],
+      title: null,
+      caption: null,
+    };
+
+    const parsed = DesignClassificationSchema.safeParse({
+      ...empty,
+      ...raw,
+      // Normalised, not just filtered: the prompt asks for one sleeve and one
+      // neckline, but a prompt is a request and this is the guarantee.
+      colors: normalizeColorKeys(keepKnown(raw.colors, DESIGN_COLORS.map((c) => c.key))),
+      attributes: normalizeAttributes(
+        keepKnown(raw.attributes, DESIGN_ATTRIBUTES.map((a) => a.key)),
+      ),
+    });
+
+    if (!parsed.success) {
+      this.logger.warn(
+        `classify-design returned an unusable payload: ${parsed.error.message}`,
+      );
+      return empty;
+    }
+    return parsed.data;
   }
 
   /**
@@ -386,3 +563,26 @@ function sniffImageType(
 }
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+/** Drop anything the vocabulary does not contain, and de-duplicate. */
+function keepKnown(value: unknown, allowed: string[]): string[] {
+  if (!Array.isArray(value)) return [];
+  const set = new Set(allowed);
+  return [...new Set(value.filter((v): v is string => typeof v === 'string' && set.has(v)))];
+}
+
+/**
+ * The user-turn text. Folds in whatever the tailor has already said so the
+ * model is correcting a description rather than inventing one from pixels.
+ */
+function buildClassifyInstruction(hint?: {
+  caption?: string | null;
+  garmentType?: string | null;
+}): string {
+  const said: string[] = [];
+  if (hint?.garmentType?.trim()) said.push(`calls it a "${hint.garmentType.trim()}"`);
+  if (hint?.caption?.trim()) said.push(`describes it as: "${hint.caption.trim().slice(0, 300)}"`);
+
+  if (!said.length) return CLASSIFY_INSTRUCTION;
+  return `The tailor who made this ${said.join(', and ')}. Trust that over your own reading where they disagree.\n\n${CLASSIFY_INSTRUCTION}`;
+}
