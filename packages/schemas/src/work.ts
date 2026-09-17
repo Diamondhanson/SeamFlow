@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DesignColorSchema } from './design-attributes';
 
 // ============================================================================
 // "My Designs" — the tailor's portfolio of work they actually MADE.
@@ -48,6 +49,12 @@ const workMeta = {
   /** Longer note shown under the design on the public catalogue. */
   description: z.string().max(600).nullable().optional(),
   garmentType: z.string().max(60).nullable().optional(),
+  /** Taxonomy key — what search filters on. See design-attributes.ts. */
+  garmentKey: z.string().max(60).nullable().optional(),
+  /** Dominant first. */
+  colors: z.array(DesignColorSchema).max(4).optional(),
+  /** Style keys. */
+  attributes: z.array(z.string().max(40)).max(12).optional(),
   audience: WorkAudienceSchema.nullable().optional(),
   fabric: z.string().max(80).nullable().optional(),
   occasion: WorkOccasionSchema.nullable().optional(),
@@ -98,6 +105,9 @@ export const WorkSchema = z.object({
   title: z.string().nullable(),
   description: z.string().nullable(),
   garmentType: z.string().nullable(),
+  garmentKey: z.string().nullable(),
+  colors: z.array(DesignColorSchema),
+  attributes: z.array(z.string()),
   audience: WorkAudienceSchema.nullable(),
   fabric: z.string().nullable(),
   occasion: WorkOccasionSchema.nullable(),
@@ -111,6 +121,15 @@ export const WorkSchema = z.object({
    * Every photo of this design, cover first. Always at least one.
    */
   images: z.array(WorkImageSchema),
+
+  /**
+   * Storage path of the cover photo, in the `works` bucket.
+   *
+   * Signed URLs expire, so they are useless for a server-side read; the
+   * classifier needs the path itself. Owner-only projection — this is never
+   * part of anything public.
+   */
+  coverStoragePath: z.string().nullable(),
 
   /**
    * Cover image URLs, duplicating `images[0]`.

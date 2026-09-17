@@ -147,6 +147,9 @@ export class WorksService {
       title: row.title ?? null,
       description: row.description ?? null,
       garmentType: row.garmentType ?? null,
+      garmentKey: row.garmentKey ?? null,
+      colors: (row.colors as Work['colors']) ?? [],
+      attributes: (row.attributes as string[]) ?? [],
       audience: row.audience ?? null,
       fabric: row.fabric ?? null,
       occasion: row.occasion ?? null,
@@ -161,6 +164,9 @@ export class WorksService {
       thumbnailUrl: row.thumbnailPath
         ? signed.get(`${row.storageBucket}:${row.thumbnailPath}`)
         : undefined,
+      // The path, not a signed URL: signatures expire and the classifier reads
+      // this server-side. Cover photo only — that is what the feed shows.
+      coverStoragePath: list[0]?.storagePath ?? row.storagePath ?? null,
       feedPostId: post?.id ?? null,
       isPublished: post?.status === 'published',
     };
@@ -647,6 +653,9 @@ export class WorksService {
         ...(input.title !== undefined ? { title: input.title } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.garmentType !== undefined ? { garmentType: input.garmentType } : {}),
+        ...(input.garmentKey !== undefined ? { garmentKey: input.garmentKey } : {}),
+        ...(input.colors !== undefined ? { colors: input.colors } : {}),
+        ...(input.attributes !== undefined ? { attributes: input.attributes } : {}),
         ...(input.audience !== undefined ? { audience: input.audience } : {}),
         ...(input.fabric !== undefined ? { fabric: input.fabric } : {}),
         ...(input.occasion !== undefined ? { occasion: input.occasion } : {}),
@@ -827,6 +836,13 @@ export class WorksService {
           height: cover.height,
           title: work.title ?? null,
           caption,
+          garmentType: work.garmentType,
+          garmentKey: work.garmentKey,
+          colors: work.colors,
+          attributes: work.attributes,
+          audience: work.audience,
+          occasion: work.occasion,
+          fabric: work.fabric,
           startingPrice,
           ...(input.currency !== undefined ? { currency: input.currency } : {}),
           updatedAt: new Date(),
@@ -857,6 +873,11 @@ export class WorksService {
       title: work.title ?? null,
       caption,
       garmentType: work.garmentType,
+      // The searchable half, carried across so the feed can filter on what
+      // the tailor confirmed on the design itself.
+      garmentKey: work.garmentKey,
+      colors: work.colors,
+      attributes: work.attributes,
       audience: work.audience,
       fabric: work.fabric,
       occasion: work.occasion,

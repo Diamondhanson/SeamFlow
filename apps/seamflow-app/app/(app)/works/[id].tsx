@@ -195,14 +195,17 @@ export default function EditWork() {
   };
 
   const togglePublished = (next: boolean) => {
-    if (next) {
-      // Publishing makes the design public — gate on a profile, then resume.
-      requireProfile(() => {
-        publishM.mutate({ id, input: {} }, { onError: (err) => void dialog.error(err) });
-      }, 'gate.needsProfileToPublish');
-    } else {
+    if (!next) {
+      // Taking it down needs no description — it is already described.
       unpublishM.mutate(id, { onError: (err) => void dialog.error(err) });
+      return;
     }
+    // Publishing makes the design public — gate on a profile, then describe it
+    // properly on the shared publish screen rather than pushing it live with
+    // whatever the row happens to hold.
+    requireProfile(() => {
+      router.push({ pathname: '/(app)/feed/publish', params: { workId: id } });
+    }, 'gate.needsProfileToPublish');
   };
 
   if (workQ.isLoading && !work) {

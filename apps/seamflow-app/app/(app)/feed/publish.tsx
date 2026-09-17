@@ -27,6 +27,19 @@
 //     and that must look like "nothing suggested", not like a failure.
 //   · a wrong chip costs one tap. That is the entire budget — get it wrong
 //     often enough and the tailor stops reading the chips at all.
+//
+// TWO WAYS IN, ONE SCREEN
+// A design reaches the feed either from an order photo ("Show in feed" on the
+// order) or from My Designs. They used to behave completely differently — the
+// order path opened a form, the My Designs path was a silent toggle that
+// published whatever the row happened to hold. Same destination, so: same
+// screen. The only difference is where it reads from and what it calls on
+// submit, and those are the two small branches below.
+//
+// For a design, the tailor's corrections are written back to the DESIGN and
+// only then published. That matters because works.publish() copies the design
+// row into the post — so editing the design later shows what they chose,
+// rather than the design and its post quietly disagreeing.
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
@@ -51,7 +64,7 @@ import { FormScroll } from '../../../components/FormScroll';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { api } from '../../../lib/api';
-import { usePublishOrderPhoto } from '../../../lib/queries';
+import { usePublishOrderPhoto, usePublishWork, useUpdateWork, useWork } from '../../../lib/queries';
 import { useDialog } from '../../../lib/dialog';
 import { spacing, radii } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
@@ -100,14 +113,24 @@ export default function PublishToFeed() {
   const dialog = useDialog();
 
   const params = useLocalSearchParams<{
-    photoId: string;
-    orderId: string;
+    /** Order-photo route. */
+    photoId?: string;
+    orderId?: string;
+    /** My Designs route. */
+    workId?: string;
     previewUrl?: string;
     garmentType?: string;
     storagePath?: string;
   }>();
 
-  const publish = usePublishOrderPhoto(params.orderId ?? '');
+  const isWork = !!params.workId;
+  const workQ = useWork(params.workId ?? '');
+  const work = workQ.data ?? null;
+
+  const publishPhoto = usePublishOrderPhoto(params.orderId ?? '');
+  const publishWork = usePublishWork();
+  const updateWork = useUpdateWork();
+  const busy = publishPhoto.isPending || publishWork.isPending || updateWork.isPending;
 
   const [title, setTitle] = useState('');
   const [caption, setCaption] = useState('');
@@ -129,15 +152,44 @@ export default function PublishToFeed() {
   const touched = useRef(new Set<string>());
   const mark = (field: string) => touched.current.add(field);
 
+  // A design already carries everything the tailor typed when they saved it.
+  // Seeding from it first means the classifier is topping up a description
+  // rather than starting one, and the tailor's own prior words are never lost
+  // to a suggestion.
   useEffect(() => {
-    if (!params.storagePath) return;
+    if (!work) return;
+    if (!touched.current.has('title') && work.title) setTitle(work.title);
+    if (!touched.current.has('caption') && work.description) setCaption(work.description);
+    if (!touched.current.has('garment') && work.garmentType) setGarmentType(work.garmentType);
+    if (!touched.current.has('garment') && work.garmentKey) setGarmentKey(work.garmentKey);
+    if (!touched.current.has('audience') && work.audience) setAudience(work.audience);
+    if (!touched.current.has('occasion') && work.occasion) setOccasion(work.occasion);
+    if (!touched.current.has('fabric') && work.fabric) setFabric(work.fabric);
+    if (!touched.current.has('colors') && work.colors?.length) {
+      setColorKeys(work.colors.map((c) => c.key));
+    }
+    if (!touched.current.has('attributes') && work.attributes?.length) {
+      setAttributes(work.attributes);
+    }
+    if (!touched.current.has('price') && work.startingPrice) {
+      setStartingPrice(work.startingPrice);
+    }
+  }, [work]);
+
+  // The photo to classify, and the bucket it lives in, differ per route — the
+  // rest of the flow does not.
+  const classifyPath = isWork ? (work?.coverStoragePath ?? null) : (params.storagePath ?? null);
+  const classifyBucket = isWork ? 'works' : 'order-photos';
+
+  useEffect(() => {
+    if (!classifyPath) return;
     let cancelled = false;
     setReading(true);
 
     api.ai
       .classifyDesign({
-        storagePath: params.storagePath,
-        bucket: 'order-photos',
+        storagePath: classifyPath,
+        bucket: classifyBucket,
         // What the tailor already told us beats what the pixels suggest —
         // measurably so: without this a captioned "kaftan" came back as a
         // wrapper set.
@@ -166,9 +218,10 @@ export default function PublishToFeed() {
     return () => {
       cancelled = true;
     };
-    // Once, on mount — re-running would fight the tailor's edits.
+    // Keyed on the path so the design route fires once its row arrives, and
+    // never again — re-running would fight the tailor's edits.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [classifyPath]);
 
   const toggleAttribute = (key: string) => {
     mark('attributes');
@@ -199,34 +252,52 @@ export default function PublishToFeed() {
       share: Number(((colorKeys.length - i) / colorKeys.length).toFixed(2)),
     }));
 
-    publish.mutate(
-      {
-        orderPhotoId: params.photoId,
-        input: {
-          title: title.trim() || null,
-          caption: caption.trim() || null,
-          garmentType: garmentType.trim() || null,
-          garmentKey,
-          audience: audience as never,
-          occasion: occasion as never,
-          colors: colorsPayload,
-          attributes,
-          tags: [],
-          fabric: fabric.trim() || null,
-          startingPrice: startingPrice.trim() || null,
+    const meta = {
+      title: title.trim() || null,
+      garmentType: garmentType.trim() || null,
+      garmentKey,
+      audience: audience as never,
+      occasion: occasion as never,
+      colors: colorsPayload,
+      attributes,
+      fabric: fabric.trim() || null,
+      startingPrice: startingPrice.trim() || null,
+    };
+
+    const done = async () => {
+      await dialog.alert({
+        title: t('feed.publishedTitle'),
+        message: t('feed.publishedBody'),
+        tone: 'success',
+      });
+      router.back();
+    };
+    const fail = (err: unknown) => void dialog.error(err);
+
+    if (isWork && params.workId) {
+      // Save to the DESIGN first, then publish it. works.publish() builds the
+      // post from the design row, so writing the metadata there is what makes
+      // the two agree — and what survives the tailor editing the design later.
+      updateWork.mutate(
+        { id: params.workId, input: { ...meta, description: caption.trim() || null } },
+        {
+          onSuccess: () =>
+            publishWork.mutate(
+              { id: params.workId!, input: {} },
+              { onSuccess: done, onError: fail },
+            ),
+          onError: fail,
         },
-      },
+      );
+      return;
+    }
+
+    publishPhoto.mutate(
       {
-        onSuccess: async () => {
-          await dialog.alert({
-            title: t('feed.publishedTitle'),
-            message: t('feed.publishedBody'),
-            tone: 'success',
-          });
-          router.back();
-        },
-        onError: (err) => void dialog.error(err),
+        orderPhotoId: params.photoId!,
+        input: { ...meta, caption: caption.trim() || null, tags: [] },
       },
+      { onSuccess: done, onError: fail },
     );
   };
 
@@ -239,9 +310,9 @@ export default function PublishToFeed() {
     <Screen>
       <ScreenHeader title={t('feed.publishTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: spacing.xl * 2 }}>
-        {params.previewUrl ? (
+        {params.previewUrl || work?.signedUrl ? (
           <Image
-            source={{ uri: params.previewUrl }}
+            source={{ uri: params.previewUrl || work!.signedUrl! }}
             style={[
               styles.preview,
               { backgroundColor: colors.surface, borderRadius: radii.lg },
@@ -386,10 +457,10 @@ export default function PublishToFeed() {
 
         <View style={styles.submit}>
           <Button
-            label={publish.isPending ? t('feed.publishing') : t('feed.publishCta')}
+            label={busy ? t('feed.publishing') : t('feed.publishCta')}
             onPress={submit}
-            disabled={publish.isPending}
-            loading={publish.isPending}
+            disabled={busy}
+            loading={busy}
           />
         </View>
       </FormScroll>

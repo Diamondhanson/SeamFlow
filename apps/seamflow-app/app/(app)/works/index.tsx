@@ -44,6 +44,7 @@ import {
 } from '../../../lib/photo-upload';
 import { setPendingProgress, startPendingWork } from '../../../lib/pending-work';
 import { alertIfOffline, alertIfPermissionDenied } from '../../../lib/permissions';
+import { useRequireProfile } from '../../../lib/profile-gate';
 import { useDialog } from '../../../lib/dialog';
 import { useShareCatalogue } from '../../../lib/share-catalogue';
 import { useQueryClient } from '@tanstack/react-query';
@@ -89,6 +90,7 @@ export default function MyDesigns() {
   const publishM = usePublishWork();
   const unpublishM = useUnpublishWork();
   const deleteM = useDeleteWork();
+  const requireProfile = useRequireProfile();
 
   const items: Work[] = useMemo(
     () => (worksQ.data?.pages ?? []).flatMap((p) => p.items),
@@ -232,12 +234,20 @@ export default function MyDesigns() {
       return;
     }
     if (action === 'toggle') {
-      const onError = (err: unknown) => void dialog.error(err);
       if (work.isPublished) {
-        unpublishM.mutate(work.id, { onError });
-      } else {
-        publishM.mutate({ id: work.id, input: {} }, { onError });
+        // Taking it down needs no description — it is already described.
+        unpublishM.mutate(work.id, { onError: (err) => void dialog.error(err) });
+        return;
       }
+      // Putting it UP does. Publishing used to fire silently here, which is
+      // how 38 designs reached the feed with no tags between them. Same screen
+      // the order route uses, so both ways in describe the design properly.
+      requireProfile(() => {
+        router.push({
+          pathname: '/(app)/feed/publish',
+          params: { workId: work.id },
+        });
+      }, 'gate.needsProfileToPublish');
       return;
     }
 
