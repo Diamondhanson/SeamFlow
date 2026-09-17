@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DesignColorSchema } from './design-attributes';
 import { TailorMiniProfileSchema } from './tailor-profile';
 import { WorkAudienceSchema, WorkOccasionSchema } from './work';
 
@@ -20,8 +21,19 @@ export type FeedPostStatus = z.infer<typeof FeedPostStatusSchema>;
 
 /** Fields a tailor supplies (or edits) about their published work. */
 const feedPostMeta = {
+  title: z.string().max(60).nullable().optional(),
   caption: z.string().max(280).nullable().optional(),
+  /** The human label — what the tailor calls it, shown on the card. */
   garmentType: z.string().max(60).nullable().optional(),
+  /**
+   * The taxonomy key — what search FILTERS on. Separate from garmentType
+   * because "Long kaftan" is worth showing while "kaftan" is what matches.
+   */
+  garmentKey: z.string().max(60).nullable().optional(),
+  /** Dominant first. See DESIGN_COLORS. */
+  colors: z.array(DesignColorSchema).max(4).optional(),
+  /** Style keys. See DESIGN_ATTRIBUTES. */
+  attributes: z.array(z.string().max(40)).max(12).optional(),
   tags: z.array(z.string().min(1).max(30)).max(10).optional(),
   fabric: z.string().max(80).nullable().optional(),
   /** Optional "from" price. String to preserve decimal precision over the wire. */
@@ -72,6 +84,9 @@ export const FeedPostPublicSchema = z.object({
   title: z.string().nullable(),
   caption: z.string().nullable(),
   garmentType: z.string().nullable(),
+  garmentKey: z.string().nullable(),
+  colors: z.array(DesignColorSchema),
+  attributes: z.array(z.string()),
   tags: z.array(z.string()),
   fabric: z.string().nullable(),
   startingPrice: z.string().nullable(),

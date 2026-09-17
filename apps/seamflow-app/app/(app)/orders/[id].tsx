@@ -236,6 +236,9 @@ export default function OrderDetailScreen() {
             previewUrl: previewUrl ?? '',
             // Prefill the garment from the order's first item — we already know it.
             garmentType: order?.items?.[0]?.garmentType ?? '',
+            // Lets the publish screen classify the photo on open. Without it
+            // the screen still works, it just has nothing to suggest.
+            storagePath: photos.find((p) => p.id === photoId)?.storagePath ?? '',
           },
         });
       }, 'gate.needsProfileToPost');
