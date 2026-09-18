@@ -25,6 +25,8 @@ import {
   GARMENT_TYPES,
   attributeLabel,
   colorLabel,
+  photoIssueTip,
+  topPhotoIssue,
 } from '@seamflow/schemas';
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -143,6 +145,10 @@ async function main() {
       console.log('  style    :', (c.attributes ?? []).map((k: string) => attributeLabel(k)).join(', ') || '—');
       console.log('  title    :', c.title ?? '—');
       console.log('  caption  :', c.caption ?? '—');
+      const q = c.quality ?? { score: null, issues: [] };
+      const top = topPhotoIssue(q.issues ?? []);
+      console.log(`  QUALITY  : ${q.score ?? '—'}/100  issues=[${(q.issues ?? []).join(', ') || 'none'}]`);
+      console.log('  would say:', top ? photoIssueTip(top) : '(nothing — stays silent)');
       if (bad.length) console.log('  ✗ OUTSIDE VOCABULARY:', bad.join(', '));
     }
 

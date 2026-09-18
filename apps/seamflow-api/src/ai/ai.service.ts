@@ -12,6 +12,7 @@ import {
   DESIGN_COLORS,
   DesignClassificationSchema,
   ExtractedMeasurementItemSchema,
+  PHOTO_ISSUE_PRIORITY,
   normalizeAttributes,
   normalizeColorKeys,
   GARMENT_TYPES,
@@ -160,7 +161,12 @@ Rules:
 - Only what you can SEE. Four accurate attributes beat ten guessed ones. Omit a group entirely rather than guess it.
 - title: 2-4 words, the kind of name a tailor would give the piece. No punctuation.
 - caption: one short sentence a shopper would read. No hashtags, no emoji, no markdown.
-- If the photo is not of a garment, return nulls and empty arrays.`;
+- If the photo is not of a garment, return nulls and empty arrays.
+
+Also judge the PHOTO, not the garment. This feeds a shop window, so the question is only "will this show the work well at thumbnail size":
+- score: 0-100. 100 is sharp, evenly lit, garment filling the frame against a calm background. 50 is usable but would not stop anyone scrolling. Below 30 the work is genuinely hard to see.
+- issues: only what is clearly true. Report nothing for a decent photo — an empty list is the normal, expected answer for competent work. Do not hunt for faults.
+- Judge it as a photo taken in a working tailor's shop, not as studio product photography. Slightly imperfect is fine and should NOT be reported.`;
 
 const CLASSIFY_INSTRUCTION =
   'Classify this design for the feed using the allowed values only.';
@@ -203,6 +209,16 @@ const CLASSIFY_TOOL: Anthropic.Tool = {
       },
       title: { type: ['string', 'null'], description: '2-4 word name.' },
       caption: { type: ['string', 'null'], description: 'One short sentence.' },
+      qualityScore: {
+        type: ['number', 'null'],
+        description: 'How well this photo shows the work in a feed, 0-100.',
+      },
+      qualityIssues: {
+        type: 'array',
+        maxItems: 4,
+        items: { enum: PHOTO_ISSUE_PRIORITY },
+        description: 'Only clearly-true problems. Empty is the normal answer.',
+      },
     },
     required: ['colors', 'attributes'],
   },
@@ -345,6 +361,7 @@ export class AiService {
       attributes: [],
       title: null,
       caption: null,
+      quality: { score: null, issues: [] },
     };
 
     const parsed = DesignClassificationSchema.safeParse({
@@ -356,6 +373,10 @@ export class AiService {
       attributes: normalizeAttributes(
         keepKnown(raw.attributes, DESIGN_ATTRIBUTES.map((a) => a.key)),
       ),
+      quality: {
+        score: typeof raw.qualityScore === 'number' ? raw.qualityScore : null,
+        issues: keepKnown(raw.qualityIssues, [...PHOTO_ISSUE_PRIORITY]),
+      },
     });
 
     if (!parsed.success) {

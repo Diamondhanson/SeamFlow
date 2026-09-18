@@ -34,6 +34,7 @@
 // ============================================================================
 
 import { z } from 'zod';
+import { PhotoQualitySchema } from './photo-quality';
 
 /** Mirrors GarmentLang — widening either is a compile error until translated. */
 export type DesignLang = 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
@@ -211,6 +212,11 @@ export const DesignClassificationSchema = z.object({
   attributes: z.array(DesignAttributeKeySchema).max(10),
   title: z.string().max(60).nullable(),
   caption: z.string().max(280).nullable(),
+  /**
+   * How well the photo will show in the feed. Rides along on the same vision
+   * call that classifies the garment, so it costs no extra request.
+   */
+  quality: PhotoQualitySchema,
 });
 export type DesignClassification = z.infer<typeof DesignClassificationSchema>;
 

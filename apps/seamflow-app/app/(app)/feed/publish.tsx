@@ -56,6 +56,7 @@ import {
   type AttributeGroup,
   type DesignColor,
   type GarmentCategory,
+  type PhotoQuality,
 } from '@seamflow/schemas';
 import { Chip, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -64,6 +65,7 @@ import { FormScroll } from '../../../components/FormScroll';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { StatusPill, type StatusPillPhase } from '../../../components/StatusPill';
+import { PhotoQualityNote } from '../../../components/PhotoQualityNote';
 import { api } from '../../../lib/api';
 import { usePublishOrderPhoto, usePublishWork, useUpdateWork, useWork } from '../../../lib/queries';
 import { useDialog } from '../../../lib/dialog';
@@ -151,6 +153,7 @@ export default function PublishToFeed() {
    * status line that lies is worse than none.
    */
   const [outcome, setOutcome] = useState<'none' | 'filled' | 'empty'>('none');
+  const [quality, setQuality] = useState<PhotoQuality | null>(null);
   const [showAllGarments, setShowAllGarments] = useState(false);
 
   // Anything the tailor touched is theirs. A suggestion that lands afterwards
@@ -207,6 +210,7 @@ export default function PublishToFeed() {
           !!c.garmentKey || !!c.title || !!c.caption || c.colors.length > 0 ||
           c.attributes.length > 0;
         setOutcome(anything ? 'filled' : 'empty');
+        setQuality(c.quality ?? null);
         if (!touched.current.has('title') && c.title) setTitle(c.title);
         if (!touched.current.has('caption') && c.caption) setCaption(c.caption);
         if (!touched.current.has('garment') && c.garmentKey) setGarmentKey(c.garmentKey);
@@ -341,6 +345,10 @@ export default function PublishToFeed() {
         <View style={[styles.consent, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
           <Text variant="bodySm" tone="textMuted">{t('feed.publishBody')}</Text>
         </View>
+
+        {/* Silent unless the photo will genuinely show the work badly —
+            see components/PhotoQualityNote.tsx. */}
+        <PhotoQualityNote quality={quality} lang={lang} />
 
         {/* Narrates the background classification. Never blocks the form —
             see components/StatusPill.tsx. */}

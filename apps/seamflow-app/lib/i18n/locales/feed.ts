@@ -2,6 +2,7 @@
 // (ROADMAP D.4.1 / D.4.2). English is the source of truth; French mirrors it.
 export const feed = {
   en: {
+    qualityWhy: 'Clearer photos get seen more in Discover.',
     readingDone: 'Suggestions added — check them over.',
     readingNothing: 'Nothing to suggest from this photo.',
     // ── AI-assisted publishing ──────────────────────────────────────────
@@ -179,6 +180,7 @@ export const feed = {
     photosUpdated: 'Photos updated',
   },
   fr: {
+    qualityWhy: 'Les photos nettes sont plus vues dans Découvrir.',
     readingDone: 'Suggestions ajoutées — vérifiez-les.',
     readingNothing: 'Rien à proposer d’après cette photo.',
     readingPhoto: 'Lecture de la photo…',
@@ -355,6 +357,7 @@ export const feed = {
     photosUpdated: 'Photos mises à jour',
   },
   pt: {
+    qualityWhy: 'Fotografias mais nítidas são mais vistas em Descobrir.',
     readingDone: 'Sugestões adicionadas — confirme-as.',
     readingNothing: 'Nada a sugerir a partir desta foto.',
     readingPhoto: 'A ler a fotografia…',
@@ -536,6 +539,7 @@ export const feed = {
     photosUpdated: 'Fotos atualizadas',
   },
   es: {
+    qualityWhy: 'Las fotos más nítidas se ven más en Descubrir.',
     readingDone: 'Sugerencias añadidas: revíselas.',
     readingNothing: 'Nada que sugerir a partir de esta foto.',
     readingPhoto: 'Leyendo la foto…',
@@ -712,6 +716,7 @@ export const feed = {
     photosUpdated: 'Fotos actualizadas',
   },
   sw: {
+    qualityWhy: 'Picha zilizo wazi huonekana zaidi katika Gundua.',
     readingDone: 'Mapendekezo yameongezwa — yahakiki.',
     readingNothing: 'Hakuna la kupendekeza kutoka kwenye picha hii.',
     readingPhoto: 'Inasoma picha…',
@@ -888,6 +893,7 @@ export const feed = {
     photosUpdated: 'Picha zimesasishwa',
   },
   ar: {
+    qualityWhy: 'الصور الأوضح تُشاهَد أكثر في «اكتشف».',
     readingDone: 'تمت إضافة الاقتراحات — راجعها.',
     readingNothing: 'لا يوجد ما يُقترح من هذه الصورة.',
     readingPhoto: 'جارٍ قراءة الصورة…',
