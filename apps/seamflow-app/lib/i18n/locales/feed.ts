@@ -2,6 +2,8 @@
 // (ROADMAP D.4.1 / D.4.2). English is the source of truth; French mirrors it.
 export const feed = {
   en: {
+    readingDone: 'Suggestions added — check them over.',
+    readingNothing: 'Nothing to suggest from this photo.',
     // ── AI-assisted publishing ──────────────────────────────────────────
     readingPhoto: 'Reading the photo…',
     suggestedNote: 'Suggested from the photo — change anything that is wrong.',
@@ -177,6 +179,8 @@ export const feed = {
     photosUpdated: 'Photos updated',
   },
   fr: {
+    readingDone: 'Suggestions ajoutées — vérifiez-les.',
+    readingNothing: 'Rien à proposer d’après cette photo.',
     readingPhoto: 'Lecture de la photo…',
     suggestedNote: 'Proposé d’après la photo — corrigez ce qui est faux.',
     garmentSection: 'Qu’est-ce que c’est ?',
@@ -351,6 +355,8 @@ export const feed = {
     photosUpdated: 'Photos mises à jour',
   },
   pt: {
+    readingDone: 'Sugestões adicionadas — confirme-as.',
+    readingNothing: 'Nada a sugerir a partir desta foto.',
     readingPhoto: 'A ler a fotografia…',
     suggestedNote: 'Sugerido a partir da foto — corrija o que estiver errado.',
     garmentSection: 'O que é?',
@@ -530,6 +536,8 @@ export const feed = {
     photosUpdated: 'Fotos atualizadas',
   },
   es: {
+    readingDone: 'Sugerencias añadidas: revíselas.',
+    readingNothing: 'Nada que sugerir a partir de esta foto.',
     readingPhoto: 'Leyendo la foto…',
     suggestedNote: 'Sugerido a partir de la foto: corrija lo que esté mal.',
     garmentSection: '¿Qué es?',
@@ -704,6 +712,8 @@ export const feed = {
     photosUpdated: 'Fotos actualizadas',
   },
   sw: {
+    readingDone: 'Mapendekezo yameongezwa — yahakiki.',
+    readingNothing: 'Hakuna la kupendekeza kutoka kwenye picha hii.',
     readingPhoto: 'Inasoma picha…',
     suggestedNote: 'Imependekezwa kutoka kwenye picha — rekebisha lisilo sahihi.',
     garmentSection: 'Ni nini?',
@@ -878,6 +888,8 @@ export const feed = {
     photosUpdated: 'Picha zimesasishwa',
   },
   ar: {
+    readingDone: 'تمت إضافة الاقتراحات — راجعها.',
+    readingNothing: 'لا يوجد ما يُقترح من هذه الصورة.',
     readingPhoto: 'جارٍ قراءة الصورة…',
     suggestedNote: 'مقترح من الصورة — صحّح ما هو خطأ.',
     garmentSection: 'ما هذا؟',

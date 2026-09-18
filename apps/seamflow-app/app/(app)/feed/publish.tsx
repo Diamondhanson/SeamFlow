@@ -63,6 +63,7 @@ import { ScreenHeader } from '../../../components/ScreenHeader';
 import { FormScroll } from '../../../components/FormScroll';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
+import { StatusPill, type StatusPillPhase } from '../../../components/StatusPill';
 import { api } from '../../../lib/api';
 import { usePublishOrderPhoto, usePublishWork, useUpdateWork, useWork } from '../../../lib/queries';
 import { useDialog } from '../../../lib/dialog';
@@ -144,7 +145,12 @@ export default function PublishToFeed() {
   const [startingPrice, setStartingPrice] = useState('');
 
   const [reading, setReading] = useState(false);
-  const [suggested, setSuggested] = useState(false);
+  /**
+   * What the classification produced, once. Drives what the pill says on the
+   * way out — "suggestions added" is a lie when the model declined, and a
+   * status line that lies is worse than none.
+   */
+  const [outcome, setOutcome] = useState<'none' | 'filled' | 'empty'>('none');
   const [showAllGarments, setShowAllGarments] = useState(false);
 
   // Anything the tailor touched is theirs. A suggestion that lands afterwards
@@ -197,7 +203,10 @@ export default function PublishToFeed() {
       })
       .then((c) => {
         if (cancelled) return;
-        setSuggested(true);
+        const anything =
+          !!c.garmentKey || !!c.title || !!c.caption || c.colors.length > 0 ||
+          c.attributes.length > 0;
+        setOutcome(anything ? 'filled' : 'empty');
         if (!touched.current.has('title') && c.title) setTitle(c.title);
         if (!touched.current.has('caption') && c.caption) setCaption(c.caption);
         if (!touched.current.has('garment') && c.garmentKey) setGarmentKey(c.garmentKey);
@@ -210,7 +219,9 @@ export default function PublishToFeed() {
       // Silent on purpose. This is a convenience the tailor never asked for;
       // failing it loudly (no key, no signal, unclear photo) would turn a
       // non-event into an interruption. The form still works.
-      .catch(() => undefined)
+      .catch(() => {
+        if (!cancelled) setOutcome('empty');
+      })
       .finally(() => {
         if (!cancelled) setReading(false);
       });
@@ -301,6 +312,12 @@ export default function PublishToFeed() {
     );
   };
 
+  const pillPhase: StatusPillPhase = reading
+    ? 'working'
+    : outcome === 'none'
+      ? 'idle'
+      : 'done';
+
   const garmentGroups = garmentsByCategory();
   const selectedGarment = garmentGroups
     .flatMap((g) => g.items)
@@ -325,16 +342,13 @@ export default function PublishToFeed() {
           <Text variant="bodySm" tone="textMuted">{t('feed.publishBody')}</Text>
         </View>
 
-        {/* One quiet line, never a blocking spinner. */}
-        {reading ? (
-          <Text variant="caption" tone="textMuted" style={styles.status}>
-            {t('feed.readingPhoto')}
-          </Text>
-        ) : suggested ? (
-          <Text variant="caption" tone="textMuted" style={styles.status}>
-            {t('feed.suggestedNote')}
-          </Text>
-        ) : null}
+        {/* Narrates the background classification. Never blocks the form —
+            see components/StatusPill.tsx. */}
+        <StatusPill
+          phase={pillPhase}
+          workingLabel={t('feed.readingPhoto')}
+          doneLabel={outcome === 'filled' ? t('feed.readingDone') : t('feed.readingNothing')}
+        />
 
         <Input
           label={t('feed.titleLabel')}
