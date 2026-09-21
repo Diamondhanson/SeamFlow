@@ -47,12 +47,21 @@ export function makeConversationsResource(http: HttpClient) {
       return http.get<ConversationDetail>(`/conversations/${id}${toQuery(params)}`);
     },
 
-    /** Older messages, walking backwards via the previous page's cursor. */
+    /**
+     * Messages. With `cursor`: older pages, walking backwards. With `since`
+     * (a previous page's `syncedAt`): only what was created or changed after
+     * it — how the device keeps its local copy current.
+     */
     messages(
       id: string,
-      params: { cursor?: string; limit?: number } = {},
+      params: { cursor?: string; limit?: number; since?: string } = {},
     ): Promise<MessagePage> {
       return http.get<MessagePage>(`/conversations/${id}/messages${toQuery(params)}`);
+    },
+
+    /** Re-fetch specific messages (fresh photo links). */
+    hydrate(id: string, ids: string[]): Promise<{ items: Message[] }> {
+      return http.post<{ items: Message[] }>(`/conversations/${id}/messages/hydrate`, { ids });
     },
 
     /**

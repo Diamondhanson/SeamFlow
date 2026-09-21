@@ -161,8 +161,24 @@ export type MessageCreateInput = z.infer<typeof MessageCreateSchema>;
 export const MessagePageSchema = z.object({
   items: z.array(MessageSchema),
   nextCursor: z.string().nullable(),
+  /**
+   * Server time to pass back as `since` next time, so the device fetches only
+   * what changed (plan step 3). Present on the newest page and on every delta.
+   */
+  syncedAt: z.string().datetime().optional(),
+  /**
+   * A delta was requested but too much changed to send as one — drop the
+   * local copy and start again from the newest page.
+   */
+  reset: z.boolean().optional(),
 });
 export type MessagePage = z.infer<typeof MessagePageSchema>;
+
+/** Re-fetch specific messages — used to refresh expiring photo links. */
+export const MessageHydrateSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(200),
+});
+export type MessageHydrateInput = z.infer<typeof MessageHydrateSchema>;
 
 // ── Conversations ───────────────────────────────────────────────────────────
 

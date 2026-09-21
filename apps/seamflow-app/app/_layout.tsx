@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { defaultShouldDehydrateQuery } from '@tanstack/react-query';
 import {
   Fraunces_600SemiBold,
   Fraunces_700Bold,
@@ -142,6 +143,13 @@ function ThemedRoot() {
               // by resumePausedMutations() and would only wedge the "Syncing…"
               // banner, so we never persist them.
               shouldDehydrateMutation: (m) => m.state.isPaused,
+              // Chat threads have their own per-conversation store on the
+              // device (lib/chat-store). Keeping them out of this single blob
+              // is the point: on Android one entry over ~2 MB can't be read
+              // back, and chat history would take the whole cache with it.
+              shouldDehydrateQuery: (q) =>
+                defaultShouldDehydrateQuery(q) &&
+                !(q.queryKey[0] === 'conversations' && q.queryKey[2] === 'messages'),
             },
           }}
           onSuccess={() => {

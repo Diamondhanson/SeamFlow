@@ -150,10 +150,7 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
   });
 
   // ── Rows ────────────────────────────────────────────────────────────────
-  const messages: Message[] = useMemo(
-    () => (msgsQ.data?.pages ?? []).flatMap((p) => p.items),
-    [msgsQ.data],
-  );
+  const messages: Message[] = msgsQ.messages;
 
   const rows: Row[] = useMemo(() => {
     const out: Row[] = [];
@@ -600,13 +597,11 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
             contentContainerStyle={styles.list}
             keyboardShouldPersistTaps="handled"
             onEndReachedThreshold={0.4}
-            onEndReached={() => {
-              if (msgsQ.hasNextPage && !msgsQ.isFetchingNextPage) msgsQ.fetchNextPage();
-            }}
+            onEndReached={msgsQ.loadOlder}
             ListFooterComponent={
-              msgsQ.isFetchingNextPage ? (
+              msgsQ.isLoadingOlder ? (
                 <ActivityIndicator style={{ marginVertical: spacing.md }} color={colors.textMuted} />
-              ) : !msgsQ.hasNextPage && messages.length > 0 ? (
+              ) : !msgsQ.hasOlder && messages.length > 0 ? (
                 <Text variant="caption" tone="textMuted" style={styles.startOf}>
                   {tk('startOfConversation')}
                 </Text>

@@ -89,6 +89,8 @@ export const messages = pgTable(
     clientId: text('client_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     readAt: timestamp('read_at', { withTimezone: true }),
+    /** Moves on ANY update (DB trigger) — the device's "changed since" key. */
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     conversationCreatedIdx: index('messages_conversation_created_idx').on(

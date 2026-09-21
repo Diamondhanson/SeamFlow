@@ -1,10 +1,11 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, sql, type SQL } from 'drizzle-orm';
 import type {
   Conversation,
   ConversationCreateInput,
@@ -40,6 +41,10 @@ const CHAT_BUCKET = 'chat-media';
 const FEED_BUCKET = 'feed';
 const AVATARS_BUCKET = 'avatars';
 const SIGNED_URL_TTL_S = 60 * 60;
+/** Re-send anything stamped this close to the last sync (see listMessages). */
+const DELTA_OVERLAP_MS = 10_000;
+/** A delta bigger than this is cheaper to replace with a fresh first page. */
+const DELTA_MAX = 500;
 
 /** Who the caller is, resolved once per request from their user id. */
 export interface ChatActor {
@@ -515,11 +520,38 @@ export class ChatService {
   async listMessages(
     actor: ChatActor,
     conversationId: string,
-    params: { cursor?: string; limit?: number },
+    params: { cursor?: string; limit?: number; since?: string },
   ): Promise<MessagePage> {
     const convo = await this.loadConversation(conversationId);
     this.sideOf(convo, actor); // access check
+    const db = this.dbService.db;
 
+    // Taken BEFORE reading, so anything committed while we read is caught by
+    // the next sync rather than falling between two watermarks.
+    const [{ now }] = (await db.execute(sql`select now() as now`)) as unknown as [{ now: Date | string }];
+    const syncedAt = new Date(now).toISOString();
+
+    // ── Delta: everything created or changed since the device last synced ──
+    if (params.since) {
+      const since = new Date(params.since);
+      if (Number.isNaN(since.getTime())) throw new BadRequestException('Invalid since');
+      // A little overlap covers a write that committed just after the last
+      // sync read but was stamped just before it. Merging is by id, so a
+      // message seen twice is harmless; one never seen is not.
+      const from = new Date(since.getTime() - DELTA_OVERLAP_MS);
+      const rows = await db
+        .select()
+        .from(messages)
+        .where(and(eq(messages.conversationId, conversationId), gt(messages.updatedAt, from)))
+        .orderBy(desc(messages.createdAt), desc(messages.id))
+        .limit(DELTA_MAX + 1);
+      if (rows.length > DELTA_MAX) {
+        return { items: [], nextCursor: null, syncedAt, reset: true };
+      }
+      return { items: await this.projectMessages(rows), nextCursor: null, syncedAt };
+    }
+
+    // ── Pages, newest first, walking back by cursor ──
     const limit = Math.min(Math.max(params.limit ?? 30, 1), 100);
     const conditions: SQL[] = [eq(messages.conversationId, conversationId)];
     const cur = this.decodeCursor(params.cursor);
@@ -529,7 +561,7 @@ export class ChatService {
       );
     }
 
-    const rows = await this.dbService.db
+    const rows = await db
       .select()
       .from(messages)
       .where(and(...conditions))
@@ -543,7 +575,24 @@ export class ChatService {
     return {
       items: await this.projectMessages(page),
       nextCursor: hasMore && last ? this.encodeCursor(last.createdAt, last.id) : null,
+      // Only the newest page is a valid starting point for deltas.
+      ...(cur ? {} : { syncedAt }),
     };
+  }
+
+  /**
+   * Re-project specific messages. The device keeps messages for a long time,
+   * but image links are signed for an hour; this refreshes them (and order
+   * card thumbnails) without re-downloading the whole thread.
+   */
+  async hydrateMessages(actor: ChatActor, conversationId: string, ids: string[]): Promise<Message[]> {
+    const convo = await this.loadConversation(conversationId);
+    this.sideOf(convo, actor);
+    const rows = await this.dbService.db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.conversationId, conversationId), inArray(messages.id, ids)));
+    return this.projectMessages(rows);
   }
 
   // ── Send ──────────────────────────────────────────────────────────────────

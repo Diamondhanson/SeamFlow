@@ -13,6 +13,7 @@ import { ChatService } from './chat.service';
 import {
   CreateConversationDto,
   CreateMessageDto,
+  HydrateDto,
   QuoteDto,
   ReactionDto,
   ShareOrderDto,
@@ -62,12 +63,25 @@ export class ChatController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
+    @Query('since') since?: string,
   ) {
     const actor = await this.chat.resolveActor(user.id);
     return this.chat.listMessages(actor, id, {
       cursor,
       limit: limit ? Number(limit) : undefined,
+      since,
     });
+  }
+
+  /** Refresh specific messages — the device's way to renew expiring photo links. */
+  @Post(':id/messages/hydrate')
+  async hydrate(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: HydrateDto,
+  ) {
+    const actor = await this.chat.resolveActor(user.id);
+    return { items: await this.chat.hydrateMessages(actor, id, body.ids) };
   }
 
   @Post(':id/messages')

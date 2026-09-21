@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   useQuery,
   useMutation,
@@ -53,6 +54,7 @@ import type {
 } from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
+import { isThreadData, loadOlder, loadThread, syncThread } from './chat-store';
 import { defaultNotificationPreferences } from './notification-defaults';
 import { mk, type ByIdVars, type DeleteOrderVars, type TransitionOrderVars, type UpdateClientVars, type UpdateFabricVars, type UpdateInvoiceVars, type UpdateOrderItemVars, type UpdateOrderVars } from './mutation-defaults';
 
@@ -772,17 +774,53 @@ export const useConversation = (id: string) =>
     enabled: !!id,
   });
 
-export const useMessages = (conversationId: string) =>
-  useInfiniteQuery({
-    queryKey: qk.conversationMessages(conversationId),
-    queryFn: ({ pageParam }) =>
-      api.conversations.messages(conversationId, {
-        cursor: pageParam as string | undefined,
-      }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (last) => last.nextCursor ?? undefined,
+/**
+ * One thread's messages, local-first (plan step 3): the on-device copy renders
+ * at once, then only what changed is fetched. See lib/chat-store.
+ */
+export function useMessages(conversationId: string) {
+  const qc = useQueryClient();
+  const key = qk.conversationMessages(conversationId);
+
+  // Put the saved copy on screen while the network catches up. Never over
+  // something newer that is already in memory.
+  useEffect(() => {
+    if (!conversationId || isThreadData(qc.getQueryData(key))) return;
+    void loadThread(conversationId).then((saved) => {
+      if (saved && !isThreadData(qc.getQueryData(key))) qc.setQueryData(key, saved);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
+
+  const q = useQuery({
+    queryKey: key,
+    queryFn: () => syncThread(conversationId, qc.getQueryData(key)),
     enabled: !!conversationId,
+    // Every open checks for changes; the delta makes that cheap.
+    staleTime: 0,
   });
+  const thread = isThreadData(q.data) ? q.data : null;
+
+  const older = useMutation({
+    mutationFn: () => (thread ? loadOlder(conversationId, thread) : Promise.resolve(thread)),
+    onSuccess: (next) => {
+      if (next) qc.setQueryData(key, next);
+    },
+  });
+
+  return {
+    messages: thread?.items ?? [],
+    /** Nothing on screen yet — neither a saved copy nor a first sync. */
+    isLoading: !thread && q.isLoading,
+    isError: !thread && q.isError,
+    hasOlder: thread?.hasOlder ?? false,
+    loadOlder: () => {
+      if (thread?.hasOlder && !older.isPending) older.mutate();
+    },
+    isLoadingOlder: older.isPending,
+    refetch: q.refetch,
+  };
+}
 
 export function useMarkConversationRead(id: string) {
   const qc = useQueryClient();

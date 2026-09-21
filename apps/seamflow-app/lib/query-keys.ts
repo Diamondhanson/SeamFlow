@@ -82,7 +82,12 @@ export const qk = {
   // message pages hang off the thread so invalidating a thread drops both.
   conversations: () => ['conversations'] as const,
   conversation: (id: string) => ['conversations', id] as const,
-  conversationMessages: (id: string) => ['conversations', id, 'messages'] as const,
+  // A thread's messages, backed by the on-device chat store (lib/chat-store).
+  // Invalidating this key runs a DELTA sync, not a full reload. The trailing
+  // 'local' separates it from the old paged shape still sitting in older
+  // persisted caches; prefix invalidation of ['conversations', id, 'messages']
+  // still reaches it.
+  conversationMessages: (id: string) => ['conversations', id, 'messages', 'local'] as const,
 
   // ── Notification inbox ────────────────────────────────────────────────────
   notifications: () => ['notifications'] as const,
