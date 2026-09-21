@@ -2,6 +2,8 @@
 // French mirrors it. Keys are camelCase and referenced as t('templates.key').
 export const templates = {
   en: {
+    quickAddMore: 'View {count} more',
+    quickAddLess: 'Show less',
     listTitle: 'Templates',
     listSubtitle: 'Measurement patterns per garment — the form adapts to each design.',
     newTemplate: 'New template',
@@ -41,7 +43,7 @@ export const templates = {
     addField: '+ Add field',
     fieldNameLabel: 'Measurement',
     fieldNamePlaceholder: 'e.g. Chest',
-    addCustomField: '+ Custom measurement',
+    addCustomField: '+ Add attribute',
     quickAddHeading: 'Quick add',
     quickAddHelp: 'Tap a measurement to add it. Tap again to remove.',
     groupUpperBody: 'Upper body',
@@ -82,6 +84,8 @@ export const templates = {
     notFound: 'This template no longer exists.',
   },
   fr: {
+    quickAddMore: 'Voir {count} de plus',
+    quickAddLess: 'Voir moins',
     listTitle: 'Modèles',
     listSubtitle: 'Un patron de mesures par vêtement — le formulaire s’adapte à chaque modèle.',
     newTemplate: 'Nouveau modèle',
@@ -121,7 +125,7 @@ export const templates = {
     addField: '+ Ajouter un champ',
     fieldNameLabel: 'Mesure',
     fieldNamePlaceholder: 'ex. Poitrine',
-    addCustomField: '+ Mesure personnalisée',
+    addCustomField: '+ Ajouter un attribut',
     quickAddHeading: 'Ajout rapide',
     quickAddHelp: 'Touchez une mesure pour l’ajouter. Touchez à nouveau pour la retirer.',
     groupUpperBody: 'Haut du corps',
@@ -161,6 +165,8 @@ export const templates = {
     notFound: 'Ce modèle n’existe plus.',
   },
   pt: {
+    quickAddMore: 'Ver mais {count}',
+    quickAddLess: 'Ver menos',
     listTitle: 'Modelos',
     listSubtitle:
       'Padrões de medidas por peça — o formulário adapta-se a cada criação.',
@@ -201,7 +207,7 @@ export const templates = {
     addField: '+ Adicionar campo',
     fieldNameLabel: 'Medida',
     fieldNamePlaceholder: 'ex. Peito',
-    addCustomField: '+ Medida personalizada',
+    addCustomField: '+ Adicionar atributo',
     quickAddHeading: 'Adição rápida',
     quickAddHelp: 'Toque numa medida para a adicionar. Toque de novo para remover.',
     groupUpperBody: 'Tronco',
@@ -246,6 +252,8 @@ export const templates = {
     notFound: 'Este modelo já não existe.',
   },
   es: {
+    quickAddMore: 'Ver {count} más',
+    quickAddLess: 'Ver menos',
     listTitle: 'Plantillas',
     listSubtitle: 'Patrones de medidas por prenda — el formulario se adapta a cada diseño.',
     newTemplate: 'Nueva plantilla',
@@ -285,7 +293,7 @@ export const templates = {
     addField: '+ Agregar campo',
     fieldNameLabel: 'Medida',
     fieldNamePlaceholder: 'p. ej. Pecho',
-    addCustomField: '+ Medida personalizada',
+    addCustomField: '+ Agregar atributo',
     quickAddHeading: 'Agregar rápido',
     quickAddHelp: 'Toque una medida para agregarla. Tóquela de nuevo para quitarla.',
     groupUpperBody: 'Parte superior',
@@ -326,6 +334,8 @@ export const templates = {
     notFound: 'Esta plantilla ya no existe.',
   },
   sw: {
+    quickAddMore: 'Tazama {count} zaidi',
+    quickAddLess: 'Onyesha chache',
     listTitle: 'Violezo',
     listSubtitle: 'Mifumo ya vipimo kwa kila vazi — fomu hujirekebisha kulingana na ubunifu.',
     newTemplate: 'Kiolezo kipya',
@@ -365,7 +375,7 @@ export const templates = {
     addField: '+ Ongeza sehemu',
     fieldNameLabel: 'Kipimo',
     fieldNamePlaceholder: 'mf. Kifua',
-    addCustomField: '+ Kipimo chako',
+    addCustomField: '+ Ongeza sifa',
     quickAddHeading: 'Ongeza haraka',
     quickAddHelp: 'Gusa kipimo ili kukiongeza. Gusa tena ili kukiondoa.',
     groupUpperBody: 'Sehemu ya juu ya mwili',
@@ -406,6 +416,8 @@ export const templates = {
     notFound: 'Kiolezo hiki hakipo tena.',
   },
   ar: {
+    quickAddMore: 'عرض {count} أخرى',
+    quickAddLess: 'عرض أقل',
     listTitle: 'القوالب',
     listSubtitle: 'أنماط المقاسات لكل ثوب — يتكيّف النموذج مع كل تصميم.',
     newTemplate: 'قالب جديد',
@@ -445,7 +457,7 @@ export const templates = {
     addField: '+ إضافة حقل',
     fieldNameLabel: 'المقاس',
     fieldNamePlaceholder: 'مثال: الصدر',
-    addCustomField: '+ مقاس مخصّص',
+    addCustomField: '+ إضافة خانة',
     quickAddHeading: 'إضافة سريعة',
     quickAddHelp: 'انقر على مقاس لإضافته. انقر مرة أخرى لإزالته.',
     groupUpperBody: 'الجزء العلوي',

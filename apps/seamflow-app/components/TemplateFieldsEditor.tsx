@@ -7,11 +7,25 @@
 // measurements (grouped by body region) makes it mostly tapping; a custom-field
 // button covers anything unusual.
 //
+// WHAT EACH FIELD CARD USED TO HAVE, AND WHY IT IS GONE
+// Two buttons sat in a row under every name: Optional/Required and cm/in.
+// Both defaulted to full width, so the second was shoved off-screen — tailors
+// saw a half-visible button and reasonably assumed it was "Required".
+//
+// Neither did anything. `required` was saved and read back but never checked
+// by any screen or by the API, and the per-field unit was never read by the
+// measurement editor, which enters and labels everything in centimetres. The
+// unit toggle was worse than dead: a tailor who set a field to inches would
+// believe they were recording inches while every value was stored as cm.
+// Both are removed. Existing templates keep their old values in storage,
+// harmlessly; nothing reads them.
+//
 // Owns nothing — the parent holds the `EditableField[]` and persists it.
 // Reused by the template create screen (and the edit screen once fields become
 // editable there).
 // ============================================================================
 
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text, Chip, useAtelierTheme } from '@seamflow/ui';
 import type { EditableField } from '../lib/measurements';
@@ -31,6 +45,14 @@ export function TemplateFieldsEditor({
 }) {
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
+
+  // The full palette is four groups and dozens of chips — on a phone it was
+  // longer than the template it was helping to build. Collapsed, it shows the
+  // most-asked-for measurements (the groups are ordered that way, upper body
+  // first) and nothing else.
+  const [showAllQuick, setShowAllQuick] = useState(false);
+  const allQuickKeys = MEASUREMENT_GROUPS.flatMap((g) => g.keys);
+  const hiddenCount = Math.max(0, allQuickKeys.length - QUICK_ADD_COLLAPSED);
 
   const update = (i: number, patch: Partial<EditableField>) =>
     onChange(fields.map((f, idx) => (idx === i ? { ...f, ...patch } : f)));
@@ -77,20 +99,6 @@ export function TemplateFieldsEditor({
                 {t('templates.scanLowConfidence')}
               </Text>
             ) : null}
-            <View style={styles.row}>
-              <Button
-                label={f.required ? t('templates.required') : t('templates.optional')}
-                variant="secondary"
-                onPress={() => update(i, { required: !f.required })}
-              />
-              <View style={{ width: spacing.sm }} />
-              <Button
-                label={f.unit === 'in' ? 'in' : 'cm'}
-                variant="secondary"
-                onPress={() => update(i, { unit: f.unit === 'in' ? 'cm' : 'in' })}
-              />
-            </View>
-            <View style={{ height: spacing.sm }} />
             <Button
               label={t('templates.removeField')}
               variant="danger"
@@ -116,27 +124,44 @@ export function TemplateFieldsEditor({
         </Text>
       </View>
 
-      {MEASUREMENT_GROUPS.map((group) => (
-        <View key={group.titleKey} style={styles.group}>
-          <Text variant="label" tone="textMuted" style={styles.groupTitle}>
-            {t(group.titleKey)}
-          </Text>
-          <View style={styles.chips}>
-            {group.keys.map((mkey) => {
-              const name = t(`measurements.${mkey}`);
-              const added = has(name);
-              return (
-                <Chip
-                  key={mkey}
-                  label={added ? `✓ ${name}` : `+ ${name}`}
-                  tone={added ? 'success' : 'primary'}
-                  onPress={() => toggle(name)}
-                />
-              );
-            })}
+      {showAllQuick ? (
+        MEASUREMENT_GROUPS.map((group) => (
+          <View key={group.titleKey} style={styles.group}>
+            <Text variant="label" tone="textMuted" style={styles.groupTitle}>
+              {t(group.titleKey)}
+            </Text>
+            <View style={styles.chips}>
+              {group.keys.map((mkey) => (
+                <QuickChip key={mkey} mkey={mkey} has={has} toggle={toggle} />
+              ))}
+            </View>
           </View>
+        ))
+      ) : (
+        // Collapsed: no group headings. With seven chips a heading per region
+        // is more structure than content.
+        <View style={[styles.chips, styles.group]}>
+          {allQuickKeys.slice(0, QUICK_ADD_COLLAPSED).map((mkey) => (
+            <QuickChip key={mkey} mkey={mkey} has={has} toggle={toggle} />
+          ))}
         </View>
-      ))}
+      )}
+
+      {hiddenCount > 0 ? (
+        <View style={styles.more}>
+          <Button
+            label={
+              showAllQuick
+                ? t('templates.quickAddLess')
+                : t('templates.quickAddMore', { count: hiddenCount })
+            }
+            variant="ghost"
+            size="sm"
+            fullWidth={false}
+            onPress={() => setShowAllQuick((v) => !v)}
+          />
+        </View>
+      ) : null}
 
       {/* soft rule so the palette doesn't butt against the save button */}
       <View style={[styles.rule, { backgroundColor: colors.hairline }]} />
@@ -144,13 +169,40 @@ export function TemplateFieldsEditor({
   );
 }
 
+/**
+ * Seven: enough to cover a typical top (chest, waist, shoulder, sleeve…) in one
+ * glance, few enough to fit in about two rows on a phone.
+ */
+const QUICK_ADD_COLLAPSED = 7;
+
+function QuickChip({
+  mkey,
+  has,
+  toggle,
+}: {
+  mkey: string;
+  has: (name: string) => boolean;
+  toggle: (name: string) => void;
+}) {
+  const { t } = useTranslation();
+  const name = t(`measurements.${mkey}`);
+  const added = has(name);
+  return (
+    <Chip
+      label={added ? `✓ ${name}` : `+ ${name}`}
+      tone={added ? 'success' : 'primary'}
+      onPress={() => toggle(name)}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   heading: { marginBottom: spacing.sm },
-  row: { flexDirection: 'row' },
   lowConfidence: { marginBottom: spacing.sm },
   paletteHead: { marginTop: spacing.xl },
   group: { marginTop: spacing.md },
   groupTitle: { marginBottom: spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  more: { marginTop: spacing.sm, alignItems: 'flex-start' },
   rule: { height: 1, marginTop: spacing.lg },
 });
