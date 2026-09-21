@@ -26,6 +26,8 @@ import { Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SkeletonGrid } from '../../../components/Skeleton';
+import { SearchField } from '../../../components/SearchField';
+import { Button } from '../../../components/Button';
 import { ImageCaption } from '../../../components/client/ImageCaption';
 import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useFeed } from '../../../lib/consumer-queries';
@@ -34,6 +36,7 @@ import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useAuth } from '../../../lib/auth-context';
+import { useDebouncedValue } from '../../../lib/use-debounced-value';
 
 const AUDIENCES: WorkAudience[] = ['women', 'men', 'unisex', 'children'];
 const OCCASIONS: WorkOccasion[] = [
@@ -54,13 +57,22 @@ export default function Discover() {
   const [occasion, setOccasion] = useState<WorkOccasion | undefined>();
   const anyFilter = !!audience || !!occasion;
 
-  const filter = useMemo(() => ({ audience, occasion }), [audience, occasion]);
+  // Search runs on what the shopper MEANS, in any of the six languages — the
+  // server resolves "robe rouge" to dress + red (see parseSearchQuery). Here we
+  // only debounce, and ignore a lone character that would match everything.
+  const [qInput, setQInput] = useState('');
+  const debouncedQ = useDebouncedValue(qInput.trim(), 300);
+  const q = debouncedQ.length >= 2 ? debouncedQ : undefined;
+
+  const filter = useMemo(() => ({ audience, occasion, q }), [audience, occasion, q]);
   const feedQ = useFeed(filter);
 
   const items: FeedPostPublic[] = useMemo(
     () => (feedQ.data?.pages ?? []).flatMap((p) => p.items),
     [feedQ.data],
   );
+  // Set by the server when nothing matched every word and it widened to any.
+  const relaxed = !!feedQ.data?.pages[0]?.relaxed;
 
   // ── Masonry ───────────────────────────────────────────────────────────────
   const columns = useGridColumns();
@@ -118,6 +130,13 @@ export default function Discover() {
         <Text variant="bodySm" tone="textMuted">
           {t('discover.subtitle')}
         </Text>
+        <View style={styles.search}>
+          <SearchField
+            value={qInput}
+            onChangeText={setQInput}
+            placeholder={t('discover.searchPlaceholder')}
+          />
+        </View>
       </View>
 
       <ScrollView
@@ -158,6 +177,30 @@ export default function Discover() {
         <View style={styles.padded}>
           <SkeletonGrid columns={columns} />
         </View>
+      ) : items.length === 0 && q ? (
+        // A search that found nothing is still a request: nobody has posted it,
+        // so offer to have it made. The query becomes the request's description.
+        <View style={styles.empty}>
+          <Ionicons name="cut-outline" size={44} color={colors.textMuted} />
+          <Text variant="h3" style={styles.emptyTitle}>
+            {t('discover.searchNoneTitle', { q })}
+          </Text>
+          <Text variant="bodySm" tone="textMuted" style={styles.emptyText}>
+            {t('discover.searchNoneBody')}
+          </Text>
+          <View style={styles.emptyCta}>
+            <Button
+              label={t('discover.searchAskTailors')}
+              iconStart={<Ionicons name="add" size={18} color={colors.accentText} />}
+              onPress={() =>
+                router.push({
+                  pathname: '/hub/requests/new',
+                  params: { description: q },
+                } as never)
+              }
+            />
+          </View>
+        </View>
       ) : items.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="sparkles-outline" size={44} color={colors.textMuted} />
@@ -179,7 +222,13 @@ export default function Discover() {
             if (feedQ.hasNextPage && !feedQ.isFetchingNextPage) feedQ.fetchNextPage();
           }}
         >
-          <View style={styles.masonry}>
+          {q ? (
+            <Text variant="bodySm" tone="textMuted" style={styles.resultsNote}>
+              {relaxed ? t('discover.searchRelaxed', { q }) : t('discover.searchResults', { q })}
+            </Text>
+          ) : null}
+          {/* Dimmed while a newer search is loading over the previous results. */}
+          <View style={[styles.masonry, feedQ.isPlaceholderData ? styles.stale : null]}>
             {cols.map((col, ci) => (
               <View key={ci} style={{ width: cellW, gap: spacing.md }}>
                 {col.map((post) => {
@@ -256,6 +305,10 @@ function Chip({
 const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  search: { marginTop: spacing.md },
+  resultsNote: { marginBottom: spacing.md },
+  stale: { opacity: 0.5 },
+  emptyCta: { marginTop: spacing.lg },
   // alignItems keeps each chip its own height instead of stretching to the
   // row; flexGrow stops the row itself claiming the leftover column height.
   // Native hugs the content either way — on web the ScrollView takes flex:1

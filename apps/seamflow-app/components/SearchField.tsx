@@ -6,7 +6,7 @@
 // Colors + radius come from the theme (no hex).
 // ============================================================================
 
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { activeFontFamilies, spacing, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { useTranslation } from '../lib/i18n';
@@ -47,6 +47,16 @@ export function SearchField({
         {...focusProps}
         style={[styles.input, { color: colors.text }, webReset]}
       />
+      {value ? (
+        <Pressable
+          onPress={() => onChangeText('')}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.clear')}
+        >
+          <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

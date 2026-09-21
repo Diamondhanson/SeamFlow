@@ -2,6 +2,12 @@
 // English is the source of truth; French mirrors it.
 export const discover = {
   en: {
+    searchPlaceholder: 'Search designs — “red kaftan”, “robe”…',
+    searchResults: 'Results for “{q}”',
+    searchRelaxed: 'No exact match for “{q}” — here’s what’s close.',
+    searchNoneTitle: 'No one has posted “{q}” yet',
+    searchNoneBody: 'Describe it and tailors will send you offers to make it.',
+    searchAskTailors: 'Ask tailors to make it',
     viewFullScreen: 'View full screen',
     closeViewer: 'Close',
     messageTailor: 'Message',
@@ -27,7 +33,6 @@ export const discover = {
     occasionCasual: 'Casual',
     occasionParty: 'Party',
     clearFilters: 'Clear',
-    searchPlaceholder: 'Search styles, fabrics, garments…',
     noMatch: 'Nothing matches those filters yet.',
 
     // ── Design detail ───────────────────────────────────────────────────────
@@ -75,6 +80,12 @@ export const discover = {
     inquireDesignPinned: 'About {design}',
   },
   fr: {
+    searchPlaceholder: 'Chercher un modèle — « robe rouge », « kaftan »…',
+    searchResults: 'Résultats pour « {q} »',
+    searchRelaxed: 'Aucun résultat exact pour « {q} » — voici ce qui s’en approche.',
+    searchNoneTitle: 'Personne n’a encore publié « {q} »',
+    searchNoneBody: 'Décrivez-le et des tailleurs vous enverront leurs offres pour le réaliser.',
+    searchAskTailors: 'Demander aux tailleurs',
     viewFullScreen: 'Voir en plein écran',
     closeViewer: 'Fermer',
     messageTailor: 'Envoyer un message',
@@ -99,7 +110,6 @@ export const discover = {
     occasionCasual: 'Décontracté',
     occasionParty: 'Fête',
     clearFilters: 'Effacer',
-    searchPlaceholder: 'Rechercher styles, tissus, vêtements…',
     noMatch: 'Rien ne correspond à ces filtres pour l’instant.',
 
     byTailor: 'Par {name}',
@@ -142,6 +152,12 @@ export const discover = {
     inquireDesignPinned: 'À propos de {design}',
   },
   pt: {
+    searchPlaceholder: 'Pesquisar modelos — “kaftan vermelho”, “vestido”…',
+    searchResults: 'Resultados para “{q}”',
+    searchRelaxed: 'Nada exato para “{q}” — eis o que mais se aproxima.',
+    searchNoneTitle: 'Ninguém publicou “{q}” ainda',
+    searchNoneBody: 'Descreva e os alfaiates enviarão propostas para o fazer.',
+    searchAskTailors: 'Pedir aos alfaiates',
     viewFullScreen: 'Ver em ecrã inteiro',
     closeViewer: 'Fechar',
     messageTailor: 'Enviar mensagem',
@@ -167,7 +183,6 @@ export const discover = {
     occasionCasual: 'Casual',
     occasionParty: 'Festa',
     clearFilters: 'Limpar',
-    searchPlaceholder: 'Procurar estilos, tecidos, peças…',
     noMatch: 'Ainda nada corresponde a esses filtros.',
 
     // ── Detalhe da criação ──────────────────────────────────────────────────
@@ -214,6 +229,12 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   es: {
+    searchPlaceholder: 'Buscar diseños — “kaftán rojo”, “vestido”…',
+    searchResults: 'Resultados para “{q}”',
+    searchRelaxed: 'Nada exacto para “{q}” — esto es lo más parecido.',
+    searchNoneTitle: 'Nadie ha publicado “{q}” todavía',
+    searchNoneBody: 'Descríbelo y los sastres te enviarán ofertas para hacerlo.',
+    searchAskTailors: 'Pedir a los sastres',
     viewFullScreen: 'Ver a pantalla completa',
     closeViewer: 'Cerrar',
     messageTailor: 'Enviar mensaje',
@@ -239,7 +260,6 @@ export const discover = {
     occasionCasual: 'Informal',
     occasionParty: 'Fiesta',
     clearFilters: 'Quitar',
-    searchPlaceholder: 'Buscar estilos, telas, prendas…',
     noMatch: 'Todavía no hay nada que coincida con esos filtros.',
 
     // ── Detalle del diseño ──────────────────────────────────────────────────
@@ -285,6 +305,12 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   sw: {
+    searchPlaceholder: 'Tafuta mitindo — “kaftani nyekundu”, “gauni”…',
+    searchResults: 'Matokeo ya “{q}”',
+    searchRelaxed: 'Hakuna kinacholingana kabisa na “{q}” — hivi ndivyo vinavyokaribia.',
+    searchNoneTitle: 'Bado hakuna aliyechapisha “{q}”',
+    searchNoneBody: 'Ieleze na mafundi watakutumia ofa za kuishona.',
+    searchAskTailors: 'Waombe mafundi waishone',
     viewFullScreen: 'Tazama skrini nzima',
     closeViewer: 'Funga',
     messageTailor: 'Tuma ujumbe',
@@ -310,7 +336,6 @@ export const discover = {
     occasionCasual: 'Kawaida',
     occasionParty: 'Sherehe',
     clearFilters: 'Ondoa',
-    searchPlaceholder: 'Tafuta mitindo, vitambaa, mavazi…',
     noMatch: 'Bado hakuna kinacholingana na vichujio hivyo.',
 
     // ── Maelezo ya ubunifu ──────────────────────────────────────────────────
@@ -356,6 +381,12 @@ export const discover = {
     inquireDesignPinned: 'Kuhusu {design}',
   },
   ar: {
+    searchPlaceholder: 'ابحث عن تصاميم — «قفطان أحمر»، «فستان»…',
+    searchResults: 'نتائج «{q}»',
+    searchRelaxed: 'لا تطابق تامًا لـ«{q}» — إليك الأقرب.',
+    searchNoneTitle: 'لم ينشر أحد «{q}» بعد',
+    searchNoneBody: 'صِفه وسيرسل لك الخياطون عروضًا لتنفيذه.',
+    searchAskTailors: 'اطلب من الخياطين تنفيذه',
     viewFullScreen: 'عرض بملء الشاشة',
     closeViewer: 'إغلاق',
     messageTailor: 'إرسال رسالة',
@@ -381,7 +412,6 @@ export const discover = {
     occasionCasual: 'يومي',
     occasionParty: 'حفلة',
     clearFilters: 'مسح',
-    searchPlaceholder: 'ابحث في القصّات والأقمشة والأثواب…',
     noMatch: 'لا شيء يطابق هذه التصفية بعد.',
 
     // ── تفاصيل التصميم ─────────────────────────────────────────────────────

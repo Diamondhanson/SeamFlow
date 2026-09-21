@@ -10,6 +10,7 @@
 // ============================================================================
 
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -34,6 +35,9 @@ export const useFeed = (filter: Partial<FeedQuery> = {}) =>
       api.feed.list({ ...filter, cursor: pageParam as string | undefined }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
+    // Keep showing the last results while the next search is in flight, so
+    // typing refines the grid instead of flashing it back to a skeleton.
+    placeholderData: keepPreviousData,
   });
 
 /** One design, full-screen. */

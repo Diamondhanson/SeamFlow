@@ -12,7 +12,7 @@
 
 import { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
   GARMENT_CATEGORY_LABELS,
@@ -44,7 +44,9 @@ export default function NewRequest() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [garmentType, setGarmentType] = useState<string | null>(null);
-  const [description, setDescription] = useState('');
+  // Discover's "ask tailors to make it" arrives with what the shopper searched.
+  const params = useLocalSearchParams<{ description?: string }>();
+  const [description, setDescription] = useState(params.description ?? '');
   const [budgetMin, setBudgetMin] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
 

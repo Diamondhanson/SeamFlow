@@ -30,6 +30,7 @@ import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { feedPostImages, feedPosts, orderPhotos, orders, tailors } from '../db/schema';
 import { ownerIsLive } from '../common/live-owner';
+import { escapeForRegex, parseSearchQuery } from '@seamflow/schemas';
 
 const ORDER_PHOTOS_BUCKET = 'order-photos';
 const FEED_BUCKET = 'feed';
@@ -250,15 +251,29 @@ export class FeedService {
     if (query.audience) conditions.push(eq(feedPosts.audience, query.audience));
     if (query.occasion) conditions.push(eq(feedPosts.occasion, query.occasion));
     if (query.tailorId) conditions.push(eq(feedPosts.tailorId, query.tailorId));
-    if (query.q) {
-      const term = `%${query.q}%`;
-      const match = or(
-        ilike(feedPosts.caption, term),
-        ilike(feedPosts.garmentType, term),
-        // jsonb tags → text so a plain LIKE reaches inside the array.
-        sql`${feedPosts.tags}::text ilike ${term}`,
-      );
-      if (match) conditions.push(match);
+    // Search. Every concept/term must hold ("red kaftan" = red AND kaftan). If
+    // that finds nothing at all, fall back to ANY of them and say so — an
+    // empty screen teaches a shopper that search is broken; a labelled
+    // "here's what's close" keeps them browsing. The decision is made once,
+    // ignoring the cursor, so every page of one search uses the same rule.
+    let relaxed = false;
+    const search = query.q ? this.searchClauses(query.q) : [];
+    if (search.length === 1) {
+      conditions.push(search[0]!);
+    } else if (search.length > 1) {
+      const strict = and(...search)!;
+      const anyStrict = await this.dbService.db
+        .select({ id: feedPosts.id })
+        .from(feedPosts)
+        .innerJoin(tailors, eq(tailors.id, feedPosts.tailorId))
+        .where(and(...conditions, strict))
+        .limit(1);
+      if (anyStrict.length > 0) {
+        conditions.push(strict);
+      } else {
+        conditions.push(or(...search)!);
+        relaxed = true;
+      }
     }
 
     const cur = this.decodeCursor(query.cursor);
@@ -284,7 +299,62 @@ export class FeedService {
     return {
       items: page.map((r) => this.toPublicPost(r)),
       nextCursor: hasMore && last ? this.encodeCursor(last.post.createdAt, last.post.id) : null,
+      ...(relaxed ? { relaxed } : {}),
     };
+  }
+
+  /**
+   * One SQL clause per thing the shopper asked for — see parseSearchQuery.
+   *
+   * A concept matches on its structured keys (garment_key, colours, style
+   * attributes — language-free, so a French query finds an English-described
+   * design) OR on any translation of it appearing as a WHOLE word in the
+   * design's own text. Whole words are the fix for "red" matching
+   * "embroidered"; unaccent on both sides is the fix for "mariee" missing
+   * "mariée".
+   *
+   * Plain terms (words in no vocabulary — a city, a tailor, "ankara") match
+   * whole words in the text, the city and the tailor's business name.
+   */
+  private searchClauses(q: string): SQL[] {
+    const { concepts, terms } = parseSearchQuery(q);
+    const text = sql`unaccent(concat_ws(' ', ${feedPosts.title}, ${feedPosts.caption}, ${feedPosts.garmentType}, ${feedPosts.fabric}))`;
+    const wordsIn = (phrases: string[]) =>
+      // Spaces inside a phrase accept any separator: "robe-de-mariée" counts.
+      '\\m(' +
+      phrases.map((p) => escapeForRegex(p).replace(/ /g, '[^[:alnum:]]+')).join('|') +
+      ')\\M';
+
+    const out: SQL[] = [];
+    for (const c of concepts) {
+      const parts: SQL[] = [sql`${text} ~* ${wordsIn(c.phrases)}`];
+      if (c.garmentKeys.length) {
+        parts.push(inArray(feedPosts.garmentKey, c.garmentKeys));
+      }
+      for (const k of c.colorKeys) {
+        parts.push(sql`${feedPosts.colors} @> ${JSON.stringify([{ key: k }])}::jsonb`);
+      }
+      if (c.attributeKeys.length) {
+        parts.push(
+          sql`${feedPosts.attributes} ?| array[${sql.join(
+            c.attributeKeys.map((k) => sql`${k}`),
+            sql`, `,
+          )}]::text[]`,
+        );
+      }
+      out.push(or(...parts)!);
+    }
+    for (const term of terms) {
+      const re = wordsIn([term]);
+      out.push(
+        or(
+          sql`${text} ~* ${re}`,
+          sql`unaccent(coalesce(${feedPosts.city}, '')) ~* ${re}`,
+          sql`unaccent(${tailors.businessName}) ~* ${re}`,
+        )!,
+      );
+    }
+    return out;
   }
 
   async getPublic(id: string): Promise<{ post: FeedPostPublic; moreLikeThis: FeedPostPublic[] }> {

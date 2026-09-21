@@ -154,6 +154,12 @@ export const FeedPageSchema = z.object({
   items: z.array(FeedPostPublicSchema),
   /** Null when this is the last page. */
   nextCursor: z.string().nullable(),
+  /**
+   * True when a search matched nothing with every word required, so the page
+   * holds designs matching ANY of them instead. The app says so rather than
+   * passing near-misses off as exact results.
+   */
+  relaxed: z.boolean().optional(),
 });
 export type FeedPage = z.infer<typeof FeedPageSchema>;
 
