@@ -299,10 +299,60 @@ export class FeedService {
     if (!row) throw new NotFoundException(`Feed post ${id} not found`);
 
     const [withImages] = await this.attachImages([row]);
+    const moreLikeThis = await this.moreLikeThis(row.post);
 
-    // `moreLikeThis` stays empty until pgvector similarity lands (C5). Returning
-    // the field now means the client can ship its UI without a contract change.
-    return { post: this.toPublicPost(withImages ?? row), moreLikeThis: [] };
+    return { post: this.toPublicPost(withImages ?? row), moreLikeThis };
+  }
+
+  /**
+   * Designs to show under the one being viewed.
+   *
+   * HONEST LABEL: this is not similarity yet. There is no embedding and, until
+   * the backfill runs, most posts carry no garment key either — so a real
+   * "more like this" has nothing to compare. What it does instead is the most
+   * useful thing available with no signal: same garment first when we happen
+   * to know it, same maker next, then simply the newest work on the platform.
+   *
+   * It lives here, behind the existing `moreLikeThis` field, precisely so that
+   * swapping in pgvector later is a change to this ONE query — the app already
+   * renders whatever comes back and will not need touching.
+   *
+   * Never returns the post itself, never an empty list while the feed has
+   * anything else in it: a "more" section that is sometimes blank teaches
+   * people to stop scrolling down to it.
+   */
+  private async moreLikeThis(
+    post: typeof feedPosts.$inferSelect,
+    limit = 8,
+  ): Promise<FeedPostPublic[]> {
+    const garment = post.garmentKey ?? post.garmentType ?? null;
+
+    // Ranking by CASE rather than three queries: one round-trip, and the tiers
+    // fall through naturally when a tier has fewer than `limit` rows.
+    const rank = sql<number>`case
+      when ${garment}::text is not null
+       and (${feedPosts.garmentKey} = ${garment} or ${feedPosts.garmentType} = ${garment})
+        then 0
+      when ${feedPosts.tailorId} = ${post.tailorId} then 1
+      else 2
+    end`;
+
+    const rows = await this.dbService.db
+      .select({ post: feedPosts, tailor: tailors })
+      .from(feedPosts)
+      .innerJoin(tailors, eq(tailors.id, feedPosts.tailorId))
+      .where(
+        and(
+          eq(feedPosts.status, 'published'),
+          ownerIsLive(),
+          sql`${feedPosts.id} <> ${post.id}`,
+        ),
+      )
+      .orderBy(rank, desc(feedPosts.createdAt), desc(feedPosts.id))
+      .limit(limit);
+
+    const withImages = await this.attachImages(rows);
+    return withImages.map((r) => this.toPublicPost(r));
   }
 
   async storefront(

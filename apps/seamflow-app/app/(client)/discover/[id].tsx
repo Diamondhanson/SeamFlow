@@ -9,18 +9,30 @@
 // It renders from data the feed response already carried — every FeedPostPublic
 // embeds the tailor mini-profile — so opening this screen costs no extra request
 // for the attribution.
+//
+// Tapping the hero opens <FullscreenGallery>: every angle shown WHOLE at its own
+// aspect ratio, over a blurred wash of the photo's own colours. The hero here
+// crops to fill a fixed box, which is right for a page and wrong for actually
+// looking at a garment — a gown loses its hem, a two-piece its sleeves.
+//
+// "More like this" sits under the enquiry button. It is not real similarity
+// yet (see FeedService.moreLikeThis) but the section is built against the real
+// contract, so when it becomes real nothing here changes.
 // ============================================================================
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Dimensions, Image, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import type { FeedImage } from '@seamflow/schemas';
+import type { FeedImage, FeedPostPublic } from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { Button } from '../../../components/Button';
+import { FullscreenGallery } from '../../../components/client/FullscreenGallery';
+import { ImageCaption } from '../../../components/client/ImageCaption';
+import { useContentWidth } from '../../../lib/use-breakpoint';
 import { useFeedPost } from '../../../lib/consumer-queries';
 import { config } from '../../../lib/config';
 import { useAuth } from '../../../lib/auth-context';
@@ -38,6 +50,12 @@ export default function DesignDetail() {
 
   const postQ = useFeedPost(id);
   const post = postQ.data?.post;
+  const more = postQ.data?.moreLikeThis ?? [];
+
+  // Lifted out of the carousel so the gallery opens on the angle you were
+  // looking at, and closing it returns you to the angle you swiped to.
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
   /**
    * Auth gate on ACTION, not on browsing (D-4). Someone who just found the app
@@ -109,7 +127,15 @@ export default function DesignDetail() {
     <Screen padded={false}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View>
-          <HeroCarousel images={post.images} background={colors.card} accent={colors.accent} />
+          <HeroCarousel
+            images={post.images}
+            background={colors.card}
+            accent={colors.accent}
+            index={heroIndex}
+            onIndexChange={setHeroIndex}
+            onOpen={() => setGalleryOpen(true)}
+            openLabel={t('discover.viewFullScreen')}
+          />
 
           {/* Close, top-left — deliberately not where the attribution goes. */}
           <Pressable
@@ -200,8 +226,84 @@ export default function DesignDetail() {
             <Button label={t('discover.inquire')} onPress={inquire} />
           </View>
         </View>
+
+        {more.length > 0 ? <MoreLikeThis posts={more} title={t('discover.moreLikeThis')} /> : null}
       </ScrollView>
+
+      <FullscreenGallery
+        images={post.images}
+        visible={galleryOpen}
+        startIndex={heroIndex}
+        onIndexChange={setHeroIndex}
+        onClose={() => setGalleryOpen(false)}
+      />
     </Screen>
+  );
+}
+
+/**
+ * The grid under the enquiry button. Two columns, each cell at the design's own
+ * proportions, captioned inside the image the way the main feed does it — so it
+ * reads as "more of the feed", not as a separate, lesser widget.
+ *
+ * `router.push` rather than replace: going from one design to another and back
+ * should retrace your steps, which is how people browse rails of related work.
+ */
+function MoreLikeThis({ posts, title }: { posts: FeedPostPublic[]; title: string }) {
+  const { t } = useTranslation();
+  const colors = useThemeColors();
+  const contentWidth = useContentWidth();
+  const gap = spacing.md;
+  const cellW = (contentWidth - spacing.lg * 2 - gap) / 2;
+
+  // Masonry by shortest column, so tall and wide photos interleave instead of
+  // leaving ragged gaps under the short ones.
+  const cols: FeedPostPublic[][] = [[], []];
+  const heights = [0, 0];
+  for (const p of posts) {
+    const ratio = p.width && p.height ? p.width / p.height : 1;
+    const target = heights[0]! <= heights[1]! ? 0 : 1;
+    cols[target]!.push(p);
+    heights[target]! += cellW / ratio + gap;
+  }
+
+  return (
+    <View style={styles.more}>
+      <Text variant="h3" style={styles.moreTitle}>
+        {title}
+      </Text>
+      <View style={[styles.moreGrid, { gap }]}>
+        {cols.map((col, ci) => (
+          <View key={ci} style={{ width: cellW, gap }}>
+            {col.map((p) => {
+              const ratio = p.width && p.height ? p.width / p.height : 1;
+              return (
+                <Pressable
+                  key={p.id}
+                  onPress={() => router.push({ pathname: '/discover/[id]', params: { id: p.id } })}
+                  style={{ borderRadius: radii.md, overflow: 'hidden' }}
+                >
+                  <Image
+                    source={{ uri: p.thumbnailUrl }}
+                    style={{ width: cellW, height: cellW / ratio, backgroundColor: colors.card }}
+                  />
+                  <ImageCaption
+                    title={p.title}
+                    price={
+                      p.startingPrice
+                        ? t('discover.fromPrice', {
+                            price: formatCurrency(Number(p.startingPrice), p.currency ?? 'XAF'),
+                          })
+                        : null
+                    }
+                  />
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -217,43 +319,69 @@ function HeroCarousel({
   images,
   background,
   accent,
+  index,
+  onIndexChange,
+  onOpen,
+  openLabel,
 }: {
   images: FeedImage[];
   background: string;
   accent: string;
+  index: number;
+  onIndexChange: (i: number) => void;
+  onOpen: () => void;
+  openLabel: string;
 }) {
-  const [index, setIndex] = useState(0);
   const width = Dimensions.get('window').width;
+  const listRef = useRef<ScrollView>(null);
+
+  // When the gallery closes on a different angle, bring the hero along so the
+  // page shows what you were last looking at.
+  useEffect(() => {
+    listRef.current?.scrollTo({ x: index * width, animated: false });
+  }, [index, width]);
 
   if (images.length <= 1) {
     return (
-      <Image
-        source={{ uri: images[0]?.imageUrl }}
-        style={[styles.hero, { backgroundColor: background }]}
-        resizeMode="cover"
-      />
+      <Pressable onPress={onOpen} accessibilityRole="imagebutton" accessibilityLabel={openLabel}>
+        <Image
+          source={{ uri: images[0]?.imageUrl }}
+          style={[styles.hero, { backgroundColor: background }]}
+          resizeMode="cover"
+        />
+        <ExpandHint />
+      </Pressable>
     );
   }
 
   return (
     <View>
       <ScrollView
+        ref={listRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(e) =>
-          setIndex(Math.round(e.nativeEvent.contentOffset.x / width))
+          onIndexChange(Math.round(e.nativeEvent.contentOffset.x / width))
         }
       >
         {images.map((img) => (
-          <Image
+          <Pressable
             key={img.position}
-            source={{ uri: img.imageUrl }}
-            style={[styles.hero, { width, backgroundColor: background }]}
-            resizeMode="cover"
-          />
+            onPress={onOpen}
+            accessibilityRole="imagebutton"
+            accessibilityLabel={openLabel}
+          >
+            <Image
+              source={{ uri: img.imageUrl }}
+              style={[styles.hero, { width, backgroundColor: background }]}
+              resizeMode="cover"
+            />
+          </Pressable>
         ))}
       </ScrollView>
+
+      <ExpandHint />
 
       <View style={styles.dots} pointerEvents="none">
         {images.map((img, i) => (
@@ -268,6 +396,19 @@ function HeroCarousel({
           />
         ))}
       </View>
+    </View>
+  );
+}
+
+/**
+ * A quiet corner glyph saying "this opens bigger". Without it nobody discovers
+ * the gallery — a photo that happens to be tappable looks exactly like one
+ * that is not.
+ */
+function ExpandHint() {
+  return (
+    <View style={styles.expand} pointerEvents="none">
+      <Ionicons name="expand-outline" size={16} color="#fff" />
     </View>
   );
 }
@@ -325,4 +466,19 @@ const styles = StyleSheet.create({
   tag: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   cta: { marginTop: spacing.md },
   empty: { alignItems: 'center', paddingTop: spacing.xl * 2 },
+  // Sits above the attribution card and clear of the share button's corner.
+  expand: {
+    position: 'absolute',
+    right: spacing.md,
+    top: 60,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  more: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl * 2 },
+  moreTitle: { marginBottom: spacing.md },
+  moreGrid: { flexDirection: 'row', alignItems: 'flex-start' },
 });

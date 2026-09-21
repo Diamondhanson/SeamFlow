@@ -2,6 +2,13 @@
 // English is the source of truth; French mirrors it.
 export const discover = {
   en: {
+    viewFullScreen: 'View full screen',
+    closeViewer: 'Close',
+    messageTailor: 'Message',
+    shareShop: 'Share this shop',
+    statDesigns: 'Designs',
+    statSince: 'Member since',
+    statFollowers: 'Followers',
     share: 'Share',
     // ── Feed ────────────────────────────────────────────────────────────────
     title: 'Discover',
@@ -68,6 +75,13 @@ export const discover = {
     inquireDesignPinned: 'About {design}',
   },
   fr: {
+    viewFullScreen: 'Voir en plein écran',
+    closeViewer: 'Fermer',
+    messageTailor: 'Envoyer un message',
+    shareShop: 'Partager cet atelier',
+    statDesigns: 'Créations',
+    statSince: 'Membre depuis',
+    statFollowers: 'Abonnés',
     share: 'Partager',
     title: 'Découvrir',
     subtitle: 'Du vrai travail, par de vrais tailleurs près de chez vous.',
@@ -128,6 +142,13 @@ export const discover = {
     inquireDesignPinned: 'À propos de {design}',
   },
   pt: {
+    viewFullScreen: 'Ver em ecrã inteiro',
+    closeViewer: 'Fechar',
+    messageTailor: 'Enviar mensagem',
+    shareShop: 'Partilhar este atelier',
+    statDesigns: 'Criações',
+    statSince: 'Membro desde',
+    statFollowers: 'Seguidores',
     share: 'Compartilhar',
     // ── Feed ────────────────────────────────────────────────────────────────
     title: 'Descobrir',
@@ -193,6 +214,13 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   es: {
+    viewFullScreen: 'Ver a pantalla completa',
+    closeViewer: 'Cerrar',
+    messageTailor: 'Enviar mensaje',
+    shareShop: 'Compartir este taller',
+    statDesigns: 'Diseños',
+    statSince: 'Miembro desde',
+    statFollowers: 'Seguidores',
     share: 'Compartir',
     // ── Muro ────────────────────────────────────────────────────────────────
     title: 'Descubrir',
@@ -257,6 +285,13 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   sw: {
+    viewFullScreen: 'Tazama skrini nzima',
+    closeViewer: 'Funga',
+    messageTailor: 'Tuma ujumbe',
+    shareShop: 'Shiriki duka hili',
+    statDesigns: 'Miundo',
+    statSince: 'Mwanachama tangu',
+    statFollowers: 'Wafuasi',
     share: 'Shiriki',
     // ── Mkondo ──────────────────────────────────────────────────────────────
     title: 'Gundua',
@@ -321,6 +356,13 @@ export const discover = {
     inquireDesignPinned: 'Kuhusu {design}',
   },
   ar: {
+    viewFullScreen: 'عرض بملء الشاشة',
+    closeViewer: 'إغلاق',
+    messageTailor: 'إرسال رسالة',
+    shareShop: 'مشاركة هذا المشغل',
+    statDesigns: 'التصاميم',
+    statSince: 'عضو منذ',
+    statFollowers: 'المتابعون',
     share: 'مشاركة',
     // ── الواجهة ────────────────────────────────────────────────────────────
     title: 'اكتشف',
