@@ -20,14 +20,19 @@ import { qk } from './query-keys';
 /** How often an open thread checks for a reply while on screen. */
 const THREAD_REFRESH_MS = 30_000;
 
+// staleTime 0: the app-wide default (5 min) meant a reply that arrived just
+// after the user last looked stayed invisible for up to five minutes, even
+// across a refresh, because the saved copy still counted as fresh. Opening
+// the list or a ticket must always ask.
 export const useSupportTickets = () =>
-  useQuery({ queryKey: qk.supportTickets(), queryFn: () => api.support.list() });
+  useQuery({ queryKey: qk.supportTickets(), queryFn: () => api.support.list(), staleTime: 0 });
 
 export const useSupportTicket = (id: string) =>
   useQuery({
     queryKey: qk.supportTicket(id),
     queryFn: () => api.support.get(id),
     enabled: !!id,
+    staleTime: 0,
     refetchInterval: THREAD_REFRESH_MS,
   });
 
