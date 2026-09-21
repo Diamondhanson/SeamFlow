@@ -161,6 +161,22 @@ export default function ClientHome() {
           </Text>
         </Pressable>
 
+        {/* How long messages and chat photos are kept (plan step 5). */}
+        <Pressable
+          onPress={() =>
+            void dialog.alert({
+              title: t('settings.messagesPhotosTitle'),
+              message: t('settings.messagesPhotosBody'),
+              tone: 'info',
+            })
+          }
+          hitSlop={8}
+          style={styles.signOut}
+        >
+          <Ionicons name="chatbubbles-outline" size={16} color={themeColors.textMuted} />
+          <Text variant="bodySm" tone="textMuted">{t('settings.messagesPhotosTitle')}</Text>
+        </Pressable>
+
         {/* Temporary sign-out (until a real settings screen lands) */}
         <Pressable onPress={() => void signOut()} hitSlop={8} style={styles.signOut}>
           <Ionicons name="log-out-outline" size={16} color={themeColors.textMuted} />

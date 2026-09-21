@@ -2,6 +2,7 @@ import { Controller, Get, NotFoundException, Post } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { QueueService } from '../queue/queue.service';
 import { AccountPurgeService } from '../account/account-purge.service';
+import { ChatMediaRetentionService } from '../chat/chat-media-retention.service';
 import { sentryEnabled } from '../common/sentry';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -32,6 +33,7 @@ export class HealthController {
     private readonly db: DbService,
     private readonly queue: QueueService,
     private readonly purge: AccountPurgeService,
+    private readonly retention: ChatMediaRetentionService,
   ) {}
 
   /**
@@ -49,6 +51,15 @@ export class HealthController {
     }
     await this.purge.purgeDue();
     return { ran: true };
+  }
+
+  /** Same rules as run-purge: test hook for the chat photo retention job. */
+  @Post('run-media-retention')
+  async runMediaRetention(): Promise<{ removed: number }> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new NotFoundException();
+    }
+    return { removed: await this.retention.run() };
   }
 
   @Get()

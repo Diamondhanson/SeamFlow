@@ -378,6 +378,18 @@ export default function Me() {
             label={t('settings.termsOfService')}
             onPress={() => openLegal('terms', language)}
           />
+          {/* How long messages and chat photos are kept (plan step 5). */}
+          <SettingsRow
+            icon="chatbubbles-outline"
+            label={t('settings.messagesPhotosTitle')}
+            onPress={() =>
+              void dialog.alert({
+                title: t('settings.messagesPhotosTitle'),
+                message: t('settings.messagesPhotosBody'),
+                tone: 'info',
+              })
+            }
+          />
         </SettingsCard>
 
         {/* Account. Kept in its own section rather than tucked beside sign-out:

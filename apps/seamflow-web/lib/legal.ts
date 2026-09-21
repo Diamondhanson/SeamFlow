@@ -20,7 +20,7 @@ export interface LegalDoc {
 }
 
 /** ISO date shown as "Last updated" on both legal pages. */
-export const LEGAL_UPDATED = '2026-08-13';
+export const LEGAL_UPDATED = '2026-09-21';
 
 export const privacy: Record<Lang, LegalDoc> = {
   en: {
@@ -63,6 +63,7 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. Storage, location and retention',
         paragraphs: [
           'Your data is stored on our providers’ cloud infrastructure. It may be processed in countries other than your own; where that happens we rely on appropriate safeguards.',
+          'Messages and support requests are kept on our servers as a record, so a lost or replaced phone never loses a conversation. Your phone also keeps a copy of recent chats so they open quickly and can be read offline; that copy is erased when you sign out. Full-size photos shared in a chat are removed 90 days after the order they relate to is delivered. A smaller preview is kept, so the conversation still makes sense, and nothing is removed while that order has an open support request.',
           'We keep your data while your account is active. When you ask us to delete your account, your public page stops being visible immediately and everything is erased 30 days later. The delay exists so you can change your mind: sign in at any point during those 30 days and choose “Keep my account” to cancel. After that it is permanent and we cannot recover it for you.',
           'Two things outlast a deletion, and neither identifies you. Messages you sent stay in the other person’s conversation with your name and their contents removed, so their side of the thread still makes sense. And we keep records that identify nobody where they are needed to keep the service working for other people.',
         ],
@@ -140,6 +141,7 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. Stockage, localisation et conservation',
         paragraphs: [
           'Vos données sont stockées sur l’infrastructure cloud de nos prestataires. Elles peuvent être traitées dans des pays autres que le vôtre ; le cas échéant, nous appliquons des garanties appropriées.',
+          'Les messages et les demandes d’assistance sont conservés sur nos serveurs, pour qu’un téléphone perdu ou remplacé ne fasse jamais perdre une conversation. Votre téléphone garde aussi une copie des discussions récentes, pour qu’elles s’ouvrent vite et se lisent hors connexion ; cette copie est effacée à la déconnexion. Les photos en taille réelle partagées dans une discussion sont supprimées 90 jours après la livraison de la commande concernée. Un aperçu plus petit est conservé pour que la conversation reste compréhensible, et rien n’est supprimé tant que cette commande fait l’objet d’une demande d’assistance ouverte.',
           'Nous conservons vos données tant que votre compte est actif. Lorsque vous demandez la suppression de votre compte, votre page publique cesse d’être visible immédiatement et tout est effacé 30 jours plus tard. Ce délai existe pour vous permettre de changer d’avis : connectez-vous à tout moment pendant ces 30 jours et choisissez « Garder mon compte » pour annuler. Passé ce délai, c’est définitif et nous ne pouvons rien récupérer.',
           'Deux choses survivent à une suppression, et aucune ne vous identifie. Les messages que vous avez envoyés restent dans la conversation de l’autre personne, sans votre nom ni leur contenu, afin que son fil de discussion reste compréhensible. Et nous conservons des enregistrements qui n’identifient personne lorsqu’ils sont nécessaires au fonctionnement du service pour les autres.',
         ],
@@ -217,6 +219,7 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. Armazenamento, localização e conservação',
         paragraphs: [
           'Os seus dados são guardados na infraestrutura na nuvem dos nossos prestadores. Podem ser tratados em países diferentes do seu; quando isso acontece, apoiamo-nos em salvaguardas adequadas.',
+          'As mensagens e os pedidos de suporte são guardados nos nossos servidores como registo, para que um telemóvel perdido ou substituído nunca faça perder uma conversa. O seu telemóvel também guarda uma cópia das conversas recentes, para que abram depressa e possam ser lidas sem ligação; essa cópia é apagada quando termina a sessão. As fotos em tamanho real partilhadas numa conversa são removidas 90 dias depois de a encomenda a que dizem respeito ser entregue. Fica uma pré-visualização mais pequena, para que a conversa continue a fazer sentido, e nada é removido enquanto essa encomenda tiver um pedido de suporte em aberto.',
           'Conservamos os seus dados enquanto a sua conta estiver ativa. Quando nos pede para eliminar a conta, a sua página pública deixa de estar visível imediatamente e tudo é apagado 30 dias depois. O atraso existe para poder mudar de ideias: inicie sessão a qualquer momento durante esses 30 dias e escolha «Manter a minha conta» para cancelar. Depois disso é definitivo e não conseguimos recuperar.',
           'Duas coisas sobrevivem a uma eliminação, e nenhuma delas o identifica. As mensagens que enviou permanecem na conversa da outra pessoa, sem o seu nome e sem o conteúdo, para que o lado dela da conversa continue a fazer sentido. E conservamos registos que não identificam ninguém, quando são necessários para manter o serviço a funcionar para outras pessoas.',
         ],
@@ -294,6 +297,7 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. Almacenamiento, ubicación y conservación',
         paragraphs: [
           'Sus datos se guardan en la infraestructura en la nube de nuestros proveedores. Pueden tratarse en países distintos al suyo; cuando eso ocurre nos apoyamos en las salvaguardas adecuadas.',
+          'Los mensajes y las solicitudes de soporte se guardan en nuestros servidores como registro, para que un teléfono perdido o sustituido nunca haga perder una conversación. Tu teléfono también guarda una copia de los chats recientes para que se abran rápido y puedan leerse sin conexión; esa copia se borra al cerrar sesión. Las fotos a tamaño completo compartidas en un chat se eliminan 90 días después de que se entregue el pedido al que se refieren. Se conserva una vista previa más pequeña para que la conversación siga teniendo sentido, y no se elimina nada mientras ese pedido tenga una solicitud de soporte abierta.',
           'Conservamos sus datos mientras su cuenta esté activa. Cuando nos pide eliminar su cuenta, su página pública deja de ser visible de inmediato y todo se borra 30 días después. La demora existe para que pueda cambiar de opinión: inicie sesión en cualquier momento de esos 30 días y elija «Conservar mi cuenta» para cancelarlo. Después de eso es definitivo y no podemos recuperarlo.',
           'Dos cosas sobreviven a una eliminación, y ninguna lo identifica. Los mensajes que envió quedan en la conversación de la otra persona sin su nombre y sin su contenido, para que su lado del hilo siga teniendo sentido. Y conservamos registros que no identifican a nadie cuando hacen falta para que el servicio siga funcionando para los demás.',
         ],
@@ -371,6 +375,7 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. Uhifadhi, mahali na muda',
         paragraphs: [
           'Data yako huhifadhiwa kwenye miundombinu ya wingu ya watoa huduma wetu. Inaweza kushughulikiwa katika nchi tofauti na yako; hilo linapotokea tunategemea kinga zinazostahili.',
+          'Ujumbe na maombi ya msaada huhifadhiwa kwenye seva zetu kama kumbukumbu, ili simu iliyopotea au kubadilishwa isipoteze mazungumzo kamwe. Simu yako pia huhifadhi nakala ya mazungumzo ya hivi karibuni ili yafunguke haraka na yasomeke bila mtandao; nakala hiyo hufutwa unapotoka kwenye akaunti. Picha za ukubwa kamili zilizoshirikiwa kwenye mazungumzo huondolewa siku 90 baada ya oda husika kukabidhiwa. Picha ndogo ya muhtasari hubaki ili mazungumzo yaendelee kueleweka, na hakuna kinachoondolewa wakati oda hiyo ina ombi la msaada lililo wazi.',
           'Tunahifadhi data yako muda wote akaunti yako ikiwa hai. Unapotuomba tufute akaunti yako, ukurasa wako wa umma huacha kuonekana mara moja na kila kitu hufutwa baada ya siku 30. Ucheleweshaji huu upo ili uweze kubadilisha nia: ingia wakati wowote ndani ya siku hizo 30 kisha uchague “Weka akaunti yangu” ili kughairi. Baada ya hapo ni ya kudumu na hatuwezi kukurudishia.',
           'Vitu viwili hubaki baada ya ufutaji, na hakuna kinachokutambulisha. Ujumbe uliotuma hubaki kwenye mazungumzo ya mtu mwingine ukiwa umeondolewa jina lako na maudhui yake, ili upande wake wa mazungumzo uendelee kueleweka. Na tunahifadhi kumbukumbu zisizomtambulisha mtu yeyote pale zinapohitajika ili huduma iendelee kufanya kazi kwa wengine.',
         ],
@@ -448,6 +453,7 @@ export const privacy: Record<Lang, LegalDoc> = {
         heading: '5. التخزين والموقع ومدة الاحتفاظ',
         paragraphs: [
           'تُحفَظ بياناتك على البنية السحابية لمزوّدينا. وقد تُعالَج في بلدان غير بلدك؛ وعندما يحدث ذلك نعتمد على الضمانات المناسبة.',
+          'نحتفظ بالرسائل وطلبات الدعم على خوادمنا كسجل، حتى لا يؤدي فقدان الهاتف أو استبداله إلى فقدان أي محادثة. ويحتفظ هاتفك أيضًا بنسخة من المحادثات الحديثة لتُفتح بسرعة وتُقرأ دون اتصال، وتُمحى هذه النسخة عند تسجيل الخروج. تُحذف الصور بحجمها الكامل المُرسلة في المحادثة بعد 90 يومًا من تسليم الطلب المرتبط بها، مع الاحتفاظ بمعاينة أصغر حتى تبقى المحادثة مفهومة، ولا يُحذف شيء ما دام لهذا الطلب طلب دعم مفتوح.',
           'نحتفظ ببياناتك ما دام حسابك نشطًا. وعندما تطلب حذف حسابك، تتوقّف صفحتك العامة عن الظهور فورًا ويُمحى كل شيء بعد 30 يومًا. وهذه المهلة موجودة كي تتمكّن من العدول: سجّل الدخول في أي وقت خلالها واختر «الاحتفاظ بحسابي» للإلغاء. وبعد 30 يومًا يصبح الحذف نهائيًا ولا يمكننا استرجاعه.',
           'يبقى أمران بعد الحذف، ولا يُعرِّف أيٌّ منهما بك. الرسائل التي أرسلتها تبقى في محادثة الطرف الآخر بعد إزالة اسمك ومحتواها، كي يظل جانبه من المحادثة مفهومًا. ونحتفظ بسجلّات لا تُعرِّف بأي شخص حيث تكون لازمة لاستمرار عمل الخدمة للآخرين.',
         ],

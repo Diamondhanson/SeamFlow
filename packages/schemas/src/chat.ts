@@ -41,6 +41,12 @@ export const MessageImageAttachmentSchema = z.object({
   thumbnailPath: z.string().nullable().optional(),
   width: z.number().int().nullable().optional(),
   height: z.number().int().nullable().optional(),
+  /**
+   * Set when the full-size file was removed under the retention rule (90 days
+   * after the order was delivered). `storagePath` then points at the preview,
+   * so the image still shows — just smaller.
+   */
+  fullSizeRemovedAt: z.string().datetime().nullable().optional(),
   /** Short-lived signed URLs, added by API responses — never stored. */
   url: z.string().url().optional(),
   thumbnailUrl: z.string().url().optional(),

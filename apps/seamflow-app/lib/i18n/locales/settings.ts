@@ -1,5 +1,7 @@
 export const settings = {
   en: {
+    messagesPhotosTitle: "Messages & photos",
+    messagesPhotosBody: "Your messages are kept safely on our servers, so a lost or new phone never loses a conversation. This phone also keeps a copy of recent chats so they open fast and work offline — it's erased when you sign out.\n\nFull-size photos in a chat are removed 90 days after the order is delivered. A smaller preview stays, so the chat still makes sense, and nothing is removed while the order has an open support ticket.\n\nDeleting your account deletes your messages.",
     restartTitle: 'Reopen SeamFlow to finish',
     restartBody: 'Arabic reads right to left, so the whole layout has to be rebuilt. Close SeamFlow completely and open it again — your work is saved.',
     title: 'Settings',
@@ -70,6 +72,8 @@ export const settings = {
     notifLoadError: "Couldn't load notification settings.",
   },
   fr: {
+    messagesPhotosTitle: "Messages et photos",
+    messagesPhotosBody: "Vos messages sont conservés en sécurité sur nos serveurs : un téléphone perdu ou neuf ne fait jamais perdre une conversation. Ce téléphone garde aussi une copie des discussions récentes pour qu’elles s’ouvrent vite et fonctionnent hors connexion — elle est effacée à la déconnexion.\n\nLes photos en taille réelle d’une discussion sont supprimées 90 jours après la livraison de la commande. Un aperçu plus petit reste, pour que la discussion garde son sens, et rien n’est supprimé tant que la commande a un ticket d’assistance ouvert.\n\nSupprimer votre compte supprime vos messages.",
     restartTitle: 'Rouvrez SeamFlow pour terminer',
     restartBody: 'L’arabe se lit de droite à gauche : toute la mise en page doit être reconstruite. Fermez complètement SeamFlow puis rouvrez-le — votre travail est enregistré.',
     title: 'Paramètres',
@@ -140,6 +144,8 @@ export const settings = {
     notifLoadError: 'Impossible de charger les paramètres de notification.',
   },
   pt: {
+    messagesPhotosTitle: "Mensagens e fotos",
+    messagesPhotosBody: "As suas mensagens ficam guardadas em segurança nos nossos servidores, por isso um telemóvel perdido ou novo nunca faz perder uma conversa. Este telemóvel também guarda uma cópia das conversas recentes para abrirem depressa e funcionarem sem ligação — é apagada quando termina a sessão.\n\nAs fotos em tamanho real de uma conversa são removidas 90 dias depois de a encomenda ser entregue. Fica uma pré-visualização mais pequena, para a conversa continuar a fazer sentido, e nada é removido enquanto a encomenda tiver um pedido de ajuda aberto.\n\nEliminar a sua conta elimina as suas mensagens.",
     restartTitle: 'Reabra o SeamFlow para concluir',
     restartBody: 'O árabe lê-se da direita para a esquerda, por isso todo o layout tem de ser reconstruído. Feche o SeamFlow por completo e abra-o de novo — o seu trabalho está guardado.',
     title: 'Definições',
@@ -210,6 +216,8 @@ export const settings = {
     notifLoadError: 'Não foi possível carregar as definições de notificação.',
   },
   es: {
+    messagesPhotosTitle: "Mensajes y fotos",
+    messagesPhotosBody: "Tus mensajes se guardan de forma segura en nuestros servidores, así que un teléfono perdido o nuevo nunca te hace perder una conversación. Este teléfono también guarda una copia de los chats recientes para que se abran rápido y funcionen sin conexión; se borra al cerrar sesión.\n\nLas fotos a tamaño completo de un chat se eliminan 90 días después de entregarse el pedido. Queda una vista previa más pequeña para que el chat siga teniendo sentido, y no se elimina nada mientras el pedido tenga un ticket de soporte abierto.\n\nEliminar tu cuenta elimina tus mensajes.",
     restartTitle: 'Vuelva a abrir SeamFlow para terminar',
     restartBody: 'El árabe se lee de derecha a izquierda, así que hay que rehacer toda la maquetación. Cierre SeamFlow por completo y ábralo de nuevo — su trabajo está guardado.',
     title: 'Ajustes',
@@ -280,6 +288,8 @@ export const settings = {
     notifLoadError: 'No se pudieron cargar los ajustes de notificaciones.',
   },
   sw: {
+    messagesPhotosTitle: "Ujumbe na picha",
+    messagesPhotosBody: "Ujumbe wako huhifadhiwa salama kwenye seva zetu, kwa hiyo simu iliyopotea au mpya haitapoteza mazungumzo kamwe. Simu hii pia huhifadhi nakala ya mazungumzo ya hivi karibuni ili yafunguke haraka na yafanye kazi bila mtandao — hufutwa unapotoka kwenye akaunti.\n\nPicha za ukubwa kamili kwenye mazungumzo huondolewa siku 90 baada ya oda kukabidhiwa. Picha ndogo ya muhtasari hubaki ili mazungumzo yaeleweke, na hakuna kinachoondolewa wakati oda ina tiketi ya msaada iliyo wazi.\n\nUkifuta akaunti yako, ujumbe wako hufutwa.",
     restartTitle: 'Fungua SeamFlow tena ili kukamilisha',
     restartBody: 'Kiarabu husomwa kulia kwenda kushoto, kwa hivyo mpangilio wote lazima ujengwe upya. Funga SeamFlow kabisa kisha uifungue tena — kazi yako imehifadhiwa.',
     title: 'Mipangilio',
@@ -350,6 +360,8 @@ export const settings = {
     notifLoadError: 'Haikuwezekana kupakia mipangilio ya arifa.',
   },
   ar: {
+    messagesPhotosTitle: "الرسائل والصور",
+    messagesPhotosBody: "تُحفظ رسائلك بأمان على خوادمنا، فلا يؤدي فقدان هاتفك أو تغييره إلى فقدان أي محادثة. ويحتفظ هذا الهاتف أيضًا بنسخة من المحادثات الحديثة لتُفتح بسرعة وتعمل دون اتصال، وتُمحى عند تسجيل الخروج.\n\nتُحذف الصور بحجمها الكامل في المحادثة بعد 90 يومًا من تسليم الطلب، مع بقاء معاينة أصغر حتى تبقى المحادثة مفهومة، ولا يُحذف شيء ما دام للطلب تذكرة دعم مفتوحة.\n\nحذف حسابك يحذف رسائلك.",
     restartTitle: 'أعِد فتح SeamFlow لإتمام التغيير',
     restartBody: 'العربية تُقرأ من اليمين إلى اليسار، لذا يجب إعادة بناء التخطيط بالكامل. أغلِق SeamFlow تمامًا ثم افتحه من جديد — عملك محفوظ.',
     title: 'الإعدادات',

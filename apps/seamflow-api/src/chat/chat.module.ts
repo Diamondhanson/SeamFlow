@@ -5,11 +5,12 @@ import { InvoicesModule } from '../invoices/invoices.module';
 import { ClientsModule } from '../clients/clients.module';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
+import { ChatMediaRetentionService } from './chat-media-retention.service';
 
 @Module({
   imports: [NotificationsModule, OrdersModule, InvoicesModule, ClientsModule],
   controllers: [ChatController],
-  providers: [ChatService],
-  exports: [ChatService],
+  providers: [ChatService, ChatMediaRetentionService],
+  exports: [ChatService, ChatMediaRetentionService],
 })
 export class ChatModule {}
