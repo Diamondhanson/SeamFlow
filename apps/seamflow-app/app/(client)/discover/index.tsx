@@ -10,7 +10,7 @@
 // mean asking for a commitment before showing anyone why they'd want to make it.
 // ============================================================================
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -18,13 +18,15 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { FeedPostPublic, WorkAudience, WorkOccasion } from '@seamflow/schemas';
-import { Text } from '@seamflow/ui';
+import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
-import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SkeletonGrid } from '../../../components/Skeleton';
 import { SearchField } from '../../../components/SearchField';
 import { Button } from '../../../components/Button';
@@ -52,6 +54,58 @@ export default function Discover() {
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
   const { session } = useAuth();
+  const { mode } = useAtelierTheme();
+
+  // Discover is the app's front door — nothing to go "back" to, and the brand
+  // belongs here rather than a page title. Keep the browser tab named, which
+  // ScreenHeader used to do for us.
+  useEffect(() => {
+    try {
+      if (globalThis.document) globalThis.document.title = `${t('discover.title')} · SeamFlow`;
+    } catch {
+      // no DOM — nothing to do
+    }
+  }, [t]);
+
+  // ── Collapsing header ─────────────────────────────────────────────────────
+  // Scrolling down slides the wordmark row (and tagline) up and away, leaving
+  // search + filters pinned; any scroll back up brings it back. Driven by
+  // direction, not position, so it returns the moment someone reaches for it
+  // rather than only at the very top.
+  const headerH = useSharedValue(0);
+  const hidden = useSharedValue(0);
+  const lastY = useRef(0);
+  const travel = useRef(0);
+  const setHidden = (h: boolean) => {
+    const target = h ? 1 : 0;
+    if (hidden.value !== target) hidden.value = withTiming(target, { duration: 220 });
+  };
+  const onGridScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+    const y = contentOffset.y;
+    const dy = y - lastY.current;
+    lastY.current = y;
+    if (y <= 8) {
+      travel.current = 0;
+      return setHidden(false);
+    }
+    // Collapsing the header makes the list taller, which can clamp the offset
+    // at the bottom edge and read as an upward scroll — ignore movement there
+    // or the header flickers in and out.
+    if (y + layoutMeasurement.height >= contentSize.height - 4) return;
+    // A little hysteresis so a finger's jitter doesn't toggle it.
+    travel.current = Math.sign(dy) === Math.sign(travel.current) ? travel.current + dy : dy;
+    if (travel.current > 12) setHidden(true);
+    else if (travel.current < -12) setHidden(false);
+  };
+  const collapseStyle = useAnimatedStyle(() =>
+    headerH.value
+      ? { height: headerH.value * (1 - hidden.value), opacity: 1 - hidden.value }
+      : {},
+  );
+  const slideStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -headerH.value * hidden.value }],
+  }));
 
   const [audience, setAudience] = useState<WorkAudience | undefined>();
   const [occasion, setOccasion] = useState<WorkOccasion | undefined>();
@@ -77,8 +131,10 @@ export default function Discover() {
   // ── Masonry ───────────────────────────────────────────────────────────────
   const columns = useGridColumns();
   const contentWidth = useContentWidth();
-  const gap = spacing.md;
-  const cellW = (contentWidth - spacing.lg * 2 - gap * (columns - 1)) / columns;
+  // Columns sit at half the vertical rhythm: tiles read as one wall of work
+  // rather than separate strips. The gap above/below each tile is unchanged.
+  const columnGap = spacing.md / 2;
+  const cellW = (contentWidth - spacing.lg * 2 - columnGap * (columns - 1)) / columns;
 
   const cols: FeedPostPublic[][] = Array.from({ length: columns }, () => []);
   const heights = new Array(columns).fill(0);
@@ -94,10 +150,27 @@ export default function Discover() {
 
   return (
     <Screen padded={false} width="wide">
-      <View style={styles.padded}>
-        <ScreenHeader
-          title={t('discover.title')}
-          right={
+      <Animated.View style={[styles.collapse, collapseStyle]}>
+        <Animated.View
+          style={[styles.padded, slideStyle]}
+          onLayout={(e) => {
+            if (!headerH.value) headerH.value = e.nativeEvent.layout.height;
+          }}
+        >
+          <View style={styles.brandRow}>
+            {/* The real wordmark artwork — light/dark variants keep "Seam"
+                legible on either canvas. */}
+            <Image
+              source={
+                mode === 'midnight'
+                  ? require('../../../assets/images/wordmark-dark.png')
+                  : require('../../../assets/images/wordmark-light.png')
+              }
+              style={styles.wordmark}
+              resizeMode="contain"
+              accessibilityRole="header"
+              accessibilityLabel="SeamFlow"
+            />
             <View style={styles.headerActions}>
               {/* Notifications live in the header (they're not a tab). Messages
                   moved to the bottom bar. Signed-out browsers have neither, so
@@ -125,18 +198,19 @@ export default function Discover() {
                 />
               </Pressable>
             </View>
-          }
+          </View>
+          <Text variant="bodySm" tone="textMuted">
+            {t('discover.subtitle')}
+          </Text>
+        </Animated.View>
+      </Animated.View>
+
+      <View style={styles.search}>
+        <SearchField
+          value={qInput}
+          onChangeText={setQInput}
+          placeholder={t('discover.searchPlaceholder')}
         />
-        <Text variant="bodySm" tone="textMuted">
-          {t('discover.subtitle')}
-        </Text>
-        <View style={styles.search}>
-          <SearchField
-            value={qInput}
-            onChangeText={setQInput}
-            placeholder={t('discover.searchPlaceholder')}
-          />
-        </View>
       </View>
 
       <ScrollView
@@ -216,6 +290,7 @@ export default function Discover() {
       ) : (
         <ScrollView
           {...scroll}
+          onScroll={onGridScroll}
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}
           onMomentumScrollEnd={() => {
@@ -305,7 +380,17 @@ function Chip({
 const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  search: { marginTop: spacing.md },
+  collapse: { overflow: 'hidden' },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  // Wordmark artwork is 1201:186 (~6.45:1).
+  wordmark: { width: 168, height: 26 },
+  search: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   resultsNote: { marginBottom: spacing.md },
   stale: { opacity: 0.5 },
   emptyCta: { marginTop: spacing.lg },
@@ -323,7 +408,7 @@ const styles = StyleSheet.create({
   },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   grid: { paddingHorizontal: spacing.lg, paddingBottom: BOTTOM_CHROME_SPACE },
-  masonry: { flexDirection: 'row', gap: spacing.md },
+  masonry: { flexDirection: 'row', gap: spacing.md / 2 },
   empty: { alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.xl * 2 },
   emptyTitle: { marginTop: spacing.md, textAlign: 'center' },
   emptyText: { textAlign: 'center', marginTop: spacing.sm },
