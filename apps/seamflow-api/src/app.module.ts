@@ -8,6 +8,7 @@ import { SupabaseModule } from './supabase/supabase.module';
 import { DbModule } from './db/db.module';
 import { FeedModule } from './feed/feed.module';
 import { ChatModule } from './chat/chat.module';
+import { SupportModule } from './support/support.module';
 import { LinksModule } from './links/links.module';
 import { RequestsModule } from './requests/requests.module';
 import { WorksModule } from './works/works.module';
@@ -50,6 +51,7 @@ import { RemindersModule } from './notifications/reminders.module';
     DbModule,
     FeedModule,
     ChatModule,
+    SupportModule,
     LinksModule,
     RequestsModule,
     WorksModule,

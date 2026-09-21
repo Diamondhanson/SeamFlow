@@ -22,3 +22,4 @@ export * from './work-images';
 export * from './phone-verifications';
 export * from './notifications';
 export * from './requests';
+export * from './support';

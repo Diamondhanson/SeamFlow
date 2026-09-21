@@ -53,6 +53,7 @@ import { share } from './locales/share';
 import { drafts } from './locales/drafts';
 import { specialties } from './locales/specialties';
 import { requests } from './locales/requests';
+import { support } from './locales/support';
 
 export type LanguageCode = 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
 
@@ -137,6 +138,7 @@ const NAMESPACES = {
   drafts,
   specialties,
   requests,
+  support,
 } as const;
 
 type Namespaces = typeof NAMESPACES;

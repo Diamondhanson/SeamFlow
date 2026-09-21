@@ -72,6 +72,7 @@ import {
   type TailorProfileResource,
 } from './resources/tailor-profile';
 import { makeRequestsResource, type RequestsResource } from './resources/requests';
+import { makeSupportResource, type SupportResource } from './resources/support';
 import { makeWorksResource, type WorksResource } from './resources/works';
 
 export interface ApiClient {
@@ -104,6 +105,7 @@ export interface ApiClient {
   tailorProfile: TailorProfileResource;
   /** "Can you make this?" — client briefs and tailor offers (appendix H). */
   requests: RequestsResource;
+  support: SupportResource;
   works: WorksResource;
 }
 
@@ -151,6 +153,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     links: makeLinksResource(http),
     tailorProfile: makeTailorProfileResource(http),
     requests: makeRequestsResource(http),
+    support: makeSupportResource(http),
     works: makeWorksResource(http),
   };
 }

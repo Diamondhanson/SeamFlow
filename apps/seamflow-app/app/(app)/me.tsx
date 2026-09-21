@@ -353,6 +353,17 @@ export default function Me() {
           ) : null}
         </SettingsCard>
 
+        {/* Help — tickets to SeamFlow (plan step 1). */}
+        <SectionTitle>{t('support.title')}</SectionTitle>
+        <SettingsCard>
+          <SettingsRow
+            first
+            icon="help-buoy-outline"
+            label={t('support.title')}
+            onPress={() => router.push('/(app)/support')}
+          />
+        </SettingsCard>
+
         {/* Legal */}
         <SectionTitle>{t('settings.legal')}</SectionTitle>
         <SettingsCard>

@@ -61,6 +61,9 @@ export const qk = {
   storefront: (tailorId: string) => ['storefront', tailorId] as const,
   catalogue: (slug: string) => ['catalogue', slug] as const,
   consumerOrders: () => ['consumer', 'orders'] as const,
+  // Help & Support: the list, and one ticket with its messages.
+  supportTickets: () => ['support', 'tickets'] as const,
+  supportTicket: (id: string) => ['support', 'tickets', id] as const,
   consumerOrder: (id: string) => ['consumer', 'orders', id] as const,
   consumerMeasurements: () => ['consumer', 'measurements'] as const,
   // Client "Can you make this?" request board (consumer side).

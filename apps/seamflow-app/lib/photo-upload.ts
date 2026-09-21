@@ -15,6 +15,7 @@ import type {
   OrderPhoto,
   OrderPhotoRole,
   RequestPhoto,
+  SupportAttachment,
 } from '@seamflow/schemas';
 
 // Lazy-load image-manipulator so the auth/onboarding screens still load on
@@ -63,6 +64,8 @@ const WORKS_BUCKET = 'works';
 const CHAT_BUCKET = 'chat-media';
 /** Client "Can you make this?" request reference photos. */
 const REQUESTS_BUCKET = 'requests';
+/** Help & Support screenshots — private, foldered by the uploader's user id. */
+const SUPPORT_BUCKET = 'support-media';
 
 // A profile photo needs just one modest square-ish variant.
 const AVATAR_MAX_DIM = 512;
@@ -531,6 +534,32 @@ export async function uploadRequestPhoto(args: {
   ]);
 
   return { path, thumbPath, width: asset.width ?? null, height: asset.height ?? null };
+}
+
+/**
+ * A screenshot for a Help & Support ticket. Foldered by the user's own id —
+ * the only prefix the storage policy lets them write, and the only one the
+ * API will sign back — so the file can be uploaded before the ticket exists.
+ */
+export async function uploadSupportImage(args: {
+  userId: string;
+  asset: PickedAsset;
+}): Promise<SupportAttachment> {
+  const { userId, asset } = args;
+  const { full, thumb } = await compressBoth(asset);
+  const id = cryptoRandom();
+  const storagePath = `${userId}/${id}.${full.ext}`;
+  const thumbnailPath = `${userId}/${id}_thumb.${thumb.ext}`;
+  await Promise.all([
+    uploadOne(SUPPORT_BUCKET, storagePath, full),
+    uploadOne(SUPPORT_BUCKET, thumbnailPath, thumb),
+  ]);
+  return {
+    storagePath,
+    thumbnailPath,
+    width: asset.width ?? null,
+    height: asset.height ?? null,
+  };
 }
 
 export async function uploadChatImage(args: {

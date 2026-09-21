@@ -24,7 +24,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { and, eq, inArray, isNotNull, isNull, lte, or } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
-import { conversations, messages, tailors, users } from '../db/schema';
+import { conversations, messages, supportTickets, tailors, users } from '../db/schema';
 
 /**
  * Buckets whose top-level folder is the TAILOR id.
@@ -33,7 +33,7 @@ import { conversations, messages, tailors, users } from '../db/schema';
 const TAILOR_PREFIXED_BUCKETS = ['avatars', 'designs', 'order-photos', 'works', 'feed'];
 
 /** Buckets whose top-level folder is the USER id. */
-const USER_PREFIXED_BUCKETS = ['requests'];
+const USER_PREFIXED_BUCKETS = ['requests', 'support-media'];
 
 /**
  * chat-media is keyed by CONVERSATION id, not by owner — so a user's images
@@ -108,6 +108,10 @@ export class AccountPurgeService {
       .update(messages)
       .set({ body: '', attachments: [] })
       .where(eq(messages.senderUserId, userId));
+
+    // 3b — their support tickets. Between them and SeamFlow only, so nothing
+    // needs to outlive them; messages go with the ticket (cascade).
+    await db.delete(supportTickets).where(eq(supportTickets.userId, userId));
 
     // 4 — tombstone. Every personal field cleared, the key kept.
     await db
