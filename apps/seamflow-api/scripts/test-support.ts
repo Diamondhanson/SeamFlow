@@ -10,6 +10,8 @@
  *   · storage itself refuses an upload into another user's folder
  *   · a user can only link an order they actually have
  *   · replying to a resolved ticket reopens it
+ *   · only people on the `staff` table reach the inbox endpoints
+ *   · a staff reply hands the ticket to the user and shows as unread for them
  *
  * Two throwaway accounts are created pre-confirmed and removed at the end.
  * Requires the dev server on PORT. Run with: pnpm test:support
@@ -180,6 +182,48 @@ async function main(): Promise<void> {
     assert(r.data.ticket.status === 'open', `a reply should reopen, got ${r.data.ticket.status}`);
     assert(r.data.messages.length === 3, `expected 3 messages, got ${r.data.messages.length}`);
     console.log('• Resolving works, and replying reopens the ticket');
+
+    // ---- Staff inbox (plan step 2) -----------------------------------------
+    const agent = await makeUser('staff');
+    r = await api(agent.jwt, 'GET', `/admin/support/tickets/${ticket.id}`);
+    assert(r.status === 403, `a non-staff account reached the inbox API: ${r.status}`);
+    const ins = await admin.from('staff').insert({ user_id: agent.id });
+    assert(!ins.error, `staff insert: ${ins.error?.message}`);
+
+    r = await api(alice.jwt, 'GET', `/admin/support/tickets/${ticket.id}`);
+    assert(r.status === 403, `a ticket's own author reached the staff API: ${r.status}`);
+
+    r = await api(agent.jwt, 'GET', `/admin/support/tickets/${ticket.id}`);
+    assert(r.status === 200, `staff get: ${r.status} ${JSON.stringify(r.data)}`);
+    assert(r.data.requester.userId === alice.id, 'requester is not the ticket author');
+    assert(typeof r.data.messages[1]?.attachments[0]?.url === 'string', 'staff cannot see the screenshot');
+    console.log("• Staff see the ticket, its author and the screenshots; others get 403");
+
+    r = await api(agent.jwt, 'POST', `/admin/support/tickets/${ticket.id}/messages`, {
+      body: 'Thanks — could you tell us which phone you are using?',
+      clientId: cid(),
+    });
+    assert(r.status === 201 && r.data.sender === 'support', `staff reply: ${r.status}`);
+    r = await api(alice.jwt, 'GET', '/support/tickets');
+    const listed = r.data.items.find((x: any) => x.id === ticket.id);
+    assert(listed.status === 'waiting_on_user', `after a staff reply expected waiting_on_user, got ${listed.status}`);
+    assert(listed.unread === 1, `the user should see 1 unread reply, got ${listed.unread}`);
+    r = await api(alice.jwt, 'GET', `/support/tickets/${ticket.id}`);
+    assert(r.data.messages.at(-1).sender === 'support', "the user can't see SeamFlow's reply");
+    r = await api(alice.jwt, 'GET', '/support/tickets');
+    assert(r.data.items[0].unread === 0, 'opening the ticket should clear the unread count');
+    console.log('• A staff reply lands with the user as "Waiting on you", unread until opened');
+
+    r = await api(agent.jwt, 'POST', `/admin/support/tickets/${ticket.id}/messages`, {
+      body: 'Fixed in the latest update. Closing this — reply if it comes back.',
+      status: 'resolved',
+      clientId: cid(),
+    });
+    r = await api(alice.jwt, 'GET', `/support/tickets/${ticket.id}`);
+    assert(r.data.ticket.status === 'resolved', `"Send & resolve" left it ${r.data.ticket.status}`);
+    r = await api(agent.jwt, 'PATCH', `/admin/support/tickets/${ticket.id}`, { status: 'open' });
+    assert(r.status === 200 && r.data.status === 'open', `staff status change: ${r.status}`);
+    console.log('• Staff can answer-and-resolve, and set any status');
   } finally {
     // ---- Cleanup: tickets, screenshots, rows, accounts ---------------------
     for (const id of created) {

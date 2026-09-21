@@ -71,3 +71,11 @@ export const supportMessages = pgTable(
     ticketClientUnique: unique('support_messages_ticket_id_client_id_key').on(t.ticketId, t.clientId),
   }),
 );
+
+/** SeamFlow staff — who may use the admin dashboard and answer tickets. */
+export const staff = pgTable('staff', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});

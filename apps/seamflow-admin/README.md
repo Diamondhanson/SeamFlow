@@ -6,7 +6,10 @@ Built for the team, not for users.
 ## Running it
 
 ```bash
-cp ../seamflow-api/.env .env.local   # only DATABASE_URL is used
+cp ../seamflow-api/.env .env.local   # DATABASE_URL
+# plus NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY (the app's
+# EXPO_PUBLIC_SUPABASE_* values), and optionally SEAMFLOW_API_URL for the
+# support inbox (defaults to the deployed API)
 npm run dev                          # http://localhost:3200
 ```
 
@@ -19,6 +22,7 @@ you pay it on almost every page load.
 
 | Route | What it answers |
 |---|---|
+| `/support` · `/support/[id]` | Help & Support inbox: tickets from both apps; reply, resolve |
 | `/` | Are the two sides of the marketplace meeting? Funnel, arrivals, money, work in progress, merged timeline |
 | `/tailors` · `/tailors/[id]` | Who is on the supply side, and everything one of them has built |
 | `/orders` · `/orders/[id]` | Every order, filterable; items, measurements, photos, status history |
@@ -31,12 +35,14 @@ you pay it on almost every page load.
 
 ## Four things that are deliberate
 
-**It is local only.** `lib/guard.ts` throws at import time if `NODE_ENV` is
-`production`. There is no authentication and the page shows every tailor's
-client list and revenue, so deploying it anywhere reachable would leak the
-customer base of the whole platform. If it ever needs hosting, add auth first
-(ROADMAP 3.9) — the escape-hatch env var is named to be uncomfortable to type
-on purpose.
+**It is staff only.** Hosted at admin.seamflowtech.com. Every page sits behind
+Supabase sign-in (Google, or email + password) AND the `staff` table — being
+signed in is not enough. Middleware turns away anyone without a session;
+`lib/auth.ts#requireStaff` checks the staff table on every page and inside every
+server action. Add a person with `insert into staff (user_id) values ('<users.id>')`.
+In production the app refuses to start without `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` (lib/guard.ts), so a misconfigured deploy fails
+closed instead of serving the platform to anyone.
 
 **It can change exactly three things.** Merge duplicate clients, clear `'—'`
 placeholder contact values, delete empty draft invoices. That list is an

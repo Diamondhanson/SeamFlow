@@ -51,6 +51,10 @@ export const NotificationTypeSchema = z.enum([
   'offer.received',
   'offer.accepted',
   'offer.declined',
+
+  // Help & Support: SeamFlow answered a ticket. Push only — the ticket is the
+  // record, like a chat message.
+  'support.replied',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -61,6 +65,7 @@ export const NotificationEntityTypeSchema = z.enum([
   'request',
   'offer',
   'invoice',
+  'support_ticket',
 ]);
 export type NotificationEntityType = z.infer<typeof NotificationEntityTypeSchema>;
 

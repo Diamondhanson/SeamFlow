@@ -16,9 +16,12 @@
 //   ATOMIC      multi-statement work runs in a transaction. A merge that
 //               repoints orders and then fails before deleting the duplicate
 //               would leave the data worse than it found it.
-//   LOGGED      every run appends to .ops-audit.log with what it touched.
-//               Without a login there is no "who", so "what and when" is the
-//               least the tool owes you.
+//   LOGGED      every run is logged with who ran it, what it touched and
+//               when — to .ops-audit.log locally, and to the server log
+//               (Vercel keeps it) when hosted, where the disk is read-only.
+//   STAFF ONLY  each run re-checks the caller against the staff table. A
+//               server action is a public POST endpoint; the page it sits on
+//               does not protect it.
 // ============================================================================
 
 import { revalidatePath } from 'next/cache';
@@ -26,6 +29,7 @@ import { appendFile } from 'node:fs/promises';
 import path from 'node:path';
 import { sql } from './db';
 import { assertSafeMutation, SAFE_MUTATIONS, type SafeMutation } from './guard';
+import { requireStaff } from './auth';
 
 export interface ActionResult {
   ok: boolean;
@@ -33,14 +37,18 @@ export interface ActionResult {
   details?: string[];
 }
 
-async function audit(op: SafeMutation, result: ActionResult) {
+async function audit(op: SafeMutation, result: ActionResult, who: string) {
   const line = JSON.stringify({
     at: new Date().toISOString(),
+    who,
     op,
     ok: result.ok,
     message: result.message,
     details: result.details ?? [],
   });
+  console.log('[ops-audit]', line);
+  // Vercel's disk is read-only; its log above is the record there.
+  if (process.env.VERCEL) return;
   try {
     await appendFile(path.join(process.cwd(), '.ops-audit.log'), `${line}\n`, 'utf8');
   } catch {
@@ -51,6 +59,7 @@ async function audit(op: SafeMutation, result: ActionResult) {
 }
 
 async function run(op: SafeMutation, fn: () => Promise<ActionResult>): Promise<ActionResult> {
+  const staff = await requireStaff();
   assertSafeMutation(op);
   let result: ActionResult;
   try {
@@ -58,7 +67,7 @@ async function run(op: SafeMutation, fn: () => Promise<ActionResult>): Promise<A
   } catch (err) {
     result = { ok: false, message: err instanceof Error ? err.message : String(err) };
   }
-  await audit(op, result);
+  await audit(op, result, staff.email);
   revalidatePath('/health');
   revalidatePath('/clients');
   revalidatePath('/invoices');

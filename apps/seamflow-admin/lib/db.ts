@@ -7,18 +7,18 @@
 // importing the API's schema across a package boundary that TypeScript would
 // have to be argued into accepting.
 //
-// Direct-to-Postgres rather than through the API because this tool is internal
-// and read-only, and no API endpoint exposes platform-wide aggregates. Building
-// admin controllers for a localhost page would mean auth plumbing for nothing.
+// Direct-to-Postgres rather than through the API because no API endpoint
+// exposes platform-wide aggregates, and every page here is one.
 //
-// NOTHING HERE WRITES, and nothing should. A dashboard that can mutate is an
-// admin tool, and an admin tool needs the auth this app deliberately lacks.
+// Reads, plus the three allowlisted cleanups in lib/actions. Support replies
+// do NOT write here — they go through the API as the signed-in staff member,
+// which owns ticket state and sends the push (lib/support-actions).
 // ============================================================================
 
 import postgres from 'postgres';
-import { assertLocalOnly } from './guard';
+import { assertSignInConfigured } from './guard';
 
-assertLocalOnly();
+assertSignInConfigured();
 
 const url = process.env.DATABASE_URL;
 if (!url) {

@@ -1,31 +1,29 @@
 // ============================================================================
 // Two guards, protecting two different things.
 //
-//   assertLocalOnly()     — the app must not be reachable from the internet
-//   assertSafeMutation()  — the app must not be able to perform an unsafe write
+//   assertSignInConfigured() — the app must not run hosted without a login
+//   assertSafeMutation()     — the app must not be able to perform an unsafe write
 //
-// Both are structural rather than advisory, because this dashboard has NO
-// AUTHENTICATION and talks to the production database. Advisory rules ("we
-// agreed not to add delete endpoints") survive exactly until the day someone is
-// in a hurry.
+// Both are structural rather than advisory, because this dashboard talks to
+// the production database. Advisory rules ("we agreed not to add delete
+// endpoints") survive exactly until the day someone is in a hurry.
+//
+// History: until plan step 2 this refused to run in production at all,
+// because there was no login. Now every page and action passes through
+// requireStaff() (lib/auth) and the middleware, so hosting is allowed — but
+// ONLY with sign-in configured. A deploy missing the Supabase settings would
+// otherwise serve the whole platform to anyone with the URL.
 // ============================================================================
 
-/** Escape hatch for a deliberately-hosted internal deploy behind a VPN. */
-const OVERRIDE = 'SEAMFLOW_ADMIN_ALLOW_UNSAFE_HOSTING';
-
-export function assertLocalOnly(): void {
+export function assertSignInConfigured(): void {
   if (process.env.NODE_ENV !== 'production') return;
-  if (process.env[OVERRIDE] === 'i-understand-this-exposes-everything') return;
-
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return;
   throw new Error(
     [
-      'seamflow-admin refuses to run in production.',
+      'seamflow-admin refuses to run in production without sign-in configured.',
       '',
-      "It has no authentication and exposes every tailor's client list,",
-      'phone numbers and revenue. Run it locally (npm run dev) instead.',
-      '',
-      `To host it anyway, set ${OVERRIDE}=i-understand-this-exposes-everything`,
-      'AND put it behind a VPN or an authenticating proxy first.',
+      'Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (the same',
+      'values the app uses as EXPO_PUBLIC_SUPABASE_*). Every page is staff-only.',
     ].join('\n'),
   );
 }
@@ -43,9 +41,8 @@ export function assertLocalOnly(): void {
  * anyone's status. A page with no login that can delete a tailor's order
  * history is one stray port-forward away from a very bad afternoon.
  *
- * Adding a case here is the moment to stop and ask whether the dashboard has
- * outgrown "no authentication for now" — see ROADMAP 3.9 (role-gated admin,
- * 2FA, audited actions), which is what this becomes when it grows up.
+ * Support replies are NOT here: they go through the API as the signed-in
+ * staff member (lib/support-actions), which owns that logic and the push.
  */
 export const SAFE_MUTATIONS = {
   'clients.merge-duplicates':
@@ -64,7 +61,7 @@ export type SafeMutation = keyof typeof SAFE_MUTATIONS;
  * not the presence of a function.
  */
 export function assertSafeMutation(op: string): asserts op is SafeMutation {
-  assertLocalOnly();
+  assertSignInConfigured();
   if (!(op in SAFE_MUTATIONS)) {
     throw new Error(
       `Refusing to run "${op}" — it is not in the safe-mutation allowlist.\n` +

@@ -217,6 +217,11 @@ export function useNotificationTapHandler(): void {
           router.push(`${base}/messages/${entityId}` as never);
           return;
         }
+        // A reply from SeamFlow Support (plan step 2).
+        if (entityType === 'support_ticket') {
+          router.push(`${base}/support/${entityId}` as never);
+          return;
+        }
         // 'order' and 'invoice' both resolve to the order screen.
         router.push(`${base}/orders/${entityId}` as never);
         return;

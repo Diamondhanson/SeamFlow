@@ -116,3 +116,35 @@ export type SupportStatusUpdateInput = z.infer<typeof SupportStatusUpdateSchema>
 export function formatTicketRef(number: number): string {
   return `SF-${number}`;
 }
+
+// ── Staff side (admin inbox, plan step 2) ───────────────────────────────────
+
+/** Who wrote in — shown beside the conversation in the inbox. */
+export const SupportRequesterSchema = z.object({
+  userId: z.string().uuid(),
+  fullName: z.string(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  businessName: z.string().nullable(),
+  joinedAt: z.string().datetime(),
+});
+export type SupportRequester = z.infer<typeof SupportRequesterSchema>;
+
+export const SupportStaffTicketDetailSchema = SupportTicketDetailSchema.extend({
+  requester: SupportRequesterSchema,
+});
+export type SupportStaffTicketDetail = z.infer<typeof SupportStaffTicketDetailSchema>;
+
+export const SupportStaffReplySchema = z.object({
+  body: z.string().trim().min(1).max(4000),
+  /**
+   * Where the ticket stands after this reply. Usually "waiting on you" — we
+   * answered, the ball is with them — but "resolved" lets a reply close it.
+   */
+  status: SupportStatusSchema.default('waiting_on_user'),
+  clientId: z.string().min(8).max(64),
+});
+export type SupportStaffReplyInput = z.infer<typeof SupportStaffReplySchema>;
+
+export const SupportStaffStatusSchema = z.object({ status: SupportStatusSchema });
+export type SupportStaffStatusInput = z.infer<typeof SupportStaffStatusSchema>;

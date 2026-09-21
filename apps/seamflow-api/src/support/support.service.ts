@@ -5,23 +5,52 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { Cron } from '@nestjs/schedule';
+import { and, asc, desc, eq, lt, sql } from 'drizzle-orm';
 import type {
   SupportAttachment,
   SupportMessage,
   SupportMessageCreateInput,
+  SupportStaffReplyInput,
+  SupportStaffTicketDetail,
+  SupportStatus,
   SupportTicket,
   SupportTicketCreateInput,
   SupportTicketDetail,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
-import { orderClaims, orders, supportMessages, supportTickets, tailors } from '../db/schema';
+import { NotificationsService } from '../notifications/notifications.service';
+import {
+  notificationPreferences,
+  orderClaims,
+  orders,
+  supportMessages,
+  supportTickets,
+  tailors,
+  users,
+} from '../db/schema';
 
 export const SUPPORT_BUCKET = 'support-media';
 const SIGNED_URL_TTL_S = 60 * 60;
 const SUBJECT_MAX = 80;
 const PREVIEW_MAX = 140;
+/** A ticket left on "waiting on you" this long closes itself (plan step 2). */
+const AUTO_CLOSE_DAYS = 7;
+
+/**
+ * Push copy for a staff reply, in the recipient's language. Rendered here
+ * because only the sender knows who is receiving it; the ticket number is
+ * kept in every language so it matches what the user sees in the app.
+ */
+const REPLY_PUSH: Record<string, { title: string; body: (ref: string) => string }> = {
+  en: { title: 'SeamFlow Support', body: (r) => `New reply on ${r}` },
+  fr: { title: 'Support SeamFlow', body: (r) => `Nouvelle réponse sur ${r}` },
+  pt: { title: 'Suporte SeamFlow', body: (r) => `Nova resposta em ${r}` },
+  es: { title: 'Soporte SeamFlow', body: (r) => `Nueva respuesta en ${r}` },
+  sw: { title: 'Msaada wa SeamFlow', body: (r) => `Jibu jipya kwenye ${r}` },
+  ar: { title: 'دعم SeamFlow', body: (r) => `رد جديد على ${r}` },
+};
 
 type TicketRow = typeof supportTickets.$inferSelect;
 type MessageRow = typeof supportMessages.$inferSelect;
@@ -46,6 +75,7 @@ export class SupportService {
   constructor(
     private readonly dbService: DbService,
     private readonly supabase: SupabaseService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private get db() {
@@ -185,6 +215,157 @@ export class SupportService {
       .where(eq(supportTickets.id, id));
     const row = await this.loadOwned(userId, id);
     return this.toTicket(row.t, row.orderName);
+  }
+
+
+  // ── Staff (admin inbox) ───────────────────────────────────────────────────
+
+  async staffGet(id: string): Promise<SupportStaffTicketDetail> {
+    const row = await this.loadAny(id);
+    if (row.t.supportUnread > 0) {
+      await this.db.update(supportTickets).set({ supportUnread: 0 }).where(eq(supportTickets.id, id));
+    }
+    const [who] = await this.db
+      .select({
+        fullName: users.fullName,
+        email: users.email,
+        phone: users.phone,
+        createdAt: users.createdAt,
+        businessName: tailors.businessName,
+      })
+      .from(users)
+      .leftJoin(tailors, eq(tailors.userId, users.id))
+      .where(eq(users.id, row.t.userId))
+      .limit(1);
+    const msgs = await this.db
+      .select()
+      .from(supportMessages)
+      .where(eq(supportMessages.ticketId, id))
+      .orderBy(asc(supportMessages.createdAt));
+    return {
+      ticket: this.toTicket(row.t, row.orderName),
+      messages: await this.toMessages(msgs),
+      requester: {
+        userId: row.t.userId,
+        fullName: who?.fullName ?? '',
+        email: who?.email ?? null,
+        phone: who?.phone ?? null,
+        businessName: who?.businessName ?? null,
+        joinedAt: (who?.createdAt ?? row.t.createdAt).toISOString(),
+      },
+    };
+  }
+
+  /** SeamFlow answers. Moves the ticket to the chosen status and pushes the user. */
+  async staffReply(
+    staffUserId: string,
+    id: string,
+    input: SupportStaffReplyInput,
+  ): Promise<SupportMessage> {
+    const row = await this.loadAny(id);
+
+    const dup = await this.db
+      .select()
+      .from(supportMessages)
+      .where(and(eq(supportMessages.ticketId, id), eq(supportMessages.clientId, input.clientId)))
+      .limit(1);
+    if (dup[0]) return (await this.toMessages(dup))[0]!;
+
+    const [msg] = await this.db.transaction(async (tx) => {
+      const inserted = await tx
+        .insert(supportMessages)
+        .values({
+          ticketId: id,
+          sender: 'support',
+          senderUserId: staffUserId,
+          body: input.body,
+          attachments: [],
+          clientId: input.clientId,
+        })
+        .returning();
+      await tx
+        .update(supportTickets)
+        .set({
+          status: input.status,
+          resolvedAt: input.status === 'resolved' ? new Date() : null,
+          lastMessageAt: new Date(),
+          lastMessagePreview: previewOf(input.body, 0),
+          userUnread: sql`${supportTickets.userUnread} + 1`,
+          supportUnread: 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(supportTickets.id, id));
+      return inserted;
+    });
+
+    await this.pushReply(row.t);
+    return (await this.toMessages([msg!]))[0]!;
+  }
+
+  async staffSetStatus(id: string, status: SupportStatus): Promise<SupportTicket> {
+    await this.loadAny(id);
+    await this.db
+      .update(supportTickets)
+      .set({
+        status,
+        resolvedAt: status === 'resolved' ? new Date() : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(supportTickets.id, id));
+    const row = await this.loadAny(id);
+    return this.toTicket(row.t, row.orderName);
+  }
+
+  /**
+   * Close tickets left on "waiting on you" for a week. Keeps the inbox honest —
+   * a ticket nobody is going to answer isn't open — and the user can reopen it
+   * any time just by replying.
+   */
+  @Cron('40 * * * *')
+  async autoCloseStale(): Promise<void> {
+    if (!this.dbService.isConfigured()) return;
+    const cutoff = new Date(Date.now() - AUTO_CLOSE_DAYS * 24 * 60 * 60 * 1000);
+    const closed = await this.db
+      .update(supportTickets)
+      .set({ status: 'resolved', resolvedAt: new Date(), updatedAt: new Date() })
+      .where(and(eq(supportTickets.status, 'waiting_on_user'), lt(supportTickets.lastMessageAt, cutoff)))
+      .returning({ id: supportTickets.id });
+    if (closed.length) this.logger.log(`Auto-closed ${closed.length} stale support ticket(s)`);
+  }
+
+  private async pushReply(t: TicketRow): Promise<void> {
+    // Tailors have a language setting; customers don't yet, so they get English.
+    const [pref] = await this.db
+      .select({ language: notificationPreferences.language })
+      .from(notificationPreferences)
+      .innerJoin(tailors, eq(tailors.id, notificationPreferences.tailorId))
+      .where(eq(tailors.userId, t.userId))
+      .limit(1);
+    const copy = REPLY_PUSH[pref?.language ?? 'en'] ?? REPLY_PUSH.en!;
+    const ref = `SF-${t.number}`;
+    await this.notifications.emit(t.userId, {
+      type: 'support.replied',
+      entity: { type: 'support_ticket', id: t.id },
+      // The ticket is the record, exactly like a chat thread.
+      persist: false,
+      push: {
+        title: copy.title,
+        body: copy.body(ref),
+        // Opens the ticket in whichever side of the app it was written from.
+        data: { entityType: 'support_ticket', entityId: t.id, recipientSide: t.side },
+      },
+    });
+  }
+
+  private async loadAny(id: string) {
+    const rows = await this.db
+      .select({ t: supportTickets, orderName: orders.orderName })
+      .from(supportTickets)
+      .leftJoin(orders, eq(orders.id, supportTickets.orderId))
+      .where(eq(supportTickets.id, id))
+      .limit(1);
+    if (!rows[0]) throw new NotFoundException('Ticket not found');
+    return rows[0];
   }
 
   // ── Guards ────────────────────────────────────────────────────────────────
