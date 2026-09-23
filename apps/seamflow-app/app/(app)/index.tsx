@@ -20,6 +20,7 @@ import { Screen } from '../../components/Screen';
 import { GettingStarted } from '../../components/GettingStarted';
 import { PendingDeletionBanner } from '../../components/PendingDeletionBanner';
 import { ProfileReminderBanner } from '../../components/ProfileReminderBanner';
+import { TrialBanner } from '../../components/TrialBanner';
 import { ColdStartBanner } from '../../components/ColdStartBanner';
 import { InstallHint } from '../../components/InstallHint';
 import { WelcomeSlides } from '../../components/WelcomeSlides';
@@ -154,6 +155,7 @@ export default function Home() {
         <ColdStartBanner loading={coldLoading} />
         <PendingDeletionBanner />
         <ProfileReminderBanner />
+        <TrialBanner />
         <InstallHint />
 
         {/* Header — greeting + at-a-glance stats on the left, quick icons right. */}

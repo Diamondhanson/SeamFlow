@@ -51,6 +51,10 @@ export interface PlanDef {
   days: number;
   /** PLACEHOLDER pricing, in the minor-unit-free XAF the market quotes in. */
   priceXaf: number;
+  /** PLACEHOLDER dollar price for everywhere else. Not a live conversion:
+   *  a price people see should be a round number they can remember, not a
+   *  figure that drifts with an exchange rate. */
+  priceUsd: number;
 }
 
 /**
@@ -59,21 +63,62 @@ export interface PlanDef {
  * eleven fewer chances to forget.
  */
 export const PLANS: PlanDef[] = [
-  { key: 'monthly', days: 30, priceXaf: 3000 },
-  { key: 'quarterly', days: 90, priceXaf: 7500 },
-  { key: 'annual', days: 365, priceXaf: 25500 },
+  { key: 'monthly', days: 30, priceXaf: 3000, priceUsd: 5 },
+  { key: 'quarterly', days: 90, priceXaf: 7500, priceUsd: 13 },
+  { key: 'annual', days: 365, priceXaf: 25500, priceUsd: 45 },
 ];
+
+// ── Where the tailor is, and therefore how they can pay ─────────────────────
+
+/**
+ * The only market we have localised. Cameroon sees prices in XAF and can pay
+ * the way people there actually pay — mobile money first. Everywhere else is
+ * shown the dollar price and cards only, because we have not yet done the work
+ * to accept anything local there, and offering a method we cannot honour is
+ * worse than not offering it.
+ *
+ * Adding a market is this constant plus its prices and methods — the screens
+ * read whatever the server says.
+ */
+export const LOCALISED_COUNTRIES = ['CM'] as const;
+
+export interface BillingOptions {
+  currency: 'XAF' | 'USD';
+  /** In the order they should be offered: locally dominant method first. */
+  methods: SubscriptionPaymentMethod[];
+  /** Price per plan, in `currency`. */
+  prices: Record<SubscriptionPlan, number>;
+}
+
+export function billingFor(countryCode: string | null | undefined): BillingOptions {
+  const local = !!countryCode && (LOCALISED_COUNTRIES as readonly string[]).includes(countryCode.toUpperCase());
+  const price = (p: PlanDef) => (local ? p.priceXaf : p.priceUsd);
+  return {
+    currency: local ? 'XAF' : 'USD',
+    methods: local ? ['mtn_momo', 'orange_money', 'card'] : ['card'],
+    prices: {
+      monthly: price(planFor('monthly')),
+      quarterly: price(planFor('quarterly')),
+      annual: price(planFor('annual')),
+    },
+  };
+}
 
 export const planFor = (key: SubscriptionPlan): PlanDef =>
   PLANS.find((p) => p.key === key) ?? PLANS[0]!;
 
-/** Savings vs paying monthly, as a whole percentage. 0 for the monthly plan. */
-export function planSavingsPercent(key: SubscriptionPlan): number {
+/**
+ * Savings vs paying monthly, as a whole percentage. 0 for the monthly plan.
+ * Computed per currency, since the dollar prices are rounded separately and
+ * would otherwise claim a discount the numbers do not show.
+ */
+export function planSavingsPercent(key: SubscriptionPlan, currency: 'XAF' | 'USD' = 'XAF'): number {
+  const priceOf = (p: PlanDef) => (currency === 'XAF' ? p.priceXaf : p.priceUsd);
   const plan = planFor(key);
   const monthly = planFor('monthly');
-  const atMonthlyRate = (plan.days / monthly.days) * monthly.priceXaf;
-  if (atMonthlyRate <= plan.priceXaf) return 0;
-  return Math.round((1 - plan.priceXaf / atMonthlyRate) * 100);
+  const atMonthlyRate = (plan.days / monthly.days) * priceOf(monthly);
+  if (atMonthlyRate <= priceOf(plan)) return 0;
+  return Math.round((1 - priceOf(plan) / atMonthlyRate) * 100);
 }
 
 // ── What Free costs you ─────────────────────────────────────────────────────
@@ -142,6 +187,19 @@ export const SubscriptionStateSchema = z.object({
     clients: z.number().int(),
     activeOrders: z.number().int(),
     photos: z.number().int(),
+  }),
+  /**
+   * What this tailor may be charged in, and how they may pay — decided by the
+   * server from their country, not by the device.
+   */
+  billing: z.object({
+    currency: z.enum(['XAF', 'USD']),
+    methods: z.array(PaymentMethodSchema),
+    prices: z.object({
+      monthly: z.number(),
+      quarterly: z.number(),
+      annual: z.number(),
+    }),
   }),
 });
 export type SubscriptionState = z.infer<typeof SubscriptionStateSchema>;

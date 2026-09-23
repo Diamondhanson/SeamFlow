@@ -35,6 +35,7 @@ import { useMode } from '../../lib/mode';
 import { countryName, flagEmoji } from '../../lib/countries';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode } from '../../lib/theme-mode';
+import { useSubscription } from '../../lib/subscription';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
 import { openLegal } from '../../lib/legal-links';
 
@@ -64,6 +65,15 @@ export default function Me() {
   const scroll = useFloatingScroll();
   const colors = useThemeColors();
   const dialog = useDialog();
+  const subscription = useSubscription();
+  // Reads as a state, not a sales pitch: "23 days left", "Free", "Premium".
+  const subscriptionLabel = !subscription
+    ? undefined
+    : subscription.status === 'trialing'
+      ? t('billing.daysLeft', { days: subscription.daysLeft })
+      : subscription.status === 'free'
+        ? t('billing.freeTitle')
+        : t('billing.activeTitle');
   const requireProfile = useRequireProfile();
   const { setMode } = useMode();
 
@@ -351,6 +361,18 @@ export default function Me() {
               onPress={() => router.push('/(app)/pin')}
             />
           ) : null}
+        </SettingsCard>
+
+        {/* Subscription: status at a glance, plans one tap away. */}
+        <SectionTitle>{t('billing.title')}</SectionTitle>
+        <SettingsCard>
+          <SettingsRow
+            first
+            icon="sparkles-outline"
+            label={t('billing.upgradeTitle')}
+            value={subscriptionLabel}
+            onPress={() => router.push('/(app)/upgrade')}
+          />
         </SettingsCard>
 
         {/* Help — tickets to SeamFlow (plan step 1). */}

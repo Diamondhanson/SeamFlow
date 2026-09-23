@@ -54,6 +54,7 @@ import { drafts } from './locales/drafts';
 import { specialties } from './locales/specialties';
 import { requests } from './locales/requests';
 import { support } from './locales/support';
+import { billing } from './locales/billing';
 
 export type LanguageCode = 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
 
@@ -139,6 +140,7 @@ const NAMESPACES = {
   specialties,
   requests,
   support,
+  billing,
 } as const;
 
 type Namespaces = typeof NAMESPACES;

@@ -37,6 +37,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { router } from 'expo-router';
 import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, spacing, radii, type SemanticColors } from '@seamflow/ui';
@@ -45,6 +46,7 @@ import { OptionSheet, type SheetOption } from '../components/OptionSheet';
 import { useResponsiveValue } from './use-breakpoint';
 import { useTranslation } from './i18n';
 import { toUserMessage } from './error-message';
+import { upgradePrompt } from './upgrade-prompt';
 
 // ----------------------------------------------------------------------------
 // Public types
@@ -171,6 +173,23 @@ export function DialogProvider({ children }: { children: ReactNode }) {
       // (type, then HTTP status) and returns clear, localized copy. The raw
       // error is logged for debugging inside the mapper.
       error: (err, o) => {
+        // A blocked premium action is not an error, it is an offer. The server
+        // answers those with 402 and says what was hit, so every existing
+        // `dialog.error(err)` call site turns into the right upgrade prompt
+        // without being touched — there is no screen that could forget.
+        const upgrade = upgradePrompt(err, t);
+        if (upgrade) {
+          return enqueue({
+            kind: 'confirm',
+            tone: 'info',
+            title: upgrade.title,
+            message: upgrade.message,
+            confirmLabel: upgrade.confirmLabel,
+            cancelLabel: upgrade.cancelLabel,
+          }).then((seePlans) => {
+            if (seePlans) router.push('/(app)/upgrade' as never);
+          }) as Promise<void>;
+        }
         const mapped = toUserMessage(err, t);
         return enqueue({
           kind: 'alert',

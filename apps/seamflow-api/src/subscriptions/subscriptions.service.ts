@@ -25,6 +25,7 @@ import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { and, count, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import {
+  billingFor,
   FREE_CAPS,
   GRACE_DAYS,
   TRIAL_DAYS,
@@ -145,9 +146,14 @@ export class SubscriptionsService {
     return this.isPremiumRow(row);
   }
 
-  /** Everything a screen needs: state, dates, days left, usage against caps. */
+  /** Everything a screen needs: state, dates, days left, usage, how to pay. */
   async stateFor(tailorId: string): Promise<SubscriptionState> {
     const row = await this.ensureFor(tailorId);
+    const [shop] = await this.db
+      .select({ countryCode: tailors.countryCode })
+      .from(tailors)
+      .where(eq(tailors.id, tailorId))
+      .limit(1);
     const status = this.statusOf(row);
     const premium = this.isPremiumRow(row);
     const usage = await this.usageFor(tailorId);
@@ -162,6 +168,7 @@ export class SubscriptionsService {
       enforced: this.enforced,
       usage,
       caps: FREE_CAPS,
+      billing: billingFor(shop?.countryCode),
     };
   }
 
