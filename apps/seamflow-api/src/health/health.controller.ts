@@ -1,8 +1,9 @@
-import { Controller, Get, NotFoundException, Post } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Post } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { QueueService } from '../queue/queue.service';
 import { AccountPurgeService } from '../account/account-purge.service';
 import { ChatMediaRetentionService } from '../chat/chat-media-retention.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { sentryEnabled } from '../common/sentry';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -34,6 +35,7 @@ export class HealthController {
     private readonly queue: QueueService,
     private readonly purge: AccountPurgeService,
     private readonly retention: ChatMediaRetentionService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   /**
@@ -60,6 +62,41 @@ export class HealthController {
       throw new NotFoundException();
     }
     return { removed: await this.retention.run() };
+  }
+
+  /**
+   * Dev-only subscription hooks (404 in production, like run-purge). They let
+   * the entitlement test drive months of calendar in seconds — granting days,
+   * simulating a provider's confirmation, running the nightly job — without
+   * waiting for real time to pass or a payment provider to exist.
+   */
+  @Post('subscription-grant')
+  async grant(@Body() body: { tailorId: string; days: number; trial?: boolean }) {
+    if (process.env.NODE_ENV === 'production') throw new NotFoundException();
+    const row = body.trial
+      ? await this.subscriptions.extendTrial(body.tailorId, body.days)
+      : await this.subscriptions.extendPremium(body.tailorId, body.days, { reason: 'dev hook' });
+    return { trialEndsAt: row.trialEndsAt, premiumUntil: row.premiumUntil, status: row.status };
+  }
+
+  @Post('subscription-pay')
+  async pay(@Body() body: { tailorId: string; plan: 'monthly' | 'quarterly' | 'annual'; providerRef: string }) {
+    if (process.env.NODE_ENV === 'production') throw new NotFoundException();
+    const { applied, row } = await this.subscriptions.recordPayment({
+      tailorId: body.tailorId,
+      plan: body.plan,
+      method: 'mtn_momo',
+      amount: 0,
+      provider: 'dev-hook',
+      providerRef: body.providerRef,
+    });
+    return { applied, premiumUntil: row.premiumUntil, status: row.status };
+  }
+
+  @Post('subscription-sync')
+  async syncSubscriptions() {
+    if (process.env.NODE_ENV === 'production') throw new NotFoundException();
+    return { created: await this.subscriptions.ensureAll(), lapsed: await this.subscriptions.syncStatuses() };
   }
 
   @Get()

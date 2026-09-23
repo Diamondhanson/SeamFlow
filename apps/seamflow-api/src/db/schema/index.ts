@@ -23,3 +23,4 @@ export * from './phone-verifications';
 export * from './notifications';
 export * from './requests';
 export * from './support';
+export * from './subscriptions';

@@ -33,6 +33,17 @@ export const envSchema = z.object({
   // testing the web app on http://localhost:3000.
   WEB_BASE_URL: z.string().url().default('https://www.seamflowtech.com'),
 
+  // ── Subscriptions (ROADMAP appendix I) ────────────────────────────────────
+  // The master switch for the Free tier's gates and caps. It ships OFF: the
+  // trial, the countdown and the upgrade screens are live, but nothing is ever
+  // BLOCKED while there is no way to pay. Flip to 'true' the day subscriptions
+  // can actually be bought. Entitlement itself (who is trialing, whose time has
+  // run out) is tracked either way, so flipping it needs no backfill.
+  SUBSCRIPTION_ENFORCEMENT: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+
   // ── Phone verification (WhatsApp-first) ───────────────────────────────────
   // Which OTP delivery adapter to use. Unset (the default) means phone
   // verification is INACTIVE and /me/phone/* returns 503 — chosen over a silent

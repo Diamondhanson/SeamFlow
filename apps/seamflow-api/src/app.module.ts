@@ -19,6 +19,7 @@ import { MeModule } from './me/me.module';
 import { AccountModule } from './account/account.module';
 import { PhoneVerificationModule } from './phone-verification/phone-verification.module';
 import { TailorsModule } from './tailors/tailors.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { ClientsModule } from './clients/clients.module';
 import { MeasurementSetsModule } from './measurement-sets/measurement-sets.module';
 import { MeasurementTemplatesModule } from './measurement-templates/measurement-templates.module';
@@ -62,6 +63,7 @@ import { RemindersModule } from './notifications/reminders.module';
     AccountModule,
     PhoneVerificationModule,
     TailorsModule,
+    SubscriptionsModule,
     ClientsModule,
     MeasurementSetsModule,
     MeasurementTemplatesModule,
