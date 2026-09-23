@@ -224,3 +224,49 @@ export const GrantDaysSchema = z.object({
   reason: z.string().max(200).optional(),
 });
 export type GrantDaysInput = z.infer<typeof GrantDaysSchema>;
+
+// ── Buying a subscription ───────────────────────────────────────────────────
+
+export const CheckoutSchema = z.object({
+  plan: SubscriptionPlanSchema,
+  method: PaymentMethodSchema,
+  /**
+   * The number to charge, for mobile money. Optional: providers usually
+   * default to the number on the account, and asking for it again is one more
+   * thing to get wrong.
+   */
+  phone: z.string().min(6).max(20).optional(),
+});
+export type CheckoutInput = z.infer<typeof CheckoutSchema>;
+
+export const PaymentAttemptStatusSchema = z.enum(['pending', 'succeeded', 'failed']);
+export type PaymentAttemptStatus = z.infer<typeof PaymentAttemptStatusSchema>;
+
+/**
+ * What the app gets back from starting a payment. The three shapes cover every
+ * rail we expect: mobile money prompts the phone (`instruction`), cards send
+ * the browser somewhere (`redirectUrl`), and some providers settle instantly.
+ */
+export const CheckoutResultSchema = z.object({
+  paymentId: z.string().uuid(),
+  status: PaymentAttemptStatusSchema,
+  /** Where to send the user to finish paying, if the provider needs that. */
+  redirectUrl: z.string().url().nullable(),
+  /** Localisable key for an on-screen instruction, e.g. approve on your phone. */
+  instruction: z.enum(['approve_on_phone', 'follow_link', 'none']),
+  /** Poll this while `pending` — mobile money confirms out of band. */
+  pollAfterMs: z.number().int(),
+});
+export type CheckoutResult = z.infer<typeof CheckoutResultSchema>;
+
+export const PaymentAttemptSchema = z.object({
+  id: z.string().uuid(),
+  status: PaymentAttemptStatusSchema,
+  plan: SubscriptionPlanSchema.nullable(),
+  method: PaymentMethodSchema.nullable(),
+  amount: z.number(),
+  currency: z.string(),
+  daysAdded: z.number().int(),
+  createdAt: z.string().datetime(),
+});
+export type PaymentAttempt = z.infer<typeof PaymentAttemptSchema>;

@@ -44,6 +44,12 @@ export const envSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
 
+  // Which payment rail subscriptions are bought through. Empty (the default)
+  // means none: checkout answers 503 and the app says "payment is coming
+  // soon". 'fake' is a development-only stand-in that lets the whole payment
+  // path be tested before a real provider is chosen.
+  SUBSCRIPTION_PAYMENT_PROVIDER: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+
   // ── Phone verification (WhatsApp-first) ───────────────────────────────────
   // Which OTP delivery adapter to use. Unset (the default) means phone
   // verification is INACTIVE and /me/phone/* returns 503 — chosen over a silent

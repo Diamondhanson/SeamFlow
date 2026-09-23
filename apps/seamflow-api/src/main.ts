@@ -7,7 +7,10 @@ import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
   const sentryOn = initSentry();
-  const app = await NestFactory.create(AppModule);
+  // rawBody: the subscription webhook verifies a provider's signature over the
+  // EXACT bytes received; re-serialising the parsed JSON would change them and
+  // every signature would fail.
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService);
   const port = config.get<number>('PORT', 3000);
 

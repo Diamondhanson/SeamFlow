@@ -37,9 +37,11 @@ import {
   type SubscriptionStatus,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PlatformSettingsService } from './platform-settings.service';
 import {
   clients,
+  notificationPreferences,
   orderPhotos,
   orders,
   subscriptionPayments,
@@ -50,6 +52,81 @@ import {
 type SubscriptionRow = typeof subscriptions.$inferSelect;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+/** Days before the end on which a reminder goes out. Biggest first. */
+const REMINDER_DAYS = [7, 3, 1, 0];
+
+/**
+ * Reminder copy, in the tailor's language. Written server-side because it is
+ * sent long after the app last opened, so there is no device locale to read.
+ */
+const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: boolean) => string }> = {
+  en: {
+    title: 'SeamFlow',
+    body: (d, paid) =>
+      d === 0
+        ? paid
+          ? 'Your subscription ends today. Renew to keep everything unlocked.'
+          : 'Your free trial ends today. Your work stays yours.'
+        : paid
+          ? `Your subscription ends in ${d} day${d === 1 ? '' : 's'}.`
+          : `Your free trial ends in ${d} day${d === 1 ? '' : 's'}.`,
+  },
+  fr: {
+    title: 'SeamFlow',
+    body: (d, paid) =>
+      d === 0
+        ? paid
+          ? 'Votre abonnement se termine aujourd’hui. Renouvelez pour tout garder débloqué.'
+          : 'Votre essai gratuit se termine aujourd’hui. Votre travail reste le vôtre.'
+        : paid
+          ? `Votre abonnement se termine dans ${d} jour${d === 1 ? '' : 's'}.`
+          : `Votre essai gratuit se termine dans ${d} jour${d === 1 ? '' : 's'}.`,
+  },
+  pt: {
+    title: 'SeamFlow',
+    body: (d, paid) =>
+      d === 0
+        ? paid
+          ? 'A sua subscrição termina hoje. Renove para manter tudo desbloqueado.'
+          : 'O seu período gratuito termina hoje. O seu trabalho continua seu.'
+        : paid
+          ? `A sua subscrição termina em ${d} dia${d === 1 ? '' : 's'}.`
+          : `O seu período gratuito termina em ${d} dia${d === 1 ? '' : 's'}.`,
+  },
+  es: {
+    title: 'SeamFlow',
+    body: (d, paid) =>
+      d === 0
+        ? paid
+          ? 'Tu suscripción termina hoy. Renueva para mantener todo desbloqueado.'
+          : 'Tu prueba gratuita termina hoy. Tu trabajo sigue siendo tuyo.'
+        : paid
+          ? `Tu suscripción termina en ${d} día${d === 1 ? '' : 's'}.`
+          : `Tu prueba gratuita termina en ${d} día${d === 1 ? '' : 's'}.`,
+  },
+  sw: {
+    title: 'SeamFlow',
+    body: (d, paid) =>
+      d === 0
+        ? paid
+          ? 'Usajili wako unaisha leo. Fanya upya ili kila kitu kibaki wazi.'
+          : 'Jaribio lako la bure linaisha leo. Kazi yako inabaki yako.'
+        : paid
+          ? `Usajili wako unaisha baada ya siku ${d}.`
+          : `Jaribio lako la bure linaisha baada ya siku ${d}.`,
+  },
+  ar: {
+    title: 'SeamFlow',
+    body: (d, paid) =>
+      d === 0
+        ? paid
+          ? 'ينتهي اشتراكك اليوم. جدّد للإبقاء على كل الميزات مفتوحة.'
+          : 'تنتهي فترتك التجريبية اليوم. عملك يبقى لك.'
+        : paid
+          ? `ينتهي اشتراكك خلال ${d} يومًا.`
+          : `تنتهي فترتك التجريبية خلال ${d} يومًا.`,
+  },
+};
 const addDays = (from: Date, days: number) => new Date(from.getTime() + days * DAY_MS);
 /** Whole days from now until `at`, floored at 0. */
 const daysUntil = (at: Date | null): number =>
@@ -80,6 +157,7 @@ export class SubscriptionsService {
   constructor(
     private readonly dbService: DbService,
     private readonly settings: PlatformSettingsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private get db() {
@@ -345,6 +423,20 @@ export class SubscriptionsService {
     return { applied: true, row };
   }
 
+  /**
+   * The language to write to this tailor in. Only tailors have a setting; a
+   * missing one means English rather than a guess from the device, because a
+   * push is written server-side long after the app last opened.
+   */
+  async languageFor(tailorId: string): Promise<string> {
+    const [pref] = await this.db
+      .select({ language: notificationPreferences.language })
+      .from(notificationPreferences)
+      .where(eq(notificationPreferences.tailorId, tailorId))
+      .limit(1);
+    return pref?.language ?? 'en';
+  }
+
   /** Card dunning (appendix I.6): keep access while retries run. */
   async startGrace(tailorId: string): Promise<void> {
     await this.db
@@ -375,6 +467,59 @@ export class SubscriptionsService {
       )
       .returning({ id: subscriptions.id });
     return rows.length;
+  }
+
+  /**
+   * Nudge people before their time runs out (appendix I.5).
+   *
+   * Mobile money cannot auto-renew, so a reminder IS the renewal mechanism —
+   * a tailor who forgets simply stops being premium. Sent at 7, 3 and 1 days
+   * out and on the day itself, for trials and paid time alike, because the
+   * experience of "it stopped and nobody told me" is identical either way.
+   *
+   * Runs once a day at a fixed hour and matches on whole days remaining, so a
+   * given tailor gets each of the four at most once.
+   */
+  @Cron('0 9 * * *')
+  async renewalReminders(): Promise<void> {
+    if (!this.dbService.isConfigured()) return;
+    try {
+      const rows = await this.db
+        .select({
+          tailorId: subscriptions.tailorId,
+          userId: tailors.userId,
+          trialEndsAt: subscriptions.trialEndsAt,
+          premiumUntil: subscriptions.premiumUntil,
+        })
+        .from(subscriptions)
+        .innerJoin(tailors, eq(tailors.id, subscriptions.tailorId));
+
+      let sent = 0;
+      for (const row of rows) {
+        const endsAt =
+          row.premiumUntil && row.premiumUntil > new Date() ? row.premiumUntil : row.trialEndsAt;
+        const days = daysUntil(endsAt);
+        if (!REMINDER_DAYS.includes(days)) continue;
+        // Never nag someone who is already paid up well beyond this window.
+        if (row.premiumUntil && daysUntil(row.premiumUntil) > REMINDER_DAYS[0]!) continue;
+
+        const paid = !!row.premiumUntil && row.premiumUntil > new Date();
+        const language = await this.languageFor(row.tailorId);
+        const copy = EXPIRY_PUSH[language] ?? EXPIRY_PUSH.en!;
+        await this.notifications.emit(row.userId, {
+          type: 'subscription.expiring',
+          params: { days: String(days), paid: String(paid) },
+          // Push only: the plans screen is the record, and an inbox entry that
+          // repeats four times would read as pestering.
+          persist: false,
+          push: { title: copy.title, body: copy.body(days, paid), data: { screen: 'upgrade' } },
+        });
+        sent++;
+      }
+      if (sent) this.logger.log(`Sent ${sent} renewal reminder(s)`);
+    } catch (err) {
+      this.logger.error(`Renewal reminders failed: ${(err as Error).message}`);
+    }
   }
 
   /**

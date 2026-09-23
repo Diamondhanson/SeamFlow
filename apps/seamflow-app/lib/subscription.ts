@@ -10,8 +10,13 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import { router } from 'expo-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { SubscriptionPlan, SubscriptionState } from '@seamflow/schemas';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type {
+  CheckoutInput,
+  PaymentAttempt,
+  SubscriptionPlan,
+  SubscriptionState,
+} from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
 import { useMe } from './queries';
@@ -141,4 +146,52 @@ export function shouldNagAboutTrial(sub: SubscriptionState | null): boolean {
   if (sub.status === 'trialing') return sub.daysLeft <= TRIAL_NAG_DAYS;
   // Out of trial and not paid: the banner becomes the way back.
   return sub.status === 'free';
+}
+
+// ── Buying ──────────────────────────────────────────────────────────────────
+
+/**
+ * Start a payment. The result tells the screen what to do next: send the
+ * browser somewhere, or wait while the tailor approves a prompt on their
+ * phone. Success is never decided here — only the provider's confirmation,
+ * verified on the server, moves anyone's subscription.
+ */
+export function useCheckout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CheckoutInput) => api.me.checkout(input),
+    onSettled: () => void qc.invalidateQueries({ queryKey: qk.me() }),
+  });
+}
+
+/** True when the API says no provider is connected yet. */
+export function isPaymentsUnavailable(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  if ((err as { status?: number }).status !== 503) return false;
+  const body = (err as { body?: { error?: string } }).body;
+  return body?.error === 'payments_unavailable' || body?.error === 'method_unavailable';
+}
+
+/**
+ * Watch one payment while it settles. Mobile money is confirmed out of band —
+ * the tailor approves on their handset and the provider tells our server — so
+ * the app polls rather than pretending to know.
+ */
+export function usePaymentAttempt(paymentId: string | null) {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ['subscription', 'payment', paymentId],
+    queryFn: () => api.me.payment(paymentId!),
+    enabled: !!paymentId,
+    // Stop the moment it is decided; a settled payment never changes again.
+    refetchInterval: (query) =>
+      (query.state.data as PaymentAttempt | undefined)?.status === 'pending' ? 5000 : false,
+  });
+
+  useEffect(() => {
+    // A payment that succeeded changes what this tailor may do, everywhere.
+    if (q.data?.status === 'succeeded') void qc.invalidateQueries({ queryKey: qk.me() });
+  }, [q.data?.status, qc]);
+
+  return q;
 }

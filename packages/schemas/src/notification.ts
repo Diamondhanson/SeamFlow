@@ -55,6 +55,10 @@ export const NotificationTypeSchema = z.enum([
   // Help & Support: SeamFlow answered a ticket. Push only — the ticket is the
   // record, like a chat message.
   'support.replied',
+
+  // Subscriptions: the trial or paid time is about to run out, and the moment
+  // it does some features stop. Push only — the plans screen is the record.
+  'subscription.expiring',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 

@@ -12,12 +12,15 @@
  *   · only staff can move anyone's dates, and the admin levers work
  *   · the paywall switch flips from the dashboard, takes effect without a
  *     restart, and goes back off again
+ *   · buying: with no provider connected, checkout says so; with the fake
+ *     provider, a signed webhook — and only a signed one — extends the date
  *   · with enforcement ON: premium features and the caps refuse politely (402
  *     "upgrade_required"), reads still work, and paying unblocks everything
  *
  * Throwaway accounts; the calendar is driven by the dev-only hooks rather than
  * by waiting six weeks. Run with: pnpm test:subscriptions
  */
+import { createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { FREE_CAPS, TRIAL_DAYS, planFor } from '@seamflow/schemas';
 
@@ -303,6 +306,66 @@ async function main(): Promise<void> {
     }
 
     console.log('• ...and the run puts every trial back where it found it');
+
+    // ---- Buying a subscription ---------------------------------------------
+    r = await api(jwt, 'POST', '/subscriptions/checkout', { plan: 'monthly', method: 'mtn_momo' });
+    if (r.status === 503) {
+      assert(r.data.error === 'payments_unavailable', `unexpected 503 body: ${JSON.stringify(r.data)}`);
+      console.log('• With no provider connected, checkout says "not available yet" — the app shows "coming soon"');
+    } else {
+      // SUBSCRIPTION_PAYMENT_PROVIDER=fake: drive the whole path.
+      assert(r.status === 201 || r.status === 200, `checkout: ${r.status} ${JSON.stringify(r.data)}`);
+      const { paymentId, status, instruction } = r.data;
+      assert(status === 'pending' && instruction === 'approve_on_phone', `bad checkout result: ${JSON.stringify(r.data)}`);
+      console.log('• Checkout starts a payment and waits — approval happens on the handset');
+
+      r = await api(jwt, 'GET', `/subscriptions/payments/${paymentId}`);
+      assert(r.data.status === 'pending', 'a just-started payment should be pending');
+
+      const before = (await api(jwt, 'GET', '/me/subscription')).data.daysLeft;
+
+      // An unsigned webhook is the whole attack: anyone can POST this URL.
+      const payload = JSON.stringify({ ref: `fake_${paymentId}`, paymentId, status: 'succeeded', amount: 3000, currency: 'XAF' });
+      let res = await fetch(`http://localhost:${PORT}/subscriptions/webhook/fake`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-fake-signature': 'not-a-signature' },
+        body: payload,
+      });
+      assert((await res.json()).handled === false, 'an unsigned webhook was accepted');
+      r = await api(jwt, 'GET', `/subscriptions/payments/${paymentId}`);
+      assert(r.data.status === 'pending', 'an unsigned webhook changed a payment');
+      console.log('• An unsigned webhook is refused — the signature is the only authority');
+
+      const sign = (body: string) =>
+        createHmac('sha256', 'fake-provider-secret-for-tests-only').update(body).digest('hex');
+      res = await fetch(`http://localhost:${PORT}/subscriptions/webhook/fake`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-fake-signature': sign(payload) },
+        body: payload,
+      });
+      assert((await res.json()).handled === true, 'a signed webhook was not handled');
+      r = await api(jwt, 'GET', `/subscriptions/payments/${paymentId}`);
+      assert(r.data.status === 'succeeded', `payment not settled: ${r.data.status}`);
+      sub = (await api(jwt, 'GET', '/me/subscription')).data;
+      assert(sub.premium === true && sub.daysLeft >= before + 29, `paying did not add 30 days: ${before} → ${sub.daysLeft}`);
+      console.log('• A signed webhook settles the payment and extends the date by the plan');
+
+      // Providers re-deliver. Twice paid is once credited.
+      const after = sub.daysLeft;
+      res = await fetch(`http://localhost:${PORT}/subscriptions/webhook/fake`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-fake-signature': sign(payload) },
+        body: payload,
+      });
+      void (await res.json());
+      sub = (await api(jwt, 'GET', '/me/subscription')).data;
+      assert(sub.daysLeft === after, `a re-delivered webhook added days: ${after} → ${sub.daysLeft}`);
+      console.log('• A webhook delivered twice credits once');
+
+      r = await api(jwt, 'GET', '/subscriptions/payments');
+      assert(r.data.items.length >= 1 && r.data.items[0].status === 'succeeded', 'payment history is wrong');
+      console.log('• The payment appears in the tailor’s history');
+    }
   } finally {
     // Both of these are platform-wide. Leaving the switch on would block every
     // real tailor; leaving the trial extension on would quietly hand them all

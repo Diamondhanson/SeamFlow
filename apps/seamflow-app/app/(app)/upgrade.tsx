@@ -6,21 +6,34 @@
 // else sees dollars and cards only, because those are the only rails we can
 // actually honour there. Nothing on this screen hardcodes a market.
 //
-// Payment itself is not wired yet, and the screen says so plainly rather than
-// offering a button that fails. What it does do today is answer the question a
-// tailor in their last trial week actually has: what will this cost, what do I
-// lose if I do nothing, and is my work safe. The answer to the last one is
-// yes, and it is on the screen.
+// The buying flow is complete; the rail underneath it is not chosen yet. Until
+// one is connected the API answers "payments unavailable" and this screen says
+// so in the same words it always has, rather than showing a server error. The
+// day a provider is plugged in, nothing here changes.
+//
+// Success is never decided on the device: tapping Pay starts a payment and
+// then the screen WAITS, polling, until the provider's confirmation reaches
+// our server. That is also why the pending state is a first-class thing here —
+// with mobile money, approving happens on the handset, outside this app.
 // ============================================================================
 
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { SubscriptionPaymentMethod } from '@seamflow/schemas';
+import type { SubscriptionPaymentMethod, SubscriptionPlan } from '@seamflow/schemas';
 import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SkeletonForm } from '../../components/Skeleton';
-import { useSubscription, usePlanRows } from '../../lib/subscription';
+import { Button } from '../../components/Button';
+import { useDialog } from '../../lib/dialog';
+import {
+  isPaymentsUnavailable,
+  useCheckout,
+  usePaymentAttempt,
+  usePlanRows,
+  useSubscription,
+} from '../../lib/subscription';
 import { radii, spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 
@@ -46,8 +59,42 @@ const PREMIUM_LINES = [
 export default function Upgrade() {
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
+  const dialog = useDialog();
   const sub = useSubscription();
   const plans = usePlanRows(sub);
+  const checkout = useCheckout();
+
+  // Chosen plan; the method is picked at the moment of paying, which is how
+  // people actually decide — the plan is the commitment, the method is a
+  // detail they answer last.
+  const [plan, setPlan] = useState<SubscriptionPlan>('annual');
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const attempt = usePaymentAttempt(paymentId);
+
+  const pay = (method: SubscriptionPaymentMethod) => {
+    checkout.mutate(
+      { plan, method },
+      {
+        onSuccess: (res) => {
+          setPaymentId(res.paymentId);
+          if (res.redirectUrl) void Linking.openURL(res.redirectUrl);
+        },
+        onError: (err) => {
+          // No provider connected yet: say what the screen already says,
+          // rather than showing a server error nobody can act on.
+          if (isPaymentsUnavailable(err)) {
+            void dialog.alert({
+              title: t('billing.notYetTitle'),
+              message: t('billing.notYetBody'),
+              tone: 'info',
+            });
+            return;
+          }
+          void dialog.error(err);
+        },
+      },
+    );
+  };
 
   if (!sub) {
     return (
@@ -79,14 +126,19 @@ export default function Upgrade() {
         <View style={styles.plans}>
           {plans.map((p) => {
             const best = p.key === 'annual';
+            const selected = p.key === plan;
             return (
-              <View
+              <Pressable
                 key={p.key}
+                onPress={() => setPlan(p.key)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
                 style={[
                   styles.plan,
                   {
-                    borderColor: best ? colors.primary : colors.hairline,
-                    backgroundColor: best ? withAlpha(colors.primary, 0.06) : colors.surface,
+                    borderColor: selected ? colors.primary : colors.hairline,
+                    borderWidth: selected ? 2 : 1,
+                    backgroundColor: selected || best ? withAlpha(colors.primary, 0.06) : colors.surface,
                     borderRadius: radii.lg,
                   },
                 ]}
@@ -116,42 +168,64 @@ export default function Upgrade() {
                     </Text>
                   ) : null}
                 </View>
-              </View>
+              </Pressable>
             );
           })}
         </View>
 
-        {/* Payment methods — what this tailor will be able to use. */}
+        {/* Paying. One button per method this tailor may actually use. */}
         <Text variant="label" tone="textMuted" style={styles.section}>
-          {t('billing.methodsTitle')}
+          {t('billing.choosePlan')}
         </Text>
-        <View style={styles.methods}>
-          {sub.billing.methods.map((m) => (
-            <View
-              key={m}
-              style={[
-                styles.method,
-                { borderColor: colors.hairline, backgroundColor: colors.surface, borderRadius: radii.md },
-              ]}
-            >
-              <Ionicons name={METHOD_ICON[m]} size={18} color={colors.textMuted} />
-              <Text variant="bodySm">{t(METHOD_LABEL[m])}</Text>
+        {attempt.data?.status === 'pending' ? (
+          <View style={[styles.state, { borderColor: colors.hairline, backgroundColor: colors.surface, borderRadius: radii.md }]}>
+            <ActivityIndicator color={colors.primary} />
+            <View style={styles.stateText}>
+              <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.pending')}</Text>
+              <Text variant="bodySm" tone="textMuted">{t('billing.pendingBody')}</Text>
             </View>
-          ))}
-        </View>
-        <View
-          style={[
-            styles.notice,
-            { borderColor: withAlpha(colors.primary, 0.35), backgroundColor: withAlpha(colors.primary, 0.08), borderRadius: radii.md },
-          ]}
-        >
-          <Text variant="bodySm" style={{ color: colors.primary, fontWeight: '700' }}>
-            {t('billing.methodsSoon')}
-          </Text>
-          <Text variant="bodySm" tone="textMuted" style={{ marginTop: 2 }}>
-            {t('billing.methodsSoonBody')}
-          </Text>
-        </View>
+          </View>
+        ) : attempt.data?.status === 'succeeded' ? (
+          <View style={[styles.state, { borderColor: colors.success, backgroundColor: withAlpha(colors.success, 0.1), borderRadius: radii.md }]}>
+            <Ionicons name="checkmark-circle" size={22} color={colors.success} />
+            <View style={styles.stateText}>
+              <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.paid')}</Text>
+              <Text variant="bodySm" tone="textMuted">
+                {t('billing.paidBody', { date: new Date(sub.premiumUntil ?? '').toLocaleDateString() })}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <>
+            {attempt.data?.status === 'failed' ? (
+              <View style={[styles.state, { borderColor: colors.danger, backgroundColor: withAlpha(colors.danger, 0.08), borderRadius: radii.md }]}>
+                <Ionicons name="alert-circle" size={22} color={colors.danger} />
+                <View style={styles.stateText}>
+                  <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.failed')}</Text>
+                  <Text variant="bodySm" tone="textMuted">{t('billing.failedBody')}</Text>
+                </View>
+              </View>
+            ) : null}
+            <View style={styles.payButtons}>
+              {sub.billing.methods.map((m) => (
+                <Button
+                  key={m}
+                  label={t('billing.payWith', { method: t(METHOD_LABEL[m]) })}
+                  variant={m === sub.billing.methods[0] ? 'primary' : 'secondary'}
+                  loading={checkout.isPending}
+                  iconStart={
+                    <Ionicons
+                      name={METHOD_ICON[m]}
+                      size={18}
+                      color={m === sub.billing.methods[0] ? colors.textOnPrimary : colors.text}
+                    />
+                  }
+                  onPress={() => pay(m)}
+                />
+              ))}
+            </View>
+          </>
+        )}
 
         {/* What premium unlocks */}
         <Text variant="label" tone="textMuted" style={styles.section}>
@@ -228,6 +302,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   notice: { borderWidth: 1, padding: spacing.md, marginTop: spacing.md },
+  state: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 1, padding: spacing.md, marginBottom: spacing.md },
+  stateText: { flex: 1, gap: 2 },
+  payButtons: { gap: spacing.sm },
   line: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginBottom: spacing.sm },
   lineText: { flex: 1, lineHeight: 20 },
 });

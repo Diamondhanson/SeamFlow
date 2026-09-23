@@ -1,5 +1,14 @@
 import type { HttpClient } from '../http';
-import type { DeletionState, SubscriptionState, Tailor, User, UserRole } from '@seamflow/schemas';
+import type {
+  CheckoutInput,
+  CheckoutResult,
+  DeletionState,
+  PaymentAttempt,
+  SubscriptionState,
+  Tailor,
+  User,
+  UserRole,
+} from '@seamflow/schemas';
 
 export interface MeResponse {
   id: string;
@@ -31,6 +40,21 @@ export function makeMeResource(http: HttpClient) {
      */
     subscription(): Promise<SubscriptionState> {
       return http.get<SubscriptionState>('/me/subscription');
+    },
+    /**
+     * Start paying for a plan. Answers 503 `payments_unavailable` until a
+     * provider is connected — the plans screen reads that as "coming soon"
+     * rather than as a failure.
+     */
+    checkout(input: CheckoutInput): Promise<CheckoutResult> {
+      return http.post<CheckoutResult>('/subscriptions/checkout', input);
+    },
+    /** Poll while a mobile-money prompt is outstanding. */
+    payment(id: string): Promise<PaymentAttempt> {
+      return http.get<PaymentAttempt>(`/subscriptions/payments/${id}`);
+    },
+    payments(): Promise<{ items: PaymentAttempt[] }> {
+      return http.get<{ items: PaymentAttempt[] }>('/subscriptions/payments');
     },
   };
 }
