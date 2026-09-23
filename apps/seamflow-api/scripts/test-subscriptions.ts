@@ -9,6 +9,8 @@
  *   · paying extends one date; renewing early ADDS days rather than losing them
  *   · a provider confirmation delivered twice pays once
  *   · usage is counted honestly against the Free caps
+ *   · with enforcement ON: premium features and the caps refuse politely (402
+ *     "upgrade_required"), reads still work, and paying unblocks everything
  *
  * Throwaway accounts; the calendar is driven by the dev-only hooks rather than
  * by waiting six weeks. Run with: pnpm test:subscriptions
@@ -61,7 +63,9 @@ async function main(): Promise<void> {
       sub.daysLeft === TRIAL_DAYS || sub.daysLeft === TRIAL_DAYS - 1,
       `expected ~${TRIAL_DAYS} days of trial, got ${sub.daysLeft}`,
     );
-    assert(sub.enforced === false, 'enforcement should ship OFF');
+    // Both modes are valid: the gates ship OFF, and this same test is run
+    // again with SUBSCRIPTION_ENFORCEMENT=true to prove they work when on.
+    const enforcing: boolean = sub.enforced;
     assert(sub.caps.clients === FREE_CAPS.clients, 'caps do not match the shared config');
     console.log(`• A new tailor starts on a ${sub.daysLeft}-day trial, everything unlocked`);
 
@@ -98,10 +102,14 @@ async function main(): Promise<void> {
     assert(r.status === 200 && r.data.items.length === 1, 'a Free tailor lost sight of their orders');
     console.log('• On Free, every client and order they made is still readable');
 
-    // ...and nothing is blocked yet, because nobody can pay yet.
+    // ...and with the switch off nothing is blocked, because nobody can pay yet.
     r = await api(jwt, 'POST', '/clients', { fullName: 'Second Client', phone: '+237600000002', address: 'Douala' });
-    assert(r.status === 201, `with enforcement off, creating should still work: ${r.status}`);
-    console.log('• With enforcement off, a Free tailor is not blocked from anything');
+    if (enforcing) {
+      assert(r.status === 201, `under the cap, creating should work: ${r.status}`);
+    } else {
+      assert(r.status === 201, `with enforcement off, creating should still work: ${r.status}`);
+      console.log('• With enforcement off, a Free tailor is not blocked from anything');
+    }
 
     // ---- Paying moves one date --------------------------------------------
     r = await api(null, 'POST', '/health/subscription-pay', { tailorId, plan: 'monthly', providerRef: 'ref-1' });
@@ -142,6 +150,64 @@ async function main(): Promise<void> {
     const [row] = (await admin.from('subscriptions').select('status').eq('tailor_id', tailorId)).data!;
     assert(row.status === 'free', `stored status not synced: ${row.status}`);
     console.log('• The nightly job marks lapsed trials as Free');
+
+    // ---- The gates, when the switch is on ----------------------------------
+    // Skipped unless the server was booted with SUBSCRIPTION_ENFORCEMENT=true,
+    // because that is exactly how it ships: built, tested, and switched off.
+    sub = (await api(jwt, 'GET', '/me/subscription')).data;
+    if (!sub.enforced) {
+      console.log('• (gates not exercised: SUBSCRIPTION_ENFORCEMENT is off, which is how this ships)');
+    } else {
+      assert(sub.premium === false, 'the tailor should be on Free for the gate checks');
+
+      r = await api(jwt, 'POST', '/group-orders', { name: 'Wedding party', eventDate: null });
+      assert(r.status === 402, `group orders should need premium, got ${r.status}`);
+      assert(r.data.feature === 'group_orders', `wrong upgrade payload: ${JSON.stringify(r.data)}`);
+      const orderId = (await api(jwt, 'GET', '/orders')).data.items[0].id;
+      r = await api(jwt, 'POST', `/orders/${orderId}/invoice`, {});
+      assert(r.status === 402 && r.data.feature === 'invoices', `invoices should need premium, got ${r.status}`);
+      r = await api(jwt, 'POST', '/ai/extract-measurements', { storagePath: 'x/y.jpg', mode: 'measurements' });
+      assert(r.status === 402 && r.data.feature === 'ai_measurement_scan', `AI scan should need premium, got ${r.status}`);
+      console.log('• On Free, premium features answer 402 "upgrade_required", naming the feature');
+
+      // Reads are never gated — the rule that cannot break.
+      assert((await api(jwt, 'GET', '/orders')).status === 200, 'a blocked tailor lost their orders');
+      assert((await api(jwt, 'GET', '/clients')).status === 200, 'a blocked tailor lost their clients');
+      assert((await api(jwt, 'GET', '/invoices')).status === 200, 'a blocked tailor lost their invoices');
+      console.log('• Even while blocked, every existing record stays readable');
+
+      // The active-order cap: fill it, then the next one is refused.
+      const capClient = (await api(jwt, 'GET', '/clients')).data.items[0].id;
+      let made = (await api(jwt, 'GET', '/me/subscription')).data.usage.activeOrders;
+      let capped: { status: number; data: any } | null = null;
+      for (let i = made; i <= FREE_CAPS.activeOrders + 1; i++) {
+        const res = await api(jwt, 'POST', '/orders', {
+          clientId: capClient,
+          orderName: `Cap order ${i}`,
+          items: [{ garmentType: 'kaftan', measurements: {}, quantity: 1 }],
+        });
+        if (res.status === 402) { capped = res; break; }
+        assert(res.status === 201, `order ${i}: ${res.status}`);
+        made++;
+      }
+      assert(capped, `the active-order cap never fired (made ${made})`);
+      assert(capped.data.cap === 'active_orders' && capped.data.limit === FREE_CAPS.activeOrders,
+        `wrong cap payload: ${JSON.stringify(capped.data)}`);
+      assert(made === FREE_CAPS.activeOrders, `cap fired at ${made}, expected ${FREE_CAPS.activeOrders}`);
+      console.log(`• The Free cap of ${FREE_CAPS.activeOrders} active orders is enforced, and says which limit was hit`);
+
+      // Paying lifts everything at once.
+      await api(null, 'POST', '/health/subscription-pay', { tailorId, plan: 'monthly', providerRef: 'ref-gate' });
+      r = await api(jwt, 'POST', '/group-orders', { name: 'Wedding party', eventDate: null });
+      assert(r.status === 201 || r.status === 200, `premium should unblock group orders, got ${r.status}`);
+      r = await api(jwt, 'POST', '/orders', {
+        clientId: capClient,
+        orderName: 'Order after paying',
+        items: [{ garmentType: 'kaftan', measurements: {}, quantity: 1 }],
+      });
+      assert(r.status === 201, `premium should lift the order cap, got ${r.status}`);
+      console.log('• Paying lifts the caps and unlocks the premium features immediately');
+    }
   } finally {
     for (const id of created) {
       await admin.from('tailors').delete().eq('user_id', id);

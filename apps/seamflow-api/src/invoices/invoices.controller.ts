@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TailorsService } from '../tailors/tailors.service';
 import { InvoicesService } from './invoices.service';
 import { UpdateInvoiceDto } from './invoices.dto';
@@ -20,6 +21,7 @@ export class InvoicesController {
   constructor(
     private readonly tailors: TailorsService,
     private readonly invoices: InvoicesService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   /** Create (or open the existing) invoice for one of the caller's orders. */
@@ -29,6 +31,9 @@ export class InvoicesController {
     @Param('orderId', new ParseUUIDPipe()) orderId: string,
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // Issuing a NEW invoice is premium. Reading, listing and sharing the
+    // ones a tailor already has stays free in every state — appendix I.1.
+    await this.subscriptions.requireFeature(tailorId, 'invoices');
     return this.invoices.createForOrder(tailorId, orderId);
   }
 

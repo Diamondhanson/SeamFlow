@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TailorsService } from '../tailors/tailors.service';
 import { ClientsService } from './clients.service';
 import {
@@ -25,6 +26,7 @@ export class ClientsController {
   constructor(
     private readonly tailors: TailorsService,
     private readonly clients: ClientsService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   @Get()
@@ -40,6 +42,9 @@ export class ClientsController {
   @Post()
   async create(@CurrentUser() user: AuthedUser, @Body() body: CreateClientDto) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // Free caps the number of clients. Existing ones stay readable and
+    // editable forever — this only refuses the one that would be new.
+    await this.subscriptions.requireCapacity(tailorId, 'clients');
     return this.clients.create(tailorId, body);
   }
 

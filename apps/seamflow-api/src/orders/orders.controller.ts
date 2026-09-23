@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TailorsService } from '../tailors/tailors.service';
 import { OrdersService } from './orders.service';
 import {
@@ -26,6 +27,7 @@ export class OrdersController {
   constructor(
     private readonly tailors: TailorsService,
     private readonly orders: OrdersService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   @Get()
@@ -41,6 +43,8 @@ export class OrdersController {
   @Post()
   async create(@CurrentUser() user: AuthedUser, @Body() body: CreateOrderDto) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // Counted on orders still in progress, so delivering one frees a slot.
+    await this.subscriptions.requireCapacity(tailorId, 'active_orders');
     return this.orders.create(tailorId, user.id, body);
   }
 

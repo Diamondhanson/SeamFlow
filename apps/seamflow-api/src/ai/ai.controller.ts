@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TailorsService } from '../tailors/tailors.service';
 import { AiService } from './ai.service';
 import {
@@ -15,6 +16,7 @@ export class AiController {
   constructor(
     private readonly tailors: TailorsService,
     private readonly ai: AiService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   @Post('describe-image')
@@ -32,6 +34,9 @@ export class AiController {
     @Body() body: ExtractMeasurementsDto,
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // The measurement scan is the premium one; describing a design photo and
+    // tidying notes stay free, because they are part of everyday flows.
+    await this.subscriptions.requireFeature(tailorId, 'ai_measurement_scan');
     return this.ai.extractMeasurements(tailorId, body.storagePath, body.mode);
   }
 

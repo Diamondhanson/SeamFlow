@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TailorsService } from '../tailors/tailors.service';
 import { OrderPhotosService } from './order-photos.service';
 import {
@@ -24,6 +25,7 @@ export class OrderPhotosController {
   constructor(
     private readonly tailors: TailorsService,
     private readonly photos: OrderPhotosService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   @Get('orders/:orderId/photos')
@@ -43,6 +45,9 @@ export class OrderPhotosController {
     @Body() body: CreateOrderPhotoDto,
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // Free includes a photo allowance. Photos already on an order are never
+    // touched — this only refuses adding more.
+    await this.subscriptions.requireCapacity(tailorId, 'photos');
     return this.photos.createForOrder(tailorId, user.id, orderId, body);
   }
 
@@ -60,6 +65,9 @@ export class OrderPhotosController {
     @Body() body: AttachLibraryPhotosDto,
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // Free includes a photo allowance. Photos already on an order are never
+    // touched — this only refuses adding more.
+    await this.subscriptions.requireCapacity(tailorId, 'photos');
     return this.photos.attachFromLibrary(tailorId, user.id, orderId, body);
   }
 

@@ -20,7 +20,7 @@
 // is one env var, not a migration.
 // ============================================================================
 
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { and, count, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
@@ -54,14 +54,21 @@ const addDays = (from: Date, days: number) => new Date(from.getTime() + days * D
 const daysUntil = (at: Date | null): number =>
   at ? Math.max(0, Math.ceil((at.getTime() - Date.now()) / DAY_MS)) : 0;
 
-/** Thrown by the gates. The controller turns it into a 402 the app understands. */
-export class UpgradeRequiredError extends ForbiddenException {
+/**
+ * What a gate throws: HTTP 402 Payment Required.
+ *
+ * Deliberately not 403. A 403 means "not allowed", and the app's generic error
+ * handling would show a dead end; 402 is unique to this one situation, so the
+ * app can recognise it anywhere and open the upgrade sheet instead — naming
+ * the feature or the cap that was hit.
+ */
+export class UpgradeRequiredError extends HttpException {
   constructor(
     readonly feature: PremiumFeature | null,
     readonly cap: CapKind | null,
     readonly limit: number | null,
   ) {
-    super({ error: 'upgrade_required', feature, cap, limit });
+    super({ error: 'upgrade_required', feature, cap, limit }, HttpStatus.PAYMENT_REQUIRED);
   }
 }
 

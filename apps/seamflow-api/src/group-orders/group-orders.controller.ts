@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { TailorsService } from '../tailors/tailors.service';
 import { GroupOrdersService } from './group-orders.service';
 import {
@@ -26,6 +27,7 @@ export class GroupOrdersController {
   constructor(
     private readonly tailors: TailorsService,
     private readonly groups: GroupOrdersService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   @Get()
@@ -44,6 +46,8 @@ export class GroupOrdersController {
     @Body() body: CreateGroupOrderDto,
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // Weddings and events are a premium feature.
+    await this.subscriptions.requireFeature(tailorId, 'group_orders');
     return this.groups.create(tailorId, body);
   }
 
@@ -58,6 +62,8 @@ export class GroupOrdersController {
     @Body() body: CreateGroupOrderWithMembersDto,
   ) {
     const tailorId = await this.tailors.requireTailorId(user.id);
+    // Weddings and events are a premium feature.
+    await this.subscriptions.requireFeature(tailorId, 'group_orders');
     return this.groups.createWithMembers(tailorId, body);
   }
 
