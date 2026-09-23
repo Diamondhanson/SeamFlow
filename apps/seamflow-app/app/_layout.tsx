@@ -135,7 +135,9 @@ function ThemedRoot() {
             maxAge: PERSIST_MAX_AGE_MS,
             // Bump if you change the cache shape or want to invalidate persisted data.
             // v2 — added paused-mutation dehydration in Phase 1.4 polish.
-            buster: 'v2',
+            // v3 — subscriptions: a /me cached before prices existed made the
+            //      plans screen render blank on a device that still held it.
+            buster: 'v3',
             dehydrateOptions: {
               // Persist queries normally, AND persist only PAUSED mutations —
               // i.e. edits queued while offline, waiting for a connection.

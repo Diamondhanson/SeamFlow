@@ -28,7 +28,10 @@ import { SkeletonForm } from '../../components/Skeleton';
 import { Button } from '../../components/Button';
 import { useDialog } from '../../lib/dialog';
 import {
+  billingOf,
+  capsOf,
   isPaymentsUnavailable,
+  usageOf,
   useCheckout,
   usePaymentAttempt,
   usePlanRows,
@@ -104,6 +107,13 @@ export default function Upgrade() {
       </Screen>
     );
   }
+
+  // Read through the tolerant helpers: a device can hold a subscription saved
+  // before any of these fields existed, and a plans screen that crashes on an
+  // old cache is worse than one that shows a conservative default for a moment.
+  const billing = billingOf(sub);
+  const caps = capsOf(sub);
+  const usage = usageOf(sub);
 
   const statusLine =
     sub.status === 'trialing'
@@ -207,17 +217,17 @@ export default function Upgrade() {
               </View>
             ) : null}
             <View style={styles.payButtons}>
-              {sub.billing.methods.map((m) => (
+              {billing.methods.map((m) => (
                 <Button
                   key={m}
                   label={t('billing.payWith', { method: t(METHOD_LABEL[m]) })}
-                  variant={m === sub.billing.methods[0] ? 'primary' : 'secondary'}
+                  variant={m === billing.methods[0] ? 'primary' : 'secondary'}
                   loading={checkout.isPending}
                   iconStart={
                     <Ionicons
                       name={METHOD_ICON[m]}
                       size={18}
-                      color={m === sub.billing.methods[0] ? colors.textOnPrimary : colors.text}
+                      color={m === billing.methods[0] ? colors.textOnPrimary : colors.text}
                     />
                   }
                   onPress={() => pay(m)}
@@ -252,9 +262,9 @@ export default function Upgrade() {
         </Text>
         <Text variant="bodySm" tone="textMuted" style={{ lineHeight: 20 }}>
           {t('billing.freeIncludes', {
-            clients: sub.caps.clients,
-            orders: sub.caps.activeOrders,
-            photos: sub.caps.photos,
+            clients: caps.clients,
+            orders: caps.activeOrders,
+            photos: caps.photos,
           })}
         </Text>
 
@@ -262,9 +272,9 @@ export default function Upgrade() {
         <Text variant="label" tone="textMuted" style={styles.section}>
           {t('billing.usageTitle')}
         </Text>
-        <Usage label={t('billing.usageClients', { used: sub.usage.clients, limit: sub.caps.clients })} />
-        <Usage label={t('billing.usageOrders', { used: sub.usage.activeOrders, limit: sub.caps.activeOrders })} />
-        <Usage label={t('billing.usagePhotos', { used: sub.usage.photos, limit: sub.caps.photos })} />
+        <Usage label={t('billing.usageClients', { used: usage.clients, limit: caps.clients })} />
+        <Usage label={t('billing.usageOrders', { used: usage.activeOrders, limit: caps.activeOrders })} />
+        <Usage label={t('billing.usagePhotos', { used: usage.photos, limit: caps.photos })} />
 
         <View style={{ height: spacing.xl }} />
       </ScrollView>

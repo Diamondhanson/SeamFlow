@@ -11,7 +11,9 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { billingFor, FREE_CAPS } from '@seamflow/schemas';
 import type {
+  BillingOptions,
   CheckoutInput,
   PaymentAttempt,
   SubscriptionPlan,
@@ -36,6 +38,28 @@ const WATCH_INTERVAL_MS = 15 * 60 * 1000;
 export function useSubscription(): SubscriptionState | null {
   const me = useMe();
   return me.data?.subscription ?? null;
+}
+
+/**
+ * Billing options, safe against an older cached copy.
+ *
+ * The app keeps /me on the device for up to a week, so a phone can hold a
+ * subscription saved BEFORE prices were added to it — and a screen that
+ * destructured `sub.billing` straight from that rendered blank. Anything the
+ * server has not told us yet falls back to the conservative default (dollars,
+ * cards), and the background refresh replaces it within seconds.
+ */
+export function billingOf(sub: SubscriptionState | null): BillingOptions {
+  return sub?.billing ?? billingFor(undefined);
+}
+
+/** Caps, likewise tolerant of a cached copy that predates them. */
+export function capsOf(sub: SubscriptionState | null) {
+  return sub?.caps ?? FREE_CAPS;
+}
+
+export function usageOf(sub: SubscriptionState | null) {
+  return sub?.usage ?? { clients: 0, activeOrders: 0, photos: 0 };
 }
 
 /** A standalone read, for screens that must be current after paying. */
@@ -118,7 +142,7 @@ export interface PlanRow {
 export function usePlanRows(sub: SubscriptionState | null): PlanRow[] {
   return useMemo(() => {
     if (!sub) return [];
-    const { currency, prices } = sub.billing;
+    const { currency, prices } = billingOf(sub);
     const monthsIn: Record<SubscriptionPlan, number> = { monthly: 1, quarterly: 3, annual: 12 };
     return (['monthly', 'quarterly', 'annual'] as SubscriptionPlan[]).map((key) => {
       const price = prices[key];
