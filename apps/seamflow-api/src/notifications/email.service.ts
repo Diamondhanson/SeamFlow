@@ -26,6 +26,16 @@ export interface OutgoingEmail {
   html?: string;
 }
 
+/**
+ * Where replies go.
+ *
+ * The From address sends but cannot receive: seamflowtech.com has no inbox
+ * records, so a tailor who answers a renewal email would be writing into
+ * nothing. EMAIL_REPLY_TO points those replies at a mailbox a person reads.
+ * Someone replying to an email about money is the most valuable message we
+ * will get all week; losing it is worse than any delivery problem.
+ */
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
@@ -40,6 +50,7 @@ export class EmailService {
   async send(email: OutgoingEmail): Promise<boolean> {
     const key = this.config.get<string>('RESEND_API_KEY');
     const from = this.config.get<string>('EMAIL_FROM');
+    const replyTo = this.config.get<string>('EMAIL_REPLY_TO');
     if (!key || !from) {
       this.logger.warn(`Email not configured; would have sent "${email.subject}" to ${email.to}`);
       return false;
@@ -53,6 +64,7 @@ export class EmailService {
           to: [email.to],
           subject: email.subject,
           text: email.text,
+          ...(replyTo ? { reply_to: replyTo } : {}),
           ...(email.html ? { html: email.html } : {}),
         }),
       });

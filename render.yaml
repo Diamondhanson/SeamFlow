@@ -50,6 +50,8 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        sync: false           # e.g. "SeamFlow <noreply@seamflowtech.com>"
+        sync: false           # "SeamFlow <contact@seamflowtech.com>"
+      - key: EMAIL_REPLY_TO
+        sync: false           # a mailbox someone reads; the From cannot receive
       - key: APP_WEB_URL
         sync: false           # https://app.seamflowtech.com — where the plans live

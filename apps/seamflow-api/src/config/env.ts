@@ -55,7 +55,10 @@ export const envSchema = z.object({
   // store build learns their trial is ending and where to pay. Unset means no
   // email is sent — the jobs log and carry on.
   RESEND_API_KEY: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
-  EMAIL_FROM: z.string().default('SeamFlow <noreply@seamflowtech.com>'),
+  EMAIL_FROM: z.string().default('SeamFlow <contact@seamflowtech.com>'),
+  // Replies land here. The From address can send but not receive, and a tailor
+  // answering an email about money is the most valuable message of the week.
+  EMAIL_REPLY_TO: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
   // Where the plans live. The link in every subscription email points here.
   APP_WEB_URL: z.string().url().default('https://app.seamflowtech.com'),
 
