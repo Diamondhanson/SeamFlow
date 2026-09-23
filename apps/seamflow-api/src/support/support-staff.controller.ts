@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, UseGuards } f
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { SupportService } from './support.service';
-import { StaffGuard } from './staff.guard';
+import { StaffGuard } from '../common/staff.guard';
 import { StaffReplyDto, StaffStatusDto } from './support.dto';
 
 /**

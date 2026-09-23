@@ -5,7 +5,8 @@ import { DbService } from '../db/db.service';
 import { staff } from '../db/schema';
 
 /**
- * Staff-only routes. Runs AFTER the global Supabase auth guard, so the token
+ * Staff-only routes — shared by every admin surface (support inbox,
+ * subscriptions). Runs AFTER the global Supabase auth guard, so the token
  * is already verified; this adds "and you are on the staff table".
  *
  * Checked against the database on every call rather than a claim baked into

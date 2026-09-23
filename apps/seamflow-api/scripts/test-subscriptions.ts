@@ -9,6 +9,7 @@
  *   · paying extends one date; renewing early ADDS days rather than losing them
  *   · a provider confirmation delivered twice pays once
  *   · usage is counted honestly against the Free caps
+ *   · only staff can move anyone's dates, and the admin levers work
  *   · with enforcement ON: premium features and the caps refuse politely (402
  *     "upgrade_required"), reads still work, and paying unblocks everything
  *
@@ -208,6 +209,49 @@ async function main(): Promise<void> {
       assert(r.status === 201, `premium should lift the order cap, got ${r.status}`);
       console.log('• Paying lifts the caps and unlocks the premium features immediately');
     }
+    // ---- The admin levers (staff only) -------------------------------------
+    const staffEmail = `subs-staff-${Date.now()}@seamflow.local`;
+    const staffUser = await admin.auth.admin.createUser({ email: staffEmail, password: PASSWORD, email_confirm: true });
+    created.push(staffUser.data.user!.id);
+    const staffAnon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+    const staffSignIn = await staffAnon.auth.signInWithPassword({ email: staffEmail, password: PASSWORD });
+    const staffJwt = staffSignIn.data.session!.access_token;
+    await api(staffJwt, 'GET', '/me');
+
+    // Not staff yet: the levers must refuse.
+    r = await api(staffJwt, 'POST', `/admin/subscriptions/${tailorId}/grant`, { days: 30 });
+    assert(r.status === 403, `a non-staff account moved a date: ${r.status}`);
+    r = await api(jwt, 'POST', `/admin/subscriptions/${tailorId}/grant`, { days: 3650 });
+    assert(r.status === 403, `a tailor granted themselves premium: ${r.status}`);
+    console.log('• Only staff can move dates — a tailor cannot grant themselves premium');
+
+    await admin.from('staff').insert({ user_id: staffUser.data.user!.id });
+    r = await api(staffJwt, 'POST', `/admin/subscriptions/${tailorId}/grant`, { days: 30, reason: 'test' });
+    assert(r.status === 201 || r.status === 200, `grant: ${r.status} ${JSON.stringify(r.data)}`);
+    sub = (await api(jwt, 'GET', '/me/subscription')).data;
+    assert(sub.premium === true && sub.daysLeft >= 29, `granting days did not unlock: ${JSON.stringify(sub)}`);
+    console.log('• Staff can grant premium days to one tailor');
+
+    // A mistake is undone by granting negative days, not by editing history.
+    r = await api(staffJwt, 'POST', `/admin/subscriptions/${tailorId}/grant`, { days: -30, reason: 'undo' });
+    assert(r.status === 201 || r.status === 200, `negative grant: ${r.status}`);
+    sub = (await api(jwt, 'GET', '/me/subscription')).data;
+    assert(sub.premium === false, 'granting negative days did not take the time back');
+    console.log('• A mistaken grant is undone by granting negative days');
+
+    // Extend every trial at once — the launch safety net.
+    const before = (await admin.from('subscriptions').select('trial_ends_at').eq('tailor_id', tailorId)).data![0]!.trial_ends_at;
+    r = await api(staffJwt, 'POST', '/admin/subscriptions/trials/extend-all', { days: 14 });
+    assert(r.status === 201 || r.status === 200, `extend-all: ${r.status}`);
+    assert(r.data.updated >= 1, `extend-all touched nothing: ${JSON.stringify(r.data)}`);
+    const after = (await admin.from('subscriptions').select('trial_ends_at').eq('tailor_id', tailorId)).data![0]!.trial_ends_at;
+    assert(new Date(after) > new Date(before), 'extend-all did not move this trial');
+    console.log(`• One click moved all ${r.data.updated} trials by 14 days`);
+
+    // Put the other tailors back: this test must not hand everyone free time.
+    r = await api(staffJwt, 'POST', '/admin/subscriptions/trials/extend-all', { days: -14 });
+    assert(r.status === 201 || r.status === 200, 'could not undo extend-all');
+    console.log('• ...and moving them back by -14 leaves the platform as it was');
   } finally {
     for (const id of created) {
       await admin.from('tailors').delete().eq('user_id', id);
