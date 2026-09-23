@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Headers,
   Param,
@@ -26,9 +27,26 @@ export class CheckoutController {
     private readonly tailors: TailorsService,
   ) {}
 
-  /** Start a payment for a plan. Answers 503 while no provider is connected. */
+  /**
+   * Start a payment for a plan. Answers 503 while no provider is connected.
+   *
+   * Refused outright for the iOS and Android builds: subscriptions are sold on
+   * the web and in email only, because both stores require their own billing
+   * for features unlocked inside an app. The app already hides the flow there;
+   * this is the backstop if a future change forgets to.
+   */
   @Post('checkout')
-  async start(@CurrentUser() user: AuthedUser, @Body() body: CheckoutDto) {
+  async start(
+    @CurrentUser() user: AuthedUser,
+    @Body() body: CheckoutDto,
+    @Headers('x-client-platform') platform?: string,
+  ) {
+    if (platform === 'ios' || platform === 'android') {
+      throw new ForbiddenException({
+        error: 'not_sold_in_app',
+        message: 'Subscriptions are managed outside the app on this platform.',
+      });
+    }
     const tailorId = await this.tailors.requireTailorId(user.id);
     return this.checkout.start(tailorId, body);
   }

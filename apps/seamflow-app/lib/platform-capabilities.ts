@@ -51,3 +51,23 @@ export const canUseVoiceInput = isNative;
 /** Live camera capture. On web expo-image-picker becomes a file input — you
  *  can still UPLOAD a photo, which is why the measurement scan still works. */
 export const canCaptureFromCamera = isNative;
+
+/**
+ * May this build sell a subscription?
+ *
+ * WEB ONLY, and this is a store rule rather than a technical limit. Apple
+ * requires a subscription that unlocks in-app features to go through their
+ * purchase system, and — outside the US and EU, which includes Cameroon —
+ * forbids the app from even pointing at another way to pay. Google Play's
+ * payments policy says materially the same thing; it is enforced more loosely,
+ * but Play Billing cannot take MTN MoMo or Orange Money here anyway.
+ *
+ * So the store builds report STATUS and nothing else: the trial countdown,
+ * "your trial has ended", and warm locked states. No prices, no methods, no
+ * buy button, and no message telling anyone where to pay. Selling happens on
+ * the web app and in the emails we send — both outside the stores' reach.
+ *
+ * Entitlement is a date on the server, so a tailor who subscribes on the web
+ * is premium on their phone at the next check, with nothing to restore.
+ */
+export const canSellSubscriptions = isWeb;

@@ -37,6 +37,7 @@ import {
   usePlanRows,
   useSubscription,
 } from '../../lib/subscription';
+import { canSellSubscriptions } from '../../lib/platform-capabilities';
 import { radii, spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 
@@ -99,10 +100,14 @@ export default function Upgrade() {
     );
   };
 
+  // "Choose a plan" is a promise a store build cannot keep, and reads as a
+  // pitch. There it is simply "Your plan".
+  const screenTitle = canSellSubscriptions ? t('billing.upgradeTitle') : t('billing.statusOnly');
+
   if (!sub) {
     return (
       <Screen>
-        <ScreenHeader title={t('billing.upgradeTitle')} />
+        <ScreenHeader title={screenTitle} />
         <SkeletonForm fields={3} />
       </Screen>
     );
@@ -126,12 +131,18 @@ export default function Upgrade() {
 
   return (
     <Screen>
-      <ScreenHeader title={t('billing.upgradeTitle')} subtitle={statusLine} />
+      <ScreenHeader title={screenTitle} subtitle={statusLine} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
         <Text variant="bodySm" tone="textMuted">
-          {t('billing.upgradeIntro')}
+          {canSellSubscriptions ? t('billing.upgradeIntro') : t('billing.statusIntro')}
         </Text>
 
+        {/* Plans, prices and payment: web only. A store build must not show a
+            price either — a price with no button is still a sales pitch, and
+            nothing here may hint at where to pay. What remains is status: what
+            premium includes, what Free always includes, and where they stand. */}
+        {canSellSubscriptions ? (
+        <>
         {/* Plans */}
         <View style={styles.plans}>
           {plans.map((p) => {
@@ -236,6 +247,9 @@ export default function Upgrade() {
             </View>
           </>
         )}
+
+        </>
+        ) : null}
 
         {/* What premium unlocks */}
         <Text variant="label" tone="textMuted" style={styles.section}>

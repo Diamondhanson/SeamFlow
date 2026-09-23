@@ -16,6 +16,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { shouldNagAboutTrial, useSubscription } from '../lib/subscription';
+import { canSellSubscriptions } from '../lib/platform-capabilities';
 import { radii, spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
@@ -67,17 +68,22 @@ export function TrialBanner() {
       <Text variant="bodySm" tone="textMuted" style={styles.body}>
         {body}
       </Text>
-      <Pressable
-        onPress={() => router.push('/(app)/upgrade' as never)}
-        hitSlop={8}
-        accessibilityRole="button"
-        style={styles.cta}
-      >
-        <Text variant="bodySm" style={{ color: colors.primary, fontWeight: '700' }}>
-          {t('billing.seePlans')}
-        </Text>
-        <Ionicons name="chevron-forward" size={14} color={colors.primary} />
-      </Pressable>
+      {/* The store builds get no call to action: Apple and Google both forbid
+          pointing at a way to pay outside their own. The banner still reports
+          where the tailor stands, which is status, not selling. */}
+      {canSellSubscriptions ? (
+        <Pressable
+          onPress={() => router.push('/(app)/upgrade' as never)}
+          hitSlop={8}
+          accessibilityRole="button"
+          style={styles.cta}
+        >
+          <Text variant="bodySm" style={{ color: colors.primary, fontWeight: '700' }}>
+            {t('billing.seePlans')}
+          </Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.primary} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

@@ -11,6 +11,8 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDialog } from './dialog';
+import { useTranslation } from './i18n';
 import { billingFor, FREE_CAPS } from '@seamflow/schemas';
 import type {
   BillingOptions,
@@ -22,6 +24,7 @@ import type {
 import { api } from './api';
 import { qk } from './query-keys';
 import { useMe } from './queries';
+import { canSellSubscriptions } from './platform-capabilities';
 
 /** Start nagging this close to the end of the trial, and not a day before. */
 export const TRIAL_NAG_DAYS = 14;
@@ -111,8 +114,19 @@ export function useSubscriptionWatch(): void {
  */
 export function usePremiumGate(): { locked: boolean; prompt: () => void } {
   const sub = useSubscription();
+  const dialog = useDialog();
+  const { t } = useTranslation();
   const locked = !!sub && sub.enforced && !sub.premium;
-  const prompt = useCallback(() => router.push('/(app)/upgrade' as never), []);
+  const prompt = useCallback(() => {
+    // On the web, take them to the plans. In a store build there is nowhere
+    // to send them: say what the feature is and stop, with no suggestion
+    // about where to buy it.
+    if (canSellSubscriptions) {
+      router.push('/(app)/upgrade' as never);
+      return;
+    }
+    void dialog.alert({ title: t('billing.blockedTitle'), message: t('billing.blockedKeepData'), tone: 'info' });
+  }, [dialog, t]);
   return { locked, prompt };
 }
 

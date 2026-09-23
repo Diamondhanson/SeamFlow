@@ -178,6 +178,16 @@ export function DialogProvider({ children }: { children: ReactNode }) {
         // `dialog.error(err)` call site turns into the right upgrade prompt
         // without being touched — there is no screen that could forget.
         const upgrade = upgradePrompt(err, t);
+        if (upgrade && !upgrade.canBuyHere) {
+          // Store build: explain the feature, offer nothing. Apple and Google
+          // both treat "buy it over there" as steering, however politely put.
+          return enqueue({
+            kind: 'alert',
+            tone: 'info',
+            title: upgrade.title,
+            message: upgrade.message,
+          }) as Promise<void>;
+        }
         if (upgrade) {
           return enqueue({
             kind: 'confirm',

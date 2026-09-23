@@ -28,7 +28,7 @@ import { clearCache } from '../../lib/query-client';
 import { ensurePushRegistered, sendPushTest } from '../../lib/notifications';
 import { pickPhoto, uploadTailorLogo } from '../../lib/photo-upload';
 import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
-import { canUsePinLock } from '../../lib/platform-capabilities';
+import { canSellSubscriptions, canUsePinLock } from '../../lib/platform-capabilities';
 import { useDialog } from '../../lib/dialog';
 import { useRequireProfile } from '../../lib/profile-gate';
 import { useMode } from '../../lib/mode';
@@ -363,15 +363,20 @@ export default function Me() {
           ) : null}
         </SettingsCard>
 
-        {/* Subscription: status at a glance, plans one tap away. */}
+        {/* Subscription. On the web this leads to the plans; in a store build
+            it is a status line only, with nowhere to tap — the stores forbid
+            pointing at a way to pay that is not theirs. */}
         <SectionTitle>{t('billing.title')}</SectionTitle>
         <SettingsCard>
           <SettingsRow
             first
             icon="sparkles-outline"
-            label={t('billing.upgradeTitle')}
+            label={canSellSubscriptions ? t('billing.upgradeTitle') : t('billing.title')}
             value={subscriptionLabel}
-            onPress={() => router.push('/(app)/upgrade')}
+            showChevron={canSellSubscriptions}
+            onPress={
+              canSellSubscriptions ? () => router.push('/(app)/upgrade') : () => undefined
+            }
           />
         </SettingsCard>
 

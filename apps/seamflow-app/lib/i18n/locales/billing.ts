@@ -4,6 +4,8 @@
 // tailor never loses their work. Even the blocked states say so out loud.
 export const billing = {
   en: {
+    statusIntro: "Where your account stands today.",
+    statusOnly: "Your plan",
     choosePlan: "Choose how to pay",
     subscribe: "Subscribe",
     pending: "Waiting for your confirmation",
@@ -74,6 +76,8 @@ export const billing = {
     blockedKeepData: "Everything you've already saved stays exactly where it is.",
   },
   fr: {
+    statusIntro: "Où en est votre compte aujourd’hui.",
+    statusOnly: "Votre forfait",
     choosePlan: "Choisissez comment payer",
     subscribe: "S’abonner",
     pending: "En attente de votre confirmation",
@@ -144,6 +148,8 @@ export const billing = {
     blockedKeepData: "Tout ce que vous avez déjà enregistré reste exactement où il est.",
   },
   pt: {
+    statusIntro: "Como está a sua conta hoje.",
+    statusOnly: "O seu plano",
     choosePlan: "Escolha como pagar",
     subscribe: "Subscrever",
     pending: "À espera da sua confirmação",
@@ -214,6 +220,8 @@ export const billing = {
     blockedKeepData: "Tudo o que já guardou fica exatamente onde está.",
   },
   es: {
+    statusIntro: "Cómo está tu cuenta hoy.",
+    statusOnly: "Tu plan",
     choosePlan: "Elige cómo pagar",
     subscribe: "Suscribirse",
     pending: "Esperando tu confirmación",
@@ -284,6 +292,8 @@ export const billing = {
     blockedKeepData: "Todo lo que ya guardaste se queda exactamente donde está.",
   },
   sw: {
+    statusIntro: "Hali ya akaunti yako leo.",
+    statusOnly: "Mpango wako",
     choosePlan: "Chagua jinsi ya kulipa",
     subscribe: "Jisajili",
     pending: "Tunasubiri uthibitisho wako",
@@ -354,6 +364,8 @@ export const billing = {
     blockedKeepData: "Kila ulichohifadhi kinabaki pale pale.",
   },
   ar: {
+    statusIntro: "حالة حسابك اليوم.",
+    statusOnly: "خطتك",
     choosePlan: "اختر طريقة الدفع",
     subscribe: "اشترك",
     pending: "في انتظار تأكيدك",

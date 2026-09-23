@@ -8,6 +8,7 @@
 // ============================================================================
 
 import type { CapKind, PremiumFeature } from '@seamflow/schemas';
+import { canSellSubscriptions } from './platform-capabilities';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
@@ -32,6 +33,8 @@ export interface UpgradePromptCopy {
   message: string;
   confirmLabel: string;
   cancelLabel: string;
+  /** False in a store build, where there is no plans screen to offer. */
+  canBuyHere: boolean;
 }
 
 /** Copy for a blocked action, or null when this error is an ordinary failure. */
@@ -46,6 +49,7 @@ export function upgradePrompt(err: unknown, t: Translate): UpgradePromptCopy | n
       : '';
 
   return {
+    canBuyHere: canSellSubscriptions,
     title: body.cap ? t('billing.freeTitle') : t('billing.blockedTitle'),
     // The reassurance is part of the message, not a footnote: this dialog is
     // the moment a tailor decides whether SeamFlow can be trusted with a year

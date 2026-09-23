@@ -14,6 +14,8 @@ export interface HttpConfig {
   fetch?: typeof fetch;
   /** Milliseconds before a request is abandoned. See DEFAULT_TIMEOUT_MS. */
   timeoutMs?: number;
+  /** 'ios' | 'android' | 'web'. Sent as X-Client-Platform; see below. */
+  platform?: string;
 }
 
 /**
@@ -58,11 +60,13 @@ export class HttpClient {
   private readonly getJwt: JwtProvider;
   private readonly fetchFn: typeof fetch;
   private readonly timeoutMs: number;
+  private readonly platform?: string;
 
   constructor(config: HttpConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.getJwt = config.getJwt;
     this.timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    this.platform = config.platform;
     // `.bind(globalThis)` is load-bearing on web. Browsers require fetch to be
     // invoked with `this === window`; storing it on an instance and calling
     // `this.fetchFn(...)` passes the Http instance instead, and every request
@@ -87,6 +91,11 @@ export class HttpClient {
     const jwt = await resolveJwt(this.getJwt);
     const headers: Record<string, string> = {};
     if (jwt) headers.Authorization = `Bearer ${jwt}`;
+    // Which build is calling. Used by the server to refuse a subscription
+    // checkout from an App Store or Play build, where selling is not allowed.
+    // A backstop against a regression in the app, not a security control — a
+    // header can be forged, which is why entitlement itself never trusts it.
+    if (this.platform) headers['X-Client-Platform'] = this.platform;
     if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
 
     const url = `${this.baseUrl}${path}${buildQuery(opts.query)}`;
