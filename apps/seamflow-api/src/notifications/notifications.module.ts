@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TailorsModule } from '../tailors/tailors.module';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
+import { EmailService } from './email.service';
 import { NotificationPreferencesController } from './notification-preferences.controller';
 import { NotificationPreferencesService } from './notification-preferences.service';
 import { NotificationInboxController } from './notification-inbox.controller';
@@ -25,11 +26,13 @@ import { NotificationInboxService } from './notification-inbox.service';
     NotificationsService,
     NotificationPreferencesService,
     NotificationInboxService,
+    EmailService,
   ],
   exports: [
     NotificationsService,
     NotificationPreferencesService,
     NotificationInboxService,
+    EmailService,
   ],
 })
 export class NotificationsModule {}

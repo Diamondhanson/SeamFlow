@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Toggle, useAtelierTheme } from '@seamflow/ui';
@@ -18,6 +18,8 @@ import type { NotificationType } from '@seamflow/schemas';
 import { defaultNotificationPreferences } from '../../lib/notification-defaults';
 import { spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
+import { useMe } from '../../lib/queries';
+import { useSetEmailConsent } from '../../lib/subscription';
 
 const LEAD_OPTIONS = [7, 3, 2, 1, 0]; // days before due; label keys lead_<n>
 
@@ -32,6 +34,16 @@ const LEAD_OPTIONS = [7, 3, 2, 1, 0]; // days before due; label keys lead_<n>
 const MUTABLE_TYPES: NotificationType[] = ['enquiry.received'];
 
 export default function NotificationPreferences() {
+  // Mirrors the server's answer, flipped optimistically: a switch that waits
+  // for a round trip feels broken on a slow connection.
+  const me = useMe();
+  const emailMut = useSetEmailConsent();
+  const [emailConsent, setEmailConsent] = useState(true);
+  useEffect(() => {
+    const v = me.data?.profile?.subscriptionEmailsOptIn;
+    if (typeof v === 'boolean') setEmailConsent(v);
+  }, [me.data?.profile?.subscriptionEmailsOptIn]);
+
   const { t, language } = useTranslation();
   const { colors } = useAtelierTheme();
   const scroll = useFloatingScroll();
@@ -196,6 +208,27 @@ export default function NotificationPreferences() {
               onValueChange={(v) => setMuted(type, v)}
             />
           ))}
+        </View>
+
+        {/* Email consent. Separate from the push switches above on purpose:
+            those are about orders, this is permission to write to someone
+            about money, and on the store builds it is the only way we can
+            tell them where to subscribe at all. */}
+        <View style={styles.card}>
+          <Text variant="label" tone="textMuted" style={styles.sectionLabel}>
+            {t('billing.emailsTitle')}
+          </Text>
+          <Text variant="bodySm" tone="textMuted" style={styles.notifHint}>
+            {t('billing.emailsHint')}
+          </Text>
+          <ToggleRow
+            label={t('billing.emailsTitle')}
+            value={emailConsent}
+            onValueChange={(v) => {
+              setEmailConsent(v);
+              emailMut.mutate(v);
+            }}
+          />
         </View>
       </ScrollView>
 

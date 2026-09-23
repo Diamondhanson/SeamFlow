@@ -49,6 +49,10 @@ export function makeMeResource(http: HttpClient) {
     checkout(input: CheckoutInput): Promise<CheckoutResult> {
       return http.post<CheckoutResult>('/subscriptions/checkout', input);
     },
+    /** Turn subscription emails on or off. */
+    setEmailConsent(subscriptionEmails: boolean): Promise<{ subscriptionEmails: boolean }> {
+      return http.patch<{ subscriptionEmails: boolean }>('/me/emails', { subscriptionEmails });
+    },
     /** Poll while a mobile-money prompt is outstanding. */
     payment(id: string): Promise<PaymentAttempt> {
       return http.get<PaymentAttempt>(`/subscriptions/payments/${id}`);

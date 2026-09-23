@@ -328,6 +328,8 @@ export default function SignIn() {
           {t('auth.privacyWord')}
         </Text>
         {t('auth.agreeSuffix')}
+        {'\n'}
+        {t('billing.signupNotice')}
       </Text>
     </Screen>
   );

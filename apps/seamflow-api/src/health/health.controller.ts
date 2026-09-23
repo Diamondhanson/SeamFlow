@@ -93,6 +93,13 @@ export class HealthController {
     return { applied, premiumUntil: row.premiumUntil, status: row.status };
   }
 
+  /** Dev-only: run the renewal reminder job now instead of waiting for 09:00. */
+  @Post('subscription-reminders')
+  async runReminders() {
+    if (process.env.NODE_ENV === 'production') throw new NotFoundException();
+    return this.subscriptions.renewalReminders();
+  }
+
   @Post('subscription-sync')
   async syncSubscriptions() {
     if (process.env.NODE_ENV === 'production') throw new NotFoundException();

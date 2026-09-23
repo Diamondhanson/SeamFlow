@@ -9,6 +9,8 @@ export const UserSchema = z.object({
   email: z.string().email().nullable(),
   role: UserRoleSchema,
   fullName: z.string(),
+  /** Consent for subscription emails (trial ending, receipts). Default true. */
+  subscriptionEmailsOptIn: z.boolean().default(true),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

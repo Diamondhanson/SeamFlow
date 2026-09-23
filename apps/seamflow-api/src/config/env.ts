@@ -50,6 +50,15 @@ export const envSchema = z.object({
   // path be tested before a real provider is chosen.
   SUBSCRIPTION_PAYMENT_PROVIDER: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
 
+  // ── Email (Resend) ────────────────────────────────────────────────────────
+  // Subscriptions are sold on the web, so these emails are how a tailor on a
+  // store build learns their trial is ending and where to pay. Unset means no
+  // email is sent — the jobs log and carry on.
+  RESEND_API_KEY: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+  EMAIL_FROM: z.string().default('SeamFlow <noreply@seamflowtech.com>'),
+  // Where the plans live. The link in every subscription email points here.
+  APP_WEB_URL: z.string().url().default('https://app.seamflowtech.com'),
+
   // ── Phone verification (WhatsApp-first) ───────────────────────────────────
   // Which OTP delivery adapter to use. Unset (the default) means phone
   // verification is INACTIVE and /me/phone/* returns 503 — chosen over a silent

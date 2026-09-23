@@ -44,6 +44,13 @@ export const users = pgTable(
     deletionScheduledFor: timestamp('deletion_scheduled_for', { withTimezone: true }),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
 
+    /**
+     * Consent for subscription emails (trial ending, payment receipts). True
+     * by default, with a notice at sign-up and a switch in Settings — these
+     * are account emails, and on iOS they are the ONLY way a tailor learns
+     * where to subscribe, since the app may not tell them.
+     */
+    subscriptionEmailsOptIn: boolean('subscription_emails_opt_in').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

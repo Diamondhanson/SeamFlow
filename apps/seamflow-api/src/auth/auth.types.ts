@@ -7,6 +7,8 @@ export interface ProfileRow {
   email: string | null;
   role: UserRole;
   fullName: string;
+  /** Consent for subscription emails; the app mirrors it as a switch. */
+  subscriptionEmailsOptIn: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

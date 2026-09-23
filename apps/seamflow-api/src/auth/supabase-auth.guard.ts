@@ -71,6 +71,7 @@ export class SupabaseAuthGuard implements CanActivate {
             email: row.email,
             role: row.role as UserRole,
             fullName: row.fullName,
+            subscriptionEmailsOptIn: row.subscriptionEmailsOptIn,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
           };

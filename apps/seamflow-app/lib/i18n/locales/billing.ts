@@ -4,6 +4,9 @@
 // tailor never loses their work. Even the blocked states say so out loud.
 export const billing = {
   en: {
+    emailsTitle: "Emails about your plan",
+    emailsHint: "Trial reminders and payment receipts. Subscriptions are managed outside the app, so this is how we reach you about them.",
+    signupNotice: "We'll email you about your plan, such as when your trial is ending. You can turn that off in Settings.",
     statusIntro: "Where your account stands today.",
     statusOnly: "Your plan",
     choosePlan: "Choose how to pay",
@@ -76,6 +79,9 @@ export const billing = {
     blockedKeepData: "Everything you've already saved stays exactly where it is.",
   },
   fr: {
+    emailsTitle: "E-mails sur votre forfait",
+    emailsHint: "Rappels d’essai et reçus de paiement. Les abonnements se gèrent hors de l’application, c’est donc ainsi que nous vous en parlons.",
+    signupNotice: "Nous vous enverrons des e-mails sur votre forfait, par exemple à la fin de votre essai. Vous pouvez les désactiver dans les réglages.",
     statusIntro: "Où en est votre compte aujourd’hui.",
     statusOnly: "Votre forfait",
     choosePlan: "Choisissez comment payer",
@@ -148,6 +154,9 @@ export const billing = {
     blockedKeepData: "Tout ce que vous avez déjà enregistré reste exactement où il est.",
   },
   pt: {
+    emailsTitle: "E-mails sobre o seu plano",
+    emailsHint: "Lembretes do período gratuito e recibos de pagamento. As subscrições são geridas fora da aplicação, por isso é assim que falamos consigo sobre elas.",
+    signupNotice: "Vamos enviar-lhe e-mails sobre o seu plano, por exemplo quando o período gratuito estiver a terminar. Pode desligar isso nas definições.",
     statusIntro: "Como está a sua conta hoje.",
     statusOnly: "O seu plano",
     choosePlan: "Escolha como pagar",
@@ -220,6 +229,9 @@ export const billing = {
     blockedKeepData: "Tudo o que já guardou fica exatamente onde está.",
   },
   es: {
+    emailsTitle: "Correos sobre tu plan",
+    emailsHint: "Recordatorios de la prueba y recibos de pago. Las suscripciones se gestionan fuera de la app, así que así es como te contamos sobre ellas.",
+    signupNotice: "Te enviaremos correos sobre tu plan, por ejemplo cuando termine tu prueba. Puedes desactivarlo en los ajustes.",
     statusIntro: "Cómo está tu cuenta hoy.",
     statusOnly: "Tu plan",
     choosePlan: "Elige cómo pagar",
@@ -292,6 +304,9 @@ export const billing = {
     blockedKeepData: "Todo lo que ya guardaste se queda exactamente donde está.",
   },
   sw: {
+    emailsTitle: "Barua pepe kuhusu mpango wako",
+    emailsHint: "Vikumbusho vya jaribio na risiti za malipo. Usajili unasimamiwa nje ya programu, kwa hiyo hivi ndivyo tunavyokufikia kuhusu huo.",
+    signupNotice: "Tutakutumia barua pepe kuhusu mpango wako, kwa mfano jaribio lako linapokaribia kuisha. Unaweza kuzima hilo kwenye mipangilio.",
     statusIntro: "Hali ya akaunti yako leo.",
     statusOnly: "Mpango wako",
     choosePlan: "Chagua jinsi ya kulipa",
@@ -364,6 +379,9 @@ export const billing = {
     blockedKeepData: "Kila ulichohifadhi kinabaki pale pale.",
   },
   ar: {
+    emailsTitle: "رسائل عن خطتك",
+    emailsHint: "تذكيرات الفترة التجريبية وإيصالات الدفع. تُدار الاشتراكات خارج التطبيق، ولذلك نتواصل معك بشأنها بهذه الطريقة.",
+    signupNotice: "سنراسلك عبر البريد بشأن خطتك، مثل قرب انتهاء فترتك التجريبية. يمكنك إيقاف ذلك من الإعدادات.",
     statusIntro: "حالة حسابك اليوم.",
     statusOnly: "خطتك",
     choosePlan: "اختر طريقة الدفع",

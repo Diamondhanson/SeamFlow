@@ -43,3 +43,13 @@ services:
         sync: false           # optional
       - key: ANTHROPIC_API_KEY
         sync: false           # optional
+      # Subscription emails (Resend). Without a key the reminder job logs and
+      # carries on — but on the App Store and Play builds email is the ONLY
+      # way a tailor learns where to subscribe, so this is not really optional
+      # once the trials start running out.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false           # e.g. "SeamFlow <noreply@seamflowtech.com>"
+      - key: APP_WEB_URL
+        sync: false           # https://app.seamflowtech.com — where the plans live

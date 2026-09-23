@@ -36,12 +36,16 @@ import {
   type SubscriptionState,
   type SubscriptionStatus,
 } from '@seamflow/schemas';
+import { ConfigService } from '@nestjs/config';
 import { DbService } from '../db/db.service';
+import { EmailService } from '../notifications/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { reminderEmail } from './subscription-emails';
 import { PlatformSettingsService } from './platform-settings.service';
 import {
   clients,
   notificationPreferences,
+  users,
   orderPhotos,
   orders,
   subscriptionPayments,
@@ -58,6 +62,11 @@ const REMINDER_DAYS = [7, 3, 1, 0];
 /**
  * Reminder copy, in the tailor's language. Written server-side because it is
  * sent long after the app last opened, so there is no device locale to read.
+ *
+ * STATUS ONLY, deliberately. A push lands on the App Store and Play builds,
+ * where telling someone to renew — or where to do it — is exactly the
+ * steering both stores forbid. The email carries the price and the link; the
+ * push just says where things stand.
  */
 const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: boolean) => string }> = {
   en: {
@@ -65,7 +74,7 @@ const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: bo
     body: (d, paid) =>
       d === 0
         ? paid
-          ? 'Your subscription ends today. Renew to keep everything unlocked.'
+          ? 'Your subscription ends today. Your work stays yours.'
           : 'Your free trial ends today. Your work stays yours.'
         : paid
           ? `Your subscription ends in ${d} day${d === 1 ? '' : 's'}.`
@@ -76,7 +85,7 @@ const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: bo
     body: (d, paid) =>
       d === 0
         ? paid
-          ? 'Votre abonnement se termine aujourd’hui. Renouvelez pour tout garder débloqué.'
+          ? 'Votre abonnement se termine aujourd’hui. Votre travail reste le vôtre.'
           : 'Votre essai gratuit se termine aujourd’hui. Votre travail reste le vôtre.'
         : paid
           ? `Votre abonnement se termine dans ${d} jour${d === 1 ? '' : 's'}.`
@@ -87,7 +96,7 @@ const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: bo
     body: (d, paid) =>
       d === 0
         ? paid
-          ? 'A sua subscrição termina hoje. Renove para manter tudo desbloqueado.'
+          ? 'A sua subscrição termina hoje. O seu trabalho continua seu.'
           : 'O seu período gratuito termina hoje. O seu trabalho continua seu.'
         : paid
           ? `A sua subscrição termina em ${d} dia${d === 1 ? '' : 's'}.`
@@ -98,7 +107,7 @@ const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: bo
     body: (d, paid) =>
       d === 0
         ? paid
-          ? 'Tu suscripción termina hoy. Renueva para mantener todo desbloqueado.'
+          ? 'Tu suscripción termina hoy. Tu trabajo sigue siendo tuyo.'
           : 'Tu prueba gratuita termina hoy. Tu trabajo sigue siendo tuyo.'
         : paid
           ? `Tu suscripción termina en ${d} día${d === 1 ? '' : 's'}.`
@@ -109,7 +118,7 @@ const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: bo
     body: (d, paid) =>
       d === 0
         ? paid
-          ? 'Usajili wako unaisha leo. Fanya upya ili kila kitu kibaki wazi.'
+          ? 'Usajili wako unaisha leo. Kazi yako inabaki yako.'
           : 'Jaribio lako la bure linaisha leo. Kazi yako inabaki yako.'
         : paid
           ? `Usajili wako unaisha baada ya siku ${d}.`
@@ -120,7 +129,7 @@ const EXPIRY_PUSH: Record<string, { title: string; body: (days: number, paid: bo
     body: (d, paid) =>
       d === 0
         ? paid
-          ? 'ينتهي اشتراكك اليوم. جدّد للإبقاء على كل الميزات مفتوحة.'
+          ? 'ينتهي اشتراكك اليوم. عملك يبقى لك.'
           : 'تنتهي فترتك التجريبية اليوم. عملك يبقى لك.'
         : paid
           ? `ينتهي اشتراكك خلال ${d} يومًا.`
@@ -158,6 +167,8 @@ export class SubscriptionsService {
     private readonly dbService: DbService,
     private readonly settings: PlatformSettingsService,
     private readonly notifications: NotificationsService,
+    private readonly email: EmailService,
+    private readonly config: ConfigService,
   ) {}
 
   private get db() {
@@ -481,13 +492,15 @@ export class SubscriptionsService {
    * given tailor gets each of the four at most once.
    */
   @Cron('0 9 * * *')
-  async renewalReminders(): Promise<void> {
-    if (!this.dbService.isConfigured()) return;
+  async renewalReminders(): Promise<{ sent: number; emailed: number }> {
+    if (!this.dbService.isConfigured()) return { sent: 0, emailed: 0 };
+    let emailed = 0;
     try {
       const rows = await this.db
         .select({
           tailorId: subscriptions.tailorId,
           userId: tailors.userId,
+          countryCode: tailors.countryCode,
           trialEndsAt: subscriptions.trialEndsAt,
           premiumUntil: subscriptions.premiumUntil,
         })
@@ -506,6 +519,7 @@ export class SubscriptionsService {
         const paid = !!row.premiumUntil && row.premiumUntil > new Date();
         const language = await this.languageFor(row.tailorId);
         const copy = EXPIRY_PUSH[language] ?? EXPIRY_PUSH.en!;
+        if (await this.emailReminder(row.userId, row.countryCode, language, days, paid)) emailed++;
         await this.notifications.emit(row.userId, {
           type: 'subscription.expiring',
           params: { days: String(days), paid: String(paid) },
@@ -516,10 +530,39 @@ export class SubscriptionsService {
         });
         sent++;
       }
-      if (sent) this.logger.log(`Sent ${sent} renewal reminder(s)`);
+      if (sent) this.logger.log(`Sent ${sent} renewal reminder(s), ${emailed} by email`);
+      return { sent, emailed };
     } catch (err) {
       this.logger.error(`Renewal reminders failed: ${(err as Error).message}`);
+      return { sent: 0, emailed };
     }
+  }
+
+  /**
+   * The email half of a reminder — and the important half.
+   *
+   * The apps may not say what premium costs or where to buy it, so this is
+   * where that is said. Only to tailors who have an address on file and have
+   * not turned these off; Apple allows contacting a user about payment
+   * outside the app when they consented, and consent is a column, not an
+   * assumption.
+   */
+  private async emailReminder(
+    userId: string,
+    countryCode: string | null,
+    language: string,
+    days: number,
+    paid: boolean,
+  ): Promise<boolean> {
+    const [user] = await this.db
+      .select({ email: users.email, optIn: users.subscriptionEmailsOptIn })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!user?.email || !user.optIn) return false;
+    const url = `${this.config.get<string>('APP_WEB_URL') ?? 'https://app.seamflowtech.com'}/upgrade`;
+    const copy = reminderEmail(language, { days, paid, billing: billingFor(countryCode), url });
+    return this.email.send({ to: user.email, subject: copy.subject, text: copy.text });
   }
 
   /**

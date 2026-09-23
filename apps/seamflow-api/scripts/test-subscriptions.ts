@@ -13,7 +13,9 @@
  *   · the paywall switch flips from the dashboard, takes effect without a
  *     restart, and goes back off again
  *   · buying: with no provider connected, checkout says so; with the fake
- *     provider, a signed webhook — and only a signed one — extends the date
+ *     provider, a signed webhook, and only a signed one, extends the date
+ *   · the reminder job finds a trial about to end and would email the tailor,
+ *     which on a store build is the only way they learn where to subscribe
  *   · with enforcement ON: premium features and the caps refuse politely (402
  *     "upgrade_required"), reads still work, and paying unblocks everything
  *
@@ -306,6 +308,27 @@ async function main(): Promise<void> {
     }
 
     console.log('• ...and the run puts every trial back where it found it');
+
+    // ---- Reminders ---------------------------------------------------------
+    // Three days out is one of the reminder marks. The email itself needs a
+    // Resend key, so locally it logs instead of sending; what must hold is
+    // that the job FINDS this tailor and addresses them.
+    await admin.from('subscriptions').update({
+      premium_until: null,
+      grace_until: null,
+      trial_ends_at: new Date(Date.now() + 3 * 86_400_000 - 60_000).toISOString(),
+    }).eq('tailor_id', tailorId);
+    r = await api(null, 'POST', '/health/subscription-reminders');
+    assert(r.status === 201 || r.status === 200, `reminders: ${r.status}`);
+    assert(r.data.sent >= 1, `the reminder job missed a trial ending in 3 days (sent ${r.data.sent})`);
+    console.log(`• The reminder job picks up a trial ending in 3 days (${r.data.sent} reminder(s))`);
+
+    // A tailor who turned emails off is still pushed, never emailed.
+    await admin.from('users').update({ subscription_emails_opt_in: false }).eq('id', created[0]!);
+    r = await api(null, 'POST', '/health/subscription-reminders');
+    assert(r.data.emailed === 0, 'a tailor who opted out was emailed anyway');
+    await admin.from('users').update({ subscription_emails_opt_in: true }).eq('id', created[0]!);
+    console.log('• Opting out of emails is honoured');
 
     // ---- Buying a subscription ---------------------------------------------
     r = await api(jwt, 'POST', '/subscriptions/checkout', { plan: 'monthly', method: 'mtn_momo' });

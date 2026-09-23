@@ -202,6 +202,19 @@ export function useCheckout() {
   });
 }
 
+/**
+ * Turn subscription emails on or off. Its own endpoint rather than part of
+ * notification preferences: those govern pushes about orders, this is consent
+ * to be written to about money, which has to be revocable on its own.
+ */
+export function useSetEmailConsent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (on: boolean) => api.me.setEmailConsent(on),
+    onSettled: () => void qc.invalidateQueries({ queryKey: qk.me() }),
+  });
+}
+
 /** True when the API says no provider is connected yet. */
 export function isPaymentsUnavailable(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false;

@@ -1,8 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Patch } from '@nestjs/common';
 import type { DeletionState, SubscriptionState } from '@seamflow/schemas';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService, type TailorRow } from '../tailors/tailors.service';
+import { eq } from 'drizzle-orm';
+import { DbService } from '../db/db.service';
+import { users } from '../db/schema';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AccountService } from '../account/account.service';
 
@@ -12,7 +15,28 @@ export class MeController {
     private readonly tailors: TailorsService,
     private readonly account: AccountService,
     private readonly subscriptions: SubscriptionsService,
+    private readonly dbService: DbService,
   ) {}
+
+  /**
+   * Consent for subscription emails.
+   *
+   * Its own endpoint rather than part of notification preferences, because
+   * those are about pushes for orders; this is permission to write to someone
+   * about money, which Apple requires be given and revocable.
+   */
+  @Patch('emails')
+  async setEmailConsent(
+    @CurrentUser() user: AuthedUser,
+    @Body() body: { subscriptionEmails: boolean },
+  ): Promise<{ subscriptionEmails: boolean }> {
+    const value = body.subscriptionEmails === true;
+    await this.dbService.db
+      .update(users)
+      .set({ subscriptionEmailsOptIn: value, updatedAt: new Date() })
+      .where(eq(users.id, user.id));
+    return { subscriptionEmails: value };
+  }
 
   @Get()
   async me(@CurrentUser() user: AuthedUser): Promise<{
