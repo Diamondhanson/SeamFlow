@@ -1,4 +1,4 @@
-// In-app chat with tailors (ROADMAP D.4.3). Distinct from the AI assistant —
+// In-app chat with tailors (ROADMAP D.4.3). Distinct from the AI assistant
 // this is human ↔ human. English is the source of truth; French mirrors it.
 export const cchat = {
   en: {
@@ -44,7 +44,7 @@ export const cchat = {
     retryAll: 'Retry all',
     tapToRetry: 'Tap to try again',
     queuedOffline: 'Waiting for a connection',
-    offlineBanner: 'You’re offline — messages will send when you’re back.',
+    offlineBanner: 'You’re offline, messages will send when you’re back.',
     loadingOlder: 'Loading older messages…',
     startOfConversation: 'This is the start of your conversation.',
     typing: 'Typing…',
@@ -77,7 +77,7 @@ export const cchat = {
     quoteNotesPlaceholder: 'What was agreed in the chat…',
     quoteClientNameLabel: 'Client name',
     quoteClientNameHelp:
-      'They’re not in your client list yet — this is the name we’ll save them under.',
+      'They’re not in your client list yet. This is the name we’ll save them under.',
     quoteClientPhoneLabel: 'Client phone',
     quoteSubmit: 'Create order',
     quoteCreating: 'Creating…',
@@ -134,7 +134,7 @@ export const cchat = {
     retryAll: 'Tout réessayer',
     tapToRetry: 'Touchez pour réessayer',
     queuedOffline: 'En attente de connexion',
-    offlineBanner: 'Vous êtes hors ligne — les messages partiront au retour du réseau.',
+    offlineBanner: 'Vous êtes hors ligne, les messages partiront au retour du réseau.',
     loadingOlder: 'Chargement des messages plus anciens…',
     startOfConversation: 'C’est le début de votre conversation.',
     typing: 'En train d’écrire…',
@@ -164,7 +164,7 @@ export const cchat = {
     quoteNotesPlaceholder: 'Ce qui a été convenu dans la discussion…',
     quoteClientNameLabel: 'Nom du client',
     quoteClientNameHelp:
-      'Cette personne n’est pas encore dans vos clients — voici le nom sous lequel nous l’enregistrerons.',
+      'Cette personne n’est pas encore dans vos clients, voici le nom sous lequel nous l’enregistrerons.',
     quoteClientPhoneLabel: 'Téléphone du client',
     quoteSubmit: 'Créer la commande',
     quoteCreating: 'Création…',
@@ -221,7 +221,7 @@ export const cchat = {
     retryAll: 'Repetir todas',
     tapToRetry: 'Toque para tentar de novo',
     queuedOffline: 'À espera de ligação',
-    offlineBanner: 'Está offline — as mensagens serão enviadas quando voltar.',
+    offlineBanner: 'Está offline, as mensagens serão enviadas quando voltar.',
     loadingOlder: 'A carregar mensagens antigas…',
     startOfConversation: 'Este é o início da vossa conversa.',
     typing: 'A escrever…',
@@ -254,7 +254,7 @@ export const cchat = {
     quoteNotesPlaceholder: 'O que ficou combinado na conversa…',
     quoteClientNameLabel: 'Nome do cliente',
     quoteClientNameHelp:
-      'Ainda não está na sua lista de clientes — é com este nome que o vamos guardar.',
+      'Ainda não está na sua lista de clientes, é com este nome que o vamos guardar.',
     quoteClientPhoneLabel: 'Telefone do cliente',
     quoteSubmit: 'Criar encomenda',
     quoteCreating: 'A criar…',
@@ -311,7 +311,7 @@ export const cchat = {
     retryAll: 'Reintentar todo',
     tapToRetry: 'Toque para intentar de nuevo',
     queuedOffline: 'Esperando conexión',
-    offlineBanner: 'Está sin conexión — los mensajes se enviarán cuando vuelva.',
+    offlineBanner: 'Está sin conexión, los mensajes se enviarán cuando vuelva.',
     loadingOlder: 'Cargando mensajes anteriores…',
     startOfConversation: 'Aquí empieza su conversación.',
     typing: 'Escribiendo…',
@@ -344,7 +344,7 @@ export const cchat = {
     quoteNotesPlaceholder: 'Lo que se acordó en el chat…',
     quoteClientNameLabel: 'Nombre del cliente',
     quoteClientNameHelp:
-      'Todavía no está en su lista de clientes — este es el nombre con el que lo guardaremos.',
+      'Todavía no está en su lista de clientes. Este es el nombre con el que lo guardaremos.',
     quoteClientPhoneLabel: 'Teléfono del cliente',
     quoteSubmit: 'Crear pedido',
     quoteCreating: 'Creando…',
@@ -400,7 +400,7 @@ export const cchat = {
     retryAll: 'Jaribu yote tena',
     tapToRetry: 'Gusa ujaribu tena',
     queuedOffline: 'Inasubiri muunganisho',
-    offlineBanner: 'Huna mtandao — ujumbe utatumwa utakaporudi.',
+    offlineBanner: 'Huna mtandao, ujumbe utatumwa utakaporudi.',
     loadingOlder: 'Inapakia ujumbe wa zamani…',
     startOfConversation: 'Hapa ndipo mazungumzo yenu yanaanzia.',
     typing: 'Anaandika…',
@@ -433,7 +433,7 @@ export const cchat = {
     quoteNotesPlaceholder: 'Mliyokubaliana kwenye mazungumzo…',
     quoteClientNameLabel: 'Jina la mteja',
     quoteClientNameHelp:
-      'Bado hayupo kwenye orodha yako ya wateja — hili ndilo jina tutakalomhifadhi nalo.',
+      'Bado hayupo kwenye orodha yako ya wateja, hili ndilo jina tutakalomhifadhi nalo.',
     quoteClientPhoneLabel: 'Simu ya mteja',
     quoteSubmit: 'Tengeneza agizo',
     quoteCreating: 'Inatengeneza…',
@@ -488,7 +488,7 @@ export const cchat = {
     retryAll: 'إعادة محاولة الكل',
     tapToRetry: 'انقر للمحاولة مرة أخرى',
     queuedOffline: 'بانتظار الاتصال',
-    offlineBanner: 'أنت دون اتصال — ستُرسل الرسائل عند عودتك.',
+    offlineBanner: 'أنت دون اتصال، ستُرسل الرسائل عند عودتك.',
     loadingOlder: 'يحمّل رسائل أقدم…',
     startOfConversation: 'هنا تبدأ محادثتكما.',
     typing: 'يكتب…',
@@ -518,7 +518,7 @@ export const cchat = {
     quoteNotesPlaceholder: 'ما اتُّفق عليه في المحادثة…',
     quoteClientNameLabel: 'اسم العميل',
     quoteClientNameHelp:
-      'ليس في قائمة عملائك بعد — هذا هو الاسم الذي سنحفظه به.',
+      'ليس في قائمة عملائك بعد، هذا هو الاسم الذي سنحفظه به.',
     quoteClientPhoneLabel: 'هاتف العميل',
     quoteSubmit: 'إنشاء الطلب',
     quoteCreating: 'يُنشئ…',

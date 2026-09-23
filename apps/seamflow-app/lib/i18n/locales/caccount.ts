@@ -2,13 +2,13 @@ export const caccount = {
   en: {
     deleteTitle: 'Delete my account',
     warningBody:
-      'This erases your SeamFlow account. Nothing happens for {days} days — you can change your mind at any point before then.',
+      'This erases your SeamFlow account. Nothing happens for {days} days. You can change your mind at any point before then.',
 
     whatGoesTitle: 'What gets erased',
     goesRequests: 'Your requests and the offers tailors sent you',
     goesMessages: 'Your messages with tailors',
     goesMeasurements: 'Your saved measurements',
-    goesAccount: 'Your sign-in — you will not be able to log back in',
+    goesAccount: 'Your sign-in. You will not be able to log back in',
 
     takeItTitle: 'Take a copy first',
     takeItBody:
@@ -49,13 +49,13 @@ export const caccount = {
   fr: {
     deleteTitle: 'Supprimer mon compte',
     warningBody:
-      'Cela efface votre compte SeamFlow. Rien ne se passe pendant {days} jours — vous pouvez changer d’avis avant.',
+      'Cela efface votre compte SeamFlow. Rien ne se passe pendant {days} jours. Vous pouvez changer d’avis avant.',
 
     whatGoesTitle: 'Ce qui sera effacé',
     goesRequests: 'Vos demandes et les offres reçues des couturiers',
     goesMessages: 'Vos messages avec les couturiers',
     goesMeasurements: 'Vos mesures enregistrées',
-    goesAccount: 'Votre connexion — vous ne pourrez plus vous reconnecter',
+    goesAccount: 'Votre connexion. Vous ne pourrez plus vous reconnecter',
 
     takeItTitle: 'Récupérez une copie d’abord',
     takeItBody:
@@ -96,13 +96,13 @@ export const caccount = {
   pt: {
     deleteTitle: 'Eliminar a minha conta',
     warningBody:
-      'Isto apaga a sua conta SeamFlow. Nada acontece durante {days} dias — pode mudar de ideias a qualquer momento até lá.',
+      'Isto apaga a sua conta SeamFlow. Nada acontece durante {days} dias, pode mudar de ideias a qualquer momento até lá.',
 
     whatGoesTitle: 'O que é apagado',
     goesRequests: 'Os seus pedidos e as propostas que os alfaiates lhe enviaram',
     goesMessages: 'As suas mensagens com alfaiates',
     goesMeasurements: 'As suas medidas guardadas',
-    goesAccount: 'O seu acesso — deixará de conseguir iniciar sessão',
+    goesAccount: 'O seu acesso, deixará de conseguir iniciar sessão',
 
     takeItTitle: 'Leve primeiro uma cópia',
     takeItBody:
@@ -191,13 +191,13 @@ export const caccount = {
   sw: {
     deleteTitle: 'Futa akaunti yangu',
     warningBody:
-      'Hii inafuta akaunti yako ya SeamFlow. Hakuna kitakachotokea kwa siku {days} — unaweza kubadilisha nia wakati wowote kabla ya hapo.',
+      'Hii inafuta akaunti yako ya SeamFlow. Hakuna kitakachotokea kwa siku {days}, unaweza kubadilisha nia wakati wowote kabla ya hapo.',
 
     whatGoesTitle: 'Kitakachofutwa',
     goesRequests: 'Maombi yako na ofa walizokutumia washonaji',
     goesMessages: 'Ujumbe wako na washonaji',
     goesMeasurements: 'Vipimo vyako vilivyohifadhiwa',
-    goesAccount: 'Uwezo wako wa kuingia — hutaweza kuingia tena',
+    goesAccount: 'Uwezo wako wa kuingia, hutaweza kuingia tena',
 
     takeItTitle: 'Chukua nakala kwanza',
     takeItBody:
@@ -238,13 +238,13 @@ export const caccount = {
   ar: {
     deleteTitle: 'حذف حسابي',
     warningBody:
-      'هذا يمحو حسابك في SeamFlow. لن يحدث شيء لمدة {days} يومًا — يمكنك العدول في أي وقت قبل ذلك.',
+      'هذا يمحو حسابك في SeamFlow. لن يحدث شيء لمدة {days} يومًا، يمكنك العدول في أي وقت قبل ذلك.',
 
     whatGoesTitle: 'ما الذي يُمحى',
     goesRequests: 'طلباتك والعروض التي أرسلها إليك الخيّاطون',
     goesMessages: 'رسائلك مع الخيّاطين',
     goesMeasurements: 'مقاساتك المحفوظة',
-    goesAccount: 'إمكانية دخولك — لن تتمكّن من تسجيل الدخول مجددًا',
+    goesAccount: 'إمكانية دخولك، لن تتمكّن من تسجيل الدخول مجددًا',
 
     takeItTitle: 'خُذ نسخة أولًا',
     takeItBody:

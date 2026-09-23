@@ -1,4 +1,4 @@
-// Requests — "Can you make this?" (ROADMAP appendix H), the tailor's side.
+// Requests, "Can you make this?" (ROADMAP appendix H), the tailor's side.
 //
 // Garment names are NOT here: they come from the shared taxonomy so the client
 // app, matching and this screen all say the same word.
@@ -8,7 +8,7 @@ export const requests = {
     tileSubtitle: 'Clients asking for work',
     guideTitle: 'Clients asking for work',
     guideBody:
-      'People post what they want made and any tailor nearby can answer. You do not need a portfolio to win one — a good reply is enough.',
+      'People post what they want made and any tailor nearby can answer. You do not need a portfolio to win one, a good reply is enough.',
 
     filterAll: 'Everything',
     empty: 'No open requests near you yet. They will show up here as clients post them.',
@@ -19,17 +19,17 @@ export const requests = {
       'You will still see everything nearby, but the work you actually do will come first.',
 
     budgetLine: 'Budget: {currency} {min} – {max}',
-    budgetOpen: 'No budget given — open to discuss',
+    budgetOpen: 'No budget given. Open to discuss',
     deadlineLine: 'Needed by {date}',
     offersAndDays: '{offers} offers · {days} days left',
-    enoughOffers: 'Enough offers — no longer accepting',
+    enoughOffers: 'Enough offers. No longer accepting',
 
     detailTitle: 'Request',
     gone: 'This request is no longer available.',
 
     makeOfferHeading: 'Your offer',
     makeOfferHint:
-      'Say how you would make it and what you would need. A price is optional — you can talk it through instead.',
+      'Say how you would make it and what you would need. A price is optional. You can talk it through instead.',
     messageLabel: 'Message',
     messagePlaceholder: 'I make these often. For the embroidery I would…',
     priceLabel: 'Price',
@@ -73,10 +73,10 @@ export const requests = {
       'Vous verrez toujours tout ce qui est proche, mais votre travail habituel apparaîtra en premier.',
 
     budgetLine: 'Budget : {currency} {min} – {max}',
-    budgetOpen: 'Aucun budget indiqué — à discuter',
+    budgetOpen: 'Aucun budget indiqué, à discuter',
     deadlineLine: 'Pour le {date}',
     offersAndDays: '{offers} offres · {days} jours restants',
-    enoughOffers: 'Assez d’offres — clôturé',
+    enoughOffers: 'Assez d’offres, clôturé',
 
     detailTitle: 'Demande',
     gone: 'Cette demande n’est plus disponible.',
@@ -116,7 +116,7 @@ export const requests = {
     tileSubtitle: 'Clientes à procura de trabalho',
     guideTitle: 'Clientes à procura de trabalho',
     guideBody:
-      'As pessoas publicam o que querem que lhes façam e qualquer alfaiate por perto pode responder. Não precisa de portefólio para ganhar um — uma boa resposta chega.',
+      'As pessoas publicam o que querem que lhes façam e qualquer alfaiate por perto pode responder. Não precisa de portefólio para ganhar um, uma boa resposta chega.',
 
     filterAll: 'Tudo',
     empty:
@@ -128,17 +128,17 @@ export const requests = {
       'Continuará a ver tudo o que está perto, mas o trabalho que realmente faz aparece primeiro.',
 
     budgetLine: 'Orçamento: {currency} {min} – {max}',
-    budgetOpen: 'Sem orçamento indicado — aberto a conversa',
+    budgetOpen: 'Sem orçamento indicado, aberto a conversa',
     deadlineLine: 'Necessário até {date}',
     offersAndDays: '{offers} propostas · faltam {days} dias',
-    enoughOffers: 'Propostas suficientes — já não aceita mais',
+    enoughOffers: 'Propostas suficientes, já não aceita mais',
 
     detailTitle: 'Pedido',
     gone: 'Este pedido já não está disponível.',
 
     makeOfferHeading: 'A sua proposta',
     makeOfferHint:
-      'Diga como o faria e do que precisaria. O preço é opcional — pode falar sobre isso depois.',
+      'Diga como o faria e do que precisaria. O preço é opcional, pode falar sobre isso depois.',
     messageLabel: 'Mensagem',
     messagePlaceholder: 'Faço destes com frequência. Para o bordado eu…',
     priceLabel: 'Preço',
@@ -173,7 +173,7 @@ export const requests = {
     tileSubtitle: 'Clientes que buscan trabajo',
     guideTitle: 'Clientes que buscan trabajo',
     guideBody:
-      'Las personas publican lo que quieren mandar a hacer y cualquier sastre cercano puede responder. No necesita un portafolio para ganar una — basta con una buena respuesta.',
+      'Las personas publican lo que quieren mandar a hacer y cualquier sastre cercano puede responder. No necesita un portafolio para ganar una, basta con una buena respuesta.',
 
     filterAll: 'Todo',
     empty: 'Aún no hay solicitudes abiertas cerca de usted. Aparecerán aquí cuando los clientes las publiquen.',
@@ -184,17 +184,17 @@ export const requests = {
       'Seguirá viendo todo lo cercano, pero el trabajo que usted realmente hace aparecerá primero.',
 
     budgetLine: 'Presupuesto: {currency} {min} – {max}',
-    budgetOpen: 'Sin presupuesto indicado — abierto a conversarlo',
+    budgetOpen: 'Sin presupuesto indicado, abierto a conversarlo',
     deadlineLine: 'Se necesita para el {date}',
     offersAndDays: '{offers} ofertas · quedan {days} días',
-    enoughOffers: 'Ya tiene suficientes ofertas — no acepta más',
+    enoughOffers: 'Ya tiene suficientes ofertas, no acepta más',
 
     detailTitle: 'Solicitud',
     gone: 'Esta solicitud ya no está disponible.',
 
     makeOfferHeading: 'Su oferta',
     makeOfferHint:
-      'Diga cómo la confeccionaría y qué necesitaría. El precio es opcional — también puede conversarlo.',
+      'Diga cómo la confeccionaría y qué necesitaría. El precio es opcional, también puede conversarlo.',
     messageLabel: 'Mensaje',
     messagePlaceholder: 'Hago estas prendas seguido. Para el bordado yo…',
     priceLabel: 'Precio',
@@ -227,7 +227,7 @@ export const requests = {
     tileSubtitle: 'Wateja wanaotafuta kazi',
     guideTitle: 'Wateja wanaotafuta kazi',
     guideBody:
-      'Watu huweka kile wanachotaka kishonwe na mshonaji yeyote aliye karibu anaweza kujibu. Huhitaji kuwa na jalada la kazi ili kupata moja — jibu zuri linatosha.',
+      'Watu huweka kile wanachotaka kishonwe na mshonaji yeyote aliye karibu anaweza kujibu. Huhitaji kuwa na jalada la kazi ili kupata moja, jibu zuri linatosha.',
 
     filterAll: 'Yote',
     empty: 'Bado hakuna maombi wazi karibu nawe. Yataonekana hapa wateja wanapoyaweka.',
@@ -238,17 +238,17 @@ export const requests = {
       'Bado utaona kila kitu kilicho karibu, lakini kazi unayoifanya kweli itatangulia.',
 
     budgetLine: 'Bajeti: {currency} {min} – {max}',
-    budgetOpen: 'Hakuna bajeti iliyotolewa — tayari kujadiliana',
+    budgetOpen: 'Hakuna bajeti iliyotolewa, tayari kujadiliana',
     deadlineLine: 'Inahitajika ifikapo {date}',
     offersAndDays: 'Ofa {offers} · zimebaki siku {days}',
-    enoughOffers: 'Ofa zimetosha — hazipokelewi tena',
+    enoughOffers: 'Ofa zimetosha, hazipokelewi tena',
 
     detailTitle: 'Ombi',
     gone: 'Ombi hili halipatikani tena.',
 
     makeOfferHeading: 'Ofa yako',
     makeOfferHint:
-      'Eleza jinsi ungeishona na kile ungehitaji. Bei si lazima — mnaweza kujadiliana badala yake.',
+      'Eleza jinsi ungeishona na kile ungehitaji. Bei si lazima, mnaweza kujadiliana badala yake.',
     messageLabel: 'Ujumbe',
     messagePlaceholder: 'Hizi nazishona mara kwa mara. Kwa upambaji ningefanya…',
     priceLabel: 'Bei',
@@ -281,7 +281,7 @@ export const requests = {
     tileSubtitle: 'عملاء يبحثون عن خيّاط',
     guideTitle: 'عملاء يبحثون عن خيّاط',
     guideBody:
-      'ينشر الناس ما يريدون خياطته، ويمكن لأي خيّاط قريب أن يردّ. لست بحاجة إلى معرض أعمال لتفوز بأحدها — يكفي ردّ جيد.',
+      'ينشر الناس ما يريدون خياطته، ويمكن لأي خيّاط قريب أن يردّ. لست بحاجة إلى معرض أعمال لتفوز بأحدها، يكفي ردّ جيد.',
 
     filterAll: 'الكل',
     empty: 'لا طلبات مفتوحة قريبة منك بعد. ستظهر هنا حين ينشرها العملاء.',
@@ -292,17 +292,17 @@ export const requests = {
       'سترى كل ما هو قريب منك على أي حال، لكن العمل الذي تتقنه سيأتي أولًا.',
 
     budgetLine: 'الميزانية: {currency} {min} – {max}',
-    budgetOpen: 'لم تُذكر ميزانية — قابل للنقاش',
+    budgetOpen: 'لم تُذكر ميزانية، قابل للنقاش',
     deadlineLine: 'مطلوب بحلول {date}',
     offersAndDays: '{offers} عروض · بقي {days} أيام',
-    enoughOffers: 'العروض كافية — لم تعد تُقبل',
+    enoughOffers: 'العروض كافية، لم تعد تُقبل',
 
     detailTitle: 'طلب',
     gone: 'هذا الطلب لم يعد متاحًا.',
 
     makeOfferHeading: 'عرضك',
     makeOfferHint:
-      'اشرح كيف ستخيطه وما ستحتاج إليه. السعر اختياري — يمكنكما التفاهم عليه بدلًا من ذلك.',
+      'اشرح كيف ستخيطه وما ستحتاج إليه. السعر اختياري، يمكنكما التفاهم عليه بدلًا من ذلك.',
     messageLabel: 'الرسالة',
     messagePlaceholder: 'أخيط هذه كثيرًا. أما التطريز فسأقوم…',
     priceLabel: 'السعر',

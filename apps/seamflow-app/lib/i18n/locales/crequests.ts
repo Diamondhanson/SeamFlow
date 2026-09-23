@@ -1,4 +1,4 @@
-// "Can you make this?" — the client's side of the request board.
+// "Can you make this?", the client's side of the request board.
 //
 // The copy leans on show-and-tell rather than form-filling: the whole appeal of
 // this direction is that you do not have to know a tailor first, you just show
@@ -16,7 +16,7 @@ export const crequests = {
 
     newTitle: 'Can you make this?',
     newIntro:
-      'Show a photo of what you want made. Tailors near you will see it and reply — you do not need to find one first.',
+      'Show a photo of what you want made. Tailors near you will see it and reply. You do not need to find one first.',
     photosLabel: 'Photos',
     addPhotoTitle: 'Add a photo',
     takePhoto: 'Take a photo',
@@ -64,7 +64,7 @@ export const crequests = {
 
     newTitle: 'Pouvez-vous faire ceci ?',
     newIntro:
-      'Montrez une photo de ce que vous voulez. Les tailleurs près de chez vous la verront et répondront — inutile d’en chercher un d’abord.',
+      'Montrez une photo de ce que vous voulez. Les tailleurs près de chez vous la verront et répondront, inutile d’en chercher un d’abord.',
     photosLabel: 'Photos',
     addPhotoTitle: 'Ajouter une photo',
     takePhoto: 'Prendre une photo',
@@ -112,7 +112,7 @@ export const crequests = {
 
     newTitle: 'Consegue fazer isto?',
     newIntro:
-      'Mostre uma foto do que quer que lhe façam. Os alfaiates perto de si vão vê-la e responder — não precisa de encontrar um primeiro.',
+      'Mostre uma foto do que quer que lhe façam. Os alfaiates perto de si vão vê-la e responder, não precisa de encontrar um primeiro.',
     photosLabel: 'Fotos',
     addPhotoTitle: 'Adicionar uma foto',
     takePhoto: 'Tirar uma foto',
@@ -160,7 +160,7 @@ export const crequests = {
 
     newTitle: '¿Me puede hacer esto?',
     newIntro:
-      'Muestre una foto de lo que quiere mandar a hacer. Los sastres cerca de usted la verán y le responderán — no hace falta que busque uno primero.',
+      'Muestre una foto de lo que quiere mandar a hacer. Los sastres cerca de usted la verán y le responderán, no hace falta que busque uno primero.',
     photosLabel: 'Fotos',
     addPhotoTitle: 'Agregar una foto',
     takePhoto: 'Tomar una foto',
@@ -208,7 +208,7 @@ export const crequests = {
 
     newTitle: 'Waweza kunishonea hii?',
     newIntro:
-      'Onyesha picha ya unachotaka kishonwe. Washonaji walio karibu nawe wataiona na kujibu — huhitaji kumtafuta mmoja kwanza.',
+      'Onyesha picha ya unachotaka kishonwe. Washonaji walio karibu nawe wataiona na kujibu, huhitaji kumtafuta mmoja kwanza.',
     photosLabel: 'Picha',
     addPhotoTitle: 'Ongeza picha',
     takePhoto: 'Piga picha',
@@ -256,7 +256,7 @@ export const crequests = {
 
     newTitle: 'هل يمكنك خياطة هذا؟',
     newIntro:
-      'اعرض صورة لما تريد خياطته. سيراها الخيّاطون القريبون منك ويردّون — لست بحاجة إلى إيجاد أحدهم أولًا.',
+      'اعرض صورة لما تريد خياطته. سيراها الخيّاطون القريبون منك ويردّون، لست بحاجة إلى إيجاد أحدهم أولًا.',
     photosLabel: 'الصور',
     addPhotoTitle: 'إضافة صورة',
     takePhoto: 'التقاط صورة',

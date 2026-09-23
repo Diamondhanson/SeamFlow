@@ -585,7 +585,7 @@ export default function NewOrderWizard() {
       // which mangles any name whose first token is a courtesy title or a
       // family name — "Mme Bambot" became "Mme", identifying nobody.
       const client = pickedName.trim();
-      if (base) setOrderName(client ? `${base} — ${client}` : base);
+      if (base) setOrderName(client ? `${base}, ${client}` : base);
     }
     setStep('order');
   };

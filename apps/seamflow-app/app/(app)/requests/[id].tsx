@@ -118,8 +118,8 @@ export default function RequestDetail() {
           <CardLine>
             {request.budgetMin || request.budgetMax
               ? t('requests.budgetLine', {
-                  min: request.budgetMin ?? '—',
-                  max: request.budgetMax ?? '—',
+                  min: request.budgetMin ?? '-',
+                  max: request.budgetMax ?? '-',
                   currency: request.currency ?? '',
                 })
               : t('requests.budgetOpen')}

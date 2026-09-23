@@ -50,7 +50,7 @@ export default function ConsumerOrderDetail() {
           <Text variant="bodySm" tone="textMuted" style={{ marginTop: spacing.sm }}>
             {t('corders.madeBy', { name: tailor.businessName })}
           </Text>
-          <Text variant="bodySm" tone="textMuted">{t('corders.ordered', { date: fmt(order.dateOrdered) ?? '—' })}</Text>
+          <Text variant="bodySm" tone="textMuted">{t('corders.ordered', { date: fmt(order.dateOrdered) ?? '-' })}</Text>
           <Text variant="bodySm" tone="textMuted">
             {order.dateDelivery ? t('corders.due', { date: fmt(order.dateDelivery)! }) : t('corders.noDue')}
           </Text>

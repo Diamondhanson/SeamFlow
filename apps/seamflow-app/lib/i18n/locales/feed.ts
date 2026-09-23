@@ -1,13 +1,13 @@
-// Discovery feed — publishing finished work and the public storefront
+// Discovery feed, publishing finished work and the public storefront
 // (ROADMAP D.4.1 / D.4.2). English is the source of truth; French mirrors it.
 export const feed = {
   en: {
     qualityWhy: 'Clearer photos get seen more in Discover.',
-    readingDone: 'Suggestions added — check them over.',
+    readingDone: 'Suggestions added, check them over.',
     readingNothing: 'Nothing to suggest from this photo.',
     // ── AI-assisted publishing ──────────────────────────────────────────
     readingPhoto: 'Reading the photo…',
-    suggestedNote: 'Suggested from the photo — change anything that is wrong.',
+    suggestedNote: 'Suggested from the photo, change anything that is wrong.',
     garmentSection: 'What is it?',
     changeGarment: 'Change',
     audienceSection: 'Who is it for?',
@@ -55,7 +55,7 @@ export const feed = {
     // ── Storefront ──────────────────────────────────────────────────────────
     storefrontTitle: 'Your shop window',
     storefrontSubtitle:
-      'What people see when they find your work. Only this — never your phone number or your clients.',
+      'What people see when they find your work. Only this, never your phone number or your clients.',
     bioLabel: 'About your work',
     bioPlaceholder: 'Two or three lines about what you make and who you make it for.',
     cityLabel: 'City',
@@ -68,7 +68,7 @@ export const feed = {
     acceptsRemoteHelp:
       'Turn this on if you’re happy to work with clients who can’t visit you in person.',
     verifiedLabel: 'Verified',
-    verifiedHelp: 'Granted by the SeamFlow team — it isn’t something you can switch on.',
+    verifiedHelp: 'Granted by the SeamFlow team. It isn’t something you can switch on.',
     responseTimeLabel: 'Usually replies in {hours}h',
     responseTimeUnknown: 'Reply time appears once you’ve answered a few enquiries.',
     saveStorefront: 'Save shop window',
@@ -80,7 +80,7 @@ export const feed = {
       'The pieces you’ve actually made. Publish any of them to be found by new clients.',
     worksEmptyTitle: 'No designs yet',
     worksEmptyBody:
-      'Add photos of work you’ve finished. This is your portfolio — separate from Design Studio, which is for inspiration you collect.',
+      'Add photos of work you’ve finished. This is your portfolio, separate from Design Studio, which is for inspiration you collect.',
     worksAdd: 'Add designs',
     worksUploading: 'Adding {done} of {total}…',
     worksCount: '{count} designs · {published} published',
@@ -117,7 +117,7 @@ export const feed = {
     shareCatalogue: 'Share my catalogue',
     shareCatalogueTitle: 'Your catalogue link',
     shareCatalogueBody:
-      'One permanent link to everything you have published. Put it in your WhatsApp status, your Instagram bio, or on your shop sign — it never expires.',
+      'One permanent link to everything you have published. Put it in your WhatsApp status, your Instagram bio, or on your shop sign. It never expires.',
     shareOnWhatsApp: 'Share on WhatsApp',
     shareVia: 'Share via…',
     copyLink: 'Copy link',
@@ -127,12 +127,12 @@ export const feed = {
     couldNotCopy: 'Could not copy the link',
     catalogueEmptyTitle: 'Nothing to show yet',
     catalogueEmptyBody:
-      'Your catalogue has no published pieces, so anyone opening the link would see an empty page. Publish a design first — then share it.',
+      'Your catalogue has no published pieces, so anyone opening the link would see an empty page. Publish a design first, then share it.',
     catalogueEmptyAction: 'Publish something first',
     catalogueShareAnyway: 'Share anyway',
     catalogueAddressLabel: 'Your catalogue address',
     catalogueAddressHelp:
-      'This is the link people will see. Choose it carefully — once you have shared it, changing it breaks every copy already out there.',
+      'This is the link people will see. Choose it carefully, once you have shared it, changing it breaks every copy already out there.',
     catalogueAddressTaken: 'That address is already taken',
     catalogueAddressInvalid:
       'Use 3–40 lowercase letters, numbers and single hyphens.',
@@ -140,13 +140,13 @@ export const feed = {
     publicWhatsappLabel: 'Public WhatsApp number',
     publicWhatsappPlaceholder: '+237 6 70 15 19 73',
     publicWhatsappHelp:
-      'Shown on your catalogue page as a Contact button. This is NOT your sign-in number — leave it empty and no button appears.',
+      'Shown on your catalogue page as a Contact button. This is NOT your sign-in number, leave it empty and no button appears.',
     publicWhatsappInvalid:
       'Enter a full international number, starting with your country code.',
     // ── Carousel + price on a design ────────────────────────────────────────
     onePieceTitle: 'How should these {count} photos be saved?',
     onePieceBody:
-      'If they are different angles of the same piece — front, back, side — save them as one design so clients can swipe through them.',
+      'If they are different angles of the same piece, front, back, side - save them as one design so clients can swipe through them.',
     onePieceAsOne: 'One design, {count} photos',
     onePieceAsSeparate: '{count} separate designs',
     describeTitle: 'Describe this design',
@@ -181,10 +181,10 @@ export const feed = {
   },
   fr: {
     qualityWhy: 'Les photos nettes sont plus vues dans Découvrir.',
-    readingDone: 'Suggestions ajoutées — vérifiez-les.',
+    readingDone: 'Suggestions ajoutées, vérifiez-les.',
     readingNothing: 'Rien à proposer d’après cette photo.',
     readingPhoto: 'Lecture de la photo…',
-    suggestedNote: 'Proposé d’après la photo — corrigez ce qui est faux.',
+    suggestedNote: 'Proposé d’après la photo, corrigez ce qui est faux.',
     garmentSection: 'Qu’est-ce que c’est ?',
     changeGarment: 'Changer',
     audienceSection: 'Pour qui ?',
@@ -230,7 +230,7 @@ export const feed = {
 
     storefrontTitle: 'Votre vitrine',
     storefrontSubtitle:
-      'Ce que les gens voient lorsqu’ils découvrent votre travail. Rien d’autre — jamais votre numéro ni vos clients.',
+      'Ce que les gens voient lorsqu’ils découvrent votre travail. Rien d’autre, jamais votre numéro ni vos clients.',
     bioLabel: 'À propos de votre travail',
     bioPlaceholder:
       'Deux ou trois lignes sur ce que vous créez et pour qui vous le créez.',
@@ -245,7 +245,7 @@ export const feed = {
       'Activez si vous acceptez de travailler avec des clients qui ne peuvent pas venir vous voir.',
     verifiedLabel: 'Vérifié',
     verifiedHelp:
-      'Attribué par l’équipe SeamFlow — ce n’est pas une option que vous pouvez activer.',
+      'Attribué par l’équipe SeamFlow. Ce n’est pas une option que vous pouvez activer.',
     responseTimeLabel: 'Répond généralement en {hours} h',
     responseTimeUnknown:
       'Le délai de réponse apparaît après quelques demandes traitées.',
@@ -257,7 +257,7 @@ export const feed = {
       'Les pièces que vous avez réellement réalisées. Publiez-en pour être découvert par de nouveaux clients.',
     worksEmptyTitle: 'Aucune création',
     worksEmptyBody:
-      'Ajoutez des photos de vos réalisations. C’est votre portfolio — distinct du Studio de création, réservé aux inspirations que vous collectez.',
+      'Ajoutez des photos de vos réalisations. C’est votre portfolio, distinct du Studio de création, réservé aux inspirations que vous collectez.',
     worksAdd: 'Ajouter des créations',
     worksUploading: 'Ajout de {done} sur {total}…',
     worksCount: '{count} créations · {published} publiées',
@@ -294,7 +294,7 @@ export const feed = {
     shareCatalogue: 'Partager mon catalogue',
     shareCatalogueTitle: 'Votre lien de catalogue',
     shareCatalogueBody:
-      'Un lien permanent vers tout ce que vous avez publié. Mettez-le dans votre statut WhatsApp, votre bio Instagram ou sur votre enseigne — il n’expire jamais.',
+      'Un lien permanent vers tout ce que vous avez publié. Mettez-le dans votre statut WhatsApp, votre bio Instagram ou sur votre enseigne. Il n’expire jamais.',
     shareOnWhatsApp: 'Partager sur WhatsApp',
     shareVia: 'Partager via…',
     copyLink: 'Copier le lien',
@@ -309,7 +309,7 @@ export const feed = {
     catalogueShareAnyway: 'Partager quand même',
     catalogueAddressLabel: 'Adresse de votre catalogue',
     catalogueAddressHelp:
-      'C’est le lien que les gens verront. Choisissez-le bien — une fois partagé, le modifier casse toutes les copies déjà diffusées.',
+      'C’est le lien que les gens verront. Choisissez-le bien, une fois partagé, le modifier casse toutes les copies déjà diffusées.',
     catalogueAddressTaken: 'Cette adresse est déjà prise',
     catalogueAddressInvalid:
       'Utilisez 3 à 40 caractères : minuscules, chiffres et traits d’union simples.',
@@ -317,13 +317,13 @@ export const feed = {
     publicWhatsappLabel: 'Numéro WhatsApp public',
     publicWhatsappPlaceholder: '+237 6 70 15 19 73',
     publicWhatsappHelp:
-      'Affiché sur votre page catalogue comme bouton Contact. Ce n’est PAS votre numéro de connexion — laissez vide et aucun bouton n’apparaît.',
+      'Affiché sur votre page catalogue comme bouton Contact. Ce n’est PAS votre numéro de connexion, laissez vide et aucun bouton n’apparaît.',
     publicWhatsappInvalid:
       'Entrez un numéro international complet, avec l’indicatif du pays.',
     // ── Carrousel + prix d’une création ─────────────────────────────────────
     onePieceTitle: 'Comment enregistrer ces {count} photos ?',
     onePieceBody:
-      'S’il s’agit de la même pièce sous différents angles — devant, dos, côté — enregistrez-les comme une seule création pour que les clients puissent les faire défiler.',
+      'S’il s’agit de la même pièce sous différents angles, devant, dos, côté - enregistrez-les comme une seule création pour que les clients puissent les faire défiler.',
     onePieceAsOne: 'Une création, {count} photos',
     onePieceAsSeparate: '{count} créations distinctes',
     describeTitle: 'Décrivez cette création',
@@ -358,10 +358,10 @@ export const feed = {
   },
   pt: {
     qualityWhy: 'Fotografias mais nítidas são mais vistas em Descobrir.',
-    readingDone: 'Sugestões adicionadas — confirme-as.',
+    readingDone: 'Sugestões adicionadas, confirme-as.',
     readingNothing: 'Nada a sugerir a partir desta foto.',
     readingPhoto: 'A ler a fotografia…',
-    suggestedNote: 'Sugerido a partir da foto — corrija o que estiver errado.',
+    suggestedNote: 'Sugerido a partir da foto, corrija o que estiver errado.',
     garmentSection: 'O que é?',
     changeGarment: 'Alterar',
     audienceSection: 'Para quem é?',
@@ -410,7 +410,7 @@ export const feed = {
     // ── Vitrine ─────────────────────────────────────────────────────────────
     storefrontTitle: 'A sua vitrine',
     storefrontSubtitle:
-      'O que as pessoas veem quando encontram o seu trabalho. Só isto — nunca o seu número nem os seus clientes.',
+      'O que as pessoas veem quando encontram o seu trabalho. Só isto, nunca o seu número nem os seus clientes.',
     bioLabel: 'Sobre o seu trabalho',
     bioPlaceholder:
       'Duas ou três linhas sobre o que confeciona e para quem.',
@@ -425,7 +425,7 @@ export const feed = {
       'Ative isto se estiver disponível para trabalhar com clientes que não o possam visitar.',
     verifiedLabel: 'Verificado',
     verifiedHelp:
-      'Atribuído pela equipa do SeamFlow — não é algo que possa ativar.',
+      'Atribuído pela equipa do SeamFlow, não é algo que possa ativar.',
     responseTimeLabel: 'Costuma responder em {hours}h',
     responseTimeUnknown:
       'O tempo de resposta aparece depois de responder a alguns pedidos.',
@@ -438,7 +438,7 @@ export const feed = {
       'As peças que realmente confecionou. Publique qualquer uma para ser encontrado por novos clientes.',
     worksEmptyTitle: 'Ainda sem criações',
     worksEmptyBody:
-      'Adicione fotos de trabalho que terminou. Este é o seu portefólio — distinto do Estúdio de Design, que serve para a inspiração que vai reunindo.',
+      'Adicione fotos de trabalho que terminou. Este é o seu portefólio, distinto do Estúdio de Design, que serve para a inspiração que vai reunindo.',
     worksAdd: 'Adicionar criações',
     worksUploading: 'A adicionar {done} de {total}…',
     worksCount: '{count} criações · {published} publicadas',
@@ -475,7 +475,7 @@ export const feed = {
     shareCatalogue: 'Partilhar o meu catálogo',
     shareCatalogueTitle: 'A ligação do seu catálogo',
     shareCatalogueBody:
-      'Uma ligação permanente para tudo o que publicou. Ponha-a no seu estado do WhatsApp, na bio do Instagram ou na tabuleta da loja — nunca expira.',
+      'Uma ligação permanente para tudo o que publicou. Ponha-a no seu estado do WhatsApp, na bio do Instagram ou na tabuleta da loja, nunca expira.',
     shareOnWhatsApp: 'Partilhar no WhatsApp',
     shareVia: 'Partilhar via…',
     copyLink: 'Copiar ligação',
@@ -485,12 +485,12 @@ export const feed = {
     couldNotCopy: 'Não foi possível copiar a ligação',
     catalogueEmptyTitle: 'Ainda não há nada para mostrar',
     catalogueEmptyBody:
-      'O seu catálogo não tem peças publicadas, por isso quem abrisse a ligação veria uma página vazia. Publique primeiro uma criação — depois partilhe.',
+      'O seu catálogo não tem peças publicadas, por isso quem abrisse a ligação veria uma página vazia. Publique primeiro uma criação, depois partilhe.',
     catalogueEmptyAction: 'Publicar algo primeiro',
     catalogueShareAnyway: 'Partilhar mesmo assim',
     catalogueAddressLabel: 'O endereço do seu catálogo',
     catalogueAddressHelp:
-      'É esta a ligação que as pessoas vão ver. Escolha com cuidado — depois de a partilhar, mudá-la estraga todas as cópias já distribuídas.',
+      'É esta a ligação que as pessoas vão ver. Escolha com cuidado, depois de a partilhar, mudá-la estraga todas as cópias já distribuídas.',
     catalogueAddressTaken: 'Esse endereço já está ocupado',
     catalogueAddressInvalid:
       'Use 3 a 40 caracteres: minúsculas, números e hífenes simples.',
@@ -498,13 +498,13 @@ export const feed = {
     publicWhatsappLabel: 'Número de WhatsApp público',
     publicWhatsappPlaceholder: '+244 923 456 789',
     publicWhatsappHelp:
-      'Mostrado na página do seu catálogo como botão de contacto. NÃO é o seu número de início de sessão — deixe vazio e não aparece botão.',
+      'Mostrado na página do seu catálogo como botão de contacto. NÃO é o seu número de início de sessão, deixe vazio e não aparece botão.',
     publicWhatsappInvalid:
       'Introduza um número internacional completo, começando pelo indicativo do país.',
     // ── Carrossel + preço numa criação ──────────────────────────────────────
     onePieceTitle: 'Como devem ser guardadas estas {count} fotos?',
     onePieceBody:
-      'Se forem ângulos diferentes da mesma peça — frente, costas, lado — guarde-as como uma só criação para que os clientes possam percorrê-las.',
+      'Se forem ângulos diferentes da mesma peça, frente, costas, lado - guarde-as como uma só criação para que os clientes possam percorrê-las.',
     onePieceAsOne: 'Uma criação, {count} fotos',
     onePieceAsSeparate: '{count} criações distintas',
     describeTitle: 'Descreva esta criação',
@@ -591,7 +591,7 @@ export const feed = {
     // ── Escaparate ──────────────────────────────────────────────────────────
     storefrontTitle: 'Su escaparate',
     storefrontSubtitle:
-      'Lo que ve la gente cuando encuentra su trabajo. Solo esto — nunca su número de teléfono ni sus clientes.',
+      'Lo que ve la gente cuando encuentra su trabajo. Solo esto, nunca su número de teléfono ni sus clientes.',
     bioLabel: 'Sobre su trabajo',
     bioPlaceholder: 'Dos o tres líneas sobre lo que confecciona y para quién.',
     cityLabel: 'Ciudad',
@@ -604,7 +604,7 @@ export const feed = {
     acceptsRemoteHelp:
       'Actívelo si le parece bien trabajar con clientes que no pueden visitarlo en persona.',
     verifiedLabel: 'Verificado',
-    verifiedHelp: 'Lo otorga el equipo de SeamFlow — no es algo que usted pueda activar.',
+    verifiedHelp: 'Lo otorga el equipo de SeamFlow, no es algo que usted pueda activar.',
     responseTimeLabel: 'Suele responder en {hours} h',
     responseTimeUnknown: 'El tiempo de respuesta aparece cuando haya contestado algunas consultas.',
     saveStorefront: 'Guardar escaparate',
@@ -616,7 +616,7 @@ export const feed = {
       'Las piezas que realmente ha confeccionado. Publique cualquiera para que lo encuentren clientes nuevos.',
     worksEmptyTitle: 'Aún no hay diseños',
     worksEmptyBody:
-      'Agregue fotos de trabajos que haya terminado. Este es su portafolio — distinto del Estudio de Diseño, que es para la inspiración que recopila.',
+      'Agregue fotos de trabajos que haya terminado. Este es su portafolio, distinto del Estudio de Diseño, que es para la inspiración que recopila.',
     worksAdd: 'Agregar diseños',
     worksUploading: 'Agregando {done} de {total}…',
     worksCount: '{count} diseños · {published} publicados',
@@ -653,7 +653,7 @@ export const feed = {
     shareCatalogue: 'Compartir mi catálogo',
     shareCatalogueTitle: 'El enlace de su catálogo',
     shareCatalogueBody:
-      'Un único enlace permanente a todo lo que ha publicado. Póngalo en su estado de WhatsApp, en su biografía de Instagram o en el letrero de su taller — no caduca nunca.',
+      'Un único enlace permanente a todo lo que ha publicado. Póngalo en su estado de WhatsApp, en su biografía de Instagram o en el letrero de su taller, no caduca nunca.',
     shareOnWhatsApp: 'Compartir por WhatsApp',
     shareVia: 'Compartir por…',
     copyLink: 'Copiar enlace',
@@ -663,12 +663,12 @@ export const feed = {
     couldNotCopy: 'No se pudo copiar el enlace',
     catalogueEmptyTitle: 'Aún no hay nada que mostrar',
     catalogueEmptyBody:
-      'Su catálogo no tiene piezas publicadas, así que quien abra el enlace vería una página vacía. Publique primero un diseño — y luego compártalo.',
+      'Su catálogo no tiene piezas publicadas, así que quien abra el enlace vería una página vacía. Publique primero un diseño, y luego compártalo.',
     catalogueEmptyAction: 'Publique algo primero',
     catalogueShareAnyway: 'Compartir de todos modos',
     catalogueAddressLabel: 'La dirección de su catálogo',
     catalogueAddressHelp:
-      'Este es el enlace que verá la gente. Elíjalo con cuidado — una vez compartido, cambiarlo rompe todas las copias que ya circulan.',
+      'Este es el enlace que verá la gente. Elíjalo con cuidado, una vez compartido, cambiarlo rompe todas las copias que ya circulan.',
     catalogueAddressTaken: 'Esa dirección ya está ocupada',
     catalogueAddressInvalid:
       'Use de 3 a 40 letras minúsculas, números y guiones simples.',
@@ -676,13 +676,13 @@ export const feed = {
     publicWhatsappLabel: 'Número público de WhatsApp',
     publicWhatsappPlaceholder: '+237 6 70 15 19 73',
     publicWhatsappHelp:
-      'Se muestra en su catálogo como un botón de Contacto. NO es su número de inicio de sesión — déjelo vacío y no aparece ningún botón.',
+      'Se muestra en su catálogo como un botón de Contacto. NO es su número de inicio de sesión, déjelo vacío y no aparece ningún botón.',
     publicWhatsappInvalid:
       'Escriba un número internacional completo, empezando por su código de país.',
     // ── Carrusel + precio en un diseño ──────────────────────────────────────
     onePieceTitle: '¿Cómo deben guardarse estas {count} fotos?',
     onePieceBody:
-      'Si son distintos ángulos de la misma pieza — frente, espalda, lado — guárdelas como un solo diseño para que los clientes puedan deslizarlas.',
+      'Si son distintos ángulos de la misma pieza, frente, espalda, lado - guárdelas como un solo diseño para que los clientes puedan deslizarlas.',
     onePieceAsOne: 'Un diseño, {count} fotos',
     onePieceAsSeparate: '{count} diseños separados',
     describeTitle: 'Describa este diseño',
@@ -717,10 +717,10 @@ export const feed = {
   },
   sw: {
     qualityWhy: 'Picha zilizo wazi huonekana zaidi katika Gundua.',
-    readingDone: 'Mapendekezo yameongezwa — yahakiki.',
+    readingDone: 'Mapendekezo yameongezwa, yahakiki.',
     readingNothing: 'Hakuna la kupendekeza kutoka kwenye picha hii.',
     readingPhoto: 'Inasoma picha…',
-    suggestedNote: 'Imependekezwa kutoka kwenye picha — rekebisha lisilo sahihi.',
+    suggestedNote: 'Imependekezwa kutoka kwenye picha, rekebisha lisilo sahihi.',
     garmentSection: 'Ni nini?',
     changeGarment: 'Badilisha',
     audienceSection: 'Ni ya nani?',
@@ -768,7 +768,7 @@ export const feed = {
     // ── Dirisha la duka ─────────────────────────────────────────────────────
     storefrontTitle: 'Dirisha la duka lako',
     storefrontSubtitle:
-      'Kile watu wanachokiona wanapokutana na kazi yako. Hiki tu — kamwe si namba yako ya simu wala wateja wako.',
+      'Kile watu wanachokiona wanapokutana na kazi yako. Hiki tu, kamwe si namba yako ya simu wala wateja wako.',
     bioLabel: 'Kuhusu kazi yako',
     bioPlaceholder: 'Mistari miwili au mitatu kuhusu unachoshona na unayemshonea.',
     cityLabel: 'Jiji',
@@ -781,7 +781,7 @@ export const feed = {
     acceptsRemoteHelp:
       'Washa hii kama uko tayari kufanya kazi na wateja wasioweza kukutembelea ana kwa ana.',
     verifiedLabel: 'Amethibitishwa',
-    verifiedHelp: 'Hutolewa na timu ya SeamFlow — si kitu unachoweza kujiwashia.',
+    verifiedHelp: 'Hutolewa na timu ya SeamFlow, si kitu unachoweza kujiwashia.',
     responseTimeLabel: 'Hujibu kwa kawaida ndani ya saa {hours}',
     responseTimeUnknown: 'Muda wa kujibu huonekana ukishajibu maulizo machache.',
     saveStorefront: 'Hifadhi dirisha la duka',
@@ -793,7 +793,7 @@ export const feed = {
       'Vipande ulivyovishona kweli. Chapisha chochote kati yao ili upatikane na wateja wapya.',
     worksEmptyTitle: 'Bado hakuna ubunifu',
     worksEmptyBody:
-      'Ongeza picha za kazi ulizokamilisha. Hili ni jalada lako la kazi — tofauti na Studio ya Ubunifu, ambayo ni ya msukumo unaokusanya.',
+      'Ongeza picha za kazi ulizokamilisha. Hili ni jalada lako la kazi, tofauti na Studio ya Ubunifu, ambayo ni ya msukumo unaokusanya.',
     worksAdd: 'Ongeza ubunifu',
     worksUploading: 'Inaongeza {done} kati ya {total}…',
     worksCount: 'Ubunifu {count} · {published} umechapishwa',
@@ -830,7 +830,7 @@ export const feed = {
     shareCatalogue: 'Shiriki katalogi yangu',
     shareCatalogueTitle: 'Kiungo cha katalogi yako',
     shareCatalogueBody:
-      'Kiungo kimoja cha kudumu kwenda kila ulichochapisha. Kiweke kwenye hali yako ya WhatsApp, wasifu wako wa Instagram, au kwenye bango la duka lako — hakiishi kamwe.',
+      'Kiungo kimoja cha kudumu kwenda kila ulichochapisha. Kiweke kwenye hali yako ya WhatsApp, wasifu wako wa Instagram, au kwenye bango la duka lako, hakiishi kamwe.',
     shareOnWhatsApp: 'Shiriki kwa WhatsApp',
     shareVia: 'Shiriki kupitia…',
     copyLink: 'Nakili kiungo',
@@ -840,12 +840,12 @@ export const feed = {
     couldNotCopy: 'Haikuwezekana kunakili kiungo',
     catalogueEmptyTitle: 'Bado hakuna cha kuonyesha',
     catalogueEmptyBody:
-      'Katalogi yako haina vipande vilivyochapishwa, kwa hivyo yeyote atakayefungua kiungo ataona ukurasa mtupu. Chapisha ubunifu kwanza — kisha ukishiriki.',
+      'Katalogi yako haina vipande vilivyochapishwa, kwa hivyo yeyote atakayefungua kiungo ataona ukurasa mtupu. Chapisha ubunifu kwanza, kisha ukishiriki.',
     catalogueEmptyAction: 'Chapisha kitu kwanza',
     catalogueShareAnyway: 'Shiriki hata hivyo',
     catalogueAddressLabel: 'Anwani ya katalogi yako',
     catalogueAddressHelp:
-      'Hiki ndicho kiungo watu watakachokiona. Kichague kwa makini — ukishakishiriki, kukibadilisha huharibu kila nakala iliyokwisha sambaa.',
+      'Hiki ndicho kiungo watu watakachokiona. Kichague kwa makini, ukishakishiriki, kukibadilisha huharibu kila nakala iliyokwisha sambaa.',
     catalogueAddressTaken: 'Anwani hiyo tayari imechukuliwa',
     catalogueAddressInvalid:
       'Tumia herufi ndogo 3–40, namba na vistari vimoja.',
@@ -853,13 +853,13 @@ export const feed = {
     publicWhatsappLabel: 'Namba ya WhatsApp ya umma',
     publicWhatsappPlaceholder: '+237 6 70 15 19 73',
     publicWhatsappHelp:
-      'Huonyeshwa kwenye ukurasa wa katalogi yako kama kitufe cha Wasiliana. HII SI namba yako ya kuingia — iache wazi na hakuna kitufe kitakachotokea.',
+      'Huonyeshwa kwenye ukurasa wa katalogi yako kama kitufe cha Wasiliana. HII SI namba yako ya kuingia, iache wazi na hakuna kitufe kitakachotokea.',
     publicWhatsappInvalid:
       'Weka namba kamili ya kimataifa, ikianza na msimbo wa nchi yako.',
     // ── Mzunguko wa picha + bei kwenye ubunifu ──────────────────────────────
     onePieceTitle: 'Picha hizi {count} zihifadhiwe vipi?',
     onePieceBody:
-      'Kama ni pande tofauti za kipande kimoja — mbele, nyuma, kando — zihifadhi kama ubunifu mmoja ili wateja waweze kuzipitia.',
+      'Kama ni pande tofauti za kipande kimoja, mbele, nyuma, kando - zihifadhi kama ubunifu mmoja ili wateja waweze kuzipitia.',
     onePieceAsOne: 'Ubunifu mmoja, picha {count}',
     onePieceAsSeparate: 'Ubunifu {count} tofauti',
     describeTitle: 'Eleza ubunifu huu',
@@ -894,10 +894,10 @@ export const feed = {
   },
   ar: {
     qualityWhy: 'الصور الأوضح تُشاهَد أكثر في «اكتشف».',
-    readingDone: 'تمت إضافة الاقتراحات — راجعها.',
+    readingDone: 'تمت إضافة الاقتراحات، راجعها.',
     readingNothing: 'لا يوجد ما يُقترح من هذه الصورة.',
     readingPhoto: 'جارٍ قراءة الصورة…',
-    suggestedNote: 'مقترح من الصورة — صحّح ما هو خطأ.',
+    suggestedNote: 'مقترح من الصورة، صحّح ما هو خطأ.',
     garmentSection: 'ما هذا؟',
     changeGarment: 'تغيير',
     audienceSection: 'لمن هو؟',
@@ -942,7 +942,7 @@ export const feed = {
 
     storefrontTitle: 'واجهة ورشتك',
     storefrontSubtitle:
-      'ما يراه الناس حين يجدون عملك. هذا فقط — لا رقم هاتفك ولا عملاؤك أبدًا.',
+      'ما يراه الناس حين يجدون عملك. هذا فقط، لا رقم هاتفك ولا عملاؤك أبدًا.',
     bioLabel: 'عن عملك',
     bioPlaceholder: 'سطران أو ثلاثة عمّا تخيطه ولمن تخيطه.',
     cityLabel: 'المدينة',
@@ -955,7 +955,7 @@ export const feed = {
     acceptsRemoteHelp:
       'فعّل هذا إن كنت مستعدًّا للعمل مع عملاء لا يستطيعون زيارتك.',
     verifiedLabel: 'موثّق',
-    verifiedHelp: 'يمنحه فريق SeamFlow — ليس شيئًا تُفعّله بنفسك.',
+    verifiedHelp: 'يمنحه فريق SeamFlow، ليس شيئًا تُفعّله بنفسك.',
     responseTimeLabel: 'يردّ عادةً خلال {hours} ساعة',
     responseTimeUnknown: 'يظهر زمن الردّ بعد أن تجيب على بضعة استفسارات.',
     saveStorefront: 'حفظ واجهة الورشة',
@@ -967,7 +967,7 @@ export const feed = {
       'القطع التي خِطتَها فعلًا. انشر أيًّا منها ليجدك عملاء جدد.',
     worksEmptyTitle: 'لا ابتكارات بعد',
     worksEmptyBody:
-      'أضِف صورًا لأعمال أنجزتها. هذا معرض أعمالك — منفصل عن استوديو التصميم المخصّص للإلهام الذي تجمعه.',
+      'أضِف صورًا لأعمال أنجزتها. هذا معرض أعمالك، منفصل عن استوديو التصميم المخصّص للإلهام الذي تجمعه.',
     worksAdd: 'إضافة ابتكارات',
     worksUploading: 'يضيف {done} من {total}…',
     worksCount: '{count} ابتكارات · {published} منشورة',
@@ -1004,7 +1004,7 @@ export const feed = {
     shareCatalogue: 'مشاركة كتالوجي',
     shareCatalogueTitle: 'رابط كتالوجك',
     shareCatalogueBody:
-      'رابط دائم واحد لكل ما نشرته. ضعه في حالة واتساب، أو في نبذة إنستغرام، أو على لافتة ورشتك — لا ينتهي أبدًا.',
+      'رابط دائم واحد لكل ما نشرته. ضعه في حالة واتساب، أو في نبذة إنستغرام، أو على لافتة ورشتك، لا ينتهي أبدًا.',
     shareOnWhatsApp: 'مشاركة على واتساب',
     shareVia: 'مشاركة عبر…',
     copyLink: 'نسخ الرابط',
@@ -1014,12 +1014,12 @@ export const feed = {
     couldNotCopy: 'تعذّر نسخ الرابط',
     catalogueEmptyTitle: 'لا شيء لعرضه بعد',
     catalogueEmptyBody:
-      'كتالوجك لا يحتوي قطعًا منشورة، فمن يفتح الرابط سيرى صفحة فارغة. انشر تصميمًا أولًا — ثم شاركه.',
+      'كتالوجك لا يحتوي قطعًا منشورة، فمن يفتح الرابط سيرى صفحة فارغة. انشر تصميمًا أولًا، ثم شاركه.',
     catalogueEmptyAction: 'انشر شيئًا أولًا',
     catalogueShareAnyway: 'المشاركة على أي حال',
     catalogueAddressLabel: 'عنوان كتالوجك',
     catalogueAddressHelp:
-      'هذا هو الرابط الذي يراه الناس. اختره بعناية — فبعد مشاركته، تغييره يُعطّل كل نسخة انتشرت منه.',
+      'هذا هو الرابط الذي يراه الناس. اختره بعناية، فبعد مشاركته، تغييره يُعطّل كل نسخة انتشرت منه.',
     catalogueAddressTaken: 'هذا العنوان محجوز بالفعل',
     catalogueAddressInvalid:
       'استخدم من 3 إلى 40 حرفًا لاتينيًا صغيرًا وأرقامًا وشَرطات مفردة.',
@@ -1027,13 +1027,13 @@ export const feed = {
     publicWhatsappLabel: 'رقم واتساب العام',
     publicWhatsappPlaceholder: '+237 6 70 15 19 73',
     publicWhatsappHelp:
-      'يُعرض في صفحة كتالوجك كزرّ للتواصل. هذا ليس رقم تسجيل دخولك — اتركه فارغًا فلا يظهر أي زرّ.',
+      'يُعرض في صفحة كتالوجك كزرّ للتواصل. هذا ليس رقم تسجيل دخولك، اتركه فارغًا فلا يظهر أي زرّ.',
     publicWhatsappInvalid:
       'أدخل رقمًا دوليًا كاملًا يبدأ برمز بلدك.',
 
     onePieceTitle: 'كيف تُحفظ هذه الصور الـ{count}؟',
     onePieceBody:
-      'إن كانت زوايا مختلفة للقطعة نفسها — أمام وخلف وجانب — فاحفظها كتصميم واحد ليتمكّن العملاء من تصفّحها.',
+      'إن كانت زوايا مختلفة للقطعة نفسها، أمام وخلف وجانب - فاحفظها كتصميم واحد ليتمكّن العملاء من تصفّحها.',
     onePieceAsOne: 'تصميم واحد، {count} صور',
     onePieceAsSeparate: '{count} تصاميم منفصلة',
     describeTitle: 'صِف هذا التصميم',

@@ -148,7 +148,7 @@ export default function InvoiceEditor() {
       if (category === 'fabric' && orderFabric) {
         const yards = parsePositive(orderQ.data?.fabricYardageUsed ?? null);
         const cost = parseDecimal(orderFabric.costPerMeter) ?? 0;
-        const description = [orderFabric.name, orderFabric.color ? `— ${orderFabric.color}` : '']
+        const description = [orderFabric.name, orderFabric.color ? `(${orderFabric.color})` : '']
           .filter(Boolean)
           .join(' ');
         return [
@@ -186,7 +186,7 @@ export default function InvoiceEditor() {
     const ok = await dialog.confirm({
       title: t('invoices.currencyChangeTitle'),
       message: t('invoices.currencyChangeBody', {
-        from: prev ?? '—',
+        from: prev ?? '-',
         to: next,
         amount: String(subtotal),
       }),

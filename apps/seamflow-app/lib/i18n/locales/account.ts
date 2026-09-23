@@ -3,14 +3,14 @@ export const account = {
     // ── The delete screen ────────────────────────────────────────────────
     deleteTitle: 'Delete my account',
     warningBody:
-      'This closes your shop and erases your records. Nothing happens for {days} days — you can change your mind at any point before then.',
+      'This closes your shop and erases your records. Nothing happens for {days} days. You can change your mind at any point before then.',
 
     whatGoesTitle: 'What gets erased',
     goesClients: 'Every client, with their measurements',
     goesOrders: 'Every order, group order and invoice',
     goesPhotos: 'Every photo you have uploaded',
     goesFeed: 'Your public page and everything on it',
-    goesAccount: 'Your sign-in — you will not be able to log back in',
+    goesAccount: 'Your sign-in. You will not be able to log back in',
 
     takeItTitle: 'Take your records first',
     takeItBody:
@@ -51,14 +51,14 @@ export const account = {
   fr: {
     deleteTitle: 'Supprimer mon compte',
     warningBody:
-      'Cela ferme votre atelier et efface vos dossiers. Rien ne se passe pendant {days} jours — vous pouvez changer d’avis avant.',
+      'Cela ferme votre atelier et efface vos dossiers. Rien ne se passe pendant {days} jours. Vous pouvez changer d’avis avant.',
 
     whatGoesTitle: 'Ce qui sera effacé',
     goesClients: 'Tous vos clients, avec leurs mesures',
     goesOrders: 'Toutes les commandes, commandes de groupe et factures',
     goesPhotos: 'Toutes les photos que vous avez ajoutées',
     goesFeed: 'Votre page publique et tout son contenu',
-    goesAccount: 'Votre connexion — vous ne pourrez plus vous reconnecter',
+    goesAccount: 'Votre connexion. Vous ne pourrez plus vous reconnecter',
 
     takeItTitle: 'Récupérez vos dossiers d’abord',
     takeItBody:
@@ -100,14 +100,14 @@ export const account = {
     // ── O ecrã de eliminação ─────────────────────────────────────────────
     deleteTitle: 'Eliminar a minha conta',
     warningBody:
-      'Isto encerra a sua loja e apaga os seus registos. Nada acontece durante {days} dias — pode mudar de ideias a qualquer momento até lá.',
+      'Isto encerra a sua loja e apaga os seus registos. Nada acontece durante {days} dias, pode mudar de ideias a qualquer momento até lá.',
 
     whatGoesTitle: 'O que é apagado',
     goesClients: 'Todos os clientes, com as suas medidas',
     goesOrders: 'Todas as encomendas, encomendas de grupo e faturas',
     goesPhotos: 'Todas as fotos que carregou',
     goesFeed: 'A sua página pública e tudo o que lá está',
-    goesAccount: 'O seu acesso — deixará de conseguir iniciar sessão',
+    goesAccount: 'O seu acesso, deixará de conseguir iniciar sessão',
 
     takeItTitle: 'Leve primeiro os seus registos',
     takeItBody:
@@ -199,14 +199,14 @@ export const account = {
     // ── Skrini ya kufuta ─────────────────────────────────────────────────
     deleteTitle: 'Futa akaunti yangu',
     warningBody:
-      'Hii inafunga duka lako na kufuta kumbukumbu zako. Hakuna kitakachotokea kwa siku {days} — unaweza kubadilisha nia wakati wowote kabla ya hapo.',
+      'Hii inafunga duka lako na kufuta kumbukumbu zako. Hakuna kitakachotokea kwa siku {days}, unaweza kubadilisha nia wakati wowote kabla ya hapo.',
 
     whatGoesTitle: 'Kitakachofutwa',
     goesClients: 'Kila mteja, pamoja na vipimo vyake',
     goesOrders: 'Kila agizo, agizo la kikundi na ankara',
     goesPhotos: 'Kila picha uliyopakia',
     goesFeed: 'Ukurasa wako wa umma na kila kilichomo',
-    goesAccount: 'Uwezo wako wa kuingia — hutaweza kuingia tena',
+    goesAccount: 'Uwezo wako wa kuingia, hutaweza kuingia tena',
 
     takeItTitle: 'Chukua kumbukumbu zako kwanza',
     takeItBody:
@@ -248,14 +248,14 @@ export const account = {
     // ── شاشة الحذف ───────────────────────────────────────────────────────
     deleteTitle: 'حذف حسابي',
     warningBody:
-      'هذا يُغلق ورشتك ويمحو سجلّاتك. لن يحدث شيء لمدة {days} يومًا — يمكنك العدول في أي وقت قبل ذلك.',
+      'هذا يُغلق ورشتك ويمحو سجلّاتك. لن يحدث شيء لمدة {days} يومًا، يمكنك العدول في أي وقت قبل ذلك.',
 
     whatGoesTitle: 'ما الذي يُمحى',
     goesClients: 'كل عميل، مع مقاساته',
     goesOrders: 'كل طلب وطلب مجموعة وفاتورة',
     goesPhotos: 'كل صورة رفعتها',
     goesFeed: 'صفحتك العامة وكل ما فيها',
-    goesAccount: 'إمكانية دخولك — لن تتمكّن من تسجيل الدخول مجددًا',
+    goesAccount: 'إمكانية دخولك، لن تتمكّن من تسجيل الدخول مجددًا',
 
     takeItTitle: 'خُذ سجلّاتك أولًا',
     takeItBody:

@@ -56,7 +56,7 @@ export default function CreateQuote() {
       (prev) =>
         prev ||
         (conversation.design?.garmentType
-          ? `${conversation.design.garmentType} — ${conversation.counterparty.name}`
+          ? `${conversation.design.garmentType}, ${conversation.counterparty.name}`
           : ''),
     );
   }, [conversation]);

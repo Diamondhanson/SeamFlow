@@ -1,10 +1,10 @@
-// Help & Support tickets (plan step 1) — shared by the tailor and client
+// Help & Support tickets (plan step 1), shared by the tailor and client
 // sides. Status and category labels are built at render from the raw enum
 // value: t('support.status_' + status), t('support.category_' + category).
 export const support = {
   en: {
     title: 'Help & support',
-    intro: 'Something not working, or a question? Tell us — a real person at SeamFlow replies here.',
+    intro: 'Something not working, or a question? Tell us, a real person at SeamFlow replies here.',
     newTicket: 'New ticket',
     yourTickets: 'Your tickets',
     emptyTitle: 'No tickets yet',
@@ -54,7 +54,7 @@ export const support = {
   },
   fr: {
     title: 'Aide & support',
-    intro: 'Un problème ou une question ? Écrivez-nous — une vraie personne chez SeamFlow vous répond ici.',
+    intro: 'Un problème ou une question ? Écrivez-nous, une vraie personne chez SeamFlow vous répond ici.',
     newTicket: 'Nouveau ticket',
     yourTickets: 'Vos tickets',
     emptyTitle: 'Aucun ticket',
@@ -104,7 +104,7 @@ export const support = {
   },
   pt: {
     title: 'Ajuda e suporte',
-    intro: 'Algo não funciona ou tem uma dúvida? Diga-nos — uma pessoa real da SeamFlow responde aqui.',
+    intro: 'Algo não funciona ou tem uma dúvida? Diga-nos, uma pessoa real da SeamFlow responde aqui.',
     newTicket: 'Novo pedido de ajuda',
     yourTickets: 'Os seus pedidos',
     emptyTitle: 'Ainda sem pedidos',
@@ -154,7 +154,7 @@ export const support = {
   },
   es: {
     title: 'Ayuda y soporte',
-    intro: '¿Algo no funciona o tienes una pregunta? Cuéntanos — una persona real de SeamFlow responde aquí.',
+    intro: '¿Algo no funciona o tienes una pregunta? Cuéntanos, una persona real de SeamFlow responde aquí.',
     newTicket: 'Nuevo ticket',
     yourTickets: 'Tus tickets',
     emptyTitle: 'Aún no hay tickets',
@@ -204,7 +204,7 @@ export const support = {
   },
   sw: {
     title: 'Msaada',
-    intro: 'Kuna kitu hakifanyi kazi, au una swali? Tuambie — mtu halisi wa SeamFlow atakujibu hapa.',
+    intro: 'Kuna kitu hakifanyi kazi, au una swali? Tuambie, mtu halisi wa SeamFlow atakujibu hapa.',
     newTicket: 'Tiketi mpya',
     yourTickets: 'Tiketi zako',
     emptyTitle: 'Bado hakuna tiketi',
@@ -254,7 +254,7 @@ export const support = {
   },
   ar: {
     title: 'المساعدة والدعم',
-    intro: 'هل هناك شيء لا يعمل أو لديك سؤال؟ أخبرنا — سيرد عليك شخص حقيقي من SeamFlow هنا.',
+    intro: 'هل هناك شيء لا يعمل أو لديك سؤال؟ أخبرنا، سيرد عليك شخص حقيقي من SeamFlow هنا.',
     newTicket: 'تذكرة جديدة',
     yourTickets: 'تذاكرك',
     emptyTitle: 'لا توجد تذاكر بعد',

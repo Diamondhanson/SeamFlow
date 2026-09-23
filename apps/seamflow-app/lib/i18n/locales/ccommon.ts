@@ -3,7 +3,7 @@
 export const ccommon = {
   en: {
     restartTitle: 'Reopen SeamFlow to finish',
-    restartBody: 'Arabic reads right to left, so the whole layout has to be rebuilt. Close SeamFlow completely and open it again — your work is saved.',
+    restartBody: 'Arabic reads right to left, so the whole layout has to be rebuilt. Close SeamFlow completely and open it again. Your work is saved.',
     save: 'Save',
     cancel: 'Cancel',
     signOut: 'Sign out',
@@ -29,7 +29,7 @@ export const ccommon = {
   },
   fr: {
     restartTitle: 'Rouvrez SeamFlow pour terminer',
-    restartBody: 'L’arabe se lit de droite à gauche : toute la mise en page doit être reconstruite. Fermez complètement SeamFlow puis rouvrez-le — votre travail est enregistré.',
+    restartBody: 'L’arabe se lit de droite à gauche : toute la mise en page doit être reconstruite. Fermez complètement SeamFlow puis rouvrez-le. Votre travail est enregistré.',
     save: 'Enregistrer',
     cancel: 'Annuler',
     signOut: 'Se déconnecter',
@@ -55,7 +55,7 @@ export const ccommon = {
   },
   pt: {
     restartTitle: 'Reabra o SeamFlow para concluir',
-    restartBody: 'O árabe lê-se da direita para a esquerda, por isso todo o layout tem de ser reconstruído. Feche o SeamFlow por completo e abra-o de novo — o seu trabalho está guardado.',
+    restartBody: 'O árabe lê-se da direita para a esquerda, por isso todo o layout tem de ser reconstruído. Feche o SeamFlow por completo e abra-o de novo. O seu trabalho está guardado.',
     save: 'Guardar',
     cancel: 'Cancelar',
     signOut: 'Terminar sessão',
@@ -81,7 +81,7 @@ export const ccommon = {
   },
   es: {
     restartTitle: 'Vuelva a abrir SeamFlow para terminar',
-    restartBody: 'El árabe se lee de derecha a izquierda, así que hay que rehacer toda la maquetación. Cierre SeamFlow por completo y ábralo de nuevo — su trabajo está guardado.',
+    restartBody: 'El árabe se lee de derecha a izquierda, así que hay que rehacer toda la maquetación. Cierre SeamFlow por completo y ábralo de nuevo. Su trabajo está guardado.',
     save: 'Guardar',
     cancel: 'Cancelar',
     signOut: 'Cerrar sesión',
@@ -107,7 +107,7 @@ export const ccommon = {
   },
   sw: {
     restartTitle: 'Fungua SeamFlow tena ili kukamilisha',
-    restartBody: 'Kiarabu husomwa kulia kwenda kushoto, kwa hivyo mpangilio wote lazima ujengwe upya. Funga SeamFlow kabisa kisha uifungue tena — kazi yako imehifadhiwa.',
+    restartBody: 'Kiarabu husomwa kulia kwenda kushoto, kwa hivyo mpangilio wote lazima ujengwe upya. Funga SeamFlow kabisa kisha uifungue tena, kazi yako imehifadhiwa.',
     save: 'Hifadhi',
     cancel: 'Ghairi',
     signOut: 'Toka',
@@ -133,7 +133,7 @@ export const ccommon = {
   },
   ar: {
     restartTitle: 'أعِد فتح SeamFlow لإتمام التغيير',
-    restartBody: 'العربية تُقرأ من اليمين إلى اليسار، لذا يجب إعادة بناء التخطيط بالكامل. أغلِق SeamFlow تمامًا ثم افتحه من جديد — عملك محفوظ.',
+    restartBody: 'العربية تُقرأ من اليمين إلى اليسار، لذا يجب إعادة بناء التخطيط بالكامل. أغلِق SeamFlow تمامًا ثم افتحه من جديد، عملك محفوظ.',
     save: 'حفظ',
     cancel: 'إلغاء',
     signOut: 'تسجيل الخروج',

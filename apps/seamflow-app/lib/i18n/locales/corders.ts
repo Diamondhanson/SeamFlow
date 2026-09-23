@@ -14,7 +14,7 @@ export const corders = {
     timelineSection: 'Progress',
     itemsSection: 'Pieces',
     quantity: 'Qty {count}',
-    // status labels — keyed by the raw enum value: status_<status>
+    // status labels, keyed by the raw enum value: status_<status>
     status_registered: 'Registered',
     status_in_progress: 'In progress',
     status_testing: 'Fitting',
@@ -61,7 +61,7 @@ export const corders = {
     timelineSection: 'Progresso',
     itemsSection: 'Peças',
     quantity: 'Qtd. {count}',
-    // etiquetas de estado — a chave é o valor bruto do enum: status_<status>
+    // etiquetas de estado, a chave é o valor bruto do enum: status_<status>
     status_registered: 'Registada',
     status_in_progress: 'Em curso',
     status_testing: 'Prova',
@@ -85,7 +85,7 @@ export const corders = {
     timelineSection: 'Avance',
     itemsSection: 'Piezas',
     quantity: 'Cant. {count}',
-    // etiquetas de estado — según el valor del enum: status_<status>
+    // etiquetas de estado, según el valor del enum: status_<status>
     status_registered: 'Registrado',
     status_in_progress: 'En proceso',
     status_testing: 'Prueba',
@@ -109,7 +109,7 @@ export const corders = {
     timelineSection: 'Maendeleo',
     itemsSection: 'Vipande',
     quantity: 'Idadi {count}',
-    // lebo za hali — kwa thamani ya enum: status_<status>
+    // lebo za hali, kwa thamani ya enum: status_<status>
     status_registered: 'Limesajiliwa',
     status_in_progress: 'Linaendelea',
     status_testing: 'Kufitisha',
@@ -133,7 +133,7 @@ export const corders = {
     timelineSection: 'التقدّم',
     itemsSection: 'القطع',
     quantity: 'الكمية {count}',
-    // تسميات الحالة — حسب قيمة enum: status_<status>
+    // تسميات الحالة، حسب قيمة enum: status_<status>
     status_registered: 'مُسجَّل',
     status_in_progress: 'قيد التنفيذ',
     status_testing: 'قياس',

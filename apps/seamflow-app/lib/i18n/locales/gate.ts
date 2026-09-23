@@ -1,4 +1,4 @@
-// Copy for the profile gate (lib/profile-gate.tsx) — shown when a user tries a
+// Copy for the profile gate (lib/profile-gate.tsx), shown when a user tries a
 // public/shared action before setting up their tailor profile. Referenced as
 // t('gate.key').
 export const gate = {

@@ -1,5 +1,5 @@
 // Generic, user-facing error messages surfaced by the dialog error funnel
-// (lib/error-message.ts). Kept deliberately clear but non-technical — never a
+// (lib/error-message.ts). Kept deliberately clear but non-technical, never a
 // raw server/Supabase string. Auth screens keep their own copy in ./auth.
 export const errors = {
   en: {
@@ -8,7 +8,7 @@ export const errors = {
     notFound: "We couldn't find what you were looking for. Please refresh and try again.",
     forbidden: "You don't have permission to do that.",
     sessionExpired: 'Your session has expired. Please sign in again.',
-    conflict: 'That didn’t go through — something changed. Please refresh and try again.',
+    conflict: 'That didn’t go through, something changed. Please refresh and try again.',
     validation: 'Please check your details and try again.',
     uploadFailed: "We couldn't upload that photo. Please try again.",
     permission: 'Permission needed. Enable access in your device settings and try again.',
@@ -20,7 +20,7 @@ export const errors = {
     notFound: "Nous n'avons pas trouvé ce que vous cherchiez. Actualisez et réessayez.",
     forbidden: "Vous n'êtes pas autorisé à effectuer cette action.",
     sessionExpired: 'Votre session a expiré. Veuillez vous reconnecter.',
-    conflict: "L'opération n'a pas abouti — quelque chose a changé. Actualisez et réessayez.",
+    conflict: "L'opération n'a pas abouti, quelque chose a changé. Actualisez et réessayez.",
     validation: 'Veuillez vérifier vos informations et réessayer.',
     uploadFailed: "Nous n'avons pas pu téléverser cette photo. Veuillez réessayer.",
     permission: "Autorisation requise. Activez l'accès dans les réglages de votre appareil et réessayez.",
@@ -32,7 +32,7 @@ export const errors = {
     notFound: 'Não encontrámos o que procurava. Atualize e tente novamente.',
     forbidden: 'Não tem permissão para fazer isso.',
     sessionExpired: 'A sua sessão expirou. Inicie sessão novamente.',
-    conflict: 'Não foi possível concluir — algo mudou. Atualize e tente novamente.',
+    conflict: 'Não foi possível concluir, algo mudou. Atualize e tente novamente.',
     validation: 'Verifique os seus dados e tente novamente.',
     uploadFailed: 'Não foi possível carregar essa foto. Tente novamente.',
     permission: 'É necessária permissão. Ative o acesso nas definições do dispositivo e tente novamente.',
@@ -56,7 +56,7 @@ export const errors = {
     notFound: 'Hatukupata ulichokuwa unatafuta. Tafadhali onyesha upya kisha ujaribu tena.',
     forbidden: 'Huna ruhusa ya kufanya hivyo.',
     sessionExpired: 'Kipindi chako kimeisha. Tafadhali ingia tena.',
-    conflict: 'Haikukamilika — kitu kimebadilika. Tafadhali onyesha upya kisha ujaribu tena.',
+    conflict: 'Haikukamilika. Kitu kimebadilika. Tafadhali onyesha upya kisha ujaribu tena.',
     validation: 'Tafadhali angalia taarifa zako kisha ujaribu tena.',
     uploadFailed: 'Hatukuweza kupakia picha hiyo. Tafadhali jaribu tena.',
     permission: 'Ruhusa inahitajika. Washa ufikiaji katika mipangilio ya kifaa chako kisha ujaribu tena.',
@@ -68,7 +68,7 @@ export const errors = {
     notFound: 'لم نتمكن من العثور على ما تبحث عنه. يرجى التحديث والمحاولة مرة أخرى.',
     forbidden: 'ليس لديك إذن للقيام بذلك.',
     sessionExpired: 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.',
-    conflict: 'لم تتم العملية — تغيّر شيء ما. يرجى التحديث والمحاولة مرة أخرى.',
+    conflict: 'لم تتم العملية، تغيّر شيء ما. يرجى التحديث والمحاولة مرة أخرى.',
     validation: 'يرجى التحقق من بياناتك والمحاولة مرة أخرى.',
     uploadFailed: 'تعذّر رفع تلك الصورة. يرجى المحاولة مرة أخرى.',
     permission: 'الإذن مطلوب. فعّل الوصول من إعدادات جهازك وحاول مرة أخرى.',

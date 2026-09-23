@@ -1,5 +1,5 @@
 // ============================================================================
-// "Shared to SeamFlow" — the screen an image lands on when it arrives from the
+// "Shared to SeamFlow", the screen an image lands on when it arrives from the
 // OS share sheet (Android intent, or the PWA's Web Share Target).
 // ============================================================================
 

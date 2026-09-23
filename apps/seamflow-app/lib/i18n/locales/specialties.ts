@@ -1,4 +1,4 @@
-// "What do you make?" — the tailor's specialties picker.
+// "What do you make?", the tailor's specialties picker.
 //
 // The garment names themselves are NOT here: they live in the shared taxonomy
 // (packages/schemas/src/garment.ts) with their own EN/FR labels, because the
@@ -8,9 +8,9 @@ export const specialties = {
   en: {
     title: 'What do you make?',
     intro:
-      'Pick the garments you actually sew. This is how clients looking for your kind of work find you — and how we know which requests to show you.',
+      'Pick the garments you actually sew. This is how clients looking for your kind of work find you, and how we know which requests to show you.',
     count: '{count} of {max} chosen',
-    atCap: 'That’s {max} — the most you can pick. Untick one to swap it.',
+    atCap: 'That’s {max}, the most you can pick. Untick one to swap it.',
 
     // The getting-started checklist entry, and the nudge for tailors who
     // signed up before this existed.
@@ -23,7 +23,7 @@ export const specialties = {
 
     // Storefront summary, where the free-text box used to be.
     storefrontLabel: 'What you make',
-    storefrontEmpty: 'Not set yet — tap to choose',
+    storefrontEmpty: 'Not set yet. Tap to choose',
     storefrontCount: '{count} chosen',
   },
   fr: {
@@ -41,15 +41,15 @@ export const specialties = {
     promptLater: 'Plus tard',
 
     storefrontLabel: 'Ce que vous confectionnez',
-    storefrontEmpty: 'Non défini — appuyez pour choisir',
+    storefrontEmpty: 'Non défini. Appuyez pour choisir',
     storefrontCount: '{count} sélectionnés',
   },
   pt: {
     title: 'O que confeciona?',
     intro:
-      'Escolha as peças que realmente costura. É assim que os clientes à procura do seu tipo de trabalho o encontram — e como sabemos que pedidos lhe mostrar.',
+      'Escolha as peças que realmente costura. É assim que os clientes à procura do seu tipo de trabalho o encontram, e como sabemos que pedidos lhe mostrar.',
     count: '{count} de {max} escolhidas',
-    atCap: 'São {max} — o máximo que pode escolher. Desmarque uma para trocar.',
+    atCap: 'São {max}, o máximo que pode escolher. Desmarque uma para trocar.',
 
     checklistLabel: 'Diga-nos o que confeciona',
     promptTitle: 'O que confeciona?',
@@ -59,7 +59,7 @@ export const specialties = {
     promptLater: 'Mais tarde',
 
     storefrontLabel: 'O que confeciona',
-    storefrontEmpty: 'Ainda por definir — toque para escolher',
+    storefrontEmpty: 'Ainda por definir. Toque para escolher',
     storefrontCount: '{count} escolhidas',
   },
   es: {
@@ -85,7 +85,7 @@ export const specialties = {
     intro:
       'Chagua nguo unazoshona kweli. Ndivyo wateja wanaotafuta kazi ya aina yako wanavyokupata, na ndivyo tunavyojua maombi ya kukuonyesha.',
     count: '{count} kati ya {max} zimechaguliwa',
-    atCap: 'Ni {max} — kiwango cha juu unachoweza kuchagua. Ondoa moja ili kubadilisha.',
+    atCap: 'Ni {max}, kiwango cha juu unachoweza kuchagua. Ondoa moja ili kubadilisha.',
 
     checklistLabel: 'Tuambie unashona nini',
     promptTitle: 'Unashona nini?',
@@ -95,13 +95,13 @@ export const specialties = {
     promptLater: 'Baadaye',
 
     storefrontLabel: 'Unachoshona',
-    storefrontEmpty: 'Bado haijawekwa — gusa ili kuchagua',
+    storefrontEmpty: 'Bado haijawekwa. Gusa ili kuchagua',
     storefrontCount: '{count} zimechaguliwa',
   },
   ar: {
     title: 'ماذا تخيط؟',
     intro:
-      'اختر الملابس التي تخيطها فعلًا. بهذا يجدك العملاء الباحثون عن نوع عملك — وبهذا نعرف أي الطلبات نعرضها عليك.',
+      'اختر الملابس التي تخيطها فعلًا. بهذا يجدك العملاء الباحثون عن نوع عملك، وبهذا نعرف أي الطلبات نعرضها عليك.',
     count: 'تم اختيار {count} من {max}',
     atCap: 'هذا هو الحد الأقصى ({max}). ألغِ اختيار واحد لتستبدله.',
 
@@ -115,7 +115,7 @@ export const specialties = {
 
     // ملخّص دِرِيسة العرض، مكان مربّع النص الحر سابقًا.
     storefrontLabel: 'ما تخيطه',
-    storefrontEmpty: 'لم يُحدَّد بعد — انقر للاختيار',
+    storefrontEmpty: 'لم يُحدَّد بعد، انقر للاختيار',
     storefrontCount: 'تم اختيار {count}',
   },
 };

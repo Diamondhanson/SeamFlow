@@ -32,12 +32,12 @@ export const misc = {
     enterYourPin: 'Enter your PIN',
     tooManyAttemptsTitle: 'Too many attempts',
     tooManyAttemptsBody:
-      '{max} wrong tries. Signing you out — please sign in again to continue.',
+      '{max} wrong tries. Signing you out, please sign in again to continue.',
     wrongPinAttempts: 'Wrong PIN. {left} attempt{plural} left.',
     forgotPinSignOut: 'Forgot PIN? Sign out',
     forgotPinConfirmTitle: 'Reset your PIN?',
     forgotPinConfirmBody:
-      "To reset your PIN you'll sign out, then log back in and set a new one. Your work is safe — it stays on your account.",
+      "To reset your PIN you'll sign out, then log back in and set a new one. Your work is safe. It stays on your account.",
     forgotPinConfirmCta: 'Sign out',
     // Contact picker
     selectFromContacts: 'Select from contacts',
@@ -55,7 +55,7 @@ export const misc = {
       "Microphone access is off. Enable Microphone for this app in your phone's Settings to talk to the assistant.",
     openSettings: 'Open Settings',
     installHintTitle: 'Add SeamFlow to your Home Screen',
-    installHintBody: 'Tap the Share button below, then choose “Add to Home Screen” — SeamFlow opens like an app, full screen.',
+    installHintBody: 'Tap the Share button below, then choose “Add to Home Screen”. SeamFlow opens like an app, full screen.',
     photosOfflineTitle: "You're offline",
     photosOfflineBody:
       'Photos need a connection to upload. Reconnect and add them then.',
@@ -66,7 +66,7 @@ export const misc = {
     selectCountryDialCode: 'Select country dial code',
     // Offline banner
     offlineWithPending:
-      'Offline — {count} change{plural} will sync when reconnected',
+      'Offline, {count} change{plural} will sync when reconnected',
     youreOffline: "You're offline",
     syncing: 'Syncing {count} change{plural}…',
     // Calendar
@@ -113,12 +113,12 @@ export const misc = {
     enterYourPin: 'Saisissez votre code',
     tooManyAttemptsTitle: 'Trop de tentatives',
     tooManyAttemptsBody:
-      '{max} mauvaises tentatives. Déconnexion — veuillez vous reconnecter pour continuer.',
+      '{max} mauvaises tentatives. Déconnexion, veuillez vous reconnecter pour continuer.',
     wrongPinAttempts: 'Code incorrect. {left} tentative{plural} restante{plural}.',
     forgotPinSignOut: 'Code oublié ? Se déconnecter',
     forgotPinConfirmTitle: 'Réinitialiser votre code ?',
     forgotPinConfirmBody:
-      'Pour réinitialiser votre code, vous allez vous déconnecter, puis vous reconnecter et en définir un nouveau. Vos données sont en sécurité — elles restent sur votre compte.',
+      'Pour réinitialiser votre code, vous allez vous déconnecter, puis vous reconnecter et en définir un nouveau. Vos données sont en sécurité. Elles restent sur votre compte.',
     forgotPinConfirmCta: 'Se déconnecter',
     // Contact picker
     selectFromContacts: 'Choisir dans les contacts',
@@ -136,7 +136,7 @@ export const misc = {
       'L’accès au micro est désactivé. Activez le micro pour cette application dans les réglages de votre téléphone pour parler à l’assistant.',
     openSettings: 'Ouvrir les réglages',
     installHintTitle: 'Ajoutez SeamFlow à votre écran d’accueil',
-    installHintBody: 'Touchez le bouton Partager en bas, puis « Sur l’écran d’accueil » — SeamFlow s’ouvrira comme une application, en plein écran.',
+    installHintBody: 'Touchez le bouton Partager en bas, puis « Sur l’écran d’accueil ». SeamFlow s’ouvrira comme une application, en plein écran.',
     photosOfflineTitle: 'Vous êtes hors ligne',
     photosOfflineBody:
       'Les photos nécessitent une connexion pour être envoyées. Reconnectez-vous pour les ajouter.',
@@ -147,7 +147,7 @@ export const misc = {
     selectCountryDialCode: 'Choisir l’indicatif du pays',
     // Offline banner
     offlineWithPending:
-      'Hors ligne — {count} modification{plural} sera synchronisée à la reconnexion',
+      'Hors ligne, {count} modification{plural} sera synchronisée à la reconnexion',
     youreOffline: 'Vous êtes hors ligne',
     syncing: 'Synchronisation de {count} modification{plural}…',
     // Calendar
@@ -194,12 +194,12 @@ export const misc = {
     enterYourPin: 'Introduza o seu PIN',
     tooManyAttemptsTitle: 'Demasiadas tentativas',
     tooManyAttemptsBody:
-      '{max} tentativas erradas. A terminar a sessão — inicie sessão novamente para continuar.',
+      '{max} tentativas erradas. A terminar a sessão, inicie sessão novamente para continuar.',
     wrongPinAttempts: 'PIN incorreto. Resta{plural} {left} tentativa{plural}.',
     forgotPinSignOut: 'Esqueceu-se do PIN? Terminar sessão',
     forgotPinConfirmTitle: 'Repor o seu PIN?',
     forgotPinConfirmBody:
-      'Para repor o PIN vai terminar a sessão, voltar a entrar e definir um novo. O seu trabalho está seguro — fica na sua conta.',
+      'Para repor o PIN vai terminar a sessão, voltar a entrar e definir um novo. O seu trabalho está seguro, fica na sua conta.',
     forgotPinConfirmCta: 'Terminar sessão',
     // Seletor de contactos
     selectFromContacts: 'Escolher dos contactos',
@@ -218,7 +218,7 @@ export const misc = {
     openSettings: 'Abrir Definições',
     installHintTitle: 'Adicione o SeamFlow ao ecrã principal',
     installHintBody:
-      'Toque no botão Partilhar abaixo e escolha “Adicionar ao ecrã principal” — o SeamFlow abre como uma aplicação, em ecrã inteiro.',
+      'Toque no botão Partilhar abaixo e escolha “Adicionar ao ecrã principal”, o SeamFlow abre como uma aplicação, em ecrã inteiro.',
     photosOfflineTitle: 'Está offline',
     photosOfflineBody:
       'As fotos precisam de ligação para serem carregadas. Volte a ligar-se e adicione-as depois.',
@@ -229,7 +229,7 @@ export const misc = {
     selectCountryDialCode: 'Selecionar indicativo do país',
     // Aviso de offline
     offlineWithPending:
-      'Offline — {count} alteraç{plural} será sincronizada quando voltar a ligar-se',
+      'Offline, {count} alteraç{plural} será sincronizada quando voltar a ligar-se',
     youreOffline: 'Está offline',
     syncing: 'A sincronizar {count} alteraç{plural}…',
     // Calendário
@@ -276,12 +276,12 @@ export const misc = {
     enterYourPin: 'Escriba su PIN',
     tooManyAttemptsTitle: 'Demasiados intentos',
     tooManyAttemptsBody:
-      '{max} intentos fallidos. Cerrando su sesión — vuelva a iniciar sesión para continuar.',
+      '{max} intentos fallidos. Cerrando su sesión, vuelva a iniciar sesión para continuar.',
     wrongPinAttempts: 'PIN incorrecto. Queda{plural} {left} intento{plural}.',
     forgotPinSignOut: '¿Olvidó el PIN? Cerrar sesión',
     forgotPinConfirmTitle: '¿Restablecer su PIN?',
     forgotPinConfirmBody:
-      'Para restablecer el PIN cerrará sesión, luego volverá a entrar y elegirá uno nuevo. Su trabajo está a salvo — permanece en su cuenta.',
+      'Para restablecer el PIN cerrará sesión, luego volverá a entrar y elegirá uno nuevo. Su trabajo está a salvo, permanece en su cuenta.',
     forgotPinConfirmCta: 'Cerrar sesión',
     // Selector de contactos
     selectFromContacts: 'Elegir de los contactos',
@@ -299,7 +299,7 @@ export const misc = {
       'El acceso al micrófono está desactivado. Active el Micrófono para esta app en los Ajustes de su teléfono para hablar con el asistente.',
     openSettings: 'Abrir Ajustes',
     installHintTitle: 'Agregue SeamFlow a su pantalla de inicio',
-    installHintBody: 'Toque el botón Compartir de abajo y elija “Agregar a pantalla de inicio” — SeamFlow se abre como una app, a pantalla completa.',
+    installHintBody: 'Toque el botón Compartir de abajo y elija “Agregar a pantalla de inicio”. SeamFlow se abre como una app, a pantalla completa.',
     photosOfflineTitle: 'Está sin conexión',
     photosOfflineBody:
       'Las fotos necesitan conexión para subirse. Vuelva a conectarse y agréguelas entonces.',
@@ -310,7 +310,7 @@ export const misc = {
     selectCountryDialCode: 'Seleccione el código de país',
     // Aviso sin conexión
     offlineWithPending:
-      'Sin conexión — {count} cambio{plural} se sincronizará{plural} al reconectarse',
+      'Sin conexión, {count} cambio{plural} se sincronizará{plural} al reconectarse',
     youreOffline: 'Está sin conexión',
     syncing: 'Sincronizando {count} cambio{plural}…',
     // Calendario
@@ -357,12 +357,12 @@ export const misc = {
     enterYourPin: 'Weka PIN yako',
     tooManyAttemptsTitle: 'Majaribio mengi mno',
     tooManyAttemptsBody:
-      'Majaribio {max} yasiyo sahihi. Tunakutoa — tafadhali ingia tena ili kuendelea.',
+      'Majaribio {max} yasiyo sahihi. Tunakutoa, tafadhali ingia tena ili kuendelea.',
     wrongPinAttempts: 'PIN si sahihi. Yamebaki majaribio {left}.',
     forgotPinSignOut: 'Umesahau PIN? Toka',
     forgotPinConfirmTitle: 'Uweke upya PIN yako?',
     forgotPinConfirmBody:
-      'Ili kuweka upya PIN utatoka, kisha uingie tena na kuweka mpya. Kazi yako iko salama — inabaki kwenye akaunti yako.',
+      'Ili kuweka upya PIN utatoka, kisha uingie tena na kuweka mpya. Kazi yako iko salama, inabaki kwenye akaunti yako.',
     forgotPinConfirmCta: 'Toka',
     // Kiteuzi cha anwani
     selectFromContacts: 'Chagua kutoka anwani',
@@ -380,7 +380,7 @@ export const misc = {
       'Ufikiaji wa maikrofoni umezimwa. Washa Maikrofoni kwa programu hii katika Mipangilio ya simu yako ili kuzungumza na msaidizi.',
     openSettings: 'Fungua Mipangilio',
     installHintTitle: 'Ongeza SeamFlow kwenye Skrini yako ya Mwanzo',
-    installHintBody: 'Gusa kitufe cha Shiriki hapa chini, kisha uchague “Ongeza kwenye Skrini ya Mwanzo” — SeamFlow hufunguka kama programu, skrini nzima.',
+    installHintBody: 'Gusa kitufe cha Shiriki hapa chini, kisha uchague “Ongeza kwenye Skrini ya Mwanzo”. SeamFlow hufunguka kama programu, skrini nzima.',
     photosOfflineTitle: 'Huna mtandao',
     photosOfflineBody:
       'Picha zinahitaji mtandao ili kupakiwa. Unganisha tena kisha uziongeze.',
@@ -391,7 +391,7 @@ export const misc = {
     selectCountryDialCode: 'Chagua msimbo wa nchi',
     // Taarifa ya kukosa mtandao
     offlineWithPending:
-      'Huna mtandao — mabadiliko {count} yatasawazishwa utakapounganishwa',
+      'Huna mtandao, mabadiliko {count} yatasawazishwa utakapounganishwa',
     youreOffline: 'Huna mtandao',
     syncing: 'Inasawazisha mabadiliko {count}…',
     // Kalenda
@@ -436,12 +436,12 @@ export const misc = {
     enterYourPin: 'أدخل رمزك',
     tooManyAttemptsTitle: 'محاولات كثيرة',
     tooManyAttemptsBody:
-      '{max} محاولات خاطئة. يجري تسجيل خروجك — سجّل الدخول مجددًا للمتابعة.',
+      '{max} محاولات خاطئة. يجري تسجيل خروجك، سجّل الدخول مجددًا للمتابعة.',
     wrongPinAttempts: 'رمز خاطئ. بقيت {left} محاولات.',
     forgotPinSignOut: 'نسيت الرمز؟ سجّل الخروج',
     forgotPinConfirmTitle: 'إعادة تعيين رمزك؟',
     forgotPinConfirmBody:
-      'لإعادة تعيين الرمز ستسجّل الخروج، ثم تدخل من جديد وتعيّن رمزًا آخر. عملك بأمان — يبقى على حسابك.',
+      'لإعادة تعيين الرمز ستسجّل الخروج، ثم تدخل من جديد وتعيّن رمزًا آخر. عملك بأمان، يبقى على حسابك.',
     forgotPinConfirmCta: 'تسجيل الخروج',
     selectFromContacts: 'اختيار من جهات الاتصال',
     searchNameOrNumber: 'ابحث بالاسم أو الرقم…',
@@ -457,7 +457,7 @@ export const misc = {
       'الوصول إلى المِيكروفون مغلق. فعّل المِيكروفون لهذا التطبيق من إعدادات هاتفك للتحدّث إلى المساعد.',
     openSettings: 'فتح الإعدادات',
     installHintTitle: 'أضِف SeamFlow إلى شاشتك الرئيسية',
-    installHintBody: 'انقر زرّ المشاركة أدناه، ثم اختر «إضافة إلى الشاشة الرئيسية» — يفتح SeamFlow كتطبيق بملء الشاشة.',
+    installHintBody: 'انقر زرّ المشاركة أدناه، ثم اختر «إضافة إلى الشاشة الرئيسية»، يفتح SeamFlow كتطبيق بملء الشاشة.',
     photosOfflineTitle: 'أنت دون اتصال',
     photosOfflineBody:
       'تحتاج الصور إلى اتصال لرفعها. أعِد الاتصال ثم أضِفها.',
@@ -466,7 +466,7 @@ export const misc = {
     searchCountryOrCode: 'ابحث عن بلد أو رمز…',
     selectCountryDialCode: 'اختر رمز الاتصال الدولي',
     offlineWithPending:
-      'دون اتصال — ستُزامَن {count} تغييرات عند عودة الشبكة',
+      'دون اتصال، ستُزامَن {count} تغييرات عند عودة الشبكة',
     youreOffline: 'أنت دون اتصال',
     syncing: 'يُزامن {count} تغييرات…',
     pickADayToSee: 'اختر يومًا لعرض تسليماته.',

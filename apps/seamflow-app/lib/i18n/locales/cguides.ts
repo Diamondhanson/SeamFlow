@@ -15,7 +15,7 @@ export const cguides = {
     welcomeStart: 'Get started',
     welcomeTitle1: 'Welcome to SeamFlow',
     welcomeBody1:
-      'Your whole workshop in your pocket — clients, measurements and orders, all in one place.',
+      'Your whole workshop in your pocket, clients, measurements and orders, all in one place.',
     welcomeTitle2: 'Never lose a measurement again',
     welcomeBody2:
       'Save each client and their sizes once. Next time you sew for them, everything is right there.',
@@ -31,16 +31,16 @@ export const cguides = {
       'Snap or upload photos of styles and fabrics you like, then attach them to an order for reference.',
     clientsTitle: 'The people you sew for',
     clientsBody:
-      'Clients are your customers. Save their name and number here — and their measurements too, so you never lose them.',
+      'Clients are your customers. Save their name and number here, and their measurements too, so you never lose them.',
     groupsTitle: 'Matching outfits for an event',
     groupsBody:
       'Group orders are for events like weddings, where several people get matching outfits under one order.',
     templatesTitle: 'What is a template?',
     templatesBody:
-      'A saved list of what to measure for a type of outfit — like a suit or a gown — so you don’t have to remember it each time. Tap a starter below to begin.',
+      'A saved list of what to measure for a type of outfit, like a suit or a gown - so you don’t have to remember it each time. Tap a starter below to begin.',
     fabricsTitle: 'Your fabric stock',
     fabricsBody:
-      'Keep track of your fabric rolls — how much you have, what it cost, and who you bought it from.',
+      'Keep track of your fabric rolls, how much you have, what it cost, and who you bought it from.',
     invoicesTitle: 'Bills you can share',
     invoicesBody:
       'Turn a finished order into a bill you can send your client on WhatsApp.',
@@ -48,10 +48,10 @@ export const cguides = {
     // ----- Info dots (tap-to-explain) -----
     infoTemplateTitle: 'Template',
     infoTemplateBody:
-      'A saved list of what to measure for a type of outfit. Pick one and the form asks for exactly those measurements — no need to remember them.',
+      'A saved list of what to measure for a type of outfit. Pick one and the form asks for exactly those measurements. No need to remember them.',
     infoOwnerTitle: 'Owner',
     infoOwnerBody:
-      'The main person this group order is for — like the bride or groom. Everyone else is a member.',
+      'The main person this group order is for, like the bride or groom. Everyone else is a member.',
     infoYardageTitle: 'Fabric used',
     infoYardageBody:
       'How much fabric this order used, in metres. Handy for knowing what’s left in your stock.',
@@ -80,7 +80,7 @@ export const cguides = {
     welcomeStart: 'Commencer',
     welcomeTitle1: 'Bienvenue sur SeamFlow',
     welcomeBody1:
-      'Tout votre atelier dans votre poche — clients, mesures et commandes, au même endroit.',
+      'Tout votre atelier dans votre poche, clients, mesures et commandes, au même endroit.',
     welcomeTitle2: 'Ne perdez plus jamais une mesure',
     welcomeBody2:
       'Enregistrez chaque client et ses mesures une seule fois. La prochaine fois, tout est là.',
@@ -96,16 +96,16 @@ export const cguides = {
       'Prenez ou importez des photos de styles et de tissus que vous aimez, puis associez-les à une commande.',
     clientsTitle: 'Les personnes pour qui vous cousez',
     clientsBody:
-      'Les clients sont vos clientes et clients. Enregistrez leur nom et numéro ici — et leurs mesures aussi, pour ne jamais les perdre.',
+      'Les clients sont vos clientes et clients. Enregistrez leur nom et numéro ici, et leurs mesures aussi, pour ne jamais les perdre.',
     groupsTitle: 'Tenues assorties pour un événement',
     groupsBody:
       'Les commandes de groupe sont pour les événements comme les mariages, où plusieurs personnes ont des tenues assorties dans une seule commande.',
     templatesTitle: 'Qu’est-ce qu’un modèle ?',
     templatesBody:
-      'Une liste enregistrée de ce qu’il faut mesurer pour un type de tenue — comme un costume ou une robe — pour ne pas avoir à vous en souvenir à chaque fois. Touchez un modèle de départ ci-dessous.',
+      'Une liste enregistrée de ce qu’il faut mesurer pour un type de tenue, comme un costume ou une robe - pour ne pas avoir à vous en souvenir à chaque fois. Touchez un modèle de départ ci-dessous.',
     fabricsTitle: 'Votre stock de tissus',
     fabricsBody:
-      'Suivez vos rouleaux de tissu — combien vous en avez, leur coût, et où vous les avez achetés.',
+      'Suivez vos rouleaux de tissu, combien vous en avez, leur coût, et où vous les avez achetés.',
     invoicesTitle: 'Des factures à partager',
     invoicesBody:
       'Transformez une commande terminée en facture à envoyer à votre client sur WhatsApp.',
@@ -113,10 +113,10 @@ export const cguides = {
     // ----- Info dots (tap-to-explain) -----
     infoTemplateTitle: 'Modèle',
     infoTemplateBody:
-      'Une liste enregistrée de ce qu’il faut mesurer pour un type de tenue. Choisissez-en un et le formulaire demande exactement ces mesures — pas besoin de vous en souvenir.',
+      'Une liste enregistrée de ce qu’il faut mesurer pour un type de tenue. Choisissez-en un et le formulaire demande exactement ces mesures, pas besoin de vous en souvenir.',
     infoOwnerTitle: 'Responsable',
     infoOwnerBody:
-      'La personne principale de cette commande de groupe — comme la mariée ou le marié. Tous les autres sont des membres.',
+      'La personne principale de cette commande de groupe, comme la mariée ou le marié. Tous les autres sont des membres.',
     infoYardageTitle: 'Tissu utilisé',
     infoYardageBody:
       'La quantité de tissu utilisée pour cette commande, en mètres. Pratique pour savoir ce qu’il vous reste en stock.',
@@ -145,7 +145,7 @@ export const cguides = {
     welcomeStart: 'Começar',
     welcomeTitle1: 'Bem-vindo ao SeamFlow',
     welcomeBody1:
-      'Todo o seu atelier no bolso — clientes, medidas e encomendas, tudo num só lugar.',
+      'Todo o seu atelier no bolso, clientes, medidas e encomendas, tudo num só lugar.',
     welcomeTitle2: 'Nunca mais perca uma medida',
     welcomeBody2:
       'Guarde cada cliente e as suas medidas uma vez. Da próxima vez que costurar para essa pessoa, está tudo ali.',
@@ -162,16 +162,16 @@ export const cguides = {
       'Fotografe ou carregue imagens de estilos e tecidos de que goste e junte-as a uma encomenda como referência.',
     clientsTitle: 'As pessoas para quem costura',
     clientsBody:
-      'Os clientes são os seus fregueses. Guarde aqui o nome e o contacto — e também as medidas, para nunca as perder.',
+      'Os clientes são os seus fregueses. Guarde aqui o nome e o contacto, e também as medidas, para nunca as perder.',
     groupsTitle: 'Trajes a condizer para um evento',
     groupsBody:
       'As encomendas de grupo servem para eventos como casamentos, em que várias pessoas levam trajes a condizer numa só encomenda.',
     templatesTitle: 'O que é um modelo?',
     templatesBody:
-      'Uma lista guardada do que medir para um tipo de traje — um fato ou um vestido — para não ter de se lembrar de cada vez. Toque num exemplo abaixo para começar.',
+      'Uma lista guardada do que medir para um tipo de traje, um fato ou um vestido - para não ter de se lembrar de cada vez. Toque num exemplo abaixo para começar.',
     fabricsTitle: 'O seu stock de tecidos',
     fabricsBody:
-      'Acompanhe os seus rolos de tecido — quanto tem, quanto custou e a quem comprou.',
+      'Acompanhe os seus rolos de tecido, quanto tem, quanto custou e a quem comprou.',
     invoicesTitle: 'Contas que pode partilhar',
     invoicesBody:
       'Transforme uma encomenda terminada numa conta que pode enviar ao cliente por WhatsApp.',
@@ -179,10 +179,10 @@ export const cguides = {
     // ----- Pontos de informação -----
     infoTemplateTitle: 'Modelo',
     infoTemplateBody:
-      'Uma lista guardada do que medir para um tipo de traje. Escolha uma e o formulário pede exatamente essas medidas — não precisa de as decorar.',
+      'Uma lista guardada do que medir para um tipo de traje. Escolha uma e o formulário pede exatamente essas medidas, não precisa de as decorar.',
     infoOwnerTitle: 'Responsável',
     infoOwnerBody:
-      'A pessoa principal a quem esta encomenda de grupo se destina — como a noiva ou o noivo. Todos os outros são membros.',
+      'A pessoa principal a quem esta encomenda de grupo se destina, como a noiva ou o noivo. Todos os outros são membros.',
     infoYardageTitle: 'Tecido usado',
     infoYardageBody:
       'Quanto tecido esta encomenda consumiu, em metros. Útil para saber o que resta em stock.',
@@ -210,7 +210,7 @@ export const cguides = {
     welcomeStart: 'Comenzar',
     welcomeTitle1: 'Bienvenido a SeamFlow',
     welcomeBody1:
-      'Todo su taller en el bolsillo — clientes, medidas y pedidos, en un solo lugar.',
+      'Todo su taller en el bolsillo, clientes, medidas y pedidos, en un solo lugar.',
     welcomeTitle2: 'No vuelva a perder una medida',
     welcomeBody2:
       'Guarde una vez cada cliente y sus medidas. La próxima vez que cosa para esa persona, ya está todo ahí.',
@@ -226,25 +226,25 @@ export const cguides = {
       'Tome o suba fotos de estilos y telas que le gusten, y luego adjúntelas a un pedido como referencia.',
     clientsTitle: 'Las personas para las que cose',
     clientsBody:
-      'Los clientes son sus compradores. Guarde aquí su nombre y número — y también sus medidas, para no perderlas nunca.',
+      'Los clientes son sus compradores. Guarde aquí su nombre y número, y también sus medidas, para no perderlas nunca.',
     groupsTitle: 'Atuendos a juego para un evento',
     groupsBody:
       'Los pedidos de grupo son para eventos como bodas, donde varias personas reciben atuendos a juego bajo un mismo pedido.',
     templatesTitle: '¿Qué es una plantilla?',
     templatesBody:
-      'Una lista guardada de lo que hay que medir para un tipo de atuendo — como un traje o un vestido — para que no tenga que recordarlo cada vez. Toque una plantilla inicial abajo para empezar.',
+      'Una lista guardada de lo que hay que medir para un tipo de atuendo, como un traje o un vestido - para que no tenga que recordarlo cada vez. Toque una plantilla inicial abajo para empezar.',
     fabricsTitle: 'Sus telas en existencia',
     fabricsBody:
-      'Lleve el control de sus rollos de tela — cuánto tiene, cuánto costó y a quién se lo compró.',
+      'Lleve el control de sus rollos de tela, cuánto tiene, cuánto costó y a quién se lo compró.',
     invoicesTitle: 'Facturas que puede compartir',
     invoicesBody:
       'Convierta un pedido terminado en una factura que puede enviar a su cliente por WhatsApp.',
     infoTemplateTitle: 'Plantilla',
     infoTemplateBody:
-      'Una lista guardada de lo que hay que medir para un tipo de atuendo. Elija una y el formulario le pedirá exactamente esas medidas — sin tener que recordarlas.',
+      'Una lista guardada de lo que hay que medir para un tipo de atuendo. Elija una y el formulario le pedirá exactamente esas medidas, sin tener que recordarlas.',
     infoOwnerTitle: 'Titular',
     infoOwnerBody:
-      'La persona principal de este pedido de grupo — como la novia o el novio. Los demás son miembros.',
+      'La persona principal de este pedido de grupo, como la novia o el novio. Los demás son miembros.',
     infoYardageTitle: 'Tela usada',
     infoYardageBody:
       'Cuánta tela usó este pedido, en metros. Útil para saber cuánto le queda en existencia.',
@@ -272,7 +272,7 @@ export const cguides = {
     welcomeStart: 'Anza',
     welcomeTitle1: 'Karibu SeamFlow',
     welcomeBody1:
-      'Duka lako lote mfukoni — wateja, vipimo na maagizo, vyote mahali pamoja.',
+      'Duka lako lote mfukoni, wateja, vipimo na maagizo, vyote mahali pamoja.',
     welcomeTitle2: 'Usipoteze kipimo tena',
     welcomeBody2:
       'Hifadhi kila mteja na vipimo vyake mara moja. Utakaposhona tena kwa ajili yake, kila kitu kipo hapo.',
@@ -288,25 +288,25 @@ export const cguides = {
       'Piga au pakia picha za mitindo na vitambaa unavyopenda, kisha viambatishe kwenye agizo kama rejeleo.',
     clientsTitle: 'Watu unaowashonea',
     clientsBody:
-      'Wateja ni wanunuzi wako. Hifadhi hapa jina na namba yao — pamoja na vipimo vyao, ili usivipoteze kamwe.',
+      'Wateja ni wanunuzi wako. Hifadhi hapa jina na namba yao, pamoja na vipimo vyao, ili usivipoteze kamwe.',
     groupsTitle: 'Mavazi yanayofanana kwa tukio',
     groupsBody:
       'Maagizo ya kikundi ni kwa matukio kama harusi, ambapo watu kadhaa hupata mavazi yanayofanana chini ya agizo moja.',
     templatesTitle: 'Kiolezo ni nini?',
     templatesBody:
-      'Orodha iliyohifadhiwa ya vipimo vinavyohitajika kwa aina fulani ya vazi — kama suti au gauni — ili usilazimike kukumbuka kila mara. Gusa kiolezo cha kuanzia hapa chini uanze.',
+      'Orodha iliyohifadhiwa ya vipimo vinavyohitajika kwa aina fulani ya vazi, kama suti au gauni - ili usilazimike kukumbuka kila mara. Gusa kiolezo cha kuanzia hapa chini uanze.',
     fabricsTitle: 'Vitambaa ulivyo navyo',
     fabricsBody:
-      'Fuatilia roli zako za vitambaa — una kiasi gani, viligharimu kiasi gani, na ulivinunua kwa nani.',
+      'Fuatilia roli zako za vitambaa, una kiasi gani, viligharimu kiasi gani, na ulivinunua kwa nani.',
     invoicesTitle: 'Ankara unazoweza kushiriki',
     invoicesBody:
       'Geuza agizo lililokamilika kuwa ankara unayoweza kumtumia mteja wako kwa WhatsApp.',
     infoTemplateTitle: 'Kiolezo',
     infoTemplateBody:
-      'Orodha iliyohifadhiwa ya vipimo vinavyohitajika kwa aina fulani ya vazi. Chagua kimoja na fomu itakuuliza vipimo hivyo hasa — bila kuvikumbuka.',
+      'Orodha iliyohifadhiwa ya vipimo vinavyohitajika kwa aina fulani ya vazi. Chagua kimoja na fomu itakuuliza vipimo hivyo hasa, bila kuvikumbuka.',
     infoOwnerTitle: 'Mwenye agizo',
     infoOwnerBody:
-      'Mtu mkuu ambaye agizo hili la kikundi ni lake — kama bibi au bwana harusi. Wengine wote ni wanachama.',
+      'Mtu mkuu ambaye agizo hili la kikundi ni lake, kama bibi au bwana harusi. Wengine wote ni wanachama.',
     infoYardageTitle: 'Kitambaa kilichotumika',
     infoYardageBody:
       'Kiasi cha kitambaa kilichotumika kwenye agizo hili, kwa mita. Husaidia kujua kilichobaki stoo.',
@@ -333,7 +333,7 @@ export const cguides = {
     welcomeStart: 'ابدأ',
     welcomeTitle1: 'أهلًا بك في SeamFlow',
     welcomeBody1:
-      'ورشتك كلها في جيبك — العملاء والمقاسات والطلبات، في مكان واحد.',
+      'ورشتك كلها في جيبك، العملاء والمقاسات والطلبات، في مكان واحد.',
     welcomeTitle2: 'لا تفقد مقاسًا بعد اليوم',
     welcomeBody2:
       'احفظ كل عميل ومقاساته مرة واحدة. وفي المرة القادمة التي تخيط له فيها، يكون كل شيء أمامك.',
@@ -348,25 +348,25 @@ export const cguides = {
       'التقط أو ارفع صورًا للقصّات والأقمشة التي تعجبك، ثم أرفِقها بطلب كمرجع.',
     clientsTitle: 'الأشخاص الذين تخيط لهم',
     clientsBody:
-      'العملاء هم زبائنك. احفظ هنا أسماءهم وأرقامهم — ومقاساتهم أيضًا، حتى لا تفقدها أبدًا.',
+      'العملاء هم زبائنك. احفظ هنا أسماءهم وأرقامهم، ومقاساتهم أيضًا، حتى لا تفقدها أبدًا.',
     groupsTitle: 'أزياء موحّدة لمناسبة',
     groupsBody:
       'طلبات المجموعات للمناسبات كالأعراس، حيث يحصل عدة أشخاص على أزياء متناسقة ضمن طلب واحد.',
     templatesTitle: 'ما هو القالب؟',
     templatesBody:
-      'قائمة محفوظة بما يجب قياسه لنوع معيّن من الملابس — كبدلة أو فستان — حتى لا تضطر إلى تذكّرها كل مرة. انقر على قالب بداية أدناه لتبدأ.',
+      'قائمة محفوظة بما يجب قياسه لنوع معيّن من الملابس، كبدلة أو فستان - حتى لا تضطر إلى تذكّرها كل مرة. انقر على قالب بداية أدناه لتبدأ.',
     fabricsTitle: 'مخزونك من الأقمشة',
     fabricsBody:
-      'تابِع لفّات القماش لديك — كم بقي، وكم كلّفت، ومن أين اشتريتها.',
+      'تابِع لفّات القماش لديك، كم بقي، وكم كلّفت، ومن أين اشتريتها.',
     invoicesTitle: 'فواتير يمكنك مشاركتها',
     invoicesBody:
       'حوّل طلبًا منجزًا إلى فاتورة ترسلها لعميلك على واتساب.',
     infoTemplateTitle: 'القالب',
     infoTemplateBody:
-      'قائمة محفوظة بما يجب قياسه لنوع معيّن من الملابس. اختر واحدًا فيطلب منك النموذج تلك المقاسات بالضبط — دون حاجة إلى تذكّرها.',
+      'قائمة محفوظة بما يجب قياسه لنوع معيّن من الملابس. اختر واحدًا فيطلب منك النموذج تلك المقاسات بالضبط، دون حاجة إلى تذكّرها.',
     infoOwnerTitle: 'صاحب الطلب',
     infoOwnerBody:
-      'الشخص الأساسي الذي يخصّه طلب المجموعة — كالعروس أو العريس. والبقية أعضاء.',
+      'الشخص الأساسي الذي يخصّه طلب المجموعة، كالعروس أو العريس. والبقية أعضاء.',
     infoYardageTitle: 'القماش المستخدم',
     infoYardageBody:
       'كمية القماش التي استُخدمت في هذا الطلب، بالمتر. مفيدة لمعرفة ما بقي في مخزونك.',

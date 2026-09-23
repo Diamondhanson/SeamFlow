@@ -1,10 +1,10 @@
-// Discovery — the client app's front door (ROADMAP Appendix D.6).
+// Discovery, the client app's front door (ROADMAP Appendix D.6).
 // English is the source of truth; French mirrors it.
 export const discover = {
   en: {
-    searchPlaceholder: 'Search designs — “red kaftan”, “robe”…',
+    searchPlaceholder: 'Search designs, “red kaftan”, “robe”…',
     searchResults: 'Results for “{q}”',
-    searchRelaxed: 'No exact match for “{q}” — here’s what’s close.',
+    searchRelaxed: 'No exact match for “{q}”, here’s what’s close.',
     searchNoneTitle: 'No one has posted “{q}” yet',
     searchNoneBody: 'Describe it and tailors will send you offers to make it.',
     searchAskTailors: 'Ask tailors to make it',
@@ -21,7 +21,7 @@ export const discover = {
     subtitle: 'Real work, by real tailors near you.',
     emptyTitle: 'Nothing here yet',
     emptyBody:
-      'Tailors are still adding their work. Check back shortly — the feed fills up as they publish.',
+      'Tailors are still adding their work. Check back shortly, the feed fills up as they publish.',
     filterAll: 'All',
     filterWomen: 'Women',
     filterMen: 'Men',
@@ -80,9 +80,9 @@ export const discover = {
     inquireDesignPinned: 'About {design}',
   },
   fr: {
-    searchPlaceholder: 'Chercher un modèle — « robe rouge », « kaftan »…',
+    searchPlaceholder: 'Chercher un modèle, « robe rouge », « kaftan »…',
     searchResults: 'Résultats pour « {q} »',
-    searchRelaxed: 'Aucun résultat exact pour « {q} » — voici ce qui s’en approche.',
+    searchRelaxed: 'Aucun résultat exact pour « {q} », voici ce qui s’en approche.',
     searchNoneTitle: 'Personne n’a encore publié « {q} »',
     searchNoneBody: 'Décrivez-le et des tailleurs vous enverront leurs offres pour le réaliser.',
     searchAskTailors: 'Demander aux tailleurs',
@@ -98,7 +98,7 @@ export const discover = {
     subtitle: 'Du vrai travail, par de vrais tailleurs près de chez vous.',
     emptyTitle: 'Rien pour l’instant',
     emptyBody:
-      'Les tailleurs ajoutent encore leurs réalisations. Revenez bientôt — le fil se remplit à mesure qu’ils publient.',
+      'Les tailleurs ajoutent encore leurs réalisations. Revenez bientôt, le fil se remplit à mesure qu’ils publient.',
     filterAll: 'Tout',
     filterWomen: 'Femmes',
     filterMen: 'Hommes',
@@ -152,9 +152,9 @@ export const discover = {
     inquireDesignPinned: 'À propos de {design}',
   },
   pt: {
-    searchPlaceholder: 'Pesquisar modelos — “kaftan vermelho”, “vestido”…',
+    searchPlaceholder: 'Pesquisar modelos, “kaftan vermelho”, “vestido”…',
     searchResults: 'Resultados para “{q}”',
-    searchRelaxed: 'Nada exato para “{q}” — eis o que mais se aproxima.',
+    searchRelaxed: 'Nada exato para “{q}”, eis o que mais se aproxima.',
     searchNoneTitle: 'Ninguém publicou “{q}” ainda',
     searchNoneBody: 'Descreva e os alfaiates enviarão propostas para o fazer.',
     searchAskTailors: 'Pedir aos alfaiates',
@@ -171,7 +171,7 @@ export const discover = {
     subtitle: 'Trabalho real, de alfaiates reais perto de si.',
     emptyTitle: 'Ainda não há nada aqui',
     emptyBody:
-      'Os alfaiates ainda estão a adicionar o seu trabalho. Volte daqui a pouco — o feed vai enchendo à medida que publicam.',
+      'Os alfaiates ainda estão a adicionar o seu trabalho. Volte daqui a pouco, o feed vai enchendo à medida que publicam.',
     filterAll: 'Tudo',
     filterWomen: 'Mulher',
     filterMen: 'Homem',
@@ -229,9 +229,9 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   es: {
-    searchPlaceholder: 'Buscar diseños — “kaftán rojo”, “vestido”…',
+    searchPlaceholder: 'Buscar diseños, “kaftán rojo”, “vestido”…',
     searchResults: 'Resultados para “{q}”',
-    searchRelaxed: 'Nada exacto para “{q}” — esto es lo más parecido.',
+    searchRelaxed: 'Nada exacto para “{q}”, esto es lo más parecido.',
     searchNoneTitle: 'Nadie ha publicado “{q}” todavía',
     searchNoneBody: 'Descríbelo y los sastres te enviarán ofertas para hacerlo.',
     searchAskTailors: 'Pedir a los sastres',
@@ -248,7 +248,7 @@ export const discover = {
     subtitle: 'Trabajo real, de sastres reales cerca de usted.',
     emptyTitle: 'Aún no hay nada aquí',
     emptyBody:
-      'Los sastres todavía están subiendo su trabajo. Vuelva en un rato — el muro se llena a medida que publican.',
+      'Los sastres todavía están subiendo su trabajo. Vuelva en un rato, el muro se llena a medida que publican.',
     filterAll: 'Todo',
     filterWomen: 'Mujeres',
     filterMen: 'Hombres',
@@ -305,9 +305,9 @@ export const discover = {
     inquireDesignPinned: 'Sobre {design}',
   },
   sw: {
-    searchPlaceholder: 'Tafuta mitindo — “kaftani nyekundu”, “gauni”…',
+    searchPlaceholder: 'Tafuta mitindo, “kaftani nyekundu”, “gauni”…',
     searchResults: 'Matokeo ya “{q}”',
-    searchRelaxed: 'Hakuna kinacholingana kabisa na “{q}” — hivi ndivyo vinavyokaribia.',
+    searchRelaxed: 'Hakuna kinacholingana kabisa na “{q}”, hivi ndivyo vinavyokaribia.',
     searchNoneTitle: 'Bado hakuna aliyechapisha “{q}”',
     searchNoneBody: 'Ieleze na mafundi watakutumia ofa za kuishona.',
     searchAskTailors: 'Waombe mafundi waishone',
@@ -324,7 +324,7 @@ export const discover = {
     subtitle: 'Kazi halisi, ya washonaji halisi walio karibu nawe.',
     emptyTitle: 'Bado hakuna kitu hapa',
     emptyBody:
-      'Washonaji bado wanaongeza kazi zao. Rudi baada ya muda mfupi — mkondo hujaa wanapochapisha.',
+      'Washonaji bado wanaongeza kazi zao. Rudi baada ya muda mfupi, mkondo hujaa wanapochapisha.',
     filterAll: 'Yote',
     filterWomen: 'Wanawake',
     filterMen: 'Wanaume',
@@ -381,9 +381,9 @@ export const discover = {
     inquireDesignPinned: 'Kuhusu {design}',
   },
   ar: {
-    searchPlaceholder: 'ابحث عن تصاميم — «قفطان أحمر»، «فستان»…',
+    searchPlaceholder: 'ابحث عن تصاميم، «قفطان أحمر»، «فستان»…',
     searchResults: 'نتائج «{q}»',
-    searchRelaxed: 'لا تطابق تامًا لـ«{q}» — إليك الأقرب.',
+    searchRelaxed: 'لا تطابق تامًا لـ«{q}»، إليك الأقرب.',
     searchNoneTitle: 'لم ينشر أحد «{q}» بعد',
     searchNoneBody: 'صِفه وسيرسل لك الخياطون عروضًا لتنفيذه.',
     searchAskTailors: 'اطلب من الخياطين تنفيذه',
@@ -400,7 +400,7 @@ export const discover = {
     subtitle: 'أعمال حقيقية، من خيّاطين حقيقيين قريبين منك.',
     emptyTitle: 'لا شيء هنا بعد',
     emptyBody:
-      'لا يزال الخيّاطون يضيفون أعمالهم. عُد بعد قليل — تمتلئ الواجهة كلما نشروا.',
+      'لا يزال الخيّاطون يضيفون أعمالهم. عُد بعد قليل، تمتلئ الواجهة كلما نشروا.',
     filterAll: 'الكل',
     filterWomen: 'نساء',
     filterMen: 'رجال',

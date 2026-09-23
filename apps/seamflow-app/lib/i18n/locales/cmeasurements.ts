@@ -2,7 +2,7 @@ export const cmeasurements = {
   en: {
     scan: 'Scan a filled sheet',
     scanReading: 'Reading the measurements…',
-    scanNoRows: 'Could not read any measurements — try a clearer photo.',
+    scanNoRows: 'Could not read any measurements, try a clearer photo.',
     add: 'Add measurements',
     defaultLabel: 'My measurements',
     savedByYou: 'Added by you',
@@ -24,7 +24,7 @@ export const cmeasurements = {
   fr: {
     scan: 'Scanner une fiche remplie',
     scanReading: 'Lecture des mesures…',
-    scanNoRows: 'Aucune mesure lisible — essayez une photo plus nette.',
+    scanNoRows: 'Aucune mesure lisible, essayez une photo plus nette.',
     add: 'Ajouter des mesures',
     defaultLabel: 'Mes mesures',
     savedByYou: 'Ajouté par vous',
@@ -46,7 +46,7 @@ export const cmeasurements = {
   pt: {
     scan: 'Escanear uma ficha preenchida',
     scanReading: 'Lendo as medidas…',
-    scanNoRows: 'Não foi possível ler medidas — tente uma foto mais nítida.',
+    scanNoRows: 'Não foi possível ler medidas, tente uma foto mais nítida.',
     add: 'Adicionar medidas',
     defaultLabel: 'Minhas medidas',
     savedByYou: 'Adicionado por você',
@@ -68,7 +68,7 @@ export const cmeasurements = {
   es: {
     scan: 'Escanear una hoja rellenada',
     scanReading: 'Leyendo las medidas…',
-    scanNoRows: 'No se pudieron leer medidas — prueba una foto más clara.',
+    scanNoRows: 'No se pudieron leer medidas, prueba una foto más clara.',
     add: 'Añadir medidas',
     defaultLabel: 'Mis medidas',
     savedByYou: 'Añadido por ti',
@@ -90,7 +90,7 @@ export const cmeasurements = {
   sw: {
     scan: 'Changanua fomu iliyojazwa',
     scanReading: 'Inasoma vipimo…',
-    scanNoRows: 'Hakuna vipimo vilivyosomeka — jaribu picha wazi zaidi.',
+    scanNoRows: 'Hakuna vipimo vilivyosomeka, jaribu picha wazi zaidi.',
     add: 'Ongeza vipimo',
     defaultLabel: 'Vipimo vyangu',
     savedByYou: 'Umeongeza wewe',
@@ -112,7 +112,7 @@ export const cmeasurements = {
   ar: {
     scan: 'مسح ورقة مقاسات معبأة',
     scanReading: 'جارٍ قراءة القياسات…',
-    scanNoRows: 'تعذّرت قراءة أي قياسات — جرّب صورة أوضح.',
+    scanNoRows: 'تعذّرت قراءة أي قياسات، جرّب صورة أوضح.',
     add: 'إضافة قياسات',
     defaultLabel: 'قياساتي',
     savedByYou: 'أضفتها بنفسك',

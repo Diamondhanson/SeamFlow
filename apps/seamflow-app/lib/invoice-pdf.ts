@@ -169,7 +169,7 @@ export function buildInvoiceHtml(data: InvoicePdfData, labels: InvoicePdfLabels)
     <div class="meta">
       <div>
         <div class="eyebrow">${esc(labels.billedTo)}</div>
-        <div class="client">${esc(data.clientName ?? '—')}</div>
+        <div class="client">${esc(data.clientName ?? '-')}</div>
       </div>
     </div>
 

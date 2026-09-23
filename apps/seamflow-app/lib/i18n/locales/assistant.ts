@@ -1,6 +1,6 @@
 // Tailor copilot chat (docs/tailor-copilot-plan.md). English is the source of
 // truth; French mirrors it. Keys are camelCase, referenced as t('assistant.key').
-// Only UI chrome lives here — the model's replies are generated text and
+// Only UI chrome lives here, the model's replies are generated text and
 // arrive in the tailor's own language.
 export const assistant = {
   en: {
@@ -9,7 +9,7 @@ export const assistant = {
     inputPlaceholder: 'Ask anything…',
     send: 'Send',
     thinking: 'Thinking…',
-    emptyHello: 'Ask me about your orders, clients, measurements or invoices — or tell me to create something. Nothing is saved without your confirmation.',
+    emptyHello: 'Ask me about your orders, clients, measurements or invoices, or tell me to create something. Nothing is saved without your confirmation.',
     suggestionDue: 'What’s due this week?',
     suggestionOwed: 'Who owes me?',
     suggestionBusiness: 'How’s business?',
@@ -17,7 +17,7 @@ export const assistant = {
     clearTitle: 'Clear conversation?',
     clearBody: 'The chat history on this device will be erased.',
     clearA11y: 'Clear conversation',
-    unavailableBody: 'The assistant isn’t available right now — please try again later.',
+    unavailableBody: 'The assistant isn’t available right now, please try again later.',
     offlineOrFailed: 'Couldn’t reach the assistant. Check your connection and try again.',
 
     // Confirm card
@@ -25,9 +25,9 @@ export const assistant = {
     confirmHint: 'Need a change? Just say it in the chat.',
     confirm: 'Confirm',
     working: 'Working…',
-    doneGeneric: '✓ Done — {title}.',
-    doneLink: '✓ Link ready — tap to open:\n{url}',
-    cancelled: 'Cancelled — nothing was saved.',
+    doneGeneric: '✓ Done, {title}.',
+    doneLink: '✓ Link ready. Tap to open:\n{url}',
+    cancelled: 'Cancelled. Nothing was saved.',
 
     // Action titles (per tool)
     actionCreateClient: 'New client',
@@ -40,7 +40,7 @@ export const assistant = {
     actionMarkInvoiceSent: 'Mark invoice as sent',
     actionShareOrderLink: 'Share order link',
     actionShareInvoiceLink: 'Share invoice link',
-    actionUnknown: 'Unsupported action — update the app to use this.',
+    actionUnknown: 'Unsupported action, update the app to use this.',
 
     // Confirm-card field labels (keys of ActionPreview.display)
     fieldClientName: 'Client',
@@ -68,11 +68,11 @@ export const assistant = {
     // Voice
     micA11y: 'Speak to the assistant',
     micStopA11y: 'Stop listening',
-    listening: 'Listening — speak now…',
+    listening: 'Listening, speak now…',
     speakReplies: 'Speak replies',
     speakBubbleA11y: 'Read this reply aloud',
     speaking: 'Speaking…',
-    voiceNeedsRebuild: 'Voice input needs an updated app build — you can still type.',
+    voiceNeedsRebuild: 'Voice input needs an updated app build. You can still type.',
     micPermissionTitle: 'Microphone needed',
     micPermissionBody: 'Allow microphone and speech recognition access so you can talk to the assistant.',
   },
@@ -82,7 +82,7 @@ export const assistant = {
     inputPlaceholder: 'Demandez-moi…',
     send: 'Envoyer',
     thinking: 'Réflexion…',
-    emptyHello: 'Interrogez-moi sur vos commandes, clients, mesures ou factures — ou demandez-moi de créer quelque chose. Rien n’est enregistré sans votre confirmation.',
+    emptyHello: 'Interrogez-moi sur vos commandes, clients, mesures ou factures, ou demandez-moi de créer quelque chose. Rien n’est enregistré sans votre confirmation.',
     suggestionDue: 'Qu’est-ce qui est dû cette semaine ?',
     suggestionOwed: 'Qui me doit de l’argent ?',
     suggestionBusiness: 'Comment vont les affaires ?',
@@ -90,7 +90,7 @@ export const assistant = {
     clearTitle: 'Effacer la conversation ?',
     clearBody: 'L’historique de discussion sur cet appareil sera effacé.',
     clearA11y: 'Effacer la conversation',
-    unavailableBody: 'L’assistant n’est pas disponible pour le moment — réessayez plus tard.',
+    unavailableBody: 'L’assistant n’est pas disponible pour le moment, réessayez plus tard.',
     offlineOrFailed: 'Impossible de joindre l’assistant. Vérifiez votre connexion et réessayez.',
 
     // Carte de confirmation
@@ -98,9 +98,9 @@ export const assistant = {
     confirmHint: 'Besoin d’un changement ? Dites-le dans la discussion.',
     confirm: 'Confirmer',
     working: 'En cours…',
-    doneGeneric: '✓ Fait — {title}.',
-    doneLink: '✓ Lien prêt — touchez pour ouvrir :\n{url}',
-    cancelled: 'Annulé — rien n’a été enregistré.',
+    doneGeneric: '✓ Fait, {title}.',
+    doneLink: '✓ Lien prêt, touchez pour ouvrir :\n{url}',
+    cancelled: 'Annulé. Rien n’a été enregistré.',
 
     // Titres d’action (par outil)
     actionCreateClient: 'Nouveau client',
@@ -113,7 +113,7 @@ export const assistant = {
     actionMarkInvoiceSent: 'Marquer la facture comme envoyée',
     actionShareOrderLink: 'Partager le lien de la commande',
     actionShareInvoiceLink: 'Partager le lien de la facture',
-    actionUnknown: 'Action non prise en charge — mettez l’app à jour pour l’utiliser.',
+    actionUnknown: 'Action non prise en charge, mettez l’app à jour pour l’utiliser.',
 
     // Libellés des champs de la carte (clés de ActionPreview.display)
     fieldClientName: 'Client',
@@ -141,11 +141,11 @@ export const assistant = {
     // Voix
     micA11y: 'Parler à l’assistant',
     micStopA11y: 'Arrêter l’écoute',
-    listening: 'À l’écoute — parlez…',
+    listening: 'À l’écoute, parlez…',
     speakReplies: 'Lire les réponses',
     speakBubbleA11y: 'Lire cette réponse à voix haute',
     speaking: 'Lecture…',
-    voiceNeedsRebuild: 'La saisie vocale nécessite une version à jour de l’app — vous pouvez toujours écrire.',
+    voiceNeedsRebuild: 'La saisie vocale nécessite une version à jour de l’app. Vous pouvez toujours écrire.',
     micPermissionTitle: 'Micro requis',
     micPermissionBody: 'Autorisez l’accès au micro et à la reconnaissance vocale pour parler à l’assistant.',
   },
@@ -156,7 +156,7 @@ export const assistant = {
     send: 'Enviar',
     thinking: 'A pensar…',
     emptyHello:
-      'Pergunte-me sobre as suas encomendas, clientes, medidas ou faturas — ou peça-me para criar algo. Nada é guardado sem a sua confirmação.',
+      'Pergunte-me sobre as suas encomendas, clientes, medidas ou faturas, ou peça-me para criar algo. Nada é guardado sem a sua confirmação.',
     suggestionDue: 'O que vence esta semana?',
     suggestionOwed: 'Quem me deve?',
     suggestionBusiness: 'Como vai o negócio?',
@@ -165,7 +165,7 @@ export const assistant = {
     clearBody: 'O histórico da conversa neste dispositivo será apagado.',
     clearA11y: 'Limpar a conversa',
     unavailableBody:
-      'O assistente não está disponível de momento — tente novamente mais tarde.',
+      'O assistente não está disponível de momento, tente novamente mais tarde.',
     offlineOrFailed:
       'Não foi possível contactar o assistente. Verifique a ligação e tente novamente.',
 
@@ -174,9 +174,9 @@ export const assistant = {
     confirmHint: 'Precisa de mudar algo? Diga-o na conversa.',
     confirm: 'Confirmar',
     working: 'A processar…',
-    doneGeneric: '✓ Feito — {title}.',
-    doneLink: '✓ Ligação pronta — toque para abrir:\n{url}',
-    cancelled: 'Cancelado — nada foi guardado.',
+    doneGeneric: '✓ Feito, {title}.',
+    doneLink: '✓ Ligação pronta. Toque para abrir:\n{url}',
+    cancelled: 'Cancelado. Nada foi guardado.',
 
     // Títulos das ações
     actionCreateClient: 'Novo cliente',
@@ -189,7 +189,7 @@ export const assistant = {
     actionMarkInvoiceSent: 'Marcar fatura como enviada',
     actionShareOrderLink: 'Partilhar ligação da encomenda',
     actionShareInvoiceLink: 'Partilhar ligação da fatura',
-    actionUnknown: 'Ação não suportada — atualize a aplicação para a usar.',
+    actionUnknown: 'Ação não suportada, atualize a aplicação para a usar.',
 
     // Etiquetas dos campos do cartão de confirmação
     fieldClientName: 'Cliente',
@@ -217,12 +217,12 @@ export const assistant = {
     // Voz
     micA11y: 'Falar com o assistente',
     micStopA11y: 'Parar de ouvir',
-    listening: 'A ouvir — fale agora…',
+    listening: 'A ouvir, fale agora…',
     speakReplies: 'Ler as respostas em voz alta',
     speakBubbleA11y: 'Ler esta resposta em voz alta',
     speaking: 'A falar…',
     voiceNeedsRebuild:
-      'A entrada por voz precisa de uma versão atualizada da aplicação — pode escrever na mesma.',
+      'A entrada por voz precisa de uma versão atualizada da aplicação, pode escrever na mesma.',
     micPermissionTitle: 'Microfone necessário',
     micPermissionBody:
       'Permita o acesso ao microfone e ao reconhecimento de voz para poder falar com o assistente.',
@@ -233,7 +233,7 @@ export const assistant = {
     inputPlaceholder: 'Pregunte lo que quiera…',
     send: 'Enviar',
     thinking: 'Pensando…',
-    emptyHello: 'Pregúnteme por sus pedidos, clientes, medidas o facturas — o dígame que cree algo. Nada se guarda sin su confirmación.',
+    emptyHello: 'Pregúnteme por sus pedidos, clientes, medidas o facturas, o dígame que cree algo. Nada se guarda sin su confirmación.',
     suggestionDue: '¿Qué se entrega esta semana?',
     suggestionOwed: '¿Quién me debe?',
     suggestionBusiness: '¿Cómo va el negocio?',
@@ -241,7 +241,7 @@ export const assistant = {
     clearTitle: '¿Borrar la conversación?',
     clearBody: 'Se borrará el historial del chat en este dispositivo.',
     clearA11y: 'Borrar la conversación',
-    unavailableBody: 'El asistente no está disponible por ahora — inténtelo más tarde.',
+    unavailableBody: 'El asistente no está disponible por ahora, inténtelo más tarde.',
     offlineOrFailed: 'No se pudo contactar al asistente. Revise su conexión e inténtelo de nuevo.',
 
     // Tarjeta de confirmación
@@ -249,9 +249,9 @@ export const assistant = {
     confirmHint: '¿Quiere cambiar algo? Solo dígalo en el chat.',
     confirm: 'Confirmar',
     working: 'Trabajando…',
-    doneGeneric: '✓ Listo — {title}.',
-    doneLink: '✓ Enlace listo — toque para abrir:\n{url}',
-    cancelled: 'Cancelado — no se guardó nada.',
+    doneGeneric: '✓ Listo, {title}.',
+    doneLink: '✓ Enlace listo, toque para abrir:\n{url}',
+    cancelled: 'Cancelado, no se guardó nada.',
 
     // Títulos de acción (por herramienta)
     actionCreateClient: 'Nuevo cliente',
@@ -264,7 +264,7 @@ export const assistant = {
     actionMarkInvoiceSent: 'Marcar la factura como enviada',
     actionShareOrderLink: 'Compartir el enlace del pedido',
     actionShareInvoiceLink: 'Compartir el enlace de la factura',
-    actionUnknown: 'Acción no admitida — actualice la app para usarla.',
+    actionUnknown: 'Acción no admitida, actualice la app para usarla.',
 
     // Etiquetas de la tarjeta de confirmación
     fieldClientName: 'Cliente',
@@ -292,11 +292,11 @@ export const assistant = {
     // Voz
     micA11y: 'Hablar con el asistente',
     micStopA11y: 'Dejar de escuchar',
-    listening: 'Escuchando — hable ahora…',
+    listening: 'Escuchando, hable ahora…',
     speakReplies: 'Leer las respuestas en voz alta',
     speakBubbleA11y: 'Leer esta respuesta en voz alta',
     speaking: 'Hablando…',
-    voiceNeedsRebuild: 'La entrada por voz necesita una versión actualizada de la app — igual puede escribir.',
+    voiceNeedsRebuild: 'La entrada por voz necesita una versión actualizada de la app, igual puede escribir.',
     micPermissionTitle: 'Se necesita el micrófono',
     micPermissionBody: 'Permita el acceso al micrófono y al reconocimiento de voz para poder hablar con el asistente.',
   },
@@ -306,7 +306,7 @@ export const assistant = {
     inputPlaceholder: 'Uliza chochote…',
     send: 'Tuma',
     thinking: 'Anafikiri…',
-    emptyHello: 'Niulize kuhusu maagizo, wateja, vipimo au ankara zako — au niambie nitengeneze kitu. Hakuna kinachohifadhiwa bila uthibitisho wako.',
+    emptyHello: 'Niulize kuhusu maagizo, wateja, vipimo au ankara zako, au niambie nitengeneze kitu. Hakuna kinachohifadhiwa bila uthibitisho wako.',
     suggestionDue: 'Ni nini kinachokabidhiwa wiki hii?',
     suggestionOwed: 'Nani ananidai?',
     suggestionBusiness: 'Biashara ikoje?',
@@ -314,7 +314,7 @@ export const assistant = {
     clearTitle: 'Ufute mazungumzo?',
     clearBody: 'Historia ya mazungumzo kwenye kifaa hiki itafutwa.',
     clearA11y: 'Futa mazungumzo',
-    unavailableBody: 'Msaidizi hapatikani kwa sasa — tafadhali jaribu tena baadaye.',
+    unavailableBody: 'Msaidizi hapatikani kwa sasa, tafadhali jaribu tena baadaye.',
     offlineOrFailed: 'Haikuwezekana kumfikia msaidizi. Angalia muunganisho wako kisha ujaribu tena.',
 
     // Kadi ya uthibitisho
@@ -322,9 +322,9 @@ export const assistant = {
     confirmHint: 'Unataka mabadiliko? Sema tu kwenye mazungumzo.',
     confirm: 'Thibitisha',
     working: 'Inafanya kazi…',
-    doneGeneric: '✓ Imekamilika — {title}.',
-    doneLink: '✓ Kiungo kiko tayari — gusa kufungua:\n{url}',
-    cancelled: 'Imeghairiwa — hakuna kilichohifadhiwa.',
+    doneGeneric: '✓ Imekamilika, {title}.',
+    doneLink: '✓ Kiungo kiko tayari. Gusa kufungua:\n{url}',
+    cancelled: 'Imeghairiwa. Hakuna kilichohifadhiwa.',
 
     // Vichwa vya hatua (kwa kila kifaa)
     actionCreateClient: 'Mteja mpya',
@@ -337,7 +337,7 @@ export const assistant = {
     actionMarkInvoiceSent: 'Weka ankara kuwa imetumwa',
     actionShareOrderLink: 'Shiriki kiungo cha agizo',
     actionShareInvoiceLink: 'Shiriki kiungo cha ankara',
-    actionUnknown: 'Hatua isiyotumika — sasisha programu ili kuitumia.',
+    actionUnknown: 'Hatua isiyotumika, sasisha programu ili kuitumia.',
 
     // Lebo za sehemu kwenye kadi ya uthibitisho
     fieldClientName: 'Mteja',
@@ -365,11 +365,11 @@ export const assistant = {
     // Sauti
     micA11y: 'Zungumza na msaidizi',
     micStopA11y: 'Acha kusikiliza',
-    listening: 'Inasikiliza — sema sasa…',
+    listening: 'Inasikiliza, sema sasa…',
     speakReplies: 'Soma majibu kwa sauti',
     speakBubbleA11y: 'Soma jibu hili kwa sauti',
     speaking: 'Inasema…',
-    voiceNeedsRebuild: 'Uwekaji kwa sauti unahitaji toleo jipya la programu — bado unaweza kuandika.',
+    voiceNeedsRebuild: 'Uwekaji kwa sauti unahitaji toleo jipya la programu, bado unaweza kuandika.',
     micPermissionTitle: 'Maikrofoni inahitajika',
     micPermissionBody: 'Ruhusu maikrofoni na utambuzi wa sauti ili uweze kuzungumza na msaidizi.',
   },
@@ -379,7 +379,7 @@ export const assistant = {
     inputPlaceholder: 'اسأل أي شيء…',
     send: 'إرسال',
     thinking: 'يفكّر…',
-    emptyHello: 'اسألني عن طلباتك أو عملائك أو مقاساتك أو فواتيرك — أو اطلب مني إنشاء شيء. لا يُحفظ شيء دون تأكيدك.',
+    emptyHello: 'اسألني عن طلباتك أو عملائك أو مقاساتك أو فواتيرك، أو اطلب مني إنشاء شيء. لا يُحفظ شيء دون تأكيدك.',
     suggestionDue: 'ما الذي يُسلَّم هذا الأسبوع؟',
     suggestionOwed: 'من عليه مستحقات لي؟',
     suggestionBusiness: 'كيف حال العمل؟',
@@ -387,16 +387,16 @@ export const assistant = {
     clearTitle: 'مسح المحادثة؟',
     clearBody: 'سيُمحى سجل المحادثة على هذا الجهاز.',
     clearA11y: 'مسح المحادثة',
-    unavailableBody: 'المساعد غير متاح حاليًا — حاول مرة أخرى لاحقًا.',
+    unavailableBody: 'المساعد غير متاح حاليًا، حاول مرة أخرى لاحقًا.',
     offlineOrFailed: 'تعذّر الوصول إلى المساعد. تحقّق من اتصالك وحاول مجددًا.',
 
     confirmHeading: 'أكِّد هذا الإجراء',
     confirmHint: 'تريد تعديلًا؟ قله في المحادثة فحسب.',
     confirm: 'تأكيد',
     working: 'يعمل…',
-    doneGeneric: '✓ تم — {title}.',
-    doneLink: '✓ الرابط جاهز — انقر للفتح:\n{url}',
-    cancelled: 'أُلغي — لم يُحفظ شيء.',
+    doneGeneric: '✓ تم، {title}.',
+    doneLink: '✓ الرابط جاهز، انقر للفتح:\n{url}',
+    cancelled: 'أُلغي، لم يُحفظ شيء.',
 
     actionCreateClient: 'عميل جديد',
     actionUpdateClient: 'تحديث عميل',
@@ -408,7 +408,7 @@ export const assistant = {
     actionMarkInvoiceSent: 'تعليم الفاتورة كمُرسلة',
     actionShareOrderLink: 'مشاركة رابط الطلب',
     actionShareInvoiceLink: 'مشاركة رابط الفاتورة',
-    actionUnknown: 'إجراء غير مدعوم — حدّث التطبيق لاستخدامه.',
+    actionUnknown: 'إجراء غير مدعوم، حدّث التطبيق لاستخدامه.',
 
     fieldClientName: 'العميل',
     fieldOrderName: 'الطلب',
@@ -433,11 +433,11 @@ export const assistant = {
 
     micA11y: 'التحدّث إلى المساعد',
     micStopA11y: 'إيقاف الاستماع',
-    listening: 'يستمع — تحدّث الآن…',
+    listening: 'يستمع، تحدّث الآن…',
     speakReplies: 'قراءة الردود بصوت',
     speakBubbleA11y: 'اقرأ هذا الردّ بصوت',
     speaking: 'يتحدّث…',
-    voiceNeedsRebuild: 'الإدخال الصوتي يحتاج إصدارًا محدّثًا من التطبيق — لا يزال بإمكانك الكتابة.',
+    voiceNeedsRebuild: 'الإدخال الصوتي يحتاج إصدارًا محدّثًا من التطبيق، لا يزال بإمكانك الكتابة.',
     micPermissionTitle: 'المِيكروفون مطلوب',
     micPermissionBody: 'اسمح بالوصول إلى المِيكروفون والتعرّف على الكلام لتتمكّن من التحدّث إلى المساعد.',
   },

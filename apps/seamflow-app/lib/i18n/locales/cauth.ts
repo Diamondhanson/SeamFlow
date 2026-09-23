@@ -32,7 +32,7 @@ export const cauth = {
     googleSignInFailed: 'Google sign-in failed',
     appleSignInFailed: 'Apple sign-in failed',
     appleComingSoonTitle: 'Sign in with Apple',
-    appleComingSoonMessage: "Apple Sign-In isn't set up yet — it's coming soon.",
+    appleComingSoonMessage: "Apple Sign-In isn't set up yet. It's coming soon.",
     signInFailed: 'Sign in failed',
     signUpFailed: 'Sign up failed',
     checkYourEmail: 'Check your email',
@@ -94,7 +94,7 @@ export const cauth = {
     googleSignInFailed: 'Échec de la connexion Google',
     appleSignInFailed: 'Échec de la connexion Apple',
     appleComingSoonTitle: 'Connexion avec Apple',
-    appleComingSoonMessage: 'La connexion avec Apple n’est pas encore configurée — bientôt disponible.',
+    appleComingSoonMessage: 'La connexion avec Apple n’est pas encore configurée, bientôt disponible.',
     signInFailed: 'Échec de la connexion',
     signUpFailed: 'Échec de l’inscription',
     checkYourEmail: 'Vérifiez votre e-mail',
@@ -159,7 +159,7 @@ export const cauth = {
     appleSignInFailed: 'O início de sessão com a Apple falhou',
     appleComingSoonTitle: 'Iniciar sessão com a Apple',
     appleComingSoonMessage:
-      'O início de sessão com a Apple ainda não está configurado — está para breve.',
+      'O início de sessão com a Apple ainda não está configurado, está para breve.',
     signInFailed: 'Falha ao iniciar sessão',
     signUpFailed: 'Falha ao criar conta',
     checkYourEmail: 'Verifique o seu e-mail',
@@ -223,7 +223,7 @@ export const cauth = {
     // Regreso del navegador tras OAuth (app/auth/callback.tsx)
     appleSignInFailed: 'No se pudo iniciar sesión con Apple',
     appleComingSoonTitle: 'Iniciar sesión con Apple',
-    appleComingSoonMessage: 'El inicio de sesión con Apple aún no está listo — llegará pronto.',
+    appleComingSoonMessage: 'El inicio de sesión con Apple aún no está listo, llegará pronto.',
     signInFailed: 'No se pudo iniciar sesión',
     signUpFailed: 'No se pudo crear la cuenta',
     checkYourEmail: 'Revise su correo',
@@ -252,7 +252,7 @@ export const cauth = {
     resetPasswordCta: 'Restablecer contraseña',
     resetPasswordFailed: 'No se pudo restablecer su contraseña',
     passwordResetDoneTitle: 'Contraseña actualizada',
-    passwordResetDoneMessage: 'Todo listo — ya inició sesión.',
+    passwordResetDoneMessage: 'Todo listo, ya inició sesión.',
   },
   sw: {
     tagline: 'CRM ya mshonaji',
@@ -286,7 +286,7 @@ export const cauth = {
     // Kurudi kutoka kivinjari baada ya OAuth (app/auth/callback.tsx)
     appleSignInFailed: 'Kuingia kwa Apple kumeshindikana',
     appleComingSoonTitle: 'Ingia na Apple',
-    appleComingSoonMessage: 'Kuingia kwa Apple bado hakujawekwa — kunakuja hivi karibuni.',
+    appleComingSoonMessage: 'Kuingia kwa Apple bado hakujawekwa, kunakuja hivi karibuni.',
     signInFailed: 'Kuingia kumeshindikana',
     signUpFailed: 'Kufungua akaunti kumeshindikana',
     checkYourEmail: 'Angalia barua pepe yako',
@@ -315,7 +315,7 @@ export const cauth = {
     resetPasswordCta: 'Weka upya nenosiri',
     resetPasswordFailed: 'Haikuwezekana kuweka upya nenosiri lako',
     passwordResetDoneTitle: 'Nenosiri limesasishwa',
-    passwordResetDoneMessage: 'Kila kitu kiko sawa — sasa umeingia.',
+    passwordResetDoneMessage: 'Kila kitu kiko sawa, sasa umeingia.',
   },
   ar: {
     tagline: 'نظام إدارة للخيّاطين',
@@ -349,7 +349,7 @@ export const cauth = {
     // العودة من المتصفح بعد OAuth
     appleSignInFailed: 'فشل تسجيل الدخول عبر Apple',
     appleComingSoonTitle: 'تسجيل الدخول عبر Apple',
-    appleComingSoonMessage: 'تسجيل الدخول عبر Apple لم يُفعَّل بعد — قريبًا.',
+    appleComingSoonMessage: 'تسجيل الدخول عبر Apple لم يُفعَّل بعد، قريبًا.',
     signInFailed: 'فشل تسجيل الدخول',
     signUpFailed: 'فشل إنشاء الحساب',
     checkYourEmail: 'تفقّد بريدك',

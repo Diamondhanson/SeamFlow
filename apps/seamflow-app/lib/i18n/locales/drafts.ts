@@ -1,12 +1,12 @@
 // Unsaved-work rescue. Shown when a tailor returns to a screen they were
-// interrupted on — see lib/drafts.ts. The copy is deliberately reassuring and
+// interrupted on, see lib/drafts.ts. The copy is deliberately reassuring and
 // never blames: being interrupted mid-measurement is normal, not a mistake.
 //
 // The `ago*` strings are fragments, not sentences. English carries "ago"
 // inside the fragment ("5 minutes ago"); French puts it in front of the
 // fragment ("il y a 5 minutes"), so the French sentences supply "il y a" and
 // the fragment stays a bare duration. Singular forms are separate keys rather
-// than a plural rule — two languages and three units is not worth a plural
+// than a plural rule, two languages and three units is not worth a plural
 // engine, and "1 minutes ago" is exactly the kind of sloppiness a tailor
 // notices.
 export const drafts = {

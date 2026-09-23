@@ -3,7 +3,7 @@
 //
 // The `type_*` keys mirror the NotificationType union in @seamflow/schemas
 // one-for-one, and are looked up at render as t('notifications.type_' + type).
-// The API sends `type` + `params` and never rendered text — that is what keeps
+// The API sends `type` + `params` and never rendered text. That is what keeps
 // a notification in the READER's language and correct after the thing it
 // describes is renamed.
 //
@@ -29,7 +29,7 @@ export const notifications = {
     // ── to the client ──────────────────────────────────────────────────────
     type_quote_received: '{tailorName} sent you a quote for “{orderName}”',
     type_invoice_issued: 'Invoice ready for “{orderName}”',
-    type_payment_confirmed: 'Payment received for “{orderName}” — thank you',
+    type_payment_confirmed: 'Payment received for “{orderName}”, thank you',
     type_order_ready_for_fitting: '“{orderName}” is ready for fitting',
     type_order_ready_for_pickup: '“{orderName}” is ready for pickup',
     type_order_delivered: '“{orderName}” has been delivered',
@@ -66,7 +66,7 @@ export const notifications = {
 
     type_quote_received: '{tailorName} vous a envoyé un devis pour « {orderName} »',
     type_invoice_issued: 'Facture prête pour « {orderName} »',
-    type_payment_confirmed: 'Paiement reçu pour « {orderName} » — merci',
+    type_payment_confirmed: 'Paiement reçu pour « {orderName} », merci',
     type_order_ready_for_fitting: '« {orderName} » est prêt pour l’essayage',
     type_order_ready_for_pickup: '« {orderName} » est prêt à être retiré',
     type_order_delivered: '« {orderName} » a été livré',
@@ -102,7 +102,7 @@ export const notifications = {
     // ── para o cliente ─────────────────────────────────────────────────────
     type_quote_received: '{tailorName} enviou-lhe um orçamento para “{orderName}”',
     type_invoice_issued: 'Fatura pronta para “{orderName}”',
-    type_payment_confirmed: 'Pagamento recebido para “{orderName}” — obrigado',
+    type_payment_confirmed: 'Pagamento recebido para “{orderName}”, obrigado',
     type_order_ready_for_fitting: '“{orderName}” está pronta para prova',
     type_order_ready_for_pickup: '“{orderName}” está pronta para levantar',
     type_order_delivered: '“{orderName}” foi entregue',
@@ -139,7 +139,7 @@ export const notifications = {
     // ── al cliente ─────────────────────────────────────────────────────────
     type_quote_received: '{tailorName} le envió una cotización por “{orderName}”',
     type_invoice_issued: 'Factura lista para “{orderName}”',
-    type_payment_confirmed: 'Pago recibido por “{orderName}” — gracias',
+    type_payment_confirmed: 'Pago recibido por “{orderName}”, gracias',
     type_order_ready_for_fitting: '“{orderName}” está lista para la prueba',
     type_order_ready_for_pickup: '“{orderName}” está lista para recoger',
     type_order_delivered: '“{orderName}” fue entregada',
@@ -176,7 +176,7 @@ export const notifications = {
     // ── kwa mteja ──────────────────────────────────────────────────────────
     type_quote_received: '{tailorName} amekutumia bei ya “{orderName}”',
     type_invoice_issued: 'Ankara iko tayari kwa “{orderName}”',
-    type_payment_confirmed: 'Malipo yamepokelewa kwa “{orderName}” — asante',
+    type_payment_confirmed: 'Malipo yamepokelewa kwa “{orderName}”, asante',
     type_order_ready_for_fitting: '“{orderName}” iko tayari kupimwa',
     type_order_ready_for_pickup: '“{orderName}” iko tayari kuchukuliwa',
     type_order_delivered: '“{orderName}” imekabidhiwa',
@@ -212,7 +212,7 @@ export const notifications = {
     // ── إلى العميل ─────────────────────────────────────────────────────────
     type_quote_received: 'أرسل لك {tailorName} عرض سعر لـ «{orderName}»',
     type_invoice_issued: 'الفاتورة جاهزة لـ «{orderName}»',
-    type_payment_confirmed: 'تم استلام الدفعة عن «{orderName}» — شكرًا لك',
+    type_payment_confirmed: 'تم استلام الدفعة عن «{orderName}»، شكرًا لك',
     type_order_ready_for_fitting: '«{orderName}» جاهز للقياس',
     type_order_ready_for_pickup: '«{orderName}» جاهز للاستلام',
     type_order_delivered: 'تم تسليم «{orderName}»',

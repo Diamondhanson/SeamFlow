@@ -114,7 +114,7 @@ export default function InvoicingHome() {
                 <View key={inv.id} style={styles.row}>
                   <ListRow
                     title={inv.number}
-                    subtitle={`${inv.clientName ?? '—'} · ${money(inv.total, inv.currency)} · ${t(
+                    subtitle={`${inv.clientName ?? '-'} · ${money(inv.total, inv.currency)} · ${t(
                       `invoices.status_${inv.status}`,
                     )}`}
                     leading={<Ionicons name="document-text-outline" size={20} color={colors.primary} />}

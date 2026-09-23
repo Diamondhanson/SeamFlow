@@ -5,7 +5,12 @@
 //   - 14px radius (matches token `m`)
 //   - 1px hairline border at rest
 //   - On focus: border picks up `primarySoft` + a 2px inner glow at 30 % alpha
-//   - Floating label slides up when value is non-empty OR field has focus
+//   - Floating label slides up when value is non-empty OR field has focus,
+//     and SHRINKS as it goes: once a field has a value, the label is 12px,
+//     medium, muted and slightly tracked, while the value stays 16px in the
+//     full text colour. Both at 16px (as it was) made a filled field read as
+//     two equal lines of text, and a tailor scanning a long form could not
+//     tell the question from the answer at a glance.
 //   - Trailing icon slot (used by search inputs, password toggles, etc)
 //   - Error caption slides in below the field; shifts focus border to danger
 //
@@ -81,6 +86,11 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   const [focused, setFocused] = useState(false);
   const floated = focused || hasValue;
 
+  // Sizes the label takes at rest (acting as a placeholder, so it matches the
+  // value) and when floated (a caption above the answer).
+  const labelFontSize = floated ? 12 : theme.textVariants.body.fontSize;
+  const labelLineHeight = floated ? 16 : theme.textVariants.body.lineHeight;
+
   // Animated progress between resting and floating states.
   const progress = useSharedValue(floated ? 1 : 0);
   useEffect(() => {
@@ -108,11 +118,11 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   // so it runs cleanly on the UI thread with no closure-capture surprises.
   const labelAnimated = useAnimatedStyle(() => ({
     transform: [
-      // -2 (centered) → -14 (above)
-      { translateY: -2 + (-14 - -2) * progress.value },
+      // -2 (centred on the value) → -16 (clear of it). A little further than
+      // before, because the floated label is now smaller and would otherwise
+      // sit too close to the text it describes.
+      { translateY: -2 + (-16 - -2) * progress.value },
     ],
-    // fontSize on a View is ignored by RN — we'll wire the size transition
-    // through the Text style instead once `Animated.Text` is in play.
   }));
 
   return (
@@ -150,15 +160,17 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         <Animated.View pointerEvents="none" style={[styles.label, labelAnimated]}>
           <Text
             tone={focused ? 'primary' : error ? 'danger' : 'textMuted'}
-            // Override family via a manual cast so we can keep `variant="body"`
-            // sizing animatable. The label transitions visually between body
-            // (16px) and label (12px) sizes via the animated style above.
             variant="body"
             style={{
-              // We don't want the textTransform from the label variant here —
-              // floating labels read better in title case.
-              fontFamily:
-                theme.textVariants.bodySm.fontFamily,
+              // Title case, not the label variant's uppercase: these are words
+              // like "Neck circumference", and shouting them is not hierarchy.
+              // The distinction is carried by size, weight and colour instead.
+              fontFamily: floated
+                ? theme.textVariants.label.fontFamily
+                : theme.textVariants.body.fontFamily,
+              fontSize: labelFontSize,
+              lineHeight: labelLineHeight,
+              letterSpacing: floated ? 0.3 : 0,
             }}
           >
             {label}

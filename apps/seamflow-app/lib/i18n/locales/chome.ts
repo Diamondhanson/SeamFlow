@@ -27,7 +27,7 @@ export const chome = {
   fr: {
     // ----- greeting -----
     goodMorning: 'Bonjour',
-    // 'Bon après-midi' is a FAREWELL in French — what you say when leaving
+    // 'Bon après-midi' is a FAREWELL in French, what you say when leaving
     // someone, not when greeting them. French greets with 'Bonjour' right
     // through the afternoon and only switches at dusk, so morning and
     // afternoon deliberately share a value here. Do not "fix" the

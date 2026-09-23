@@ -264,7 +264,7 @@ export default function Me() {
               {me?.tailor?.photoUrl ? (
                 <Image source={{ uri: me.tailor.photoUrl }} style={styles.logo} />
               ) : (
-                <Avatar name={me?.tailor?.businessName ?? '—'} size="lg" />
+                <Avatar name={me?.tailor?.businessName ?? '-'} size="lg" />
               )}
               {uploadingPhoto ? (
                 <View style={styles.logoOverlay}>
@@ -283,7 +283,7 @@ export default function Me() {
             </Pressable>
             <View style={styles.profileHeadText}>
               <Text variant="h3" numberOfLines={1}>
-                {me?.tailor?.businessName ?? '—'}
+                {me?.tailor?.businessName ?? '-'}
               </Text>
               {me?.email ? (
                 <Text variant="bodySm" tone="textMuted" numberOfLines={1} style={{ marginTop: 2 }}>
@@ -306,7 +306,7 @@ export default function Me() {
             value={
               me?.tailor?.countryCode
                 ? `${flagEmoji(me.tailor.countryCode)}  ${countryName(me.tailor.countryCode)}`
-                : '—'
+                : '-'
             }
           />
           {me?.tailor?.location ? (
