@@ -5,12 +5,12 @@
 //   - 14px radius (matches token `m`)
 //   - 1px hairline border at rest
 //   - On focus: border picks up `primarySoft` + a 2px inner glow at 30 % alpha
-//   - Floating label slides up when value is non-empty OR field has focus.
-//     Label and value share a size; the hierarchy is carried by WEIGHT and
-//     COLOUR instead — label in Inter Light and a softened muted tone, value
-//     in Inter Medium at full text colour. Same size, same rhythm, but the
-//     answer is unmistakably the louder of the two. (Shrinking the label was
-//     tried and looked wrong: it turned every filled field into a receipt.)
+//   - Floating label slides up when value is non-empty OR field has focus,
+//     and drops to ~80% of the value's size as it goes (13px against 16px).
+//     Three signals, all mild: size, weight (Inter Light against Inter
+//     Medium) and a softened muted tone. At rest the label keeps the value's
+//     size and ordinary muted colour, because there it IS the placeholder.
+//     12px was tried first and read as a receipt; 13px reads as a caption.
 //   - Trailing icon slot (used by search inputs, password toggles, etc)
 //   - Error caption slides in below the field; shifts focus border to danger
 //
@@ -88,6 +88,11 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   const [focused, setFocused] = useState(false);
   const floated = focused || hasValue;
 
+  // 13px against the value's 16px: a fifth smaller, enough to rank the two
+  // without turning a form into fine print.
+  const labelFontSize = floated ? 13 : theme.textVariants.body.fontSize;
+  const labelLineHeight = floated ? 18 : theme.textVariants.body.lineHeight;
+
   // Animated progress between resting and floating states.
   const progress = useSharedValue(floated ? 1 : 0);
   useEffect(() => {
@@ -160,6 +165,8 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
               // at rest it is standing in as the placeholder, so it keeps the
               // ordinary muted colour rather than fading into the field.
               fontFamily: activeFontFamilies.bodyLight,
+              fontSize: labelFontSize,
+              lineHeight: labelLineHeight,
               color: focused
                 ? theme.colors.primary
                 : error
