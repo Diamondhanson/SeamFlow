@@ -13,6 +13,7 @@ import {
   useFonts as useFraunces,
 } from '@expo-google-fonts/fraunces';
 import {
+  Inter_300Light,
   Inter_400Regular,
   Inter_500Medium,
   Inter_600SemiBold,
@@ -91,6 +92,7 @@ function ThemedRoot() {
   const [fontsReady] = useFraunces({
     Fraunces_600SemiBold,
     Fraunces_700Bold,
+    Inter_300Light,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,

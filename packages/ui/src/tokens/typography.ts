@@ -72,6 +72,9 @@ if (typeof document !== 'undefined') {
 export const fontFamilies = {
   display: 'Fraunces_600SemiBold',
   displayBold: 'Fraunces_700Bold',
+  /** Lighter than body. Used for field labels, which sit beside a value in
+   *  the same size and must read as the quieter of the two. */
+  bodyLight: 'Inter_300Light',
   body: 'Inter_400Regular',
   bodyMedium: 'Inter_500Medium',
   bodySemibold: 'Inter_600SemiBold',
@@ -182,6 +185,9 @@ export interface TypeStyle {
 export const arabicFontFamilies = {
   display: 'NotoKufiArabic_600SemiBold',
   displayBold: 'NotoKufiArabic_700Bold',
+  // No Light in the Arabic families we ship, and a faux-light would wreck the
+  // letterforms — 400 is the lightest honest option.
+  bodyLight: 'IBMPlexSansArabic_400Regular',
   body: 'IBMPlexSansArabic_400Regular',
   bodyMedium: 'IBMPlexSansArabic_500Medium',
   bodySemibold: 'IBMPlexSansArabic_600SemiBold',
@@ -192,6 +198,9 @@ export const arabicFontFamilies = {
 const ARABIC_EQUIVALENT: Record<string, string> = {
   [fontFamilies.display]: arabicFontFamilies.display,
   [fontFamilies.displayBold]: arabicFontFamilies.displayBold,
+  // Arabic has no Light in the families we ship; 400 is the lightest, and a
+  // faux-light would ruin the letterforms.
+  [fontFamilies.bodyLight]: arabicFontFamilies.body,
   [fontFamilies.body]: arabicFontFamilies.body,
   [fontFamilies.bodyMedium]: arabicFontFamilies.bodyMedium,
   [fontFamilies.bodySemibold]: arabicFontFamilies.bodySemibold,
