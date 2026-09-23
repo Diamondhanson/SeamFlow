@@ -10,6 +10,15 @@ import { requireStaff } from './auth';
 
 const API_URL = (process.env.SEAMFLOW_API_URL || 'https://seamflow-api.onrender.com').replace(/\/$/, '');
 
+async function get<T>(token: string, path: string): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return (await res.json()) as T;
+}
+
 async function post(token: string, path: string, body: unknown): Promise<void> {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
@@ -27,6 +36,24 @@ async function post(token: string, path: string, body: unknown): Promise<void> {
     }
     throw new Error(`API ${res.status}: ${message}`);
   }
+}
+
+/**
+ * Is the paywall live? Read from the API rather than the database directly,
+ * so the dashboard shows exactly what the API is enforcing — including the
+ * environment override, which the table alone would not reveal.
+ */
+export async function getEnforcement(): Promise<boolean> {
+  const staff = await requireStaff();
+  const { enforced } = await get<{ enforced: boolean }>(staff.accessToken, '/admin/subscriptions/enforcement');
+  return enforced;
+}
+
+/** Turn the Free caps and premium gates on or off, platform-wide. */
+export async function setEnforcement(enforced: boolean): Promise<void> {
+  const staff = await requireStaff();
+  await post(staff.accessToken, '/admin/subscriptions/enforcement', { enforced });
+  revalidatePath('/subscriptions');
 }
 
 /** Add (or with a negative number, take back) paid days for one tailor. */

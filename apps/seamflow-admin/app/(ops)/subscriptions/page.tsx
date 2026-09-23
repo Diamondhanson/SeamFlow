@@ -3,7 +3,8 @@ import { Cell, Empty, PageHeader, Row, Stat, StatRow, Table, Tag } from '../../.
 import { FilterBar, Search } from '../../../components/filters';
 import { date, num, relative } from '../../../lib/format';
 import { getSubscriptions, getSubscriptionRevenue, SUBS_TABS, type SubsTab } from '../../../lib/queries/subscriptions';
-import { ExtendAllTrials, RowActions } from './actions';
+import { getEnforcement } from '../../../lib/subscription-actions';
+import { EnforcementSwitch, ExtendAllTrials, RowActions } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,11 @@ export default async function SubscriptionsPage({
   const sp = await searchParams;
   const tab: SubsTab = SUBS_TABS.some((t) => t.key === sp.tab) ? (sp.tab as SubsTab) : 'trialing';
   const q = sp.q ?? '';
-  const [{ counts, rows }, revenue] = await Promise.all([getSubscriptions(tab, q), getSubscriptionRevenue()]);
+  const [{ counts, rows }, revenue, enforced] = await Promise.all([
+    getSubscriptions(tab, q),
+    getSubscriptionRevenue(),
+    getEnforcement().catch(() => false),
+  ]);
 
   // Who needs attention: a trial about to end is a conversation to have now,
   // not a number to read later.
@@ -51,7 +56,10 @@ export default async function SubscriptionsPage({
         </p>
       ) : null}
 
-      <div className="mt-8 border-y border-rule bg-surface px-4 py-3">
+      <div className="mt-8 border-y border-rule bg-surface px-4 py-4">
+        <EnforcementSwitch enforced={enforced} />
+      </div>
+      <div className="mt-4 border-b border-rule bg-surface px-4 py-3">
         <ExtendAllTrials />
       </div>
 

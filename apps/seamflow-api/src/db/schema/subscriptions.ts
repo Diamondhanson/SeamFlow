@@ -7,6 +7,7 @@ import {
   char,
   index,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -85,3 +86,14 @@ export const subscriptionPayments = pgTable(
     tailorIdx: index('subscription_payments_tailor_idx').on(t.tailorId, t.createdAt),
   }),
 );
+
+/**
+ * Platform switches that must flip without a deploy — currently just whether
+ * the Free tier's caps and gates are live. See the migration for why.
+ */
+export const platformSettings = pgTable('platform_settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedBy: uuid('updated_by'),
+});

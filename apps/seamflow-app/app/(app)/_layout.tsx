@@ -8,11 +8,16 @@ import { PinLockScreen } from '../../components/PinLockScreen';
 import { FloatingScrollProvider } from '../../lib/floating-scroll';
 import { useNotificationTapHandler } from '../../lib/notifications';
 import { useShareListener } from '../../lib/use-share-listener';
+import { useSubscriptionWatch } from '../../lib/subscription';
 import { useThemeColors } from '../../lib/theme';
 import { SideRail } from '../../components/SideRail';
 import { useBreakpoint } from '../../lib/use-breakpoint';
 
 export default function AppLayout() {
+  // Keeps the trial countdown and the paywall state current while the app is
+  // open, so turning the caps on from the dashboard reaches people without a
+  // restart (see lib/subscription).
+  useSubscriptionWatch();
   const { session, loading } = useAuth();
   const colors = useThemeColors();
 

@@ -8,8 +8,9 @@
 // market later changes no screen.
 // ============================================================================
 
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo } from 'react';
+import { router } from 'expo-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { SubscriptionPlan, SubscriptionState } from '@seamflow/schemas';
 import { api } from './api';
 import { qk } from './query-keys';
@@ -17,6 +18,15 @@ import { useMe } from './queries';
 
 /** Start nagging this close to the end of the trial, and not a day before. */
 export const TRIAL_NAG_DAYS = 14;
+
+/**
+ * How often the app re-checks where it stands. Fifteen minutes because two
+ * things can change without the tailor doing anything: their trial can run
+ * out while the app is open, and the caps can be switched on platform-wide
+ * from the ops dashboard the moment payments go live. Neither should need a
+ * restart to be noticed.
+ */
+const WATCH_INTERVAL_MS = 15 * 60 * 1000;
 
 export function useSubscription(): SubscriptionState | null {
   const me = useMe();
@@ -30,6 +40,52 @@ export const useSubscriptionQuery = () =>
     queryFn: () => api.me.subscription(),
     staleTime: 0,
   });
+
+/**
+ * Mounted once, in the tailor layout: keeps the entitlement fresh in the
+ * background and feeds the answer back into /me, which is what the banner and
+ * every premium affordance read. Refetches on an interval and whenever the app
+ * comes back to the foreground (react-query's focus manager is already wired
+ * to AppState), so flipping the switch on the dashboard reaches open apps
+ * without anyone reopening anything.
+ */
+export function useSubscriptionWatch(): void {
+  const qc = useQueryClient();
+  const enabled = !!qc.getQueryData(qk.me());
+  const { data } = useQuery({
+    queryKey: [...qk.me(), 'subscription', 'watch'],
+    queryFn: () => api.me.subscription(),
+    enabled,
+    refetchInterval: WATCH_INTERVAL_MS,
+    refetchOnWindowFocus: true,
+    // A tailor with no shop yet has no subscription; a 404 there is expected
+    // and must not retry in a loop.
+    retry: false,
+    staleTime: WATCH_INTERVAL_MS / 2,
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    qc.setQueryData(qk.me(), (cur: unknown) =>
+      cur && typeof cur === 'object' ? { ...(cur as object), subscription: data } : cur,
+    );
+  }, [data, qc]);
+}
+
+/**
+ * For a premium affordance that should not pretend to work.
+ *
+ * `locked` is only true when the caps are actually live AND this tailor is on
+ * Free — during the trial, and while the switch is off, everything behaves
+ * normally. `prompt()` opens the same upgrade conversation a blocked request
+ * would, so a locked button and a refused request say the same thing.
+ */
+export function usePremiumGate(): { locked: boolean; prompt: () => void } {
+  const sub = useSubscription();
+  const locked = !!sub && sub.enforced && !sub.premium;
+  const prompt = useCallback(() => router.push('/(app)/upgrade' as never), []);
+  return { locked, prompt };
+}
 
 /**
  * Prices are shown in the currency the server picked: XAF for Cameroon, where

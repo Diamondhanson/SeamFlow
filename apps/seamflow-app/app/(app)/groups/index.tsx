@@ -25,6 +25,7 @@ import { ApiError } from '../../../lib/api';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { usePremiumGate } from '../../../lib/subscription';
 import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
 import { useDialog } from '../../../lib/dialog';
 
@@ -106,6 +107,7 @@ function GroupCard({ group, onPress }: { group: GroupOrder; onPress: () => void 
 }
 
 export default function GroupsList() {
+  const premium = usePremiumGate();
   const { data, isLoading, error } = useGroupOrders();
   const { colors } = useAtelierTheme();
   const { t } = useTranslation();
@@ -145,10 +147,17 @@ export default function GroupsList() {
           right={
             <IconButton
               variant="primary"
-              onPress={() => router.push('/(app)/groups/new')}
+              // When the caps are live and this tailor is on Free, the button
+              // leads to the plans instead of a screen whose Save would be
+              // refused. Same conversation, three taps earlier.
+              onPress={() => (premium.locked ? premium.prompt() : router.push('/(app)/groups/new'))}
               accessibilityLabel={t('groups.newGroupOrder')}
             >
-              <Ionicons name="add" size={24} color={colors.textOnPrimary} />
+              <Ionicons
+                name={premium.locked ? 'lock-closed' : 'add'}
+                size={premium.locked ? 20 : 24}
+                color={colors.textOnPrimary}
+              />
             </IconButton>
           }
         />

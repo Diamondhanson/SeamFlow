@@ -1,7 +1,67 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { extendAllTrials, extendTrial, grantDays } from '../../../lib/subscription-actions';
+import { extendAllTrials, extendTrial, grantDays, setEnforcement } from '../../../lib/subscription-actions';
+
+/**
+ * The paywall switch.
+ *
+ * Off means trials run, the countdown shows and the upgrade screen works, but
+ * nothing is ever refused — which is how the platform ships, because blocking
+ * a tailor from a feature they cannot yet buy back is how you lose them.
+ * Turning it on is the last step of connecting payments, and it takes effect
+ * within seconds, everywhere, with no deploy.
+ */
+export function EnforcementSwitch({ enforced }: { enforced: boolean }) {
+  const [pending, start] = useTransition();
+  const [on, setOn] = useState(enforced);
+  const [error, setError] = useState<string | null>(null);
+
+  const flip = (next: boolean) => {
+    const question = next
+      ? 'Turn the Free limits ON? Tailors whose trial has ended will immediately lose premium features until they pay.'
+      : 'Turn the Free limits OFF? Nothing will be blocked for anyone.';
+    if (!confirm(question)) return;
+    start(async () => {
+      setError(null);
+      try {
+        await setEnforcement(next);
+        setOn(next);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    });
+  };
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div className="text-2xs uppercase tracking-widest text-faint">Free limits &amp; premium gates</div>
+        <div className="mt-1 text-sm">
+          <span className={on ? 'font-medium text-bad' : 'font-medium text-good'}>
+            {on ? 'ON — tailors on Free are being blocked' : 'OFF — nothing is blocked'}
+          </span>
+          <span className="block text-xs text-muted">
+            {on
+              ? 'Premium features and the caps are enforced. Turn this off if payments break.'
+              : 'Turn this on once tailors can actually pay. It applies within seconds, no deploy.'}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => flip(!on)}
+        className={`border px-4 py-2 text-sm font-medium disabled:opacity-60 ${
+          on ? 'border-rule text-ink hover:border-ink' : 'border-ink bg-ink text-paper hover:opacity-90'
+        }`}
+      >
+        {pending ? 'Working…' : on ? 'Turn limits off' : 'Turn limits on'}
+      </button>
+      {error ? <p className="w-full text-xs text-bad">{error}</p> : null}
+    </div>
+  );
+}
 
 /**
  * The launch safety net: move every trial together. Behind a confirm, because

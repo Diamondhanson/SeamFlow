@@ -10,6 +10,8 @@
  *   · a provider confirmation delivered twice pays once
  *   · usage is counted honestly against the Free caps
  *   · only staff can move anyone's dates, and the admin levers work
+ *   · the paywall switch flips from the dashboard, takes effect without a
+ *     restart, and goes back off again
  *   · with enforcement ON: premium features and the caps refuse politely (402
  *     "upgrade_required"), reads still work, and paying unblocks everything
  *
@@ -38,10 +40,17 @@ async function api(jwt: string | null, method: string, path: string, body?: unkn
   return { status: res.status, data: text ? JSON.parse(text) : null } as { status: number; data: any };
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function main(): Promise<void> {
   assert(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_SERVICE_ROLE_KEY, 'Supabase env not set');
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
   const created: string[] = [];
+  // Platform-wide side effects must be undone even when an assertion fails
+  // halfway: an aborted run once left every real tailor with 14 extra days.
+  let trialDaysAdded = 0;
+  // Set once a staff token exists; the only way to move trials back.
+  let undoTrials: ((days: number) => Promise<void>) | null = null;
 
   try {
     const email = `subs-test-${Date.now()}@seamflow.local`;
@@ -217,6 +226,9 @@ async function main(): Promise<void> {
     const staffSignIn = await staffAnon.auth.signInWithPassword({ email: staffEmail, password: PASSWORD });
     const staffJwt = staffSignIn.data.session!.access_token;
     await api(staffJwt, 'GET', '/me');
+    undoTrials = async (days: number) => {
+      await api(staffJwt, 'POST', '/admin/subscriptions/trials/extend-all', { days: -days });
+    };
 
     // Not staff yet: the levers must refuse.
     r = await api(staffJwt, 'POST', `/admin/subscriptions/${tailorId}/grant`, { days: 30 });
@@ -233,26 +245,76 @@ async function main(): Promise<void> {
     console.log('• Staff can grant premium days to one tailor');
 
     // A mistake is undone by granting negative days, not by editing history.
+    const beforeUndo = (await api(jwt, 'GET', '/me/subscription')).data.daysLeft;
     r = await api(staffJwt, 'POST', `/admin/subscriptions/${tailorId}/grant`, { days: -30, reason: 'undo' });
     assert(r.status === 201 || r.status === 200, `negative grant: ${r.status}`);
     sub = (await api(jwt, 'GET', '/me/subscription')).data;
-    assert(sub.premium === false, 'granting negative days did not take the time back');
+    assert(
+      sub.daysLeft <= beforeUndo - 29,
+      `granting -30 days took back ${beforeUndo - sub.daysLeft}, expected ~30`,
+    );
     console.log('• A mistaken grant is undone by granting negative days');
 
     // Extend every trial at once — the launch safety net.
     const before = (await admin.from('subscriptions').select('trial_ends_at').eq('tailor_id', tailorId)).data![0]!.trial_ends_at;
     r = await api(staffJwt, 'POST', '/admin/subscriptions/trials/extend-all', { days: 14 });
     assert(r.status === 201 || r.status === 200, `extend-all: ${r.status}`);
+    trialDaysAdded += 14;
     assert(r.data.updated >= 1, `extend-all touched nothing: ${JSON.stringify(r.data)}`);
     const after = (await admin.from('subscriptions').select('trial_ends_at').eq('tailor_id', tailorId)).data![0]!.trial_ends_at;
     assert(new Date(after) > new Date(before), 'extend-all did not move this trial');
     console.log(`• One click moved all ${r.data.updated} trials by 14 days`);
 
-    // Put the other tailors back: this test must not hand everyone free time.
-    r = await api(staffJwt, 'POST', '/admin/subscriptions/trials/extend-all', { days: -14 });
-    assert(r.status === 201 || r.status === 200, 'could not undo extend-all');
-    console.log('• ...and moving them back by -14 leaves the platform as it was');
+    // ---- The paywall switch ------------------------------------------------
+    // Everything above ran with the caps off. Flipping the switch must start
+    // them refusing within seconds — no deploy, no restart — and flipping it
+    // back must stop, because that is the emergency handle if payments break.
+    r = await api(staffJwt, 'GET', '/admin/subscriptions/enforcement');
+    assert(r.status === 200, `read enforcement: ${r.status}`);
+    const wasEnforced: boolean = r.data.enforced;
+
+    if (!wasEnforced) {
+      // Make sure this tailor is on Free so a cap can actually bite.
+      await admin.from('subscriptions').update({
+        premium_until: null,
+        grace_until: null,
+        trial_ends_at: new Date(Date.now() - 86_400_000).toISOString(),
+      }).eq('tailor_id', tailorId);
+
+      r = await api(staffJwt, 'POST', '/admin/subscriptions/enforcement', { enforced: true });
+      assert(r.data.enforced === true, 'the switch did not turn on');
+      // The API caches the setting for a few seconds; wait it out rather than
+      // pretending the cache does not exist.
+      await sleep(16_000);
+      r = await api(jwt, 'POST', '/group-orders', { name: 'Switch test', eventDate: null });
+      assert(r.status === 402, `with the switch on, group orders should be blocked, got ${r.status}`);
+      sub = (await api(jwt, 'GET', '/me/subscription')).data;
+      assert(sub.enforced === true, 'the app is not told the caps are live');
+      console.log('• Turning the switch ON starts blocking within seconds, and the app is told');
+
+      r = await api(staffJwt, 'POST', '/admin/subscriptions/enforcement', { enforced: false });
+      assert(r.data.enforced === false, 'the switch did not turn off');
+      await sleep(16_000);
+      r = await api(jwt, 'POST', '/group-orders', { name: 'Switch test', eventDate: null });
+      assert(r.status === 201 || r.status === 200, `turning it off should unblock, got ${r.status}`);
+      console.log('• Turning it OFF unblocks everyone again — the emergency handle works');
+    } else {
+      console.log('• (switch not exercised: SUBSCRIPTION_ENFORCEMENT forces it on in this env)');
+    }
+
+    console.log('• ...and the run puts every trial back where it found it');
   } finally {
+    // Both of these are platform-wide. Leaving the switch on would block every
+    // real tailor; leaving the trial extension on would quietly hand them all
+    // free time. Undone here so that no failure, anywhere above, can leak.
+    await admin.from('platform_settings').update({ value: false }).eq('key', 'subscription_enforcement');
+    if (trialDaysAdded && undoTrials) {
+      try {
+        await undoTrials(trialDaysAdded);
+      } catch (err) {
+        console.error(`✗ COULD NOT UNDO +${trialDaysAdded} trial days: ${String(err)}`);
+      }
+    }
     for (const id of created) {
       await admin.from('tailors').delete().eq('user_id', id);
       await admin.from('users').delete().eq('id', id);

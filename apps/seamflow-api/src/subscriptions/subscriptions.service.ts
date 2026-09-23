@@ -22,7 +22,6 @@
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { ConfigService } from '@nestjs/config';
 import { and, count, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import {
   billingFor,
@@ -38,6 +37,7 @@ import {
   type SubscriptionStatus,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
+import { PlatformSettingsService } from './platform-settings.service';
 import {
   clients,
   orderPhotos,
@@ -79,16 +79,20 @@ export class SubscriptionsService {
 
   constructor(
     private readonly dbService: DbService,
-    private readonly config: ConfigService,
+    private readonly settings: PlatformSettingsService,
   ) {}
 
   private get db() {
     return this.dbService.db;
   }
 
-  /** Whether the caps and gates actually bite. False until payments are live. */
-  get enforced(): boolean {
-    return this.config.get<boolean>('SUBSCRIPTION_ENFORCEMENT') === true;
+  /**
+   * Whether the caps and gates actually bite. Off until payments are live, and
+   * turned on from the ops dashboard — not by a deploy (see
+   * PlatformSettingsService).
+   */
+  enforced(): Promise<boolean> {
+    return this.settings.enforcementOn();
   }
 
   // ── The record ────────────────────────────────────────────────────────────
@@ -165,7 +169,7 @@ export class SubscriptionsService {
       daysLeft: daysUntil(status === 'trialing' ? row.trialEndsAt : (row.premiumUntil ?? row.graceUntil)),
       plan: row.plan,
       method: row.method,
-      enforced: this.enforced,
+      enforced: await this.enforced(),
       usage,
       caps: FREE_CAPS,
       billing: billingFor(shop?.countryCode),
@@ -204,7 +208,7 @@ export class SubscriptionsService {
 
   /** Premium feature. Throws UpgradeRequiredError when it should be blocked. */
   async requireFeature(tailorId: string, feature: PremiumFeature): Promise<void> {
-    if (!this.enforced) return;
+    if (!(await this.enforced())) return;
     if (await this.isPremium(tailorId)) return;
     throw new UpgradeRequiredError(feature, null, null);
   }
@@ -214,7 +218,7 @@ export class SubscriptionsService {
    * "you've reached 25 clients" rather than "forbidden".
    */
   async requireCapacity(tailorId: string, cap: CapKind): Promise<void> {
-    if (!this.enforced) return;
+    if (!(await this.enforced())) return;
     if (await this.isPremium(tailorId)) return;
     const usage = await this.usageFor(tailorId);
     const limit =
