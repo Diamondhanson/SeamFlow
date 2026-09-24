@@ -62,10 +62,15 @@ export interface PlanDef {
  * every manual renewal is a chance to churn. A tailor who paid for a year has
  * eleven fewer chances to forget.
  */
+// TEMPORARY TEST PRICES (2026-09-24). Lowered while the live Fapshi rail is
+// being proven with real money, so a test costs 1,000 FCFA rather than 3,000.
+// The market prices were 3000 / 7500 / 25500. Put real ones here before
+// anyone is asked to pay for real, and note that a tailor who buys at these
+// numbers keeps the days they bought.
 export const PLANS: PlanDef[] = [
-  { key: 'monthly', days: 30, priceXaf: 3000, priceUsd: 5 },
-  { key: 'quarterly', days: 90, priceXaf: 7500, priceUsd: 13 },
-  { key: 'annual', days: 365, priceXaf: 25500, priceUsd: 45 },
+  { key: 'monthly', days: 30, priceXaf: 1000, priceUsd: 5 },
+  { key: 'quarterly', days: 90, priceXaf: 2500, priceUsd: 13 },
+  { key: 'annual', days: 365, priceXaf: 9500, priceUsd: 45 },
 ];
 
 // ── Where the tailor is, and therefore how they can pay ─────────────────────
