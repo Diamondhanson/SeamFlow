@@ -1,5 +1,10 @@
 export const account = {
   en: {
+    suspendedTitle: 'Your account is on hold',
+    suspendedBody: 'You can read everything you have saved, but you cannot make changes right now.',
+    suspendedReason: 'You can read everything you have saved, but you cannot make changes right now. Reason: {reason}',
+    suspendedKeepsData: 'Nothing has been deleted. Your clients, measurements and orders are all still here.',
+    suspendedContact: 'Write to us about it',
     // ── The delete screen ────────────────────────────────────────────────
     deleteTitle: 'Delete my account',
     warningBody:
@@ -49,6 +54,11 @@ export const account = {
     keptBody: 'Your account is safe and your shop is visible again.',
   },
   fr: {
+    suspendedTitle: 'Votre compte est en pause',
+    suspendedBody: 'Vous pouvez consulter tout ce que vous avez enregistré, mais vous ne pouvez rien modifier pour le moment.',
+    suspendedReason: 'Vous pouvez consulter tout ce que vous avez enregistré, mais vous ne pouvez rien modifier pour le moment. Motif : {reason}',
+    suspendedKeepsData: 'Rien n’a été supprimé. Vos clients, mesures et commandes sont toujours là.',
+    suspendedContact: 'Nous écrire à ce sujet',
     deleteTitle: 'Supprimer mon compte',
     warningBody:
       'Cela ferme votre atelier et efface vos dossiers. Rien ne se passe pendant {days} jours. Vous pouvez changer d’avis avant.',
@@ -97,6 +107,11 @@ export const account = {
     keptBody: 'Votre compte est conservé et votre atelier est de nouveau visible.',
   },
   pt: {
+    suspendedTitle: 'A sua conta está suspensa',
+    suspendedBody: 'Pode ver tudo o que guardou, mas não pode fazer alterações neste momento.',
+    suspendedReason: 'Pode ver tudo o que guardou, mas não pode fazer alterações neste momento. Motivo: {reason}',
+    suspendedKeepsData: 'Nada foi apagado. Os seus clientes, medidas e encomendas continuam aqui.',
+    suspendedContact: 'Escreva-nos sobre isto',
     // ── O ecrã de eliminação ─────────────────────────────────────────────
     deleteTitle: 'Eliminar a minha conta',
     warningBody:
@@ -147,6 +162,11 @@ export const account = {
     keptBody: 'A sua conta está segura e a sua loja voltou a ficar visível.',
   },
   es: {
+    suspendedTitle: 'Tu cuenta está en pausa',
+    suspendedBody: 'Puedes ver todo lo que guardaste, pero no puedes hacer cambios ahora mismo.',
+    suspendedReason: 'Puedes ver todo lo que guardaste, pero no puedes hacer cambios ahora mismo. Motivo: {reason}',
+    suspendedKeepsData: 'No se ha borrado nada. Tus clientes, medidas y pedidos siguen aquí.',
+    suspendedContact: 'Escríbenos sobre esto',
     // ── Pantalla de eliminación ──────────────────────────────────────────
     deleteTitle: 'Eliminar mi cuenta',
     warningBody:
@@ -196,6 +216,11 @@ export const account = {
     keptBody: 'Su cuenta está a salvo y su taller vuelve a estar visible.',
   },
   sw: {
+    suspendedTitle: 'Akaunti yako imesimamishwa kwa muda',
+    suspendedBody: 'Unaweza kusoma kila ulichohifadhi, lakini huwezi kufanya mabadiliko kwa sasa.',
+    suspendedReason: 'Unaweza kusoma kila ulichohifadhi, lakini huwezi kufanya mabadiliko kwa sasa. Sababu: {reason}',
+    suspendedKeepsData: 'Hakuna kilichofutwa. Wateja wako, vipimo na oda bado vipo.',
+    suspendedContact: 'Tuandikie kuhusu hili',
     // ── Skrini ya kufuta ─────────────────────────────────────────────────
     deleteTitle: 'Futa akaunti yangu',
     warningBody:
@@ -245,6 +270,11 @@ export const account = {
     keptBody: 'Akaunti yako iko salama na duka lako linaonekana tena.',
   },
   ar: {
+    suspendedTitle: 'حسابك موقوف مؤقتًا',
+    suspendedBody: 'يمكنك قراءة كل ما حفظته، لكن لا يمكنك إجراء تغييرات الآن.',
+    suspendedReason: 'يمكنك قراءة كل ما حفظته، لكن لا يمكنك إجراء تغييرات الآن. السبب: {reason}',
+    suspendedKeepsData: 'لم يُحذف شيء. عملاؤك ومقاساتهم وطلباتك ما زالت موجودة.',
+    suspendedContact: 'راسلنا بخصوص ذلك',
     // ── شاشة الحذف ───────────────────────────────────────────────────────
     deleteTitle: 'حذف حسابي',
     warningBody:

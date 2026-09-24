@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AllowSuspended } from '../auth/decorators/allow-suspended.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { SupportService } from './support.service';
 import { CreateSupportMessageDto, CreateTicketDto, UpdateTicketStatusDto } from './support.dto';
@@ -9,6 +10,7 @@ import { CreateSupportMessageDto, CreateTicketDto, UpdateTicketStatusDto } from 
  * always scoped to the signed-in user. The staff side lives in the admin
  * inbox (step 2), not here.
  */
+@AllowSuspended()
 @Controller('support/tickets')
 export class SupportController {
   constructor(private readonly support: SupportService) {}

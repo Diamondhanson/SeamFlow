@@ -51,6 +51,17 @@ export const users = pgTable(
      * where to subscribe, since the app may not tell them.
      */
     subscriptionEmailsOptIn: boolean('subscription_emails_opt_in').notNull().default(true),
+
+    /**
+     * Suspension: stopped from acting, never from reading.
+     *
+     * While this is set the API refuses anything that WRITES, and returns the
+     * reason so the app can say it plainly. Everything they made stays
+     * readable and exportable, and support stays reachable — a suspension
+     * nobody can argue with is a ban with extra steps.
+     */
+    suspendedAt: timestamp('suspended_at', { withTimezone: true }),
+    suspensionReason: text('suspension_reason'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

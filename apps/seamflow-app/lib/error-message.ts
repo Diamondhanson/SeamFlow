@@ -49,7 +49,18 @@ export function toUserMessage(err: unknown, t: Translate): UserFacingError {
   if (err instanceof ApiError) {
     if (err.status === 0) return at('errors.network'); // no HTTP response / timeout
     if (err.status === 401) return at('errors.sessionExpired');
-    if (err.status === 403) return at('errors.forbidden');
+    if (err.status === 403) {
+      // A suspended account gets the REASON it was given, not a generic
+      // refusal. Someone who cannot act needs to know what to do about it,
+      // and "you do not have permission" tells them nothing.
+      const body = (err as { body?: { error?: string; reason?: string | null } }).body;
+      if (body?.error === 'account_suspended') {
+        return body.reason?.trim()
+          ? { title, message: t('errors.suspendedWithReason', { reason: body.reason.trim() }) }
+          : at('errors.suspended');
+      }
+      return at('errors.forbidden');
+    }
     if (err.status === 404) return at('errors.notFound');
     if (err.status === 409) return at('errors.conflict');
     if (err.status === 400 || err.status === 422) return at('errors.validation');

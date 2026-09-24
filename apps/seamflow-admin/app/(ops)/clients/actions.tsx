@@ -9,7 +9,7 @@
 // ============================================================================
 
 import { useState, useTransition } from 'react';
-import { cancelDeletion, purgeNow, signOutEverywhere } from '../../../lib/people-actions';
+import { cancelDeletion, purgeNow, setSuspended, signOutEverywhere } from '../../../lib/people-actions';
 
 const BTN = 'border border-rule px-2 py-1 text-xs text-muted hover:border-ink hover:text-ink disabled:opacity-60';
 
@@ -17,10 +17,12 @@ export function AccountActions({
   userId,
   name,
   deletionRequestedAt,
+  suspendedAt,
 }: {
   userId: string;
   name: string;
   deletionRequestedAt: string | null;
+  suspendedAt: string | null;
 }) {
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +50,24 @@ export function AccountActions({
         }}
       >
         Sign out
+      </button>
+      <button
+        type="button"
+        disabled={pending}
+        className={BTN}
+        title="Stop them making changes. They can still read everything and reach support."
+        onClick={() => {
+          if (suspendedAt) {
+            if (!confirm(`Let ${name} use the app normally again?`)) return;
+            run(() => setSuspended(userId, false, null, '/clients'));
+            return;
+          }
+          const reason = prompt(`Why is ${name} being put on hold?\n\nThey will see this sentence.`);
+          if (!reason?.trim()) return;
+          run(() => setSuspended(userId, true, reason.trim(), '/clients'));
+        }}
+      >
+        {suspendedAt ? 'Let them back' : 'Put on hold'}
       </button>
       {deletionRequestedAt ? (
         <>

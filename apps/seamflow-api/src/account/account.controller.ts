@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 import type { AccountExport, DeletionState } from '@seamflow/schemas';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { AllowSuspended } from '../auth/decorators/allow-suspended.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { AccountService } from './account.service';
 import { RequestDeletionDto } from './account.dto';
@@ -12,6 +13,7 @@ import { RequestDeletionDto } from './account.dto';
  * the app obtains by making them re-enter their password. A confirmation
  * dialog proves a finger touched the screen; it does not prove whose finger.
  */
+@AllowSuspended()
 @Controller('account')
 export class AccountController {
   constructor(private readonly account: AccountService) {}

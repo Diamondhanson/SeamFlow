@@ -1,5 +1,6 @@
 import {
   CanActivate,
+  ForbiddenException,
   ExecutionContext,
   Injectable,
   Logger,
@@ -11,6 +12,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { DbService } from '../db/db.service';
 import { users } from '../db/schema';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
+import { ALLOW_SUSPENDED_KEY } from './decorators/allow-suspended.decorator';
 import type { AuthedRequest, ProfileRow } from './auth.types';
 import type { UserRole } from '@seamflow/types';
 
@@ -56,6 +58,8 @@ export class SupabaseAuthGuard implements CanActivate {
     }
 
     let profile: ProfileRow | null = null;
+    let suspendedAt: Date | null = null;
+    let suspensionReason: string | null = null;
     if (this.db.isConfigured()) {
       try {
         const rows = await this.db.db
@@ -65,6 +69,8 @@ export class SupabaseAuthGuard implements CanActivate {
           .limit(1);
         const row = rows[0];
         if (row) {
+          suspendedAt = row.suspendedAt ?? null;
+          suspensionReason = row.suspensionReason ?? null;
           profile = {
             id: row.id,
             phone: row.phone,
@@ -89,6 +95,26 @@ export class SupabaseAuthGuard implements CanActivate {
       profile,
       jwt,
     };
+
+    // A suspended account may READ everything it ever made, and may not change
+    // anything. That asymmetry is the whole design: the rule that a tailor can
+    // always open SeamFlow and see their own work holds even here. The profile
+    // row was already fetched above, so this costs nothing.
+    if (suspendedAt) {
+      const method = (req.method ?? 'GET').toUpperCase();
+      const writes = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+      const allowed = this.reflector.getAllAndOverride<boolean>(ALLOW_SUSPENDED_KEY, [
+        ctx.getHandler(),
+        ctx.getClass(),
+      ]);
+      if (writes && !allowed) {
+        throw new ForbiddenException({
+          error: 'account_suspended',
+          reason: suspensionReason ?? null,
+          since: suspendedAt.toISOString(),
+        });
+      }
+    }
     return true;
   }
 }

@@ -8,6 +8,9 @@ import { AdminPeopleService } from './admin-people.service';
 import { AdminAuditService, type AuditTargetType } from './admin-audit.service';
 
 class VerifyDto extends createZodDto(z.object({ verified: z.boolean() })) {}
+class SuspendDto extends createZodDto(
+  z.object({ suspended: z.boolean(), reason: z.string().min(1).max(300).nullable().optional() }),
+) {}
 class TakedownDto extends createZodDto(
   z.object({ reason: z.string().min(1).max(300), restore: z.boolean().optional() }),
 ) {}
@@ -44,6 +47,19 @@ export class AdminPeopleController {
     @Param('userId', new ParseUUIDPipe()) userId: string,
   ) {
     return this.people.signOutEverywhere(user.id, userId);
+  }
+
+  /**
+   * Stop an account from acting, or let it act again. Reads keep working
+   * either way, which is what makes this different from a ban.
+   */
+  @Post('users/:userId/suspended')
+  async setSuspended(
+    @CurrentUser() user: AuthedUser,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Body() body: SuspendDto,
+  ) {
+    return this.people.setSuspended(user.id, userId, body.suspended, body.reason ?? null);
   }
 
   /** Stop a deletion that is counting down. */

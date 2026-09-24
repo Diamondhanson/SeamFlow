@@ -15,6 +15,7 @@ import { useState, useTransition } from 'react';
 import {
   cancelDeletion,
   purgeNow,
+  setSuspended,
   setVerified,
   signOutEverywhere,
 } from '../../../../lib/people-actions';
@@ -46,6 +47,8 @@ export function TailorActions({
   isVerified,
   deletionRequestedAt,
   deletionScheduledFor,
+  suspendedAt,
+  suspensionReason,
 }: {
   tailorId: string;
   userId: string;
@@ -53,6 +56,8 @@ export function TailorActions({
   isVerified: boolean;
   deletionRequestedAt: string | null;
   deletionScheduledFor: string | null;
+  suspendedAt: string | null;
+  suspensionReason: string | null;
 }) {
   const { pending, error, done, run } = useAction();
 
@@ -77,6 +82,31 @@ export function TailorActions({
           }}
         >
           {isVerified ? 'Remove verified badge' : 'Mark as verified'}
+        </button>
+
+        <button
+          type="button"
+          disabled={pending}
+          className={suspendedAt ? BTN : 'border border-bad px-3 py-1.5 text-sm text-bad hover:bg-bad hover:text-paper disabled:opacity-60'}
+          onClick={() => {
+            if (suspendedAt) {
+              if (!confirm(`Let ${businessName} work again? They will be able to make changes immediately.`)) return;
+              run(() => setSuspended(userId, false, null, `/tailors/${tailorId}`), 'They can work again.');
+              return;
+            }
+            // The reason is shown to them, word for word, so it is asked for
+            // rather than optional.
+            const reason = prompt(
+              `Why is ${businessName} being put on hold?\n\nThey will see this sentence in the app, so write it to them.`,
+            );
+            if (!reason?.trim()) return;
+            run(
+              () => setSuspended(userId, true, reason.trim(), `/tailors/${tailorId}`),
+              'On hold. They can still read everything and write to support.',
+            );
+          }}
+        >
+          {suspendedAt ? 'Let them work again' : 'Put on hold'}
         </button>
 
         <button
@@ -135,6 +165,13 @@ export function TailorActions({
         ) : null}
       </div>
 
+      {suspendedAt ? (
+        <p className="mt-3 text-xs text-bad">
+          On hold since {new Date(suspendedAt).toLocaleDateString()}
+          {suspensionReason ? ` — they were told: “${suspensionReason}”` : ''}. They can still read
+          everything they made, export it, and write to support.
+        </p>
+      ) : null}
       {deletionRequestedAt ? (
         <p className="mt-3 text-xs text-bad">
           This person asked to be deleted

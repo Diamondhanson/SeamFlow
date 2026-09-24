@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { PendingDeletionBanner } from '../../../components/PendingDeletionBanner';
+import { SuspensionBanner } from '../../../components/SuspensionBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -98,6 +99,7 @@ export default function ClientHome() {
         {/* Above everything: someone who regrets asking to be deleted must not
             have to go looking for the way back. */}
         <PendingDeletionBanner />
+        <SuspensionBanner support="/hub/support" />
 
         {/* Greeting hero */}
         <View style={[styles.hero, { backgroundColor: colors.surfaceElevated, borderColor: colors.hairline }]}>

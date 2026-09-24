@@ -21,6 +21,7 @@ import { GettingStarted } from '../../components/GettingStarted';
 import { PendingDeletionBanner } from '../../components/PendingDeletionBanner';
 import { ProfileReminderBanner } from '../../components/ProfileReminderBanner';
 import { TrialBanner } from '../../components/TrialBanner';
+import { SuspensionBanner } from '../../components/SuspensionBanner';
 import { ColdStartBanner } from '../../components/ColdStartBanner';
 import { InstallHint } from '../../components/InstallHint';
 import { WelcomeSlides } from '../../components/WelcomeSlides';
@@ -155,6 +156,7 @@ export default function Home() {
         <ColdStartBanner loading={coldLoading} />
         <PendingDeletionBanner />
         <ProfileReminderBanner />
+        <SuspensionBanner support="/(app)/support" />
         <TrialBanner />
         <InstallHint />
 

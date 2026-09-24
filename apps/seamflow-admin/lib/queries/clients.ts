@@ -42,6 +42,8 @@ export interface AccountClient {
   /** Set when this person asked to be deleted; the grace period is 30 days. */
   deletionRequestedAt: string | null;
   deletionScheduledFor: string | null;
+  suspendedAt: string | null;
+  suspensionReason: string | null;
 }
 
 export interface ClientsPage {
@@ -89,7 +91,7 @@ export async function getClients(opts: { q?: string; tailor?: string; page?: num
       (select coalesce(json_agg(a), '[]'::json) from (
         select
           u.id, u.full_name, u.email, u.phone, u.phone_verified_at, u.created_at,
-          u.deletion_requested_at, u.deletion_scheduled_for,
+          u.deletion_requested_at, u.deletion_scheduled_for, u.suspended_at, u.suspension_reason,
           (select count(*) from order_claims k where k.user_id = u.id)::int   as claims,
           (select count(*) from conversations v where v.client_user_id = u.id)::int as conversations,
           (select count(*) from device_tokens d where d.user_id = u.id)::int  as devices
@@ -144,6 +146,8 @@ export async function getClients(opts: { q?: string; tailor?: string; page?: num
       devices: n(a.devices),
       deletionRequestedAt: (a.deletion_requested_at as string) ?? null,
       deletionScheduledFor: (a.deletion_scheduled_for as string) ?? null,
+      suspendedAt: (a.suspended_at as string) ?? null,
+      suspensionReason: (a.suspension_reason as string) ?? null,
     })),
     overlap: ((row?.overlap ?? []) as Record<string, unknown>[]).map((o) => ({
       phone: o.phone as string,

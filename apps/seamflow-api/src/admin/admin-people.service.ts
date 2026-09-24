@@ -125,6 +125,56 @@ export class AdminPeopleService {
   }
 
   /**
+   * Stop an account from acting, without taking anything away.
+   *
+   * A suspended person can still read every client, order and measurement
+   * they ever made, export it all, and write to support to argue. What they
+   * cannot do is change anything: the auth guard refuses writes and hands
+   * back this reason, which the app shows verbatim. So the reason has to be a
+   * sentence a person can act on, not a code.
+   */
+  async setSuspended(
+    actorUserId: string,
+    userId: string,
+    suspended: boolean,
+    reason: string | null,
+  ) {
+    const [person] = await this.db
+      .select({ id: users.id, at: users.suspendedAt, reason: users.suspensionReason })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!person) throw new NotFoundException('User not found');
+
+    await this.db
+      .update(users)
+      .set({
+        suspendedAt: suspended ? new Date() : null,
+        suspensionReason: suspended ? reason : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    await this.audit.record(
+      actorUserId,
+      suspended ? 'user.suspend' : 'user.restore',
+      { type: 'user', id: userId },
+      { reason, wasSuspendedAt: person.at?.toISOString() ?? null },
+    );
+
+    // Their devices keep whatever they had cached, and the next write will be
+    // refused with the reason. Telling them directly is better than letting
+    // them find out by pressing something.
+    void this.notifications.emit(userId, {
+      type: 'moderation.outcome',
+      params: { reason: reason ?? '' },
+      entity: null,
+    });
+
+    return { suspended, reason };
+  }
+
+  /**
    * Take a post out of the feed, and say so.
    *
    * 'removed' already existed in the schema with no way to set it, and

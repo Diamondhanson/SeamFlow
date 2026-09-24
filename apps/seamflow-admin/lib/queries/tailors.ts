@@ -143,6 +143,8 @@ export interface TailorDetail {
     deletionRequestedAt: string | null;
     deletionScheduledFor: string | null;
     deletedAt: string | null;
+    suspendedAt: string | null;
+    suspensionReason: string | null;
   };
   stats: {
     clients: number;
@@ -168,7 +170,8 @@ export async function getTailor(id: string): Promise<TailorDetail | null> {
     select
       (select row_to_json(t) from (
         select tl.*, u.email, u.phone, u.full_name,
-               u.deletion_requested_at, u.deletion_scheduled_for, u.deleted_at
+               u.deletion_requested_at, u.deletion_scheduled_for, u.deleted_at,
+               u.suspended_at, u.suspension_reason
         from tailors tl left join users u on u.id = tl.user_id
         where tl.id = ${id}
       ) t) as tailor,
@@ -247,6 +250,8 @@ export async function getTailor(id: string): Promise<TailorDetail | null> {
       deletionRequestedAt: (t.deletion_requested_at as string) ?? null,
       deletionScheduledFor: (t.deletion_scheduled_for as string) ?? null,
       deletedAt: (t.deleted_at as string) ?? null,
+      suspendedAt: (t.suspended_at as string) ?? null,
+      suspensionReason: (t.suspension_reason as string) ?? null,
     },
     stats: row.stats as TailorDetail['stats'],
     ordersMonthly: (row.orders_monthly ?? []) as Bucket[],

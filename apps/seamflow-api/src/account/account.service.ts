@@ -100,6 +100,22 @@ export class AccountService {
    * period, because a second tap is far more likely to be impatience than a
    * considered decision to be deleted sooner.
    */
+  /**
+   * Is this account stopped, and why?
+   *
+   * Read on every /me so the app can say so plainly rather than letting the
+   * person discover it one refused button at a time.
+   */
+  async suspensionFor(userId: string): Promise<{ since: string; reason: string | null } | null> {
+    const [row] = await this.db.db
+      .select({ at: users.suspendedAt, reason: users.suspensionReason })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!row?.at) return null;
+    return { since: row.at.toISOString(), reason: row.reason ?? null };
+  }
+
   async requestDeletion(userId: string, reason?: string): Promise<DeletionState> {
     const db = this.db.db;
 

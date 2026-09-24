@@ -25,6 +25,11 @@ export interface MeResponse {
   deletion?: DeletionState;
   /** Trial countdown and entitlement. Null for an account with no shop. */
   subscription?: SubscriptionState | null;
+  /**
+   * Set while this account may not write. Optional because an older app build
+   * and a cached response both predate it; absent means not suspended.
+   */
+  suspension?: { since: string; reason: string | null } | null;
 }
 
 export function makeMeResource(http: HttpClient) {

@@ -49,6 +49,24 @@ export async function signOutEverywhere(userId: string, revalidate: string): Pro
   revalidatePath(revalidate);
 }
 
+/**
+ * Stop an account from acting, or let it act again.
+ *
+ * Suspended means they can still READ everything they made and still reach
+ * support; they cannot change anything. The reason is shown to them word for
+ * word, so it has to be a sentence, not a code.
+ */
+export async function setSuspended(
+  userId: string,
+  suspended: boolean,
+  reason: string | null,
+  revalidate: string,
+): Promise<void> {
+  const staff = await requireStaff();
+  await call(staff.accessToken, 'POST', `/admin/users/${userId}/suspended`, { suspended, reason });
+  revalidatePath(revalidate);
+}
+
 /** Stop a deletion that is counting down. */
 export async function cancelDeletion(userId: string, revalidate: string): Promise<void> {
   const staff = await requireStaff();

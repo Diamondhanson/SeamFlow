@@ -54,13 +54,20 @@ export class MeController {
      * an account with no shop — the client app is free forever.
      */
     subscription: SubscriptionState | null;
+    /**
+     * Set while this account may not write. The app shows it as a banner and
+     * explains the refusals; without it a suspended tailor would just find
+     * that nothing works and no screen would say why.
+     */
+    suspension: { since: string; reason: string | null } | null;
   }> {
-    const [tailor, deletion] = await Promise.all([
+    const [tailor, deletion, suspension] = await Promise.all([
       this.tailors.getForUser(user.id),
       // Rides along with the call every screen already makes on open, so a
       // pending deletion surfaces the moment they sign back in — which is the
       // only way someone who changed their mind ever finds the cancel button.
       this.account.getState(user.id),
+      this.account.suspensionFor(user.id),
     ]);
     // Creates the row (and starts the six-week trial) the first time a shop
     // appears, so nothing else has to remember to.
@@ -75,6 +82,7 @@ export class MeController {
       tailor,
       deletion,
       subscription,
+      suspension,
     };
   }
 }

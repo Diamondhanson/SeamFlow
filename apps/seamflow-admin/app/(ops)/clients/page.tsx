@@ -140,6 +140,7 @@ export default async function ClientsPage({
                     userId={a.id}
                     name={a.fullName || a.email || 'this person'}
                     deletionRequestedAt={a.deletionRequestedAt}
+                    suspendedAt={a.suspendedAt}
                   />
                 </Cell>
               </Row>

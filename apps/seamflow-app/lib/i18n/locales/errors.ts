@@ -3,6 +3,8 @@
 // raw server/Supabase string. Auth screens keep their own copy in ./auth.
 export const errors = {
   en: {
+    suspended: 'Your account is on hold, so this change was not saved. Everything you have is still here.',
+    suspendedWithReason: 'Your account is on hold, so this change was not saved. Reason: {reason}',
     network: 'No internet connection. Check your connection and try again.',
     server: 'Something went wrong on our end. Please try again in a moment.',
     notFound: "We couldn't find what you were looking for. Please refresh and try again.",
@@ -15,6 +17,8 @@ export const errors = {
     unknown: 'Something went wrong. Please try again.',
   },
   fr: {
+    suspended: 'Votre compte est en pause, cette modification n’a pas été enregistrée. Tout ce que vous avez est toujours là.',
+    suspendedWithReason: 'Votre compte est en pause, cette modification n’a pas été enregistrée. Motif : {reason}',
     network: 'Pas de connexion Internet. Vérifiez votre connexion et réessayez.',
     server: 'Un problème est survenu de notre côté. Veuillez réessayer dans un instant.',
     notFound: "Nous n'avons pas trouvé ce que vous cherchiez. Actualisez et réessayez.",
@@ -27,6 +31,8 @@ export const errors = {
     unknown: 'Un problème est survenu. Veuillez réessayer.',
   },
   pt: {
+    suspended: 'A sua conta está suspensa, por isso esta alteração não foi guardada. Tudo o que tem continua aqui.',
+    suspendedWithReason: 'A sua conta está suspensa, por isso esta alteração não foi guardada. Motivo: {reason}',
     network: 'Sem ligação à Internet. Verifique a sua ligação e tente novamente.',
     server: 'Algo correu mal do nosso lado. Tente novamente dentro de momentos.',
     notFound: 'Não encontrámos o que procurava. Atualize e tente novamente.',
@@ -39,6 +45,8 @@ export const errors = {
     unknown: 'Algo correu mal. Tente novamente.',
   },
   es: {
+    suspended: 'Tu cuenta está en pausa, así que este cambio no se guardó. Todo lo que tienes sigue aquí.',
+    suspendedWithReason: 'Tu cuenta está en pausa, así que este cambio no se guardó. Motivo: {reason}',
     network: 'Sin conexión a Internet. Comprueba tu conexión e inténtalo de nuevo.',
     server: 'Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.',
     notFound: 'No encontramos lo que buscabas. Actualiza e inténtalo de nuevo.',
@@ -51,6 +59,8 @@ export const errors = {
     unknown: 'Algo salió mal. Inténtalo de nuevo.',
   },
   sw: {
+    suspended: 'Akaunti yako imesimamishwa, kwa hivyo mabadiliko haya hayakuhifadhiwa. Kila ulicho nacho bado kipo.',
+    suspendedWithReason: 'Akaunti yako imesimamishwa, kwa hivyo mabadiliko haya hayakuhifadhiwa. Sababu: {reason}',
     network: 'Hakuna muunganisho wa intaneti. Angalia muunganisho wako kisha ujaribu tena.',
     server: 'Hitilafu imetokea kwa upande wetu. Tafadhali jaribu tena baada ya muda mfupi.',
     notFound: 'Hatukupata ulichokuwa unatafuta. Tafadhali onyesha upya kisha ujaribu tena.',
@@ -63,6 +73,8 @@ export const errors = {
     unknown: 'Hitilafu imetokea. Tafadhali jaribu tena.',
   },
   ar: {
+    suspended: 'حسابك موقوف مؤقتًا، لذلك لم يُحفظ هذا التغيير. كل ما لديك ما زال موجودًا.',
+    suspendedWithReason: 'حسابك موقوف مؤقتًا، لذلك لم يُحفظ هذا التغيير. السبب: {reason}',
     network: 'لا يوجد اتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى.',
     server: 'حدث خطأ من جانبنا. يرجى المحاولة مرة أخرى بعد قليل.',
     notFound: 'لم نتمكن من العثور على ما تبحث عنه. يرجى التحديث والمحاولة مرة أخرى.',

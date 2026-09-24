@@ -62,6 +62,8 @@ export default async function TailorDetailPage({ params }: { params: Promise<{ i
           isVerified={t.isVerified}
           deletionRequestedAt={t.deletionRequestedAt}
           deletionScheduledFor={t.deletionScheduledFor}
+          suspendedAt={t.suspendedAt}
+          suspensionReason={t.suspensionReason}
         />
         {history.length > 0 ? (
           <div className="mt-6">
