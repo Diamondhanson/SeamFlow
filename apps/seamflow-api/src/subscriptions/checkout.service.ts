@@ -12,7 +12,8 @@
 
 import { Inject, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { and, desc, eq } from 'drizzle-orm';
+import { Cron } from '@nestjs/schedule';
+import { and, desc, eq, gte, isNotNull } from 'drizzle-orm';
 import {
   billingFor,
   planFor,
@@ -241,6 +242,50 @@ export class CheckoutService {
     await this.notifyPaid(row.tailorId, updated.premiumUntil);
     this.logger.log(`Subscription paid: tailor ${row.tailorId}, +${row.daysAdded} days`);
     return { handled: true };
+  }
+
+  /**
+   * Catch payments whose webhook never arrived.
+   *
+   * Fapshi sends exactly one webhook per event, whether or not we answer it,
+   * so a deploy, a cold start or a dropped connection at the wrong moment
+   * means a tailor has paid and nothing happened. Every few minutes this asks
+   * the provider directly about attempts still pending, and settles whatever
+   * it finds. Only looks at the last day: older than that, a pending payment
+   * was abandoned, and Fapshi expires its own links after 24 hours anyway.
+   */
+  @Cron('*/10 * * * *')
+  async reconcilePending(): Promise<{ checked: number; settled: number }> {
+    if (!this.dbService.isConfigured()) return { checked: 0, settled: 0 };
+    if (!this.provider.isConfigured() || !this.provider.fetchStatus) return { checked: 0, settled: 0 };
+
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const pending = await this.db
+      .select()
+      .from(subscriptionPayments)
+      .where(
+        and(
+          eq(subscriptionPayments.status, 'pending'),
+          eq(subscriptionPayments.provider, this.provider.name),
+          isNotNull(subscriptionPayments.providerRef),
+          gte(subscriptionPayments.createdAt, since),
+        ),
+      )
+      .limit(50);
+
+    let settled = 0;
+    for (const row of pending) {
+      try {
+        const event = await this.provider.fetchStatus(row.providerRef!);
+        if (!event || event.status === 'pending') continue;
+        await this.settle({ ...event, paymentId: row.id });
+        if (event.status === 'succeeded') settled++;
+      } catch (err) {
+        this.logger.warn(`Reconcile failed for ${row.providerRef}: ${(err as Error).message}`);
+      }
+    }
+    if (settled) this.logger.log(`Reconciled ${settled} payment(s) whose webhook never arrived`);
+    return { checked: pending.length, settled };
   }
 
   private async notifyPaid(tailorId: string, premiumUntil: Date | null): Promise<void> {

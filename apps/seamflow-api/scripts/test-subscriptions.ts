@@ -336,10 +336,20 @@ async function main(): Promise<void> {
       assert(r.data.error === 'payments_unavailable', `unexpected 503 body: ${JSON.stringify(r.data)}`);
       console.log('• With no provider connected, checkout says "not available yet" — the app shows "coming soon"');
     } else {
-      // SUBSCRIPTION_PAYMENT_PROVIDER=fake: drive the whole path.
+      // A provider is connected. The fake one is driven end to end below; a
+      // REAL one (Fapshi) has its own script, because only its own signature
+      // and sandbox can prove that path — here we check the shape and stop.
       assert(r.status === 201 || r.status === 200, `checkout: ${r.status} ${JSON.stringify(r.data)}`);
-      const { paymentId, status, instruction } = r.data;
-      assert(status === 'pending' && instruction === 'approve_on_phone', `bad checkout result: ${JSON.stringify(r.data)}`);
+      const { paymentId, status, instruction, redirectUrl } = r.data;
+      assert(status === 'pending', `expected pending, got ${status}`);
+      assert(
+        instruction === 'approve_on_phone' || instruction === 'follow_link',
+        `bad checkout result: ${JSON.stringify(r.data)}`,
+      );
+      const isFake = !redirectUrl || !String(redirectUrl).includes('fapshi');
+      if (!isFake) {
+        console.log('• Checkout starts a payment with the connected provider (see pnpm test:fapshi)');
+      } else {
       console.log('• Checkout starts a payment and waits — approval happens on the handset');
 
       r = await api(jwt, 'GET', `/subscriptions/payments/${paymentId}`);
@@ -388,6 +398,7 @@ async function main(): Promise<void> {
       r = await api(jwt, 'GET', '/subscriptions/payments');
       assert(r.data.items.length >= 1 && r.data.items[0].status === 'succeeded', 'payment history is wrong');
       console.log('• The payment appears in the tailor’s history');
+      }
     }
   } finally {
     // Both of these are platform-wide. Leaving the switch on would block every

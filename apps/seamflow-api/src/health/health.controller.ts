@@ -4,6 +4,7 @@ import { QueueService } from '../queue/queue.service';
 import { AccountPurgeService } from '../account/account-purge.service';
 import { ChatMediaRetentionService } from '../chat/chat-media-retention.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { CheckoutService } from '../subscriptions/checkout.service';
 import { sentryEnabled } from '../common/sentry';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -36,6 +37,7 @@ export class HealthController {
     private readonly purge: AccountPurgeService,
     private readonly retention: ChatMediaRetentionService,
     private readonly subscriptions: SubscriptionsService,
+    private readonly checkout: CheckoutService,
   ) {}
 
   /**
@@ -98,6 +100,13 @@ export class HealthController {
   async runReminders() {
     if (process.env.NODE_ENV === 'production') throw new NotFoundException();
     return this.subscriptions.renewalReminders();
+  }
+
+  /** Dev-only: ask the provider about pending payments now. */
+  @Post('subscription-reconcile')
+  async reconcile() {
+    if (process.env.NODE_ENV === 'production') throw new NotFoundException();
+    return this.checkout.reconcilePending();
   }
 
   @Post('subscription-sync')

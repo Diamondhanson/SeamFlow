@@ -333,7 +333,12 @@ export class SubscriptionsService {
   ): Promise<SubscriptionRow> {
     const row = await this.ensureFor(tailorId);
     const now = new Date();
-    const base = row.premiumUntil && row.premiumUntil > now ? row.premiumUntil : now;
+    const candidates = [now, row.premiumUntil, row.trialEndsAt].filter(
+      (d): d is Date => !!d && d > now,
+    );
+    const base = candidates.length
+      ? new Date(Math.max(...candidates.map((d) => d.getTime())))
+      : now;
     const premiumUntil = addDays(base, days);
     const [updated] = await this.db
       .update(subscriptions)

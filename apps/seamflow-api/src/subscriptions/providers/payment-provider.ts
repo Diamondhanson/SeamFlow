@@ -70,6 +70,16 @@ export interface PaymentProvider {
    * checks out — this is the door to the money.
    */
   parseWebhook(headers: Record<string, string | string[] | undefined>, rawBody: string): WebhookEvent | null;
+  /**
+   * Ask the provider what a transaction's status is.
+   *
+   * Optional, because not every rail offers it — but where it exists it is
+   * the answer to the worst failure this system has: a tailor who paid, whose
+   * webhook never arrived, staring at "waiting for your confirmation". The
+   * reconcile job (CheckoutService) uses it as a safety net, never as a
+   * substitute for webhooks.
+   */
+  fetchStatus?(providerRef: string): Promise<WebhookEvent | null>;
 }
 
 /**

@@ -91,6 +91,8 @@ async function main(): Promise<void> {
     console.log('• A webhook with the wrong secret is refused');
 
     // ---- The real thing -----------------------------------------------------
+    // Paying during a trial ADDS to it — the tailor keeps what they were
+    // promised, so this is trial days plus the plan's 30.
     const before = (await api(jwt, 'GET', '/me/subscription')).data.daysLeft;
     res = await fetch(`http://localhost:${PORT}/subscriptions/webhook/fapshi`, {
       method: 'POST',
