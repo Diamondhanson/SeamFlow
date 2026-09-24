@@ -32,6 +32,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   Client,
+  MeasurementValues,
   Message,
   MessageAttachment,
   MessageReaction,
@@ -219,23 +220,19 @@ export function ChatThread({
     messageId: string,
     attachmentIndex: number,
     label: string | null | undefined,
-    target?: { clientId?: string },
+    target: { clientId?: string },
+    replaceSetId?: string,
   ): Promise<SaveChatMeasurementResult | null> => {
-    const chosen =
-      target ??
-      (conversation?.linkedClient
-        ? { clientId: conversation.linkedClient.id }
-        : await chooseClient());
-    if (!chosen) return null;
     setFiling(messageId);
     try {
       return await saveMeasurementMut.mutateAsync({
         messageId,
         attachmentIndex,
-        clientId: chosen.clientId,
+        clientId: target.clientId,
         // Used only when the record has to be created from this enquiry.
         clientName: conversation?.counterparty.name,
         label: label?.trim() || tk('msDefaultLabel'),
+        replaceSetId,
       });
     } catch (err) {
       void dialog.error(err);
@@ -245,21 +242,120 @@ export function ChatThread({
     }
   };
 
+  /**
+   * What changed against a set this client already has.
+   *
+   * A tailor cares enormously about which number moved since the last
+   * garment, and this is the one moment we can tell them for free. Returns
+   * null when there is nothing comparable, and an empty list when the two are
+   * the same, which is a different answer from "no idea".
+   */
+  const compareWithSaved = (
+    values: MeasurementValues,
+    saved: MeasurementValues,
+  ): string[] => {
+    const lines: string[] = [];
+    for (const [k, v] of Object.entries(values)) {
+      const before = saved[k];
+      if (before === undefined) {
+        lines.push(`${k}: ${v} (${tk('msAdded')})`);
+      } else if (String(before) !== String(v)) {
+        lines.push(`${k}: ${before} → ${v}`);
+      }
+    }
+    return lines;
+  };
+
+  /** The set these numbers should be compared against: the one with the same
+   *  name, else the newest that measures any of the same things. */
+  const setToCompare = async (clientId: string, label: string | null | undefined, values: MeasurementValues) => {
+    let items: Awaited<ReturnType<typeof api.measurementSets.listForClient>>['items'] = [];
+    try {
+      items = (await api.measurementSets.listForClient(clientId)).items;
+    } catch {
+      return null; // Comparing is a courtesy; never block the save on it.
+    }
+    const byLabel = label?.trim()
+      ? items.find((m) => m.label.trim().toLowerCase() === label.trim().toLowerCase())
+      : undefined;
+    if (byLabel) return byLabel;
+    const keys = Object.keys(values);
+    return (
+      [...items]
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .find((m) => keys.some((k) => m.values[k] !== undefined)) ?? null
+    );
+  };
+
+  /**
+   * File the measurement, showing what changed when this client already has a
+   * comparable set — and never silently adding a second identical copy.
+   *
+   * `alreadySaved` is how the two callers differ on the no-change case: there
+   * is nothing to tell someone who pressed Save, but an order started from
+   * these numbers should still open with the set they already have.
+   */
+  const fileWithReview = async (
+    messageId: string,
+    attachmentIndex: number,
+    label: string | null | undefined,
+    values: MeasurementValues,
+    repoint = false,
+  ): Promise<(SaveChatMeasurementResult & { alreadySaved?: boolean }) | null> => {
+    const target =
+      repoint || !conversation?.linkedClient
+        ? await chooseClient()
+        : { clientId: conversation.linkedClient.id };
+    // Cancelled the picker: leave any existing filing alone.
+    if (!target) return null;
+
+    let replaceSetId: string | undefined;
+    if (target.clientId) {
+      const candidate = await setToCompare(target.clientId, label, values);
+      if (candidate) {
+        const changes = compareWithSaved(values, candidate.values);
+        if (changes.length === 0) {
+          return {
+            clientId: target.clientId,
+            clientName: conversation?.linkedClient?.fullName ?? '',
+            measurementSetId: candidate.id,
+            replaced: false,
+            alreadySaved: true,
+          };
+        }
+        const choice = await dialog.choose<'replace' | 'new'>({
+          title: tk('msDiffTitle'),
+          message: `${tk('msDiffIntro', { label: candidate.label })}\n\n${changes
+            .slice(0, 8)
+            .join('\n')}`,
+          actions: [
+            { label: tk('msDiffReplace', { label: candidate.label }), value: 'replace' },
+            { label: tk('msDiffKeepBoth'), value: 'new' },
+          ],
+        });
+        if (!choice) return null;
+        if (choice === 'replace') replaceSetId = candidate.id;
+      }
+    }
+
+    return fileMeasurement(messageId, attachmentIndex, label, target, replaceSetId);
+  };
+
   const saveMeasurement = async (
     messageId: string,
     attachmentIndex: number,
     label: string | null | undefined,
+    values: MeasurementValues,
     repoint = false,
   ) => {
-    const target = repoint ? await chooseClient() : undefined;
-    // Cancelled the picker: leave the thread's existing filing alone.
-    if (repoint && !target) return;
-    const res = await fileMeasurement(messageId, attachmentIndex, label, target ?? undefined);
+    const res = await fileWithReview(messageId, attachmentIndex, label, values, repoint);
     if (!res) return;
     await dialog.alert({
-      title: tk('msSavedTitle'),
-      message: tk('msSavedBody', { name: res.clientName }),
-      tone: 'success',
+      title: res.alreadySaved ? tk('msSameTitle') : tk('msSavedTitle'),
+      message: res.alreadySaved
+        ? tk('msSameBody')
+        : tk('msSavedBody', { name: res.clientName }),
+      tone: res.alreadySaved ? 'info' : 'success',
     });
   };
 
@@ -267,12 +363,106 @@ export function ChatThread({
     messageId: string,
     attachmentIndex: number,
     label: string | null | undefined,
+    values: MeasurementValues,
   ) => {
     // Saving first is not a detour: the wizard picks the numbers up from the
     // client's file, and a measurement worth sewing from is worth keeping.
-    const res = await fileMeasurement(messageId, attachmentIndex, label);
+    const res = await fileWithReview(messageId, attachmentIndex, label, values);
     if (!res) return;
     onStartOrder?.({ clientId: res.clientId, setId: res.measurementSetId });
+  };
+
+  // ── Onto an order that already exists ────────────────────────────────────
+  //
+  // The common sequence is backwards from the obvious one: the tailor quotes
+  // the thread, the order exists, and the measurements arrive afterwards.
+  // Without this the tailor has an order and a measurement and no way to marry
+  // them except retyping.
+  const addToExistingOrder = async (values: MeasurementValues) => {
+    const target = conversation?.linkedClient
+      ? { clientId: conversation.linkedClient.id }
+      : await chooseClient();
+    if (!target) return;
+    const clientName = conversation?.linkedClient?.fullName ?? conversation?.counterparty.name ?? '';
+    if (!target.clientId) {
+      // Someone who is not in the book yet cannot have an order in it.
+      await dialog.alert({ title: tk('msAddToOrder'), message: tk('msNoOrders', { name: clientName }), tone: 'info' });
+      return;
+    }
+
+    let orders: Awaited<ReturnType<typeof api.orders.list>>['items'] = [];
+    try {
+      orders = (await api.orders.list({ clientId: target.clientId, limit: 50 })).items;
+    } catch (err) {
+      void dialog.error(err);
+      return;
+    }
+    // A delivered order is finished work; measuring it again is almost always
+    // a mistake, and the thread's own order comes first when there is one.
+    const open = orders
+      .filter((o) => o.status !== 'delivered')
+      .sort((a, b) => (a.id === conversation?.orderId ? -1 : b.id === conversation?.orderId ? 1 : 0));
+    if (open.length === 0) {
+      await dialog.alert({ title: tk('msAddToOrder'), message: tk('msNoOrders', { name: clientName }), tone: 'info' });
+      return;
+    }
+
+    const orderId =
+      open.length === 1
+        ? open[0]!.id
+        : await dialog.choose<string>({
+            title: tk('msPickOrder'),
+            actions: open.slice(0, 20).map((o) => ({ label: o.orderName, value: o.id })),
+          });
+    if (!orderId) return;
+
+    let detail: Awaited<ReturnType<typeof api.orders.get>>;
+    try {
+      detail = await api.orders.get(orderId);
+    } catch (err) {
+      void dialog.error(err);
+      return;
+    }
+    const items = detail.items ?? [];
+    if (items.length === 0) {
+      await dialog.alert({ title: tk('msAddToOrder'), message: tk('msNoGarments'), tone: 'info' });
+      return;
+    }
+    const itemId =
+      items.length === 1
+        ? items[0]!.id
+        : await dialog.choose<string>({
+            title: tk('msPickGarment'),
+            actions: items.map((it) => ({
+              label: it.quantity > 1 ? `${it.garmentType} ×${it.quantity}` : it.garmentType,
+              value: it.id,
+            })),
+          });
+    if (!itemId) return;
+
+    const item = items.find((it) => it.id === itemId)!;
+    // Never quietly overwrite numbers someone already took by hand.
+    if (item.measurements && Object.keys(item.measurements).length > 0) {
+      const ok = await dialog.confirm({
+        title: tk('msOverwriteTitle'),
+        message: tk('msOverwriteBody', { garment: item.garmentType, name: clientName }),
+        confirmLabel: tk('msOverwriteConfirm'),
+      });
+      if (!ok) return;
+    }
+
+    try {
+      await api.orderItems.update(itemId, { measurements: values });
+    } catch (err) {
+      void dialog.error(err);
+      return;
+    }
+    void qc.invalidateQueries({ queryKey: ['orders'] });
+    await dialog.alert({
+      title: tk('msAddedTitle'),
+      message: tk('msAddedBody', { garment: item.garmentType, order: detail.orderName }),
+      tone: 'success',
+    });
   };
 
   // ── Rows ────────────────────────────────────────────────────────────────
@@ -639,7 +829,7 @@ export function ChatThread({
             <View style={[styles.measureActions, { borderTopColor: colors.hairline }]}>
               <Pressable
                 disabled={busy}
-                onPress={() => void saveMeasurement(messageId!, i, a.label)}
+                onPress={() => void saveMeasurement(messageId!, i, a.label, a.values)}
                 style={styles.measureAction}
               >
                 {busy ? (
@@ -655,7 +845,7 @@ export function ChatThread({
               {onStartOrder ? (
                 <Pressable
                   disabled={busy}
-                  onPress={() => void startOrderFromMeasurement(messageId!, i, a.label)}
+                  onPress={() => void startOrderFromMeasurement(messageId!, i, a.label, a.values)}
                   style={styles.measureAction}
                 >
                   <Ionicons name="shirt-outline" size={14} color={atelier.primary} />
@@ -665,12 +855,23 @@ export function ChatThread({
                 </Pressable>
               ) : null}
 
+              <Pressable
+                disabled={busy}
+                onPress={() => void addToExistingOrder(a.values)}
+                style={styles.measureAction}
+              >
+                <Ionicons name="add-circle-outline" size={14} color={atelier.primary} />
+                <Text variant="caption" numberOfLines={1} style={{ color: atelier.primary, flex: 1 }}>
+                  {tk('msAddToOrder')}
+                </Text>
+              </Pressable>
+
               {/* Visible, not hidden behind a long press: filing someone under
                   the wrong name is easy to do and must be easy to undo. */}
               {linked ? (
                 <Pressable
                   disabled={busy}
-                  onPress={() => void saveMeasurement(messageId!, i, a.label, true)}
+                  onPress={() => void saveMeasurement(messageId!, i, a.label, a.values, true)}
                   style={styles.measureAction}
                 >
                   <Ionicons name="swap-horizontal-outline" size={14} color={colors.textMuted} />
