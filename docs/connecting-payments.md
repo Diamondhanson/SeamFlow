@@ -6,6 +6,15 @@ reminders and the ops levers. What is missing is the rail that moves money.
 
 This is the whole job.
 
+## Fapshi is already written
+
+`providers/fapshi-payment-provider.ts` implements this interface for MTN MoMo
+and Orange Money. To use it, set `SUBSCRIPTION_PAYMENT_PROVIDER=fapshi` plus
+`FAPSHI_ENV`, `FAPSHI_API_USER`, `FAPSHI_API_KEY` and `FAPSHI_WEBHOOK_SECRET`,
+and point the dashboard's webhook at `/subscriptions/webhook/fapshi`. Check it
+with `pnpm test:fapshi`. The rest of this page is for adding a SECOND rail —
+cards, which Fapshi does not do.
+
 ## 1. Write the adapter
 
 One file in `apps/seamflow-api/src/subscriptions/providers/`, implementing

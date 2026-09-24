@@ -43,6 +43,19 @@ services:
         sync: false           # optional
       - key: ANTHROPIC_API_KEY
         sync: false           # optional
+      # Payments: Fapshi (MTN MoMo + Orange Money). Leave
+      # SUBSCRIPTION_PAYMENT_PROVIDER empty until the credentials are in, and
+      # keep FAPSHI_ENV=sandbox until a real payment has been tested.
+      - key: SUBSCRIPTION_PAYMENT_PROVIDER
+        sync: false           # 'fapshi' once configured
+      - key: FAPSHI_ENV
+        sync: false           # sandbox | live
+      - key: FAPSHI_API_USER
+        sync: false
+      - key: FAPSHI_API_KEY
+        sync: false
+      - key: FAPSHI_WEBHOOK_SECRET
+        sync: false
       # Subscription emails (Resend). Without a key the reminder job logs and
       # carries on — but on the App Store and Play builds email is the ONLY
       # way a tailor learns where to subscribe, so this is not really optional

@@ -50,6 +50,17 @@ export const envSchema = z.object({
   // path be tested before a real provider is chosen.
   SUBSCRIPTION_PAYMENT_PROVIDER: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
 
+  // ── Fapshi (MTN MoMo + Orange Money, Cameroon) ────────────────────────────
+  // Per-environment credentials from the Fapshi dashboard: a service in
+  // sandbox and a separate one live. 'sandbox' unless FAPSHI_ENV says 'live',
+  // because getting this wrong spends real money.
+  FAPSHI_ENV: z.enum(['sandbox', 'live']).default('sandbox'),
+  FAPSHI_API_USER: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+  FAPSHI_API_KEY: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+  // Echoed by Fapshi in the x-wh-secret header. Without it every webhook is
+  // refused — an open payment webhook is a giveaway, not an integration.
+  FAPSHI_WEBHOOK_SECRET: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+
   // ── Email (Resend) ────────────────────────────────────────────────────────
   // Subscriptions are sold on the web, so these emails are how a tailor on a
   // store build learns their trial is ending and where to pay. Unset means no

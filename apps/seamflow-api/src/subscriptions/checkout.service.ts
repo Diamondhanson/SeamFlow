@@ -11,6 +11,7 @@
 // ============================================================================
 
 import { Inject, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { and, desc, eq } from 'drizzle-orm';
 import {
   billingFor,
@@ -46,6 +47,7 @@ export class CheckoutService {
     private readonly dbService: DbService,
     private readonly subscriptions: SubscriptionsService,
     private readonly notifications: NotificationsService,
+    private readonly config: ConfigService,
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
   ) {}
 
@@ -107,6 +109,9 @@ export class CheckoutService {
         amount,
         currency: billing.currency,
         phone: input.phone,
+        // Where a hosted checkout sends them afterwards. Back to the plans
+        // screen, which is already polling and will show the result itself.
+        returnUrl: `${(this.config.get<string>('APP_WEB_URL') ?? 'https://app.seamflowtech.com').replace(/\/$/, '')}/upgrade`,
       });
       await this.db
         .update(subscriptionPayments)

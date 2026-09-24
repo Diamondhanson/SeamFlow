@@ -2,6 +2,7 @@ import { Logger, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NullPaymentProvider, type PaymentProvider } from './payment-provider';
 import { FakePaymentProvider } from './fake-payment-provider';
+import { FapshiPaymentProvider } from './fapshi-payment-provider';
 
 export const PAYMENT_PROVIDER = Symbol('PAYMENT_PROVIDER');
 
@@ -25,7 +26,16 @@ export const paymentProviderFactory: Provider = {
       case 'fake':
         logger.warn('Using the FAKE payment provider — development and tests only');
         return new FakePaymentProvider(nodeEnv);
-      // case 'fapshi':     return new FapshiProvider(config);
+      case 'fapshi': {
+        const provider = new FapshiPaymentProvider(config);
+        const env = config.get<string>('FAPSHI_ENV') === 'live' ? 'LIVE' : 'sandbox';
+        if (!provider.isConfigured()) {
+          logger.error('SUBSCRIPTION_PAYMENT_PROVIDER=fapshi but FAPSHI_API_USER/KEY are missing');
+        } else {
+          logger.log(`Payments: Fapshi (${env})`);
+        }
+        return provider;
+      }
       // case 'flutterwave': return new FlutterwaveProvider(config);
       case '':
         return new NullPaymentProvider();
