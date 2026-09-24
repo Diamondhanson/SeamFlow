@@ -17,8 +17,9 @@
 // with mobile money, approving happens on the handset, outside this app.
 // ============================================================================
 
-import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import type { SubscriptionPaymentMethod, SubscriptionPlan } from '@seamflow/schemas';
 import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
@@ -60,6 +61,11 @@ const PREMIUM_LINES = [
   'billing.incPhotos',
 ] as const;
 
+/** Where an in-flight attempt is remembered across the trip to the provider. */
+const PENDING_KEY = 'seamflow.subscription.pending.v1';
+/** Fapshi's links die after 24 hours; an hour is long enough to come back. */
+const PENDING_MAX_AGE_MS = 60 * 60 * 1000;
+
 export default function Upgrade() {
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
@@ -73,7 +79,58 @@ export default function Upgrade() {
   // detail they answer last.
   const [plan, setPlan] = useState<SubscriptionPlan>('annual');
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  /** The provider's hosted checkout page, when paying happens over there. */
+  const [payUrl, setPayUrl] = useState<string | null>(null);
   const attempt = usePaymentAttempt(paymentId);
+
+  // An attempt in flight has to survive leaving this screen, because on the
+  // web paying MEANS leaving it: we navigate to the provider's page and come
+  // back to a freshly mounted screen that would otherwise know nothing about
+  // the payment the tailor just made.
+  useEffect(() => {
+    void AsyncStorage.getItem(PENDING_KEY).then((raw) => {
+      if (!raw) return;
+      try {
+        const saved = JSON.parse(raw) as { id: string; url: string | null; at: number };
+        // Older than the provider's own link lifetime is not worth resuming.
+        if (Date.now() - saved.at > PENDING_MAX_AGE_MS) {
+          void AsyncStorage.removeItem(PENDING_KEY);
+          return;
+        }
+        setPaymentId(saved.id);
+        setPayUrl(saved.url);
+      } catch {
+        void AsyncStorage.removeItem(PENDING_KEY);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const status = attempt.data?.status;
+    if (status === 'succeeded' || status === 'failed') {
+      setPayUrl(null);
+      void AsyncStorage.removeItem(PENDING_KEY);
+    }
+  }, [attempt.data?.status]);
+
+  /**
+   * Send the tailor to the provider's checkout page.
+   *
+   * On the web this replaces the current page rather than opening a tab.
+   * `Linking.openURL` is `window.open` there, and a browser blocks a
+   * `window.open` that is not inside the call stack of a tap. Ours ran after
+   * the checkout request came back, so on a phone it was silently swallowed:
+   * no page, no prompt, and a screen that said "approve the payment on your
+   * phone" about a payment nobody could start. Same-tab navigation is never
+   * blocked, and the provider sends them back here afterwards.
+   */
+  const openCheckout = (url: string) => {
+    if (Platform.OS === 'web') {
+      globalThis.location?.assign(url);
+      return;
+    }
+    void Linking.openURL(url);
+  };
 
   const pay = (method: SubscriptionPaymentMethod) => {
     checkout.mutate(
@@ -81,7 +138,14 @@ export default function Upgrade() {
       {
         onSuccess: (res) => {
           setPaymentId(res.paymentId);
-          if (res.redirectUrl) void Linking.openURL(res.redirectUrl);
+          setPayUrl(res.redirectUrl);
+          // Remember before navigating: on the web the next line ends this
+          // screen's life.
+          void AsyncStorage.setItem(
+            PENDING_KEY,
+            JSON.stringify({ id: res.paymentId, url: res.redirectUrl, at: Date.now() }),
+          );
+          if (res.redirectUrl) openCheckout(res.redirectUrl);
         },
         onError: (err) => {
           // No provider connected yet: say what the screen already says,
@@ -199,13 +263,26 @@ export default function Upgrade() {
           {t('billing.choosePlan')}
         </Text>
         {attempt.data?.status === 'pending' ? (
-          <View style={[styles.state, { borderColor: colors.hairline, backgroundColor: colors.surface, borderRadius: radii.md }]}>
-            <ActivityIndicator color={colors.primary} />
-            <View style={styles.stateText}>
-              <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.pending')}</Text>
-              <Text variant="bodySm" tone="textMuted">{t('billing.pendingBody')}</Text>
+          <>
+            <View style={[styles.state, { borderColor: colors.hairline, backgroundColor: colors.surface, borderRadius: radii.md }]}>
+              <ActivityIndicator color={colors.primary} />
+              <View style={styles.stateText}>
+                <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.pending')}</Text>
+                <Text variant="bodySm" tone="textMuted">
+                  {payUrl ? t('billing.pendingLinkBody') : t('billing.pendingBody')}
+                </Text>
+              </View>
             </View>
-          </View>
+            {/* A real tap, which no browser blocks: the way back for anyone
+                who closed the page, or whose automatic hand-off failed. */}
+            {payUrl ? (
+              <Button
+                label={t('billing.continuePayment')}
+                variant="primary"
+                onPress={() => openCheckout(payUrl)}
+              />
+            ) : null}
+          </>
         ) : attempt.data?.status === 'succeeded' ? (
           <View style={[styles.state, { borderColor: colors.success, backgroundColor: withAlpha(colors.success, 0.1), borderRadius: radii.md }]}>
             <Ionicons name="checkmark-circle" size={22} color={colors.success} />

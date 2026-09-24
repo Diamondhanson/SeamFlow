@@ -13,6 +13,9 @@ export const billing = {
     subscribe: "Subscribe",
     pending: "Waiting for your confirmation",
     pendingBody: "Approve the payment on your phone. This screen updates by itself.",
+    pendingLinkBody:
+      "Finish on the payment page, then come back here. This screen updates by itself.",
+    continuePayment: "Continue to payment",
     paid: "You're premium",
     paidBody: "Premium until {date}. Thank you.",
     failed: "Payment didn't go through",
@@ -88,6 +91,9 @@ export const billing = {
     subscribe: "S’abonner",
     pending: "En attente de votre confirmation",
     pendingBody: "Validez le paiement sur votre téléphone. Cet écran se met à jour tout seul.",
+    pendingLinkBody:
+      "Terminez sur la page de paiement, puis revenez ici. Cet écran se met à jour tout seul.",
+    continuePayment: "Continuer vers le paiement",
     paid: "Vous êtes premium",
     paidBody: "Premium jusqu’au {date}. Merci.",
     failed: "Le paiement n’a pas abouti",
@@ -163,6 +169,9 @@ export const billing = {
     subscribe: "Subscrever",
     pending: "À espera da sua confirmação",
     pendingBody: "Aprove o pagamento no seu telemóvel. Este ecrã atualiza-se sozinho.",
+    pendingLinkBody:
+      "Conclua na página de pagamento e volte aqui. Este ecrã atualiza-se sozinho.",
+    continuePayment: "Continuar para o pagamento",
     paid: "É premium",
     paidBody: "Premium até {date}. Obrigado.",
     failed: "O pagamento não passou",
@@ -238,6 +247,9 @@ export const billing = {
     subscribe: "Suscribirse",
     pending: "Esperando tu confirmación",
     pendingBody: "Aprueba el pago en tu teléfono. Esta pantalla se actualiza sola.",
+    pendingLinkBody:
+      "Termina en la página de pago y vuelve aquí. Esta pantalla se actualiza sola.",
+    continuePayment: "Continuar al pago",
     paid: "Eres premium",
     paidBody: "Premium hasta el {date}. Gracias.",
     failed: "El pago no se completó",
@@ -313,6 +325,9 @@ export const billing = {
     subscribe: "Jisajili",
     pending: "Tunasubiri uthibitisho wako",
     pendingBody: "Thibitisha malipo kwenye simu yako. Skrini hii inajisasisha yenyewe.",
+    pendingLinkBody:
+      "Malizia kwenye ukurasa wa malipo, kisha rudi hapa. Skrini hii inajisasisha yenyewe.",
+    continuePayment: "Endelea kwenye malipo",
     paid: "Wewe ni premium",
     paidBody: "Premium hadi {date}. Asante.",
     failed: "Malipo hayakukamilika",
@@ -388,6 +403,8 @@ export const billing = {
     subscribe: "اشترك",
     pending: "في انتظار تأكيدك",
     pendingBody: "وافق على الدفع من هاتفك. تتحدث هذه الشاشة تلقائيًا.",
+    pendingLinkBody: "أكمل الدفع في صفحة الدفع ثم عُد إلى هنا. تتحدث هذه الشاشة تلقائيًا.",
+    continuePayment: "المتابعة إلى الدفع",
     paid: "أنت الآن بريميوم",
     paidBody: "بريميوم حتى {date}. شكرًا لك.",
     failed: "لم يتم الدفع",
