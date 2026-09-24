@@ -1,14 +1,18 @@
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
+import type { ConsumerMeasurementSet } from '@seamflow/schemas';
 import {
   useConsumerMeasurements,
   useDeleteConsumerMeasurement,
 } from '../../../../lib/consumer-queries';
+import { useConversations } from '../../../../lib/queries';
+import { api } from '../../../../lib/api';
 import { useDialog } from '../../../../lib/dialog';
 import { spacing, radii } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
@@ -20,6 +24,58 @@ export default function MeasurementsLocker() {
   const { data, isLoading } = useConsumerMeasurements();
   const deleteM = useDeleteConsumerMeasurement();
   const items = data?.items ?? [];
+
+  // The tailors this customer already talks to. Measurements are sent INTO a
+  // conversation rather than to an address, because that is where the tailor
+  // will look for them, beside the photos and the price they agreed.
+  const conversations = useConversations();
+  const threads = (conversations.data?.pages ?? []).flatMap((p) => p.items);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const sendToTailor = async (set: ConsumerMeasurementSet) => {
+    if (threads.length === 0) {
+      await dialog.alert({
+        title: t('cmeasurements.send'),
+        message: t('cmeasurements.sendNone'),
+        tone: 'info',
+      });
+      return;
+    }
+    // One tailor: no point asking. More than one: ask, because sending body
+    // measurements to the wrong person is not a small mistake.
+    const chosen =
+      threads.length === 1
+        ? threads[0]!.id
+        : await dialog.pick({
+            title: t('cmeasurements.sendPick'),
+            options: threads.map((c) => ({ key: c.id, label: c.counterparty.name })),
+          });
+    if (!chosen) return;
+    const thread = threads.find((c) => c.id === chosen);
+    setSendingId(set.id);
+    try {
+      await api.conversations.sendMessage(chosen, {
+        clientId: `msr-${set.id}-${Date.now()}`,
+        attachments: [
+          {
+            kind: 'measurement',
+            label: set.label,
+            values: set.values,
+            unitPreference: set.unitPreference,
+          },
+        ],
+      });
+      await dialog.alert({
+        title: t('cmeasurements.sendDone', { name: thread?.counterparty.name ?? '' }),
+        message: '',
+        tone: 'success',
+      });
+    } catch (err) {
+      await dialog.error(err, { title: t('cmeasurements.sendFailed') });
+    } finally {
+      setSendingId(null);
+    }
+  };
 
   const confirmDelete = async (id: string) => {
     const ok = await dialog.confirm({
@@ -92,11 +148,6 @@ export default function MeasurementsLocker() {
                         : t('cmeasurements.savedBy', { name: item.tailorBusinessName ?? '' })}
                     </Text>
                   </View>
-                  {item.owned ? (
-                    <Pressable onPress={() => void confirmDelete(item.id)} hitSlop={8} style={styles.trash}>
-                      <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
-                    </Pressable>
-                  ) : null}
                 </View>
                 <View style={styles.values}>
                   {entries.map(([k, v]) => (
@@ -106,6 +157,50 @@ export default function MeasurementsLocker() {
                     </View>
                   ))}
                 </View>
+
+                {/* Named actions, because tapping the card to edit was the only
+                    way in and nothing said so. Sending is the point of keeping
+                    measurements here at all: they exist to reach a tailor. */}
+                {item.owned ? (
+                  <View style={[styles.actions, { borderTopColor: colors.hairline }]}>
+                    <Pressable
+                      onPress={() => void sendToTailor(item)}
+                      hitSlop={8}
+                      disabled={sendingId === item.id}
+                      accessibilityRole="button"
+                      style={styles.action}
+                    >
+                      {sendingId === item.id ? (
+                        <ActivityIndicator size="small" color={colors.primary} />
+                      ) : (
+                        <Ionicons name="paper-plane-outline" size={16} color={colors.primary} />
+                      )}
+                      <Text variant="bodySm" style={{ color: colors.primary, fontWeight: '600' }}>
+                        {t('cmeasurements.send')}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() =>
+                        router.push({ pathname: '/hub/measurements/edit', params: { id: item.id } })
+                      }
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      style={styles.action}
+                    >
+                      <Ionicons name="create-outline" size={16} color={colors.textMuted} />
+                      <Text variant="bodySm" tone="textMuted">{t('cmeasurements.edit')}</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => void confirmDelete(item.id)}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      style={styles.action}
+                    >
+                      <Ionicons name="trash-outline" size={16} color={colors.textMuted} />
+                      <Text variant="bodySm" tone="textMuted">{t('ccommon.delete')}</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
               </Card>
             );
           }}
@@ -127,7 +222,15 @@ const styles = StyleSheet.create({
   },
   card: { borderWidth: 1, borderRadius: radii.lg, padding: spacing.lg },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start' },
-  trash: { padding: spacing.xs },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+  },
+  action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: 2 },
   values: { marginTop: spacing.md },
   valueRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, borderTopWidth: 1 },
 });
