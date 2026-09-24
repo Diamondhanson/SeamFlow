@@ -30,7 +30,14 @@ import * as Clipboard from 'expo-clipboard';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Message, MessageAttachment, MessageReaction } from '@seamflow/schemas';
+import type {
+  Client,
+  Message,
+  MessageAttachment,
+  MessageReaction,
+  SaveChatMeasurementInput,
+  SaveChatMeasurementResult,
+} from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { Screen } from '../Screen';
@@ -70,6 +77,12 @@ export interface ChatThreadProps {
   onViewOrder: (orderId: string) => void;
   /** Tailor only: go to the Create-quote screen. */
   onCreateQuote?: () => void;
+  /**
+   * Tailor only: start an order for this client with a measurement already
+   * loaded. Passed in rather than routed here so the shared thread keeps
+   * knowing nothing about either app's routes.
+   */
+  onStartOrder?: (params: { clientId: string; setId: string }) => void;
 }
 
 type Bubble =
@@ -77,7 +90,14 @@ type Bubble =
   | { kind: 'pending'; pending: PendingMessage };
 type Row = Bubble | { kind: 'day'; label: string; key: string };
 
-export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreateQuote }: ChatThreadProps) {
+export function ChatThread({
+  conversationId: id,
+  role,
+  ns,
+  onViewOrder,
+  onCreateQuote,
+  onStartOrder,
+}: ChatThreadProps) {
   const { t } = useTranslation();
   const tk = (k: string, p?: Record<string, string | number>) => t(`${ns}.${k}`, p);
   const colors = useThemeColors();
@@ -98,6 +118,8 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   /** The message whose WhatsApp-style action overlay is open. */
   const [menu, setMenu] = useState<Message | null>(null);
+  /** The measurement message currently being filed, so its card can say so. */
+  const [filing, setFiling] = useState<string | null>(null);
   const listRef = useRef<FlatList<Row>>(null);
 
   // ── Outbox ────────────────────────────────────────────────────────────────
@@ -148,6 +170,110 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
     },
     onError: (err) => void dialog.error(err),
   });
+
+  const saveMeasurementMut = useMutation({
+    mutationFn: (input: SaveChatMeasurementInput) => api.conversations.saveMeasurement(id, input),
+    onSuccess: () => {
+      // The thread now knows who this is, and the client's file has changed.
+      void qc.invalidateQueries({ queryKey: qk.conversation(id) });
+      // Prefix, not qk.clients(): the list is keyed by its search term, and a
+      // client created from this thread has to appear under all of them.
+      void qc.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+
+  // ── A measurement they sent, put to work ─────────────────────────────────
+  //
+  // The person in this thread is an account; orders and measurement sets
+  // belong to the tailor's own client book. Everything below exists to cross
+  // that gap without making the tailor retype numbers they were just sent.
+
+  /** Ask which client this is. Only reached when the thread does not know. */
+  const chooseClient = async (): Promise<{ clientId?: string } | null> => {
+    let items: Client[] = [];
+    try {
+      items = (await api.clients.list({ limit: 50 })).items;
+    } catch {
+      // Offline or the list failed: still offer to file it under the enquiry,
+      // which needs no list at all.
+    }
+    const NEW = '__new__';
+    const key = await dialog.pick({
+      title: tk('msWhichClient'),
+      options: [
+        { key: NEW, label: tk('msNewClient', { name: conversation?.counterparty.name ?? '' }) },
+        ...items.map((c) => ({ key: c.id, label: c.fullName })),
+      ],
+    });
+    if (!key) return null;
+    // No id means "this enquiry": the server matches on phone or creates the
+    // record, so the tailor never fills a form to file a measurement.
+    return key === NEW ? {} : { clientId: key };
+  };
+
+  /**
+   * File the measurement, asking who it belongs to only when the thread has
+   * no answer yet. After the first time, this is a single tap forever.
+   */
+  const fileMeasurement = async (
+    messageId: string,
+    attachmentIndex: number,
+    label: string | null | undefined,
+    target?: { clientId?: string },
+  ): Promise<SaveChatMeasurementResult | null> => {
+    const chosen =
+      target ??
+      (conversation?.linkedClient
+        ? { clientId: conversation.linkedClient.id }
+        : await chooseClient());
+    if (!chosen) return null;
+    setFiling(messageId);
+    try {
+      return await saveMeasurementMut.mutateAsync({
+        messageId,
+        attachmentIndex,
+        clientId: chosen.clientId,
+        // Used only when the record has to be created from this enquiry.
+        clientName: conversation?.counterparty.name,
+        label: label?.trim() || tk('msDefaultLabel'),
+      });
+    } catch (err) {
+      void dialog.error(err);
+      return null;
+    } finally {
+      setFiling(null);
+    }
+  };
+
+  const saveMeasurement = async (
+    messageId: string,
+    attachmentIndex: number,
+    label: string | null | undefined,
+    repoint = false,
+  ) => {
+    const target = repoint ? await chooseClient() : undefined;
+    // Cancelled the picker: leave the thread's existing filing alone.
+    if (repoint && !target) return;
+    const res = await fileMeasurement(messageId, attachmentIndex, label, target ?? undefined);
+    if (!res) return;
+    await dialog.alert({
+      title: tk('msSavedTitle'),
+      message: tk('msSavedBody', { name: res.clientName }),
+      tone: 'success',
+    });
+  };
+
+  const startOrderFromMeasurement = async (
+    messageId: string,
+    attachmentIndex: number,
+    label: string | null | undefined,
+  ) => {
+    // Saving first is not a detour: the wizard picks the numbers up from the
+    // client's file, and a measurement worth sewing from is worth keeping.
+    const res = await fileMeasurement(messageId, attachmentIndex, label);
+    if (!res) return;
+    onStartOrder?.({ clientId: res.clientId, setId: res.measurementSetId });
+  };
 
   // ── Rows ────────────────────────────────────────────────────────────────
   const messages: Message[] = msgsQ.messages;
@@ -374,7 +500,7 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
               </Pressable>
             ) : null}
 
-            {attachments.map((a, i) => renderAttachment(a, i))}
+            {attachments.map((a, i) => renderAttachment(a, i, msg?.id))}
 
             {body ? (
               <Text variant="body" style={{ color: mine ? atelier.textOnPrimary : colors.text }}>
@@ -430,7 +556,9 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
     );
   };
 
-  const renderAttachment = (a: MessageAttachment, i: number) => {
+  /** `messageId` is null for a queued message and inside the action overlay:
+   *  both are previews, and neither can be filed. */
+  const renderAttachment = (a: MessageAttachment, i: number, messageId?: string | null) => {
     if (a.kind === 'image') {
       return (
         <Image
@@ -481,6 +609,12 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
     }
     if (a.kind === 'measurement') {
       const entries = Object.entries(a.values);
+      // Numbers a client sent are worth nothing until they are in the client's
+      // file and on an order, so the tailor's copy of this card carries both
+      // moves. Read-only for the client, who is looking at their own set.
+      const actionable = role === 'tailor' && !!messageId;
+      const busy = filing === messageId;
+      const linked = conversation?.linkedClient ?? null;
       return (
         <View
           key={i}
@@ -500,6 +634,53 @@ export function ChatThread({ conversationId: id, role, ns, onViewOrder, onCreate
               <Text variant="caption">{`${v} ${a.unitPreference}`}</Text>
             </View>
           ))}
+
+          {actionable ? (
+            <View style={[styles.measureActions, { borderTopColor: colors.hairline }]}>
+              <Pressable
+                disabled={busy}
+                onPress={() => void saveMeasurement(messageId!, i, a.label)}
+                style={styles.measureAction}
+              >
+                {busy ? (
+                  <ActivityIndicator size="small" color={atelier.primary} />
+                ) : (
+                  <Ionicons name="bookmark-outline" size={14} color={atelier.primary} />
+                )}
+                <Text variant="caption" numberOfLines={1} style={{ color: atelier.primary, flex: 1 }}>
+                  {linked ? tk('msSaveTo', { name: linked.fullName }) : tk('msSave')}
+                </Text>
+              </Pressable>
+
+              {onStartOrder ? (
+                <Pressable
+                  disabled={busy}
+                  onPress={() => void startOrderFromMeasurement(messageId!, i, a.label)}
+                  style={styles.measureAction}
+                >
+                  <Ionicons name="shirt-outline" size={14} color={atelier.primary} />
+                  <Text variant="caption" numberOfLines={1} style={{ color: atelier.primary, flex: 1 }}>
+                    {tk('msStartOrder')}
+                  </Text>
+                </Pressable>
+              ) : null}
+
+              {/* Visible, not hidden behind a long press: filing someone under
+                  the wrong name is easy to do and must be easy to undo. */}
+              {linked ? (
+                <Pressable
+                  disabled={busy}
+                  onPress={() => void saveMeasurement(messageId!, i, a.label, true)}
+                  style={styles.measureAction}
+                >
+                  <Ionicons name="swap-horizontal-outline" size={14} color={colors.textMuted} />
+                  <Text variant="caption" tone="textMuted" numberOfLines={1} style={{ flex: 1 }}>
+                    {tk('msChange')}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
         </View>
       );
     }
@@ -861,6 +1042,13 @@ const styles = StyleSheet.create({
   measureCard: { minWidth: 220, padding: spacing.sm, borderWidth: StyleSheet.hairlineWidth, gap: 2 },
   measureHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs },
   measureRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 2, borderTopWidth: StyleSheet.hairlineWidth },
+  measureActions: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: spacing.xs,
+  },
+  measureAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: 24 },
   meta: { alignItems: 'flex-end' },
   reactions: { flexDirection: 'row', gap: 4, marginTop: -6 },
   reactionsMine: { justifyContent: 'flex-end' },

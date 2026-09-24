@@ -217,6 +217,21 @@ export const ConversationDesignSchema = z.object({
   currency: z.string().nullable(),
 });
 
+/**
+ * The tailor's own client-book record for the person in this thread.
+ *
+ * The counterparty is an account (`users`); orders and measurement sets hang
+ * off the tailor's `clients`. This is the join between the two, and it is what
+ * lets the thread act on the client book without asking who this is every
+ * time. Null until the tailor first says so, and never sent to the client side
+ * — it is the tailor's private record, not shared information.
+ */
+export const ConversationLinkedClientSchema = z.object({
+  id: z.string().uuid(),
+  fullName: z.string(),
+});
+export type ConversationLinkedClient = z.infer<typeof ConversationLinkedClientSchema>;
+
 export const ConversationSchema = z.object({
   id: z.string().uuid(),
   origin: ConversationOriginSchema,
@@ -224,6 +239,8 @@ export const ConversationSchema = z.object({
   design: ConversationDesignSchema.nullable(),
   /** Set once the thread has become a commission. */
   orderId: z.string().uuid().nullable(),
+  /** Tailor side only. See ConversationLinkedClientSchema. */
+  linkedClient: ConversationLinkedClientSchema.nullable().default(null),
   lastMessageAt: z.string().datetime(),
   lastMessagePreview: z.string().nullable(),
   /** Unread count for the CALLER only — never the other side's. */
@@ -283,6 +300,47 @@ export const ConversationQuoteResultSchema = z.object({
   clientId: z.string().uuid(),
 });
 export type ConversationQuoteResult = z.infer<typeof ConversationQuoteResultSchema>;
+
+// ── Saving a shared measurement (idea 1 / 4) ────────────────────────────────
+
+/**
+ * Body for POST /conversations/:id/measurement-set — the tailor keeping a
+ * measurement a client sent them.
+ *
+ * The values are NOT in this body. The message id and attachment index are,
+ * and the server reads the numbers off the stored message: a measurement that
+ * ends up in the client's file should be the one that was actually sent, not
+ * whatever a request said was sent.
+ *
+ * `clientId` answers "who is this?" the first time. After that the thread
+ * remembers, and later saves can leave it out.
+ */
+export const SaveChatMeasurementSchema = z.object({
+  messageId: z.string().uuid(),
+  /** Which attachment on that message; messages can carry several. */
+  attachmentIndex: z.number().int().min(0).max(9).default(0),
+  /** An existing client of this tailor. Omit to reuse the thread's link, or
+   *  to create the client from the enquiry when there is none yet. */
+  clientId: z.string().uuid().optional(),
+  /** Name and number for a client created from this thread. */
+  clientName: z.string().min(1).max(120).optional(),
+  clientPhone: z.string().max(40).nullable().optional(),
+  /** What to call the saved set. Defaults to the label the client gave it. */
+  label: z.string().min(1).max(80).optional(),
+  /** Overwrite this set of theirs instead of adding another. */
+  replaceSetId: z.string().uuid().optional(),
+});
+export type SaveChatMeasurementInput = z.infer<typeof SaveChatMeasurementSchema>;
+
+export const SaveChatMeasurementResultSchema = z.object({
+  /** The client it was filed under — now also the thread's linked client. */
+  clientId: z.string().uuid(),
+  clientName: z.string(),
+  measurementSetId: z.string().uuid(),
+  /** True when an existing set was overwritten rather than one added. */
+  replaced: z.boolean(),
+});
+export type SaveChatMeasurementResult = z.infer<typeof SaveChatMeasurementResultSchema>;
 
 // ── Reactions / share-order / link unfurl inputs ────────────────────────────
 

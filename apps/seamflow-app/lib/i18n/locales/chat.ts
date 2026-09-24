@@ -3,6 +3,18 @@
 export const chat = {
   en: {
     measurementMessage: 'Measurements',
+
+    // ── A measurement a client sent (tailor side of the card) ───────────────
+    msSave: 'Save to a client',
+    msSaveTo: 'Save to {name}',
+    msChange: 'File under someone else',
+    msStartOrder: 'Start an order',
+    msWhichClient: 'Whose measurements are these?',
+    msNewClient: 'Add {name} to my clients',
+    msDefaultLabel: 'Sent in chat',
+    msSavedTitle: 'Measurements saved',
+    msSavedBody:
+      'Kept in {name}’s file. They are ready to load whenever you start an order for them.',
     copy: 'Copy',
     shareOrder: 'Share an order',
     shareOrderPick: 'Choose an order to share',
@@ -96,6 +108,18 @@ export const chat = {
   },
   fr: {
     measurementMessage: 'Mesures',
+
+    // ── Mesures envoyées par une cliente (côté couturier) ───────────────────
+    msSave: 'Enregistrer pour un client',
+    msSaveTo: 'Enregistrer pour {name}',
+    msChange: 'Classer chez quelqu’un d’autre',
+    msStartOrder: 'Créer une commande',
+    msWhichClient: 'À qui sont ces mesures ?',
+    msNewClient: 'Ajouter {name} à mes clients',
+    msDefaultLabel: 'Envoyées par message',
+    msSavedTitle: 'Mesures enregistrées',
+    msSavedBody:
+      'Gardées dans la fiche de {name}. Elles se chargent dès que vous créez une commande pour cette personne.',
     copy: 'Copier',
     shareOrder: 'Partager une commande',
     shareOrderPick: 'Choisir une commande à partager',
@@ -180,6 +204,18 @@ export const chat = {
   },
   pt: {
     measurementMessage: 'Medidas',
+
+    // ── Medidas enviadas por um cliente (lado do alfaiate) ──────────────────
+    msSave: 'Guardar num cliente',
+    msSaveTo: 'Guardar em {name}',
+    msChange: 'Arquivar noutra pessoa',
+    msStartOrder: 'Criar uma encomenda',
+    msWhichClient: 'De quem são estas medidas?',
+    msNewClient: 'Adicionar {name} aos meus clientes',
+    msDefaultLabel: 'Enviadas no chat',
+    msSavedTitle: 'Medidas guardadas',
+    msSavedBody:
+      'Ficam na ficha de {name}. Estão prontas a carregar sempre que criar uma encomenda para esta pessoa.',
     copy: 'Copiar',
     shareOrder: 'Compartilhar um pedido',
     shareOrderPick: 'Escolha um pedido para compartilhar',
@@ -270,6 +306,18 @@ export const chat = {
   },
   es: {
     measurementMessage: 'Medidas',
+
+    // ── Medidas que envió una clienta (lado del sastre) ─────────────────────
+    msSave: 'Guardar en un cliente',
+    msSaveTo: 'Guardar en {name}',
+    msChange: 'Archivar en otra persona',
+    msStartOrder: 'Crear un pedido',
+    msWhichClient: '¿De quién son estas medidas?',
+    msNewClient: 'Añadir a {name} a mis clientes',
+    msDefaultLabel: 'Enviadas por chat',
+    msSavedTitle: 'Medidas guardadas',
+    msSavedBody:
+      'Quedan en la ficha de {name}. Se cargan en cuanto crees un pedido para esa persona.',
     copy: 'Copiar',
     shareOrder: 'Compartir un pedido',
     shareOrderPick: 'Elige un pedido para compartir',
@@ -359,6 +407,18 @@ export const chat = {
   },
   sw: {
     measurementMessage: 'Vipimo',
+
+    // ── Vipimo alivyotuma mteja (upande wa fundi) ──────────────────────────
+    msSave: 'Hifadhi kwa mteja',
+    msSaveTo: 'Hifadhi kwa {name}',
+    msChange: 'Weka kwa mtu mwingine',
+    msStartOrder: 'Anzisha oda',
+    msWhichClient: 'Vipimo hivi ni vya nani?',
+    msNewClient: 'Ongeza {name} kwenye wateja wangu',
+    msDefaultLabel: 'Vilitumwa kwenye gumzo',
+    msSavedTitle: 'Vipimo vimehifadhiwa',
+    msSavedBody:
+      'Vimewekwa kwenye faili la {name}. Vitapakiwa wakati wowote unapoanzisha oda yake.',
     copy: 'Nakili',
     shareOrder: 'Shiriki oda',
     shareOrderPick: 'Chagua oda ya kushiriki',
@@ -448,6 +508,17 @@ export const chat = {
   },
   ar: {
     measurementMessage: 'القياسات',
+
+    // ── قياسات أرسلها العميل (جانب الخياط) ────────────────────────────────
+    msSave: 'حفظ لدى عميل',
+    msSaveTo: 'حفظ لدى {name}',
+    msChange: 'حفظها لدى شخص آخر',
+    msStartOrder: 'إنشاء طلب',
+    msWhichClient: 'لمن هذه القياسات؟',
+    msNewClient: 'إضافة {name} إلى عملائي',
+    msDefaultLabel: 'أُرسلت في المحادثة',
+    msSavedTitle: 'تم حفظ القياسات',
+    msSavedBody: 'محفوظة في ملف {name}. ستُحمَّل في أي وقت تنشئ فيه طلبًا لهذا الشخص.',
     copy: 'نسخ',
     shareOrder: 'مشاركة طلب',
     shareOrderPick: 'اختر طلبًا للمشاركة',

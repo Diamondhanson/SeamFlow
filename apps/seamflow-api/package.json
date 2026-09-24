@@ -26,6 +26,7 @@
     "test:deletion": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-account-deletion.ts",
     "test:classify": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-classify-design.ts",
     "test:support": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-support.ts",
+    "test:chat-measurements": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-chat-measurements.ts",
     "test:chat-sync": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-chat-sync.ts",
     "test:media-retention": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-media-retention.ts",
     "test:subscriptions": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-subscriptions.ts",

@@ -18,6 +18,8 @@ import type {
   MessagePage,
   MessageReaction,
   MessageReplyPreview,
+  SaveChatMeasurementInput,
+  SaveChatMeasurementResult,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -25,6 +27,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { OrdersService } from '../orders/orders.service';
 import { InvoicesService } from '../invoices/invoices.service';
 import { ClientsService } from '../clients/clients.service';
+import { MeasurementSetsService } from '../measurement-sets/measurement-sets.service';
 import {
   clients,
   conversations,
@@ -86,6 +89,7 @@ export class ChatService {
     private readonly orders: OrdersService,
     private readonly invoices: InvoicesService,
     private readonly clients: ClientsService,
+    private readonly measurementSets: MeasurementSetsService,
   ) {}
 
   // ── Actor + access ────────────────────────────────────────────────────────
@@ -345,12 +349,26 @@ export class ChatService {
       }
     }
 
+    // The tailor's own record for this person, when they have said who it is.
+    // Never resolved for the client side: it is the tailor's book, and the
+    // name in it may not be the one the customer uses.
+    let linkedClient: Conversation['linkedClient'] = null;
+    if (side === 'tailor' && convo.clientId) {
+      const rows = await db
+        .select({ id: clients.id, fullName: clients.fullName })
+        .from(clients)
+        .where(eq(clients.id, convo.clientId))
+        .limit(1);
+      linkedClient = rows[0] ?? null;
+    }
+
     return {
       id: convo.id,
       origin: convo.origin,
       counterparty,
       design,
       orderId: convo.orderId ?? null,
+      linkedClient,
       lastMessageAt: convo.lastMessageAt.toISOString(),
       lastMessagePreview: convo.lastMessagePreview ?? null,
       unreadCount: side === 'client' ? convo.clientUnread : convo.tailorUnread,
@@ -854,6 +872,178 @@ export class ChatService {
     });
   }
 
+  // ── Who is this, in the tailor's own book? ────────────────────────────────
+
+  /**
+   * Resolve the thread's customer to one of the tailor's `clients` rows, and
+   * remember the answer on the conversation.
+   *
+   * This is the join that was missing. A conversation's counterparty is an
+   * account; orders and measurement sets belong to the tailor's client book.
+   * Every action that moves something out of a thread and into the business
+   * has to cross that gap, and asking "which client is this?" each time is the
+   * difference between a feature that works and one nobody uses.
+   *
+   * Order of preference:
+   *   1. An explicit `clientId` — the tailor just picked, and picking again
+   *      re-points the thread (people do get filed under the wrong name).
+   *   2. The link already stored on the conversation.
+   *   3. A match on phone number, so a tailor who already knows this person
+   *      does not end up with a duplicate.
+   *   4. A new record, created from what the enquiry tells us.
+   */
+  private async resolveClient(
+    tailorId: string,
+    convo: ConversationRow,
+    input: { clientId?: string; clientName?: string; clientPhone?: string | null },
+  ): Promise<{ id: string; fullName: string }> {
+    const db = this.dbService.db;
+
+    const load = async (id: string): Promise<{ id: string; fullName: string } | null> => {
+      const rows = await db
+        .select({ id: clients.id, fullName: clients.fullName })
+        .from(clients)
+        .where(and(eq(clients.tailorId, tailorId), eq(clients.id, id)))
+        .limit(1);
+      return rows[0] ?? null;
+    };
+
+    const remember = async (row: { id: string; fullName: string }) => {
+      if (convo.clientId !== row.id) {
+        await db
+          .update(conversations)
+          .set({ clientId: row.id })
+          .where(eq(conversations.id, convo.id));
+      }
+      return row;
+    };
+
+    if (input.clientId) {
+      // Scoped to this tailor, so a stray id cannot file a measurement into
+      // somebody else's book.
+      const picked = await load(input.clientId);
+      if (!picked) throw new NotFoundException(`Client ${input.clientId} not found`);
+      return remember(picked);
+    }
+
+    if (convo.clientId) {
+      const linked = await load(convo.clientId);
+      if (linked) return linked;
+      // Deleted since. Fall through and work it out again.
+    }
+
+    const consumer = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, convo.clientUserId))
+      .limit(1);
+    const phone = input.clientPhone ?? consumer[0]?.phone ?? null;
+    const name =
+      input.clientName?.trim() || consumer[0]?.fullName?.trim() || 'Client from enquiry';
+
+    if (phone) {
+      const match = await db
+        .select({ id: clients.id, fullName: clients.fullName })
+        .from(clients)
+        .where(and(eq(clients.tailorId, tailorId), eq(clients.phone, phone)))
+        .limit(1);
+      if (match[0]) return remember(match[0]);
+    }
+
+    const created = await this.clients.create(tailorId, {
+      fullName: name,
+      // Required by the client contract but genuinely unknown at enquiry time.
+      // Placeholders keep the record creatable; the tailor fills them in from
+      // the order screen.
+      phone: phone ?? '—',
+      address: '—',
+    });
+    return remember({ id: created.id, fullName: created.fullName });
+  }
+
+  // ── A measurement someone sent, kept ──────────────────────────────────────
+
+  /**
+   * File a measurement the client shared into the tailor's records.
+   *
+   * The numbers are read off the stored message rather than taken from the
+   * request body: what ends up in a client's file has to be what was actually
+   * sent, not what a request claims was sent.
+   *
+   * A snapshot, deliberately. The client can edit their own set afterwards and
+   * this copy will not move — the measurements a garment was cut to should not
+   * change under the tailor's feet. When they change, the client sends them
+   * again.
+   */
+  async saveMeasurement(
+    actor: ChatActor,
+    conversationId: string,
+    input: SaveChatMeasurementInput,
+  ): Promise<SaveChatMeasurementResult> {
+    const convo = await this.loadConversation(conversationId);
+    const side = this.sideOf(convo, actor);
+    if (side !== 'tailor' || !actor.tailorId) {
+      throw new ForbiddenException('Only the tailor can save a measurement to a client');
+    }
+    const tailorId = actor.tailorId;
+    const db = this.dbService.db;
+
+    const rows = await db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.id, input.messageId), eq(messages.conversationId, convo.id)))
+      .limit(1);
+    const msg = rows[0];
+    if (!msg) throw new NotFoundException(`Message ${input.messageId} not found`);
+
+    const attachments = (msg.attachments ?? []) as MessageAttachment[];
+    const attachment = attachments[input.attachmentIndex ?? 0];
+    if (!attachment || attachment.kind !== 'measurement') {
+      throw new BadRequestException('That message carries no measurement');
+    }
+
+    const client = await this.resolveClient(tailorId, convo, {
+      clientId: input.clientId,
+      clientName: input.clientName,
+      clientPhone: input.clientPhone,
+    });
+
+    const label = input.label?.trim() || attachment.label?.trim() || 'Sent in chat';
+
+    if (input.replaceSetId) {
+      // Scoped through getById, which refuses a set belonging to another
+      // tailor — and we check it is this client's, so "replace" can never
+      // quietly overwrite a different person's numbers.
+      const existing = await this.measurementSets.getById(tailorId, input.replaceSetId);
+      if (existing.clientId !== client.id) {
+        throw new BadRequestException('That measurement set belongs to another client');
+      }
+      const updated = await this.measurementSets.update(tailorId, input.replaceSetId, {
+        label,
+        values: attachment.values,
+        unitPreference: attachment.unitPreference,
+      });
+      return {
+        clientId: client.id,
+        clientName: client.fullName,
+        measurementSetId: updated.id,
+        replaced: true,
+      };
+    }
+
+    const created = await this.measurementSets.createForClient(tailorId, client.id, {
+      label,
+      values: attachment.values,
+      unitPreference: attachment.unitPreference,
+    });
+    return {
+      clientId: client.id,
+      clientName: client.fullName,
+      measurementSetId: created.id,
+      replaced: false,
+    };
+  }
+
   // ── Quote: chat → order → invoice (ROADMAP D.2.3, phase C3) ───────────────
 
   /**
@@ -897,36 +1087,10 @@ export class ChatService {
       };
     }
 
-    // Resolve (or create) the client record for the inquiring consumer.
-    const consumer = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, convo.clientUserId))
-      .limit(1);
-    const phone = input.clientPhone ?? consumer[0]?.phone ?? null;
-    const name =
-      input.clientName?.trim() || consumer[0]?.fullName?.trim() || 'Client from enquiry';
-
-    let clientId: string | null = null;
-    if (phone) {
-      const match = await db
-        .select({ id: clients.id })
-        .from(clients)
-        .where(and(eq(clients.tailorId, tailorId), eq(clients.phone, phone)))
-        .limit(1);
-      clientId = match[0]?.id ?? null;
-    }
-    if (!clientId) {
-      const created = await this.clients.create(tailorId, {
-        fullName: name,
-        // These are required by the client contract but genuinely unknown at
-        // enquiry time. Placeholders keep the record creatable; the tailor
-        // fills them in from the order screen.
-        phone: phone ?? '—',
-        address: '—',
-      });
-      clientId = created.id;
-    }
+    const { id: clientId } = await this.resolveClient(tailorId, convo, {
+      clientName: input.clientName,
+      clientPhone: input.clientPhone,
+    });
 
     const order = await this.orders.create(tailorId, actor.userId, {
       clientId,

@@ -16,6 +16,7 @@ import {
   HydrateDto,
   QuoteDto,
   ReactionDto,
+  SaveMeasurementDto,
   ShareOrderDto,
 } from './chat.dto';
 
@@ -135,6 +136,20 @@ export class ChatController {
   async simulate(@CurrentUser() user: AuthedUser) {
     const actor = await this.chat.resolveActor(user.id);
     return this.chat.simulateEnquiry(actor);
+  }
+
+  /**
+   * Tailor-only: keep a measurement the client sent, in this client's file.
+   * Also links the thread to that client, so the next one is a single tap.
+   */
+  @Post(':id/measurement-set')
+  async saveMeasurement(
+    @CurrentUser() user: AuthedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() body: SaveMeasurementDto,
+  ) {
+    const actor = await this.chat.resolveActor(user.id);
+    return this.chat.saveMeasurement(actor, id, body);
   }
 
   /** Tailor-only (C3): turn a thread into an order + draft invoice. */

@@ -162,14 +162,38 @@ export default function NewOrderWizard() {
   //
   // "?forClient=<clientId>" arrives from a client's own screen — the tailor has
   // already said who this is for, so step 1 is answered and skipped.
-  const { duplicateFrom, forClient } = useLocalSearchParams<{
+  //
+  // "?fromSet=<measurementSetId>" comes with it when the order was started from
+  // a measurement the client sent in chat: the numbers are already saved to
+  // that client, so the first garment opens pre-filled. It still lands on the
+  // garment step rather than skipping ahead — the tailor names the garment,
+  // and anything they were sent should be reviewable before it is sewn.
+  const { duplicateFrom, forClient, fromSet } = useLocalSearchParams<{
     duplicateFrom?: string;
     forClient?: string;
+    fromSet?: string;
   }>();
   const dupOrderQ = useOrder(duplicateFrom ?? '');
   const dupClientQ = useClient(dupOrderQ.data?.clientId ?? '');
   const forClientQ = useClient(forClient ?? '');
   const seededRef = useRef(false);
+  // The set the order was started from. Fetched rather than passed through the
+  // route: measurements do not belong in a URL, and this is one small read.
+  const [seedSet, setSeedSet] = useState<MeasurementSet | null>(null);
+  useEffect(() => {
+    if (!fromSet) return;
+    let cancelled = false;
+    void api.measurementSets
+      .get(fromSet)
+      .then((set) => {
+        if (!cancelled) setSeedSet(set);
+      })
+      // Best effort: without it the wizard is simply the normal empty one.
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [fromSet]);
 
   // Inline new-client form
   const [showNewClientForm, setShowNewClientForm] = useState(false);
@@ -230,7 +254,10 @@ export default function NewOrderWizard() {
     // An order started for a specific client gets its own draft slot, so an
     // interrupted order for Ada cannot come back offering itself while the
     // tailor is starting one for Chidi.
-    key: draftKey('new-order', duplicateFrom ?? (forClient ? `client:${forClient}` : 'blank')),
+    key: draftKey(
+      'new-order',
+      duplicateFrom ?? (forClient ? `client:${forClient}${fromSet ? `:set:${fromSet}` : ''}` : 'blank'),
+    ),
     value: draft,
     hasContent: wizardHasContent,
     skipRestore: !!duplicateFrom,
@@ -358,10 +385,18 @@ export default function NewOrderWizard() {
     if (!forClient || duplicateFrom || seededRef.current) return;
     const client = forClientQ.data;
     if (!client) return;
+    // Wait for the measurements too, so the step does not change under the
+    // tailor and then have its fields fill in a moment later.
+    if (fromSet && !seedSet) return;
     seededRef.current = true;
     setPickedClient(client);
+    if (seedSet) {
+      const values: Record<string, string> = {};
+      for (const [k, v] of Object.entries(seedSet.values)) values[k] = String(v);
+      setGarments([{ ...makeGarment(), values, prefilledFrom: seedSet.label }]);
+    }
     setStep('measurements');
-  }, [forClient, duplicateFrom, forClientQ.data]);
+  }, [forClient, duplicateFrom, forClientQ.data, fromSet, seedSet]);
 
   // -------- Step 1: pick or create client --------
   /**

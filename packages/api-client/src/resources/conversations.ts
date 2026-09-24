@@ -9,6 +9,8 @@ import type {
   Message,
   MessageCreateInput,
   MessagePage,
+  SaveChatMeasurementInput,
+  SaveChatMeasurementResult,
   ShareOrderInput,
 } from '@seamflow/schemas';
 
@@ -93,6 +95,18 @@ export function makeConversationsResource(http: HttpClient) {
      */
     quote(id: string, input: ConversationQuoteInput): Promise<ConversationQuoteResult> {
       return http.post<ConversationQuoteResult>(`/conversations/${id}/quote`, input);
+    },
+
+    /**
+     * Tailor-only. Keep a measurement the client sent into that client's file,
+     * and link this thread to them so the next one needs no picker. The server
+     * reads the numbers off the stored message, not off this request.
+     */
+    saveMeasurement(
+      id: string,
+      input: SaveChatMeasurementInput,
+    ): Promise<SaveChatMeasurementResult> {
+      return http.post<SaveChatMeasurementResult>(`/conversations/${id}/measurement-set`, input);
     },
 
     /** Toggle the caller's emoji reaction on a message; returns the updated message. */

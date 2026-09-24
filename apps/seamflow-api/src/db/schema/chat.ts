@@ -9,6 +9,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { users, tailors } from './users';
 import { orders } from './orders';
+import { clients } from './clients';
 import { feedPosts } from './feed-posts';
 import { conversationOriginEnum, messageSenderTypeEnum } from './enums';
 
@@ -43,6 +44,12 @@ export const conversations = pgTable(
     offerId: uuid('offer_id'),
     // Set once the thread turns into a commission (D.2.3 quote flow).
     orderId: uuid('order_id').references(() => orders.id, { onDelete: 'set null' }),
+    // The tailor's OWN client record for the person in this thread. The
+    // counterparty is a `users` row; orders and measurement sets hang off
+    // `clients`. This column is the bridge, filled the first time the tailor
+    // says who this is (a quote, or saving measurements they were sent), so
+    // nothing in the thread has to ask again.
+    clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
     lastMessageAt: timestamp('last_message_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -12,6 +12,14 @@ export default function Thread() {
       ns="chat"
       onViewOrder={(orderId) => router.push({ pathname: '/(app)/orders/[id]', params: { id: orderId } })}
       onCreateQuote={() => router.push({ pathname: '/(app)/messages/quote', params: { id } })}
+      onStartOrder={({ clientId, setId }) =>
+        router.push({
+          pathname: '/(app)/new-order',
+          // The client is known and the numbers are saved, so the wizard opens
+          // on the garment step with both already filled in.
+          params: { forClient: clientId, fromSet: setId },
+        })
+      }
     />
   );
 }

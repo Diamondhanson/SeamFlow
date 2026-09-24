@@ -5,6 +5,7 @@ import {
   MessageCreateSchema,
   MessageHydrateSchema,
   MessageReactionInputSchema,
+  SaveChatMeasurementSchema,
   ShareOrderInputSchema,
 } from '@seamflow/schemas';
 
@@ -14,3 +15,4 @@ export class QuoteDto extends createZodDto(ConversationQuoteSchema) {}
 export class ReactionDto extends createZodDto(MessageReactionInputSchema) {}
 export class ShareOrderDto extends createZodDto(ShareOrderInputSchema) {}
 export class HydrateDto extends createZodDto(MessageHydrateSchema) {}
+export class SaveMeasurementDto extends createZodDto(SaveChatMeasurementSchema) {}
