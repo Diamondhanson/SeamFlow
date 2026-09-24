@@ -97,12 +97,25 @@ export const MessageMeasurementAttachmentSchema = z.object({
   unitPreference: MeasurementUnitSchema,
 });
 
+/**
+ * The tailor asking for measurements.
+ *
+ * Carries nothing: it is a prompt, and the point of making it an attachment
+ * rather than a sentence is that each side renders it in ITS OWN language,
+ * with a button that opens the customer's measurement locker. A typed request
+ * also means the customer never has to work out how to send them.
+ */
+export const MessageMeasurementRequestAttachmentSchema = z.object({
+  kind: z.literal('measurement_request'),
+});
+
 export const MessageAttachmentSchema = z.discriminatedUnion('kind', [
   MessageImageAttachmentSchema,
   MessageDesignAttachmentSchema,
   MessageLinkAttachmentSchema,
   MessageOrderAttachmentSchema,
   MessageMeasurementAttachmentSchema,
+  MessageMeasurementRequestAttachmentSchema,
 ]);
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 

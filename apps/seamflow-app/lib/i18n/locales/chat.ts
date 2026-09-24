@@ -14,6 +14,9 @@ export const chat = {
     msDefaultLabel: 'Sent in chat',
     // Comparing with what the client's file already holds
     msAdded: 'new',
+    measurementsAsked: 'Your tailor asked for your measurements.',
+    measurementsAskedSent: 'You asked for their measurements.',
+    askMeasurements: 'Ask for measurements',
     msDiffTitle: 'These are not the ones you have',
     msDiffIntro: 'Compared with “{label}”:',
     msDiffReplace: 'Update {label}',
@@ -138,6 +141,9 @@ export const chat = {
     msDefaultLabel: 'Envoyées par message',
     // Comparaison avec la fiche du client
     msAdded: 'nouveau',
+    measurementsAsked: 'Votre couturier demande vos mesures.',
+    measurementsAskedSent: 'Vous avez demandé ses mesures.',
+    askMeasurements: 'Demander les mesures',
     msDiffTitle: 'Ce ne sont pas celles que vous avez',
     msDiffIntro: 'Par rapport à « {label} » :',
     msDiffReplace: 'Mettre à jour {label}',
@@ -256,6 +262,9 @@ export const chat = {
     msDefaultLabel: 'Enviadas no chat',
     // Comparação com a ficha do cliente
     msAdded: 'nova',
+    measurementsAsked: 'O seu alfaiate pediu as suas medidas.',
+    measurementsAskedSent: 'Pediu as medidas desta pessoa.',
+    askMeasurements: 'Pedir as medidas',
     msDiffTitle: 'Não são as que já tem',
     msDiffIntro: 'Comparadas com “{label}”:',
     msDiffReplace: 'Atualizar {label}',
@@ -379,6 +388,9 @@ export const chat = {
     msDefaultLabel: 'Enviadas por chat',
     // Comparación con la ficha del cliente
     msAdded: 'nueva',
+    measurementsAsked: 'Tu sastre te pidió tus medidas.',
+    measurementsAskedSent: 'Le pediste sus medidas.',
+    askMeasurements: 'Pedir las medidas',
     msDiffTitle: 'No son las que ya tienes',
     msDiffIntro: 'Comparadas con “{label}”:',
     msDiffReplace: 'Actualizar {label}',
@@ -501,6 +513,9 @@ export const chat = {
     msDefaultLabel: 'Vilitumwa kwenye gumzo',
     // Kulinganisha na faili la mteja
     msAdded: 'kipya',
+    measurementsAsked: 'Fundi wako ameomba vipimo vyako.',
+    measurementsAskedSent: 'Umeomba vipimo vyake.',
+    askMeasurements: 'Omba vipimo',
     msDiffTitle: 'Si vilevile na ulivyo navyo',
     msDiffIntro: 'Ikilinganishwa na “{label}”:',
     msDiffReplace: 'Sasisha {label}',
@@ -623,6 +638,9 @@ export const chat = {
     msDefaultLabel: 'أُرسلت في المحادثة',
     // المقارنة بما في ملف العميل
     msAdded: 'جديد',
+    measurementsAsked: 'طلب منك الخياط قياساتك.',
+    measurementsAskedSent: 'طلبت منه قياساته.',
+    askMeasurements: 'طلب القياسات',
     msDiffTitle: 'ليست نفس التي لديك',
     msDiffIntro: 'بالمقارنة مع «{label}»:',
     msDiffReplace: 'تحديث {label}',

@@ -495,7 +495,7 @@ export function ChatThread({
         ? '📷'
         : m.attachments.some((a) => a.kind === 'order')
           ? '📦'
-          : m.attachments.some((a) => a.kind === 'measurement')
+          : m.attachments.some((a) => a.kind === 'measurement' || a.kind === 'measurement_request')
             ? '📏'
             : m.attachments.some((a) => a.kind === 'design')
               ? '🖼️'
@@ -544,15 +544,23 @@ export function ChatThread({
     const actions = [
       { label: t(`${ns}.attachTakePhoto`), value: 'camera' as const },
       { label: t(`${ns}.attachFromGallery`), value: 'library' as const },
-      ...(role === 'tailor' ? [{ label: tk('shareOrder'), value: 'order' as const }] : []),
+      ...(role === 'tailor'
+        ? [
+            { label: tk('shareOrder'), value: 'order' as const },
+            // The tailor asks far more often than the customer thinks to
+            // offer, so this is the side the request belongs on.
+            { label: tk('askMeasurements'), value: 'ask' as const },
+          ]
+        : []),
       ...(role === 'client' ? [{ label: tk('shareMeasurements'), value: 'measurement' as const }] : []),
     ];
-    const action = await dialog.choose<'camera' | 'library' | 'order' | 'measurement'>({
+    const action = await dialog.choose<'camera' | 'library' | 'order' | 'measurement' | 'ask'>({
       title: tk('attach'),
       actions,
     });
     if (action === 'order') void pickOrderToShare();
     else if (action === 'measurement') void pickMeasurementToShare();
+    else if (action === 'ask') askMeasurementsMut.mutate();
     else if (action) void attach(action);
   };
 
@@ -573,6 +581,26 @@ export function ChatThread({
     });
     if (chosen) shareOrderMut.mutate(chosen);
   };
+
+  // ── Ask for measurements (tailor) ─────────────────────────────────────────
+  //
+  // Sent straight through rather than queued: the outbox is for words typed
+  // into a composer that must survive a dead network, and its flush is
+  // single-flight, so a second flush asked for here would be swallowed by the
+  // one enqueue already started and the thread would not refresh. Same shape
+  // as sharing an order, which is the other tailor-initiated card.
+  const askMeasurementsMut = useMutation({
+    mutationFn: () =>
+      api.conversations.sendMessage(id, {
+        clientId: `ask-${id}-${Date.now()}`,
+        attachments: [{ kind: 'measurement_request' }],
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: qk.conversationMessages(id) });
+      void qc.invalidateQueries({ queryKey: qk.conversations() });
+    },
+    onError: (err) => void dialog.error(err),
+  });
 
   // ── Share measurements (client) ───────────────────────────────────────────
   const measurementsQ = useConsumerMeasurements();
@@ -795,6 +823,31 @@ export function ChatThread({
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </Pressable>
+      );
+    }
+    if (a.kind === 'measurement_request') {
+      // Both sides see this, each in their own language: the customer as an
+      // ask with a way to answer it, the tailor as a record of having asked.
+      return (
+        <View
+          key={i}
+          style={[styles.measureCard, { backgroundColor: colors.bg, borderColor: colors.hairline, borderRadius: radii.md }]}
+        >
+          <View style={styles.measureHead}>
+            <Ionicons name="body-outline" size={16} color={atelier.primary} />
+            <Text variant="bodySm" style={{ flex: 1 }}>
+              {role === 'client' ? tk('measurementsAsked') : tk('measurementsAskedSent')}
+            </Text>
+          </View>
+          {role === 'client' ? (
+            <Pressable onPress={() => void pickMeasurementToShare()} style={styles.measureAction}>
+              <Ionicons name="arrow-forward-circle-outline" size={14} color={atelier.primary} />
+              <Text variant="caption" style={{ color: atelier.primary, flex: 1 }}>
+                {tk('shareMeasurements')}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
       );
     }
     if (a.kind === 'measurement') {

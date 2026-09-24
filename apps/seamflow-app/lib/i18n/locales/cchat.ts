@@ -3,6 +3,9 @@
 export const cchat = {
   en: {
     shareMeasurements: 'Share measurements',
+    measurementsAsked: 'Your tailor asked for your measurements.',
+    measurementsAskedSent: 'You asked for their measurements.',
+    askMeasurements: 'Ask for measurements',
     shareMeasurementsEmpty: 'You have no saved measurements yet.',
     shareMeasurementsPick: 'Choose measurements to share',
     measurementMessage: 'Measurements',
@@ -97,6 +100,9 @@ export const cchat = {
   },
   fr: {
     shareMeasurements: 'Partager les mesures',
+    measurementsAsked: 'Votre couturier demande vos mesures.',
+    measurementsAskedSent: 'Vous avez demandé ses mesures.',
+    askMeasurements: 'Demander les mesures',
     shareMeasurementsEmpty: 'Vous n’avez pas encore de mesures enregistrées.',
     shareMeasurementsPick: 'Choisir les mesures à partager',
     measurementMessage: 'Mesures',
@@ -182,6 +188,9 @@ export const cchat = {
   },
   pt: {
     shareMeasurements: 'Compartilhar medidas',
+    measurementsAsked: 'O seu alfaiate pediu as suas medidas.',
+    measurementsAskedSent: 'Pediu as medidas desta pessoa.',
+    askMeasurements: 'Pedir as medidas',
     shareMeasurementsEmpty: 'Você ainda não tem medidas salvas.',
     shareMeasurementsPick: 'Escolha as medidas para compartilhar',
     measurementMessage: 'Medidas',
@@ -273,6 +282,9 @@ export const cchat = {
   },
   es: {
     shareMeasurements: 'Compartir medidas',
+    measurementsAsked: 'Tu sastre te pidió tus medidas.',
+    measurementsAskedSent: 'Le pediste sus medidas.',
+    askMeasurements: 'Pedir las medidas',
     shareMeasurementsEmpty: 'Aún no tienes medidas guardadas.',
     shareMeasurementsPick: 'Elige las medidas para compartir',
     measurementMessage: 'Medidas',
@@ -362,6 +374,9 @@ export const cchat = {
   },
   sw: {
     shareMeasurements: 'Shiriki vipimo',
+    measurementsAsked: 'Fundi wako ameomba vipimo vyako.',
+    measurementsAskedSent: 'Umeomba vipimo vyake.',
+    askMeasurements: 'Omba vipimo',
     shareMeasurementsEmpty: 'Huna vipimo vilivyohifadhiwa bado.',
     shareMeasurementsPick: 'Chagua vipimo vya kushiriki',
     measurementMessage: 'Vipimo',
@@ -451,6 +466,9 @@ export const cchat = {
   },
   ar: {
     shareMeasurements: 'مشاركة القياسات',
+    measurementsAsked: 'طلب منك الخياط قياساتك.',
+    measurementsAskedSent: 'طلبت منه قياساته.',
+    askMeasurements: 'طلب القياسات',
     shareMeasurementsEmpty: 'ليس لديك قياسات محفوظة بعد.',
     shareMeasurementsPick: 'اختر القياسات للمشاركة',
     measurementMessage: 'القياسات',
