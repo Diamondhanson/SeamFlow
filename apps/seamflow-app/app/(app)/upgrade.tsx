@@ -35,6 +35,7 @@ import {
   usageOf,
   useCheckout,
   usePaymentAttempt,
+  formatPlanPrice,
   usePlanRows,
   useSubscription,
 } from '../../lib/subscription';
@@ -81,6 +82,10 @@ export default function Upgrade() {
   const [paymentId, setPaymentId] = useState<string | null>(null);
   /** The provider's hosted checkout page, when paying happens over there. */
   const [payUrl, setPayUrl] = useState<string | null>(null);
+  /** What the server said it is charging, which is the only number that is
+   *  certainly right: prices can be changed from the dashboard while this
+   *  screen is holding a copy of them. */
+  const [charged, setCharged] = useState<string | null>(null);
   const attempt = usePaymentAttempt(paymentId);
 
   // An attempt in flight has to survive leaving this screen, because on the
@@ -139,6 +144,7 @@ export default function Upgrade() {
         onSuccess: (res) => {
           setPaymentId(res.paymentId);
           setPayUrl(res.redirectUrl);
+          setCharged(formatPlanPrice(res.amount, res.currency === 'XAF' ? 'XAF' : 'USD'));
           // Remember before navigating: on the web the next line ends this
           // screen's life.
           void AsyncStorage.setItem(
@@ -271,6 +277,11 @@ export default function Upgrade() {
                 <Text variant="bodySm" tone="textMuted">
                   {payUrl ? t('billing.pendingLinkBody') : t('billing.pendingBody')}
                 </Text>
+                {charged ? (
+                  <Text variant="bodySm" style={{ fontWeight: '700' }}>
+                    {t('billing.chargingNow', { price: charged })}
+                  </Text>
+                ) : null}
               </View>
             </View>
             {/* A real tap, which no browser blocks: the way back for anyone

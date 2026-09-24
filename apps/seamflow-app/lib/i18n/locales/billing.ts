@@ -16,6 +16,7 @@ export const billing = {
     pendingLinkBody:
       "Finish on the payment page, then come back here. This screen updates by itself.",
     continuePayment: "Continue to payment",
+    chargingNow: "You are paying {price}",
     paid: "You're premium",
     paidBody: "Premium until {date}. Thank you.",
     failed: "Payment didn't go through",
@@ -94,6 +95,7 @@ export const billing = {
     pendingLinkBody:
       "Terminez sur la page de paiement, puis revenez ici. Cet écran se met à jour tout seul.",
     continuePayment: "Continuer vers le paiement",
+    chargingNow: "Vous payez {price}",
     paid: "Vous êtes premium",
     paidBody: "Premium jusqu’au {date}. Merci.",
     failed: "Le paiement n’a pas abouti",
@@ -172,6 +174,7 @@ export const billing = {
     pendingLinkBody:
       "Conclua na página de pagamento e volte aqui. Este ecrã atualiza-se sozinho.",
     continuePayment: "Continuar para o pagamento",
+    chargingNow: "Está a pagar {price}",
     paid: "É premium",
     paidBody: "Premium até {date}. Obrigado.",
     failed: "O pagamento não passou",
@@ -250,6 +253,7 @@ export const billing = {
     pendingLinkBody:
       "Termina en la página de pago y vuelve aquí. Esta pantalla se actualiza sola.",
     continuePayment: "Continuar al pago",
+    chargingNow: "Estás pagando {price}",
     paid: "Eres premium",
     paidBody: "Premium hasta el {date}. Gracias.",
     failed: "El pago no se completó",
@@ -328,6 +332,7 @@ export const billing = {
     pendingLinkBody:
       "Malizia kwenye ukurasa wa malipo, kisha rudi hapa. Skrini hii inajisasisha yenyewe.",
     continuePayment: "Endelea kwenye malipo",
+    chargingNow: "Unalipa {price}",
     paid: "Wewe ni premium",
     paidBody: "Premium hadi {date}. Asante.",
     failed: "Malipo hayakukamilika",
@@ -405,6 +410,7 @@ export const billing = {
     pendingBody: "وافق على الدفع من هاتفك. تتحدث هذه الشاشة تلقائيًا.",
     pendingLinkBody: "أكمل الدفع في صفحة الدفع ثم عُد إلى هنا. تتحدث هذه الشاشة تلقائيًا.",
     continuePayment: "المتابعة إلى الدفع",
+    chargingNow: "أنت تدفع {price}",
     paid: "أنت الآن بريميوم",
     paidBody: "بريميوم حتى {date}. شكرًا لك.",
     failed: "لم يتم الدفع",

@@ -77,3 +77,69 @@ export async function extendAllTrials(days: number): Promise<void> {
   revalidatePath('/subscriptions');
   revalidatePath('/', 'layout');
 }
+
+// ── Prices ──────────────────────────────────────────────────────────────────
+
+export interface PriceTable {
+  XAF: { monthly: number; quarterly: number; annual: number };
+  USD: { monthly: number; quarterly: number; annual: number };
+}
+
+/**
+ * What the platform charges, and what this build would charge without the
+ * stored override. Read through the API rather than the settings table so the
+ * dashboard shows exactly what a tailor would be quoted, including the
+ * fallback when a stored value fails validation.
+ */
+export async function getPrices(): Promise<{ prices: PriceTable; defaults: PriceTable }> {
+  const staff = await requireStaff();
+  return get<{ prices: PriceTable; defaults: PriceTable }>(
+    staff.accessToken,
+    '/admin/subscriptions/prices',
+  );
+}
+
+/** Change what everyone is charged, from now on. */
+export async function setPrices(prices: PriceTable): Promise<void> {
+  const staff = await requireStaff();
+  await post(staff.accessToken, '/admin/subscriptions/prices', prices);
+  revalidatePath('/subscriptions');
+}
+
+// ── Payments ────────────────────────────────────────────────────────────────
+
+export interface PaymentRow {
+  id: string;
+  tailorId: string;
+  businessName: string | null;
+  plan: string | null;
+  amount: number;
+  currency: string;
+  method: string | null;
+  status: 'pending' | 'succeeded' | 'failed';
+  provider: string | null;
+  providerRef: string | null;
+  daysAdded: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getPayments(): Promise<PaymentRow[]> {
+  const staff = await requireStaff();
+  const { items } = await get<{ items: PaymentRow[] }>(
+    staff.accessToken,
+    '/admin/subscriptions/payments',
+  );
+  return items;
+}
+
+/**
+ * Ask the provider about one pending payment now. The background sweep runs
+ * every ten minutes, which is far too slow when a tailor is on the phone
+ * saying the money left their account.
+ */
+export async function recheckPayment(paymentId: string): Promise<void> {
+  const staff = await requireStaff();
+  await post(staff.accessToken, `/admin/subscriptions/payments/${paymentId}/recheck`, {});
+  revalidatePath('/subscriptions');
+}

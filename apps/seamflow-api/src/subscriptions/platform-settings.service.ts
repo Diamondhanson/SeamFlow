@@ -12,10 +12,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq } from 'drizzle-orm';
+import { defaultPrices, PriceTableSchema, type PriceTable } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
 import { platformSettings } from '../db/schema';
 
 export const ENFORCEMENT_KEY = 'subscription_enforcement';
+export const PRICES_KEY = 'subscription_prices';
 const CACHE_MS = 15_000;
 
 @Injectable()
@@ -72,5 +74,26 @@ export class PlatformSettingsService {
   async enforcementOn(): Promise<boolean> {
     if (this.config.get<boolean>('SUBSCRIPTION_ENFORCEMENT') === true) return true;
     return this.get<boolean>(ENFORCEMENT_KEY, false);
+  }
+
+  /**
+   * What to charge, right now.
+   *
+   * Parsed rather than trusted: this row decides what a tailor is asked for
+   * and what the provider collects, and it is edited by hand from a web form.
+   * Anything that does not satisfy the schema is ignored in favour of the
+   * prices compiled into this build, which are always a real, sane set.
+   */
+  async prices(): Promise<PriceTable> {
+    const raw = await this.get<unknown>(PRICES_KEY, null);
+    if (raw == null) return defaultPrices();
+    const parsed = PriceTableSchema.safeParse(raw);
+    if (!parsed.success) {
+      this.logger.error(
+        `Stored subscription prices are invalid, using the build defaults: ${parsed.error.message}`,
+      );
+      return defaultPrices();
+    }
+    return parsed.data;
   }
 }

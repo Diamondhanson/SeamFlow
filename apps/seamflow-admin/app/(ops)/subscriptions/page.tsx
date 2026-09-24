@@ -3,8 +3,8 @@ import { Cell, Empty, PageHeader, Row, Stat, StatRow, Table, Tag } from '../../.
 import { FilterBar, Search } from '../../../components/filters';
 import { date, num, relative } from '../../../lib/format';
 import { getSubscriptions, getSubscriptionRevenue, SUBS_TABS, type SubsTab } from '../../../lib/queries/subscriptions';
-import { getEnforcement } from '../../../lib/subscription-actions';
-import { EnforcementSwitch, ExtendAllTrials, RowActions } from './actions';
+import { getEnforcement, getPayments, getPrices } from '../../../lib/subscription-actions';
+import { EnforcementSwitch, ExtendAllTrials, PriceEditor, RecheckPayment, RowActions } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +16,14 @@ export default async function SubscriptionsPage({
   const sp = await searchParams;
   const tab: SubsTab = SUBS_TABS.some((t) => t.key === sp.tab) ? (sp.tab as SubsTab) : 'trialing';
   const q = sp.q ?? '';
-  const [{ counts, rows }, revenue, enforced] = await Promise.all([
+  const [{ counts, rows }, revenue, enforced, priceState, payments] = await Promise.all([
     getSubscriptions(tab, q),
     getSubscriptionRevenue(),
     getEnforcement().catch(() => false),
+    // The API is the only place that knows what is really being charged. If it
+    // cannot be reached the page still renders; it just cannot offer the form.
+    getPrices().catch(() => null),
+    getPayments().catch(() => []),
   ]);
 
   // Who needs attention: a trial about to end is a conversation to have now,
@@ -62,6 +66,68 @@ export default async function SubscriptionsPage({
       <div className="mt-4 border-b border-rule bg-surface px-4 py-3">
         <ExtendAllTrials />
       </div>
+
+      {priceState ? (
+        <div className="mt-4 border-b border-rule bg-surface px-4 py-4">
+          <PriceEditor prices={priceState.prices} defaults={priceState.defaults} />
+        </div>
+      ) : (
+        <p className="mt-4 text-xs text-bad">
+          Could not reach the API, so prices cannot be shown or changed right now.
+        </p>
+      )}
+
+      {payments.length > 0 ? (
+        <section className="mt-10">
+          <h2 className="text-sm font-medium text-ink">Payments</h2>
+          <p className="mt-1 text-xs text-muted">
+            Every attempt, newest first. A pending one settles by itself within ten minutes; &ldquo;check
+            now&rdquo; asks the provider immediately.
+          </p>
+          <div className="mt-3">
+            <Table
+              head={['Shop', 'Plan', 'Amount', 'Method', 'State', 'Started', 'Reference', '']}
+              align={['left', 'left', 'right', 'left', 'left', 'right', 'left', 'left']}
+            >
+              {payments.map((p) => (
+                <Row key={p.id}>
+                  <td className="whitespace-nowrap px-3 py-2.5 align-top">
+                    <Link
+                      href={`/tailors/${p.tailorId}`}
+                      className="font-medium text-ink underline decoration-rule underline-offset-4 hover:decoration-primary"
+                    >
+                      {p.businessName ?? 'Unknown shop'}
+                    </Link>
+                  </td>
+                  <Cell>{p.plan ?? '—'}</Cell>
+                  <Cell right mono>
+                    {p.amount.toLocaleString('en-GB')} {p.currency}
+                  </Cell>
+                  <Cell>{p.method ?? '—'}</Cell>
+                  <Cell>
+                    <span
+                      className={
+                        p.status === 'succeeded'
+                          ? 'text-good'
+                          : p.status === 'failed'
+                            ? 'text-bad'
+                            : undefined
+                      }
+                    >
+                      {p.status}
+                    </span>
+                  </Cell>
+                  <Cell right>{relative(p.createdAt)}</Cell>
+                  <Cell>
+                    <span className="font-mono text-2xs text-faint">{p.providerRef ?? '—'}</span>
+                  </Cell>
+                  <Cell>{p.status === 'pending' ? <RecheckPayment paymentId={p.id} /> : null}</Cell>
+                </Row>
+              ))}
+            </Table>
+          </div>
+        </section>
+      ) : null}
 
       <nav className="mt-8 flex flex-wrap border-b border-rule" aria-label="Subscription state">
         {SUBS_TABS.map((t) => {

@@ -20,11 +20,13 @@ import {
   type CheckoutInput,
   type CheckoutResult,
   type PaymentAttempt,
+  type PaymentAttemptStatus,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { subscriptionPayments, tailors } from '../db/schema';
 import { SubscriptionsService } from './subscriptions.service';
+import { PlatformSettingsService } from './platform-settings.service';
 import { PAYMENT_PROVIDER } from './providers/payment-provider.factory';
 import type { PaymentProvider, WebhookEvent } from './providers/payment-provider';
 
@@ -49,6 +51,7 @@ export class CheckoutService {
     private readonly subscriptions: SubscriptionsService,
     private readonly notifications: NotificationsService,
     private readonly config: ConfigService,
+    private readonly settings: PlatformSettingsService,
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
   ) {}
 
@@ -76,7 +79,9 @@ export class CheckoutService {
       .from(tailors)
       .where(eq(tailors.id, tailorId))
       .limit(1);
-    const billing = billingFor(shop?.countryCode);
+    // The charged amount and the displayed amount come from one read, so a
+    // price edited between the two cannot make them disagree.
+    const billing = billingFor(shop?.countryCode, await this.settings.prices());
     if (!billing.methods.includes(input.method) || !this.provider.supports(input.method)) {
       throw new ServiceUnavailableException({
         error: 'method_unavailable',
@@ -131,6 +136,10 @@ export class CheckoutService {
       return {
         paymentId: attempt!.id,
         status: started.status,
+        // What is being collected, as decided above. The screen shows this
+        // rather than its own cached price list.
+        amount,
+        currency: billing.currency,
         redirectUrl: started.redirectUrl ?? null,
         instruction: started.instruction ?? 'none',
         pollAfterMs: POLL_AFTER_MS,
@@ -286,6 +295,56 @@ export class CheckoutService {
     }
     if (settled) this.logger.log(`Reconciled ${settled} payment(s) whose webhook never arrived`);
     return { checked: pending.length, settled };
+  }
+
+  /**
+   * Ask the provider about ONE payment, now.
+   *
+   * The cron above runs every ten minutes, which is the right cadence for a
+   * background sweep and far too slow for a person staring at a tailor who
+   * says they paid. Staff-only, and it settles through exactly the same path
+   * as a webhook would, so there is no second way for money to move.
+   */
+  async recheck(paymentId: string): Promise<{ status: PaymentAttemptStatus; checked: boolean }> {
+    const [row] = await this.db
+      .select()
+      .from(subscriptionPayments)
+      .where(eq(subscriptionPayments.id, paymentId))
+      .limit(1);
+    if (!row) throw new NotFoundException('Payment not found');
+    if (row.status !== 'pending') return { status: row.status, checked: false };
+    if (!row.providerRef || !this.provider.fetchStatus || row.provider !== this.provider.name) {
+      return { status: row.status, checked: false };
+    }
+    const event = await this.provider.fetchStatus(row.providerRef);
+    if (!event || event.status === 'pending') return { status: 'pending', checked: true };
+    await this.settle({ ...event, paymentId: row.id });
+    return { status: event.status, checked: true };
+  }
+
+  /** Recent attempts across the platform, for the ops dashboard. */
+  async recent(limit = 50) {
+    const rows = await this.db
+      .select({
+        id: subscriptionPayments.id,
+        tailorId: subscriptionPayments.tailorId,
+        businessName: tailors.businessName,
+        plan: subscriptionPayments.plan,
+        amount: subscriptionPayments.amount,
+        currency: subscriptionPayments.currency,
+        method: subscriptionPayments.method,
+        status: subscriptionPayments.status,
+        provider: subscriptionPayments.provider,
+        providerRef: subscriptionPayments.providerRef,
+        daysAdded: subscriptionPayments.daysAdded,
+        createdAt: subscriptionPayments.createdAt,
+        updatedAt: subscriptionPayments.updatedAt,
+      })
+      .from(subscriptionPayments)
+      .leftJoin(tailors, eq(tailors.id, subscriptionPayments.tailorId))
+      .orderBy(desc(subscriptionPayments.createdAt))
+      .limit(Math.min(Math.max(limit, 1), 200));
+    return rows.map((r) => ({ ...r, amount: Number(r.amount), createdAt: r.createdAt.toISOString(), updatedAt: r.updatedAt.toISOString() }));
   }
 
   private async notifyPaid(tailorId: string, premiumUntil: Date | null): Promise<void> {

@@ -261,7 +261,7 @@ export class SubscriptionsService {
       enforced: await this.enforced(),
       usage,
       caps: FREE_CAPS,
-      billing: billingFor(shop?.countryCode),
+      billing: billingFor(shop?.countryCode, await this.settings.prices()),
     };
   }
 
@@ -566,7 +566,10 @@ export class SubscriptionsService {
       .limit(1);
     if (!user?.email || !user.optIn) return false;
     const url = `${this.config.get<string>('APP_WEB_URL') ?? 'https://app.seamflowtech.com'}/upgrade`;
-    const copy = reminderEmail(language, { days, paid, billing: billingFor(countryCode), url });
+    // The email quotes money, so it reads the same prices the checkout will
+    // charge. An email that undercuts the real price is a broken promise.
+    const billing = billingFor(countryCode, await this.settings.prices());
+    const copy = reminderEmail(language, { days, paid, billing, url });
     return this.email.send({ to: user.email, subject: copy.subject, text: copy.text });
   }
 

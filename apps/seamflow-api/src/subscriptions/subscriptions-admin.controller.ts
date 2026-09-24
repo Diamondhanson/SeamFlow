@@ -1,13 +1,15 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
-import { GrantDaysSchema } from '@seamflow/schemas';
+import { defaultPrices, GrantDaysSchema, PriceTableSchema } from '@seamflow/schemas';
 import { StaffGuard } from '../common/staff.guard';
 import { SubscriptionsService } from './subscriptions.service';
-import { ENFORCEMENT_KEY, PlatformSettingsService } from './platform-settings.service';
+import { CheckoutService } from './checkout.service';
+import { ENFORCEMENT_KEY, PRICES_KEY, PlatformSettingsService } from './platform-settings.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 
 class GrantDaysDto extends createZodDto(GrantDaysSchema) {}
+class PricesDto extends createZodDto(PriceTableSchema) {}
 
 /**
  * The levers behind the ops dashboard (appendix I).
@@ -27,6 +29,7 @@ export class SubscriptionsAdminController {
   constructor(
     private readonly subscriptions: SubscriptionsService,
     private readonly settings: PlatformSettingsService,
+    private readonly checkout: CheckoutService,
   ) {}
 
   /**
@@ -43,6 +46,40 @@ export class SubscriptionsAdminController {
   async setEnforcement(@CurrentUser() user: AuthedUser, @Body() body: { enforced: boolean }) {
     await this.settings.set(ENFORCEMENT_KEY, body.enforced === true, user.id);
     return { enforced: await this.subscriptions.enforced() };
+  }
+
+  /**
+   * What the platform charges.
+   *
+   * `defaults` comes back alongside so the dashboard can show what this build
+   * would fall back to, and offer a way back to it. A tailor mid-checkout is
+   * unaffected: the amount was decided and recorded when their attempt was
+   * created, and the provider collects that.
+   */
+  @Get('prices')
+  async prices() {
+    return { prices: await this.settings.prices(), defaults: defaultPrices() };
+  }
+
+  @Post('prices')
+  async setPrices(@CurrentUser() user: AuthedUser, @Body() body: PricesDto) {
+    await this.settings.set(PRICES_KEY, body, user.id);
+    return { prices: await this.settings.prices() };
+  }
+
+  /** Recent payment attempts across the platform, newest first. */
+  @Get('payments')
+  async payments() {
+    return { items: await this.checkout.recent(100) };
+  }
+
+  /**
+   * Ask the provider about one pending payment now, rather than waiting for
+   * the ten-minute sweep. Settles through the same path a webhook would.
+   */
+  @Post('payments/:paymentId/recheck')
+  async recheck(@Param('paymentId', new ParseUUIDPipe()) paymentId: string) {
+    return this.checkout.recheck(paymentId);
   }
 
   /** Give (or take back) paid days — a friend, an apology, a manual payment. */

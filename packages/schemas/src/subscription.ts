@@ -95,17 +95,65 @@ export interface BillingOptions {
   prices: Record<SubscriptionPlan, number>;
 }
 
-export function billingFor(countryCode: string | null | undefined): BillingOptions {
+/**
+ * Prices, as the platform can be told to charge them.
+ *
+ * The numbers in PLANS are the DEFAULT. This shape is what the ops dashboard
+ * stores over the top of them, so a price can change in seconds without a
+ * commit and two deploys. Anything missing or malformed falls back to the
+ * default, because a bad edit must not be able to take pricing down.
+ */
+export const PriceTableSchema = z.object({
+  XAF: z.object({
+    // Fapshi refuses anything under 100 XAF, so a price below it would be a
+    // plan nobody could buy. The ceiling is a typo guard, not a policy.
+    monthly: z.number().int().min(100).max(1_000_000),
+    quarterly: z.number().int().min(100).max(1_000_000),
+    annual: z.number().int().min(100).max(1_000_000),
+  }),
+  USD: z.object({
+    monthly: z.number().int().min(1).max(10_000),
+    quarterly: z.number().int().min(1).max(10_000),
+    annual: z.number().int().min(1).max(10_000),
+  }),
+});
+export type PriceTable = z.infer<typeof PriceTableSchema>;
+
+/** The prices compiled into this build, in the shape the dashboard edits. */
+export function defaultPrices(): PriceTable {
+  const of = (key: SubscriptionPlan) => planFor(key);
+  return {
+    XAF: {
+      monthly: of('monthly').priceXaf,
+      quarterly: of('quarterly').priceXaf,
+      annual: of('annual').priceXaf,
+    },
+    USD: {
+      monthly: of('monthly').priceUsd,
+      quarterly: of('quarterly').priceUsd,
+      annual: of('annual').priceUsd,
+    },
+  };
+}
+
+/**
+ * What this tailor may pay, and how much.
+ *
+ * `prices` is what the platform has been told to charge. It is optional so
+ * every existing caller keeps working against the compiled defaults, and so
+ * the app can still render something sensible from a cached response that
+ * predates any of this.
+ */
+export function billingFor(
+  countryCode: string | null | undefined,
+  prices: PriceTable = defaultPrices(),
+): BillingOptions {
   const local = !!countryCode && (LOCALISED_COUNTRIES as readonly string[]).includes(countryCode.toUpperCase());
-  const price = (p: PlanDef) => (local ? p.priceXaf : p.priceUsd);
+  const table = local ? prices.XAF : prices.USD;
   return {
     currency: local ? 'XAF' : 'USD',
     methods: local ? ['mtn_momo', 'orange_money', 'card'] : ['card'],
-    prices: {
-      monthly: price(planFor('monthly')),
-      quarterly: price(planFor('quarterly')),
-      annual: price(planFor('annual')),
-    },
+    prices: { monthly: table.monthly, quarterly: table.quarterly, annual: table.annual },
   };
 }
 
@@ -255,6 +303,16 @@ export type PaymentAttemptStatus = z.infer<typeof PaymentAttemptStatusSchema>;
 export const CheckoutResultSchema = z.object({
   paymentId: z.string().uuid(),
   status: PaymentAttemptStatusSchema,
+  /**
+   * What the server is actually charging, decided at this moment.
+   *
+   * The app can hold a subscription state for up to fifteen minutes, and
+   * prices can now change from the dashboard in seconds. Without this the
+   * screen could say one number while the provider collects another, and the
+   * tailor would be right to distrust everything after that.
+   */
+  amount: z.number(),
+  currency: z.string(),
   /** Where to send the user to finish paying, if the provider needs that. */
   redirectUrl: z.string().url().nullable(),
   /** Localisable key for an on-screen instruction, e.g. approve on your phone. */
