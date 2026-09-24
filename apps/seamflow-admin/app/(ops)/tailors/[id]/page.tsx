@@ -4,6 +4,8 @@ import { Cell, Empty, Facts, LinkCell, Note, PageHeader, Row, Section, Stat, Sta
 import { date, label, money, num, relative } from '../../../../lib/format';
 import { ORDER_STATUS_COLOR } from '../../../../lib/palette';
 import { getTailor } from '../../../../lib/queries/tailors';
+import { getHistory } from '../../../../lib/people-actions';
+import { TailorActions } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +16,8 @@ export default async function TailorDetailPage({ params }: { params: Promise<{ i
 
   const { tailor: t, stats, ordersMonthly, statuses, orders, invoices, clients } = data;
   const cur = t.currency;
+  // Best effort: the page is worth rendering even when the API is asleep.
+  const history = await getHistory('tailor', id).catch(() => []);
 
   return (
     <>
@@ -48,6 +52,33 @@ export default async function TailorDetailPage({ params }: { params: Promise<{ i
             ],
           ]}
         />
+      </Section>
+
+      <Section title="Staff actions">
+        <TailorActions
+          tailorId={t.id}
+          userId={t.userId}
+          businessName={t.businessName}
+          isVerified={t.isVerified}
+          deletionRequestedAt={t.deletionRequestedAt}
+          deletionScheduledFor={t.deletionScheduledFor}
+        />
+        {history.length > 0 ? (
+          <div className="mt-6">
+            <div className="text-2xs uppercase tracking-widest text-faint">What staff has done here</div>
+            <ul className="mt-2 space-y-1">
+              {history.map((h) => (
+                <li key={h.id} className="text-xs text-muted">
+                  <span className="font-mono text-2xs text-faint">{date(h.createdAt)}</span>{' '}
+                  <span className="text-ink">{h.action}</span> by {h.actor}
+                  {Object.keys(h.detail).length > 0 ? (
+                    <span className="text-faint"> · {JSON.stringify(h.detail)}</span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </Section>
 
       <Section title="What they have built">

@@ -17,6 +17,7 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { MeModule } from './me/me.module';
 import { AccountModule } from './account/account.module';
+import { AdminModule } from './admin/admin.module';
 import { PhoneVerificationModule } from './phone-verification/phone-verification.module';
 import { TailorsModule } from './tailors/tailors.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
@@ -61,6 +62,7 @@ import { RemindersModule } from './notifications/reminders.module';
     HealthModule,
     MeModule,
     AccountModule,
+    AdminModule,
     PhoneVerificationModule,
     TailorsModule,
     SubscriptionsModule,

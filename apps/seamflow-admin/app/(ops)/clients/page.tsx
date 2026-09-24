@@ -3,6 +3,7 @@ import { Choice, FilterBar, Reset, Search } from '../../../components/filters';
 import { Cell, Empty, Flag, LinkCell, Note, PageHeader, Pagination, Row, Section, Stat, StatRow, Table } from '../../../components/primitives';
 import { date, num } from '../../../lib/format';
 import { getClients } from '../../../lib/queries/clients';
+import { AccountActions } from './actions';
 import { parsePage } from '../../../lib/queries/shared';
 
 export const dynamic = 'force-dynamic';
@@ -119,8 +120,8 @@ export default async function ClientsPage({
           </Empty>
         ) : (
           <Table
-            head={['Name', 'Email', 'Phone', 'Verified', 'Claims', 'Enquiries', 'Devices', 'Joined']}
-            align={['left', 'left', 'left', 'left', 'right', 'right', 'right', 'right']}
+            head={['Name', 'Email', 'Phone', 'Verified', 'Claims', 'Enquiries', 'Devices', 'Joined', '']}
+            align={['left', 'left', 'left', 'left', 'right', 'right', 'right', 'right', 'left']}
           >
             {accounts.map((a) => (
               <Row key={a.id}>
@@ -134,6 +135,13 @@ export default async function ClientsPage({
                 <Cell right mono>{a.conversations}</Cell>
                 <Cell right mono>{a.devices === 0 ? <span className="text-faint">0</span> : a.devices}</Cell>
                 <Cell right dim mono>{date(a.createdAt)}</Cell>
+                <Cell>
+                  <AccountActions
+                    userId={a.id}
+                    name={a.fullName || a.email || 'this person'}
+                    deletionRequestedAt={a.deletionRequestedAt}
+                  />
+                </Cell>
               </Row>
             ))}
           </Table>

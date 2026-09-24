@@ -4,6 +4,7 @@ import { defaultPrices, GrantDaysSchema, PriceTableSchema } from '@seamflow/sche
 import { StaffGuard } from '../common/staff.guard';
 import { SubscriptionsService } from './subscriptions.service';
 import { CheckoutService } from './checkout.service';
+import { AdminAuditService } from '../admin/admin-audit.service';
 import { ENFORCEMENT_KEY, PRICES_KEY, PlatformSettingsService } from './platform-settings.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
@@ -30,6 +31,7 @@ export class SubscriptionsAdminController {
     private readonly subscriptions: SubscriptionsService,
     private readonly settings: PlatformSettingsService,
     private readonly checkout: CheckoutService,
+    private readonly audit: AdminAuditService,
   ) {}
 
   /**
@@ -45,6 +47,9 @@ export class SubscriptionsAdminController {
   @Post('enforcement')
   async setEnforcement(@CurrentUser() user: AuthedUser, @Body() body: { enforced: boolean }) {
     await this.settings.set(ENFORCEMENT_KEY, body.enforced === true, user.id);
+    await this.audit.record(user.id, 'platform.enforcement', { type: 'platform' }, {
+      enforced: body.enforced === true,
+    });
     return { enforced: await this.subscriptions.enforced() };
   }
 
@@ -63,7 +68,9 @@ export class SubscriptionsAdminController {
 
   @Post('prices')
   async setPrices(@CurrentUser() user: AuthedUser, @Body() body: PricesDto) {
+    const before = await this.settings.prices();
     await this.settings.set(PRICES_KEY, body, user.id);
+    await this.audit.record(user.id, 'platform.prices', { type: 'platform' }, { before, after: body });
     return { prices: await this.settings.prices() };
   }
 
@@ -85,11 +92,17 @@ export class SubscriptionsAdminController {
   /** Give (or take back) paid days — a friend, an apology, a manual payment. */
   @Post(':tailorId/grant')
   async grant(
+    @CurrentUser() user: AuthedUser,
     @Param('tailorId', new ParseUUIDPipe()) tailorId: string,
     @Body() body: GrantDaysDto,
   ) {
     const row = await this.subscriptions.extendPremium(tailorId, body.days, {
       reason: body.reason ?? 'admin grant',
+    });
+    await this.audit.record(user.id, 'tailor.grant_days', { type: 'tailor', id: tailorId }, {
+      days: body.days,
+      reason: body.reason ?? null,
+      premiumUntil: row.premiumUntil,
     });
     return { premiumUntil: row.premiumUntil, status: row.status };
   }
@@ -97,16 +110,26 @@ export class SubscriptionsAdminController {
   /** Move one tailor's trial end date. */
   @Post(':tailorId/trial')
   async trial(
+    @CurrentUser() user: AuthedUser,
     @Param('tailorId', new ParseUUIDPipe()) tailorId: string,
     @Body() body: GrantDaysDto,
   ) {
     const row = await this.subscriptions.extendTrial(tailorId, body.days);
+    await this.audit.record(user.id, 'tailor.extend_trial', { type: 'tailor', id: tailorId }, {
+      days: body.days,
+      trialEndsAt: row.trialEndsAt,
+    });
     return { trialEndsAt: row.trialEndsAt, status: row.status };
   }
 
   /** Move every trial at once. */
   @Post('trials/extend-all')
-  async extendAll(@Body() body: GrantDaysDto) {
-    return { updated: await this.subscriptions.extendAllTrials(body.days) };
+  async extendAll(@CurrentUser() user: AuthedUser, @Body() body: GrantDaysDto) {
+    const updated = await this.subscriptions.extendAllTrials(body.days);
+    await this.audit.record(user.id, 'platform.extend_all_trials', { type: 'platform' }, {
+      days: body.days,
+      updated,
+    });
+    return { updated };
   }
 }

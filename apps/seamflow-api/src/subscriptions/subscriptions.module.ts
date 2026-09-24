@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AdminModule } from '../admin/admin.module';
 import { TailorsModule } from '../tailors/tailors.module';
 import { SubscriptionsService } from './subscriptions.service';
 import { PlatformSettingsService } from './platform-settings.service';
@@ -15,7 +16,7 @@ import { StaffGuard } from '../common/staff.guard';
  * ask the ONE entitlement question, rather than reading dates itself.
  */
 @Module({
-  imports: [TailorsModule, NotificationsModule],
+  imports: [TailorsModule, NotificationsModule, AdminModule],
   controllers: [SubscriptionsController, SubscriptionsAdminController, CheckoutController],
   providers: [SubscriptionsService, PlatformSettingsService, CheckoutService, StaffGuard, paymentProviderFactory],
   exports: [SubscriptionsService, PlatformSettingsService, CheckoutService],
