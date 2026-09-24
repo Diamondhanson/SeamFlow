@@ -36,7 +36,12 @@ async function bootstrap(): Promise<void> {
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    // X-Client-Platform is sent on EVERY request by the apps (it is how the
+    // server refuses a checkout from a store build). Leaving it out of this
+    // list does not just break checkout: the browser refuses the preflight, so
+    // every single request from the web build fails before it is sent, and the
+    // app sits on cached data with no error anyone can see.
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Client-Platform'],
     maxAge: 86400,
   });
 
