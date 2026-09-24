@@ -36,6 +36,7 @@ import {
 } from '../../../lib/queries';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { useNotificationDetail } from '../../../lib/notification-detail';
 
 /** Icon per family. Falls back rather than throwing on an unknown type. */
 function iconFor(type: string): keyof typeof Ionicons.glyphMap {
@@ -60,6 +61,16 @@ function whenLabel(iso: string, t: (k: string) => string): string {
   if (d.toDateString() === yesterday.toDateString()) return t('cchat.yesterday');
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
+
+/** Where the client hub keeps each kind of thing. An order's invoice is shown
+ *  inside the order, and offers are read on the request they answer. */
+const CLIENT_ROUTES = {
+  order: (id: string) => `/hub/orders/${id}`,
+  conversation: (id: string) => `/hub/messages/${id}`,
+  invoice: (id: string) => `/hub/orders/${id}`,
+  request: (id: string) => `/hub/requests/${id}`,
+  support_ticket: (id: string) => `/hub/support/${id}`,
+};
 
 export default function Notifications() {
   const { t } = useTranslation();
@@ -89,14 +100,13 @@ export default function Notifications() {
   );
   const unread = q.data?.pages[0]?.unreadCount ?? 0;
 
-  const open = (n: Notification) => {
+  // Same dialog as the tailor side, different destinations. See
+  // lib/notification-detail.
+  const showDetail = useNotificationDetail(CLIENT_ROUTES);
+  const open = async (n: Notification) => {
     if (!n.readAt) markRead.mutate(n.id);
-    // Route on entityType/entityId. Rows whose entity was deleted keep their
-    // text (params carry a snapshot) but simply don't navigate.
-    if (!n.entityId) return;
-    if (n.entityType === 'order') router.push(`/hub/orders/${n.entityId}`);
-    else if (n.entityType === 'conversation') router.push(`/hub/messages/${n.entityId}`);
-    else if (n.entityType === 'invoice') router.push(`/hub/orders/${n.entityId}`);
+    const target = await showDetail(n);
+    if (target) router.push(target as never);
   };
 
   // Same header (including the settings action) as the loaded screen, so the
@@ -184,7 +194,7 @@ export default function Notifications() {
           items.map((n, i) => (
             <Pressable
               key={n.id}
-              onPress={() => open(n)}
+              onPress={() => void open(n)}
               style={[
                 styles.row,
                 // An unread row is a raised card, and the card itself separates

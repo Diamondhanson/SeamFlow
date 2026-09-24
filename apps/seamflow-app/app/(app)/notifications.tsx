@@ -34,6 +34,7 @@ import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from '../../lib/queries';
+import { useNotificationDetail } from '../../lib/notification-detail';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 
@@ -60,6 +61,16 @@ function whenLabel(iso: string, t: (k: string) => string): string {
   if (d.toDateString() === yesterday.toDateString()) return t('chat.yesterday');
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 }
+
+/** Where the tailor app keeps each kind of thing. */
+const TAILOR_ROUTES = {
+  order: (id: string) => `/(app)/orders/${id}`,
+  conversation: (id: string) => `/(app)/messages/${id}`,
+  invoice: (id: string) => `/(app)/invoices/${id}`,
+  request: (id: string) => `/(app)/requests/${id}`,
+  offer: (id: string) => `/(app)/requests/offers`,
+  support_ticket: (id: string) => `/(app)/support/${id}`,
+};
 
 export default function Notifications() {
   const { t } = useTranslation();
@@ -89,14 +100,14 @@ export default function Notifications() {
   );
   const unread = q.data?.pages[0]?.unreadCount ?? 0;
 
-  const open = (n: Notification) => {
+  // Every tap opens the detail dialog first. The rows whose entity has no
+  // screen on this side, or whose entity is gone, now say what happened
+  // instead of swallowing the press.
+  const showDetail = useNotificationDetail(TAILOR_ROUTES);
+  const open = async (n: Notification) => {
     if (!n.readAt) markRead.mutate(n.id);
-    // Route on entityType/entityId. Rows whose entity was deleted keep their
-    // text (params carry a snapshot) but simply don't navigate.
-    if (!n.entityId) return;
-    if (n.entityType === 'order') router.push(`/(app)/orders/${n.entityId}`);
-    else if (n.entityType === 'conversation') router.push(`/(app)/messages/${n.entityId}`);
-    else if (n.entityType === 'invoice') router.push(`/(app)/orders/${n.entityId}`);
+    const target = await showDetail(n);
+    if (target) router.push(target as never);
   };
 
   // Same header (including the settings action) as the loaded screen, so the
@@ -193,7 +204,7 @@ export default function Notifications() {
           items.map((n, i) => (
             <Pressable
               key={n.id}
-              onPress={() => open(n)}
+              onPress={() => void open(n)}
               style={[
                 styles.row,
                 // An unread row is a raised card, and the card itself separates
