@@ -18,8 +18,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, withAlpha, useKeyboardAppearance, squircle } from '@seamflow/ui';
 import { useSummarizeNotes } from '../lib/ai';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
@@ -36,11 +37,13 @@ interface Props {
 export function TidyNotesSheet({ visible, onClose, notes, onAccept }: Props) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
+  const insets = useSafeAreaInsets();
   // The textarea's own border is the focus indicator, which is what lets us
   // drop the browser's inner ring on web (see useFieldFocus).
   const { focused, focusProps, webReset } = useFieldFocus();
   const summarize = useSummarizeNotes();
   const [text, setText] = useState('');
+  const keyboardAppearance = useKeyboardAppearance();
 
   // Reset each time the sheet opens.
   useEffect(() => {
@@ -59,7 +62,11 @@ export function TidyNotesSheet({ visible, onClose, notes, onAccept }: Props) {
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
         <View
-          style={[styles.sheet, { backgroundColor: colors.overlay }]}
+          style={[styles.sheet, { backgroundColor: colors.overlay }, {
+            // Clear of the home indicator. A bottom sheet whose last row sits
+            // under that bar is reachable on Android and not on an iPhone.
+            paddingBottom: insets.bottom + spacing.lg,
+          }]}
           onStartShouldSetResponder={() => true}
         >
           <View style={styles.head}>
@@ -121,6 +128,7 @@ export function TidyNotesSheet({ visible, onClose, notes, onAccept }: Props) {
                   {t('orders.tidyEditLabel')}
                 </Text>
                 <TextInput
+          keyboardAppearance={keyboardAppearance}
                   value={text}
                   onChangeText={setText}
                   multiline
@@ -172,6 +180,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 24,
+    ...squircle,
     width: '95%',
     maxHeight: '85%',
     borderRadius: 24,

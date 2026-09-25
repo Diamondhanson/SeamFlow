@@ -9,14 +9,14 @@
 // ============================================================================
 
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import {
+import { activeFontFamilies,
   Text,
   useAtelierTheme,
   withAlpha,
   spacing,
-  type SemanticColors,
-} from '@seamflow/ui';
+  type SemanticColors, squircle } from '@seamflow/ui';
 
 export interface SheetOption {
   key: string;
@@ -50,6 +50,7 @@ export function OptionSheet({
   emptyText?: string;
 }) {
   const { colors } = useAtelierTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -59,7 +60,11 @@ export function OptionSheet({
       >
         {/* Swallow taps on the sheet so they don't dismiss. */}
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.overlay }]}
+          style={[styles.sheet, { backgroundColor: colors.overlay }, {
+            // Clear of the home indicator. A bottom sheet whose last row sits
+            // under that bar is reachable on Android and not on an iPhone.
+            paddingBottom: insets.bottom + spacing.l,
+          }]}
           onPress={() => {}}
         >
           <View style={styles.head}>
@@ -151,6 +156,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 24,
+    ...squircle,
   },
   head: {
     flexDirection: 'row',
@@ -181,6 +187,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  createLabel: { flex: 1, fontWeight: '600' },
+  createLabel: { flex: 1, fontFamily: activeFontFamilies.bodySemibold },
   emptyText: { textAlign: 'center', paddingVertical: spacing.l },
 });

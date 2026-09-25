@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import { Text } from '@seamflow/ui';
+import { activeFontFamilies, Text } from '@seamflow/ui';
 import { useOnline } from '../lib/use-online';
 import { usePendingMutations } from '../lib/use-pending-mutations';
 import { useTranslation } from '../lib/i18n';
@@ -55,5 +55,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     alignItems: 'center',
   },
-  text: { fontWeight: '600' },
+  text: { fontFamily: activeFontFamilies.bodySemibold },
 });

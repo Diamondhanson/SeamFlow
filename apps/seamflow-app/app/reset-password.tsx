@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ARROW_BACK } from '../lib/rtl';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Text } from '@seamflow/ui';
+import { activeFontFamilies, Text } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
@@ -188,8 +188,8 @@ export default function ResetPassword() {
 const styles = StyleSheet.create({
   header: { alignItems: 'center', marginTop: spacing.xl, marginBottom: spacing.xl },
   subtitle: { textAlign: 'center', marginTop: spacing.sm, lineHeight: 20 },
-  email: { fontWeight: '600' },
+  email: { fontFamily: activeFontFamilies.bodySemibold },
   resendRow: { alignItems: 'center', marginTop: spacing.lg },
-  resendText: { fontWeight: '600' },
+  resendText: { fontFamily: activeFontFamilies.bodySemibold },
   back: { textAlign: 'center' },
 });

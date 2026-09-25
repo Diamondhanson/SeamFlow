@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
@@ -175,7 +175,7 @@ export default function MeasurementsLocker() {
                       ) : (
                         <Ionicons name="paper-plane-outline" size={16} color={colors.primary} />
                       )}
-                      <Text variant="bodySm" style={{ color: colors.primary, fontWeight: '600' }}>
+                      <Text variant="bodySm" style={{ color: colors.primary, fontFamily: activeFontFamilies.bodySemibold }}>
                         {t('cmeasurements.send')}
                       </Text>
                     </Pressable>

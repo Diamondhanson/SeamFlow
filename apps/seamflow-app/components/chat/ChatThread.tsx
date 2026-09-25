@@ -40,7 +40,7 @@ import type {
   SaveChatMeasurementResult,
 } from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
-import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
+import { Text, useAtelierTheme, useFieldFocus, useKeyboardAppearance, keyboardDismissOnDrag } from '@seamflow/ui';
 import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
 import { SkeletonList } from '../Skeleton';
@@ -604,6 +604,7 @@ export function ChatThread({
 
   // ── Share measurements (client) ───────────────────────────────────────────
   const measurementsQ = useConsumerMeasurements();
+  const keyboardAppearance = useKeyboardAppearance();
   const pickMeasurementToShare = async () => {
     const list = measurementsQ.data?.items ?? [];
     if (list.length === 0) {
@@ -1031,6 +1032,10 @@ export function ChatThread({
             renderItem={renderRow}
             contentContainerStyle={styles.list}
             keyboardShouldPersistTaps="handled"
+            // On iOS the keyboard follows your finger and comes back if you
+            // change your mind; Android just closes it. Either way, dragging
+            // the thread should not leave the keyboard hanging over it.
+            keyboardDismissMode={keyboardDismissOnDrag}
             onEndReachedThreshold={0.4}
             onEndReached={msgsQ.loadOlder}
             ListFooterComponent={
@@ -1075,6 +1080,7 @@ export function ChatThread({
             )}
           </Pressable>
           <TextInput
+          keyboardAppearance={keyboardAppearance}
             value={draft}
             onChangeText={(v) => {
               setDraft(v);

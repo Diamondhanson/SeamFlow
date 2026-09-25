@@ -12,7 +12,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, Vibration } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text } from '@seamflow/ui';
+import { activeFontFamilies, Text } from '@seamflow/ui';
 import { PinDots, Dialpad } from './PinKeypad';
 import { useLock } from '../lib/lock-context';
 import { useAuth } from '../lib/auth-context';
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brand: { marginBottom: spacing.xs },
-  error: { fontWeight: '600' },
+  error: { fontFamily: activeFontFamilies.bodySemibold },
   // flex:1 + flex-end pushes the keypad down toward the thumb; the small
   // bottom padding keeps it off the very edge.
   bottom: {

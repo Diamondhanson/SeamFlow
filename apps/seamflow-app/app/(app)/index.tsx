@@ -8,14 +8,13 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import {
+import { activeFontFamilies,
   Avatar,
   Button,
   Text,
   useAtelierTheme,
   withAlpha,
-  type SemanticColors,
-} from '@seamflow/ui';
+  type SemanticColors } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { GettingStarted } from '../../components/GettingStarted';
 import { PendingDeletionBanner } from '../../components/PendingDeletionBanner';
@@ -191,7 +190,7 @@ export default function Home() {
                   ]}
                 >
                   <View style={[styles.odDot, { backgroundColor: colors.danger }]} />
-                  <Text variant="caption" style={{ color: colors.danger, fontWeight: '600' }}>
+                  <Text variant="caption" style={{ color: colors.danger, fontFamily: activeFontFamilies.bodySemibold }}>
                     {t('home.overdueCount', { count: overdue.length })}
                   </Text>
                 </Pressable>
@@ -425,7 +424,7 @@ function ShortCard({
         <Ionicons name={icon} size={18} color={tint} />
       </View>
       <View style={styles.shortLabel}>
-        <Text variant="bodySm" numberOfLines={1} style={{ fontWeight: '600' }}>
+        <Text variant="bodySm" numberOfLines={1} style={{ fontFamily: activeFontFamilies.bodySemibold }}>
           {label}
         </Text>
         <Text variant="caption" tone="textMuted" numberOfLines={1}>

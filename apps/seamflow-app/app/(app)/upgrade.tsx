@@ -22,7 +22,7 @@ import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import type { SubscriptionPaymentMethod, SubscriptionPlan } from '@seamflow/schemas';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SkeletonForm } from '../../components/Skeleton';
@@ -240,7 +240,7 @@ export default function Upgrade() {
                   </Text>
                   {best ? (
                     <View style={[styles.tag, { backgroundColor: colors.primary, borderRadius: radii.sm }]}>
-                      <Text variant="caption" style={{ color: colors.textOnPrimary, fontWeight: '700' }}>
+                      <Text variant="caption" style={{ color: colors.textOnPrimary, fontFamily: activeFontFamilies.bodySemibold }}>
                         {t('billing.bestValue')}
                       </Text>
                     </View>
@@ -254,7 +254,7 @@ export default function Upgrade() {
                     {t('billing.perMonth', { price: p.perMonth })}
                   </Text>
                   {p.savingsPercent > 0 ? (
-                    <Text variant="bodySm" style={{ color: colors.success, fontWeight: '700' }}>
+                    <Text variant="bodySm" style={{ color: colors.success, fontFamily: activeFontFamilies.bodySemibold }}>
                       {t('billing.save', { percent: p.savingsPercent })}
                     </Text>
                   ) : null}
@@ -273,12 +273,12 @@ export default function Upgrade() {
             <View style={[styles.state, { borderColor: colors.hairline, backgroundColor: colors.surface, borderRadius: radii.md }]}>
               <ActivityIndicator color={colors.primary} />
               <View style={styles.stateText}>
-                <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.pending')}</Text>
+                <Text variant="bodySm" style={{ fontFamily: activeFontFamilies.bodySemibold }}>{t('billing.pending')}</Text>
                 <Text variant="bodySm" tone="textMuted">
                   {payUrl ? t('billing.pendingLinkBody') : t('billing.pendingBody')}
                 </Text>
                 {charged ? (
-                  <Text variant="bodySm" style={{ fontWeight: '700' }}>
+                  <Text variant="bodySm" style={{ fontFamily: activeFontFamilies.bodySemibold }}>
                     {t('billing.chargingNow', { price: charged })}
                   </Text>
                 ) : null}
@@ -298,7 +298,7 @@ export default function Upgrade() {
           <View style={[styles.state, { borderColor: colors.success, backgroundColor: withAlpha(colors.success, 0.1), borderRadius: radii.md }]}>
             <Ionicons name="checkmark-circle" size={22} color={colors.success} />
             <View style={styles.stateText}>
-              <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.paid')}</Text>
+              <Text variant="bodySm" style={{ fontFamily: activeFontFamilies.bodySemibold }}>{t('billing.paid')}</Text>
               <Text variant="bodySm" tone="textMuted">
                 {t('billing.paidBody', { date: new Date(sub.premiumUntil ?? '').toLocaleDateString() })}
               </Text>
@@ -310,7 +310,7 @@ export default function Upgrade() {
               <View style={[styles.state, { borderColor: colors.danger, backgroundColor: withAlpha(colors.danger, 0.08), borderRadius: radii.md }]}>
                 <Ionicons name="alert-circle" size={22} color={colors.danger} />
                 <View style={styles.stateText}>
-                  <Text variant="bodySm" style={{ fontWeight: '700' }}>{t('billing.failed')}</Text>
+                  <Text variant="bodySm" style={{ fontFamily: activeFontFamilies.bodySemibold }}>{t('billing.failed')}</Text>
                   <Text variant="bodySm" tone="textMuted">{t('billing.failedBody')}</Text>
                 </View>
               </View>

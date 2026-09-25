@@ -26,7 +26,7 @@ import {
   type SupportAttachment,
   type SupportMessage,
 } from '@seamflow/schemas';
-import { Text, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme, useFieldFocus, withAlpha, useKeyboardAppearance } from '@seamflow/ui';
 import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
 import { Button } from '../Button';
@@ -64,6 +64,7 @@ export function SupportThread({ id }: { id: string }) {
 
   const ticket = q.data?.ticket;
   const messages = useMemo(() => q.data?.messages ?? [], [q.data]);
+  const keyboardAppearance = useKeyboardAppearance();
 
   const send = (attachments: SupportAttachment[] = []) => {
     const body = draft.trim();
@@ -166,7 +167,7 @@ export function SupportThread({ id }: { id: string }) {
           <SupportStatusChip status={ticket.status} />
           {ticket.status !== 'resolved' ? (
             <Pressable onPress={() => void markResolved()} hitSlop={8} accessibilityRole="button">
-              <Text variant="bodySm" style={{ color: colors.primary, fontWeight: '600' }}>
+              <Text variant="bodySm" style={{ color: colors.primary, fontFamily: activeFontFamilies.bodySemibold }}>
                 {t('support.markResolved')}
               </Text>
             </Pressable>
@@ -200,7 +201,7 @@ export function SupportThread({ id }: { id: string }) {
               <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
                 <View style={styles.col}>
                   {!mine ? (
-                    <Text variant="caption" style={{ color: colors.primary, fontWeight: '600' }}>
+                    <Text variant="caption" style={{ color: colors.primary, fontFamily: activeFontFamilies.bodySemibold }}>
                       {t('support.supportName')}
                     </Text>
                   ) : null}
@@ -262,6 +263,7 @@ export function SupportThread({ id }: { id: string }) {
             )}
           </Pressable>
           <TextInput
+          keyboardAppearance={keyboardAppearance}
             value={draft}
             onChangeText={setDraft}
             placeholder={t('support.replyPlaceholder')}

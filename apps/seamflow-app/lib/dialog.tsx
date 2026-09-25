@@ -40,7 +40,8 @@ import {
 import { router } from 'expo-router';
 import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, spacing, radii, type SemanticColors } from '@seamflow/ui';
+import { Text, useAtelierTheme, spacing, radii, type SemanticColors, useKeyboardAppearance } from '@seamflow/ui';
+import { squircle } from '@seamflow/ui';
 import { Button } from '../components/Button';
 import { OptionSheet, type SheetOption } from '../components/OptionSheet';
 import { useResponsiveValue } from './use-breakpoint';
@@ -305,6 +306,7 @@ function CenteredDialog({
   const maxWidth = useResponsiveValue({ compact: 400, medium: 520, expanded: 560 });
   const cardWidth = Math.min(winWidth - spacing.xl * 2, maxWidth);
   const [text, setText] = useState(req.kind === 'prompt' ? req.defaultValue ?? '' : '');
+  const keyboardAppearance = useKeyboardAppearance();
 
   const tone = req.tone ?? 'info';
   const toneColor = colors[TONE_COLOR[tone]];
@@ -353,6 +355,7 @@ function CenteredDialog({
 
               {req.kind === 'prompt' ? (
                 <TextInput
+          keyboardAppearance={keyboardAppearance}
                   value={text}
                   onChangeText={setText}
                   placeholder={req.placeholder}
@@ -482,6 +485,9 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: radii.l,
+    // iOS squircle. Ignored on Android, invisible on web, and the single
+    // clearest shape cue that a surface belongs on this platform.
+    ...squircle,
     padding: spacing.xl,
     alignItems: 'center',
   },

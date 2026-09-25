@@ -8,7 +8,7 @@
 
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { activeFontFamilies, spacing, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
+import { activeFontFamilies, spacing, useAtelierTheme, useFieldFocus, useKeyboardAppearance } from '@seamflow/ui';
 import { useTranslation } from '../lib/i18n';
 
 export function SearchField({
@@ -26,6 +26,7 @@ export function SearchField({
   // The pill's own border is the focus indicator, which is what lets us drop
   // the browser's inner ring on web (see useFieldFocus).
   const { focused, focusProps, webReset } = useFieldFocus();
+  const keyboardAppearance = useKeyboardAppearance();
   return (
     <View
       style={[
@@ -39,6 +40,7 @@ export function SearchField({
     >
       <Ionicons name="search" size={18} color={colors.textMuted} />
       <TextInput
+          keyboardAppearance={keyboardAppearance}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholderText}

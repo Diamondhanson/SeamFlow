@@ -29,7 +29,7 @@
 
 import { useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View, type TextInput } from 'react-native';
-import { Text } from '@seamflow/ui';
+import { Text, useKeyboardAppearance } from '@seamflow/ui';
 import { Input } from './Input';
 import { isWeb } from '../lib/platform-capabilities';
 import { radii, spacing, useThemeColors } from '../lib/theme';

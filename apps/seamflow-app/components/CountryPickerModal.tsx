@@ -16,8 +16,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, activeFontFamilies, spacing, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
+import { Text, activeFontFamilies, spacing, useAtelierTheme, useFieldFocus, useKeyboardAppearance, squircle } from '@seamflow/ui';
 import { ALL_COUNTRIES, flagEmoji } from '../lib/countries';
 
 export interface CountryPickerModalProps {
@@ -39,6 +40,8 @@ export function CountryPickerModal({
   searchPlaceholder,
 }: CountryPickerModalProps) {
   const { colors, radii } = useAtelierTheme();
+  const insets = useSafeAreaInsets();
+  const keyboardAppearance = useKeyboardAppearance();
   // The search pill's own border is the focus indicator, which is what lets
   // us drop the browser's inner ring on web (see useFieldFocus).
   const { focused, focusProps, webReset } = useFieldFocus();
@@ -66,7 +69,11 @@ export function CountryPickerModal({
       onRequestClose={onClose}
     >
       <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
-        <View style={[styles.sheet, { backgroundColor: colors.overlay }]} onStartShouldSetResponder={() => true}>
+        <View style={[styles.sheet, { backgroundColor: colors.overlay }, {
+            // Clear of the home indicator. A bottom sheet whose last row sits
+            // under that bar is reachable on Android and not on an iPhone.
+            paddingBottom: insets.bottom + spacing.l,
+          }]} onStartShouldSetResponder={() => true}>
           <View style={styles.head}>
             <Text variant="h3">{title}</Text>
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
@@ -86,6 +93,7 @@ export function CountryPickerModal({
           >
             <Ionicons name="search" size={16} color={colors.textMuted} />
             <TextInput
+          keyboardAppearance={keyboardAppearance}
               value={search}
               onChangeText={setSearch}
               placeholder={searchPlaceholder}
@@ -150,6 +158,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 24,
+    ...squircle,
     // Definite height so the FlatList (flex:1) has room to render — an auto-
     // height sheet collapses a flex list to 0 and shows nothing.
     height: '82%',

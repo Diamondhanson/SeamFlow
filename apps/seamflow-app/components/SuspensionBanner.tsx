@@ -13,7 +13,7 @@
 import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Button } from './Button';
 import { useMe } from '../lib/queries';
 import { radii, spacing } from '../lib/theme';
@@ -35,7 +35,7 @@ export function SuspensionBanner({ support }: { support: string }) {
     >
       <View style={styles.head}>
         <Ionicons name="alert-circle" size={18} color={colors.danger} />
-        <Text variant="bodySm" style={{ flex: 1, fontWeight: '700' }}>
+        <Text variant="bodySm" style={{ flex: 1, fontFamily: activeFontFamilies.bodySemibold }}>
           {t('account.suspendedTitle')}
         </Text>
       </View>

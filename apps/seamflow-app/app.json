@@ -16,6 +16,9 @@
         "LSApplicationQueriesSchemes": [
           "whatsapp"
         ]
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {

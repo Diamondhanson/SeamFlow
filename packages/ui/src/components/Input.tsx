@@ -38,6 +38,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Text } from './Text';
 import { useAtelierTheme } from '../theme/ThemeProvider';
+import { squircle, useKeyboardAppearance } from '../theme/platform';
 import { withAlpha } from '../tokens/colors';
 import { activeFontFamilies } from '../tokens/typography';
 import { durations, easing } from '../tokens/motion';
@@ -81,6 +82,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   ref,
 ) {
   const theme = useAtelierTheme();
+  const keyboardAppearance = useKeyboardAppearance();
 
   // Whether the label is in its "floated up" position. True when focused or
   // when the field has any value.
@@ -134,6 +136,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
             borderColor,
             borderWidth: theme.borderWidths.hairline,
             borderRadius: theme.radii.m,
+            ...squircle,
             backgroundColor: theme.colors.surface,
             paddingTop: floated ? 22 : 12,
             paddingBottom: 8,
@@ -201,6 +204,11 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           }}
           multiline={multiline}
           selectionColor={theme.colors.primary}
+          // iOS draws the system keyboard in its own colour scheme unless it
+          // is told otherwise, so a dark app gets a white keyboard. Android
+          // ignores this. Overridable through ...rest for the rare field that
+          // wants the other one.
+          keyboardAppearance={keyboardAppearance}
           style={[
             {
               color: theme.colors.text,

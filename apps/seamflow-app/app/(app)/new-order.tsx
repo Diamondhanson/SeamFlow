@@ -8,7 +8,7 @@ import type {
   MeasurementTemplate,
   MeasurementValues,
 } from '@seamflow/schemas';
-import { Chip, Text } from '@seamflow/ui';
+import { activeFontFamilies, Chip, Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { FormScroll } from '../../components/FormScroll';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -1067,7 +1067,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.xs,
   },
   context: { marginBottom: spacing.md },
-  contextStrong: { fontWeight: '600' },
+  contextStrong: { fontFamily: activeFontFamilies.bodySemibold },
   tidyBtn: {
     flexDirection: 'row',
     alignItems: 'center',

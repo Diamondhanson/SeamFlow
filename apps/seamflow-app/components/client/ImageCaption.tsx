@@ -20,7 +20,7 @@
 
 import { StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Text } from '@seamflow/ui';
+import { activeFontFamilies, Text } from '@seamflow/ui';
 
 export interface ImageCaptionProps {
   /** A maker/designer name shown as the lead line — used by the discovery feed. */
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 10, paddingBottom: 8, paddingTop: 26 },
   title: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: activeFontFamilies.bodySemibold,
     // A tight shadow rather than a soft glow: the scrim already supplies the
     // broad contrast, this only sharpens strokes against a bright detail.
     textShadowColor: 'rgba(12,10,9,0.55)',
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   price: {
     color: 'rgba(255,255,255,0.9)',
     marginTop: 2,
-    fontWeight: '600',
+    fontFamily: activeFontFamilies.bodySemibold,
     letterSpacing: 0.7,
     textShadowColor: 'rgba(12,10,9,0.55)',
     textShadowOffset: { width: 0, height: 1 },

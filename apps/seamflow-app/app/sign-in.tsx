@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { router } from 'expo-router';
-import { Button, Input, Text, useAtelierTheme } from '@seamflow/ui';
+import { Button, Input, Text, useAtelierTheme, useKeyboardAppearance } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
 import { PasswordInput } from '../components/PasswordInput';
 import {
@@ -49,6 +49,7 @@ export default function SignIn() {
   // fixed rather than making them leave the field again to find out.
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const keyboardAppearance = useKeyboardAppearance();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 

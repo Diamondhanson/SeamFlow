@@ -9,7 +9,7 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { Avatar, Text, useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, Avatar, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SearchField } from '../../components/SearchField';
@@ -92,7 +92,7 @@ export default function Search() {
               >
                 <Avatar name={c.fullName} size="sm" />
                 <View style={styles.clientText}>
-                  <Text variant="bodySm" numberOfLines={1} style={{ fontWeight: '600' }}>
+                  <Text variant="bodySm" numberOfLines={1} style={{ fontFamily: activeFontFamilies.bodySemibold }}>
                     {c.fullName}
                   </Text>
                   {c.phone ? (

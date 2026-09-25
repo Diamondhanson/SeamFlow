@@ -21,6 +21,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
   AsYouType,
@@ -28,7 +29,7 @@ import {
   getCountryCallingCode,
   type CountryCode,
 } from 'libphonenumber-js';
-import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, useKeyboardAppearance, squircle } from '@seamflow/ui';
 import { useMe } from '../lib/queries';
 import { useTranslation } from '../lib/i18n';
 import { spacing } from '../lib/theme';
@@ -76,6 +77,8 @@ export function PhoneInput({
 }: PhoneInputProps) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
+  const insets = useSafeAreaInsets();
+  const keyboardAppearance = useKeyboardAppearance();
   const { data: me } = useMe();
   const placeholderText = placeholder ?? t('misc.phoneNumber');
   const initialCountry =
@@ -156,6 +159,7 @@ export function PhoneInput({
           <Ionicons name="chevron-down" size={14} color={colors.textMuted} />
         </Pressable>
         <TextInput
+          keyboardAppearance={keyboardAppearance}
           value={display}
           onChangeText={handleChange}
           onFocus={() => setFocused(true)}
@@ -174,7 +178,11 @@ export function PhoneInput({
         onRequestClose={() => setPickerOpen(false)}
       >
         <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={() => setPickerOpen(false)}>
-          <View style={[styles.sheet, { backgroundColor: colors.overlay }]} onStartShouldSetResponder={() => true}>
+          <View style={[styles.sheet, { backgroundColor: colors.overlay }, {
+            // Clear of the home indicator. A bottom sheet whose last row sits
+            // under that bar is reachable on Android and not on an iPhone.
+            paddingBottom: insets.bottom + spacing.lg,
+          }]} onStartShouldSetResponder={() => true}>
             <View style={styles.sheetHead}>
               <Text variant="h3">{t('misc.selectCountry')}</Text>
               <Pressable onPress={() => setPickerOpen(false)} hitSlop={10}>
@@ -193,6 +201,7 @@ export function PhoneInput({
             >
               <Ionicons name="search" size={16} color={colors.textMuted} />
               <TextInput
+          keyboardAppearance={keyboardAppearance}
                 value={search}
                 onChangeText={setSearch}
                 placeholder={t('misc.searchCountryOrCode')}
@@ -267,6 +276,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 24,
+    ...squircle,
     width: '95%',
     maxWidth: 600,
     // Definite height so the dial-code FlatList (flex:1) has room — an auto-

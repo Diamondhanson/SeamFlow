@@ -41,7 +41,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { FeedImage } from '@seamflow/schemas';
-import { Text } from '@seamflow/ui';
+import { activeFontFamilies, Text } from '@seamflow/ui';
 import { spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
-  counterText: { color: '#fff', fontWeight: '600' },
+  counterText: { color: '#fff', fontFamily: activeFontFamilies.bodySemibold },
   close: {
     width: 40,
     height: 40,

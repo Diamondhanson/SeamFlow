@@ -53,8 +53,7 @@ import {
   IconButton,
   useAtelierTheme,
   useFieldFocus,
-  withAlpha,
-} from '@seamflow/ui';
+  withAlpha, useKeyboardAppearance } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { HelpCard } from '../../components/HelpCard';
@@ -116,6 +115,7 @@ export default function AssistantScreen() {
   const [executing, setExecuting] = useState(false);
   const [listening, setListening] = useState(false);
   const [speakOn, setSpeakOn] = useState(false);
+  const keyboardAppearance = useKeyboardAppearance();
   const [speakingId, setSpeakingId] = useState<string | null>(null);
 
   const listRef = useRef<FlatList<LocalChatMessage>>(null);
@@ -559,6 +559,7 @@ export default function AssistantScreen() {
             ]}
           >
             <TextInput
+          keyboardAppearance={keyboardAppearance}
               ref={inputRef}
               value={input}
               onChangeText={setInput}

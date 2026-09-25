@@ -19,8 +19,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, withAlpha } from '@seamflow/ui';
+import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, withAlpha, useKeyboardAppearance, squircle } from '@seamflow/ui';
 import type { AiDescribeMode } from '@seamflow/schemas';
 import { api } from '../lib/api';
 import { stripMarkdown } from './RichText';
@@ -53,6 +54,7 @@ export function AiDescribeSheet({
 }: Props) {
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
+  const insets = useSafeAreaInsets();
   // The textarea's own border is the focus indicator, which is what lets us
   // drop the browser's inner ring on web (see useFieldFocus).
   const { focused, focusProps, webReset } = useFieldFocus();
@@ -60,6 +62,7 @@ export function AiDescribeSheet({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [text, setText] = useState('');
+  const keyboardAppearance = useKeyboardAppearance();
   const [tags, setTags] = useState<string[] | undefined>(undefined);
 
   // Reset when reopened.
@@ -114,7 +117,11 @@ export function AiDescribeSheet({
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
-        <View style={[styles.sheet, { backgroundColor: colors.overlay }]} onStartShouldSetResponder={() => true}>
+        <View style={[styles.sheet, { backgroundColor: colors.overlay }, {
+            // Clear of the home indicator. A bottom sheet whose last row sits
+            // under that bar is reachable on Android and not on an iPhone.
+            paddingBottom: insets.bottom + spacing.lg,
+          }]} onStartShouldSetResponder={() => true}>
           <View style={styles.head}>
             <Text variant="h3">{t('designs.autoDescribe')}</Text>
             <Pressable onPress={onClose} hitSlop={10}>
@@ -205,6 +212,7 @@ export function AiDescribeSheet({
                   {t('designs.editBeforeSaving')}
                 </Text>
                 <TextInput
+          keyboardAppearance={keyboardAppearance}
                   value={text}
                   onChangeText={setText}
                   multiline
@@ -261,6 +269,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 24,
+    ...squircle,
     width: '95%',
     maxHeight: '85%',
     borderRadius: 24,

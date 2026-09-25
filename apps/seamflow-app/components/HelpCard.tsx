@@ -17,13 +17,12 @@
 
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
+import { activeFontFamilies,
   Text,
   IconButton,
   useAtelierTheme,
   withAlpha,
-  type SemanticColors,
-} from '@seamflow/ui';
+  type SemanticColors } from '@seamflow/ui';
 import { useGuides } from '../lib/guides';
 import { radii, spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
@@ -110,6 +109,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: { flex: 1, paddingTop: 2 },
-  title: { fontWeight: '700' },
+  title: { fontFamily: activeFontFamilies.bodySemibold },
   message: { marginTop: 2, lineHeight: 19 },
 });

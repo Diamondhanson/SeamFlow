@@ -26,7 +26,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { FeedImage, FeedPostPublic } from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { Button } from '../../../components/Button';
@@ -458,9 +458,9 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
   },
   attributionTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  attributionName: { color: '#fff', fontWeight: '700' },
+  attributionName: { color: '#fff', fontFamily: activeFontFamilies.bodySemibold },
   attributionMeta: { color: 'rgba(255,255,255,0.8)', marginTop: 2 },
-  attributionCta: { color: '#fff', marginTop: spacing.xs, fontWeight: '600' },
+  attributionCta: { color: '#fff', marginTop: spacing.xs, fontFamily: activeFontFamilies.bodySemibold },
   body: { padding: spacing.lg, gap: spacing.md },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   tag: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },

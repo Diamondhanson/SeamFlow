@@ -13,7 +13,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { formatCurrency } from '@seamflow/utils';
 import type { FabricResponse } from '@seamflow/schemas';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
 import { Button } from './Button';
 import { useFabrics, useMe } from '../lib/queries';
 import {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   selectedText: { flex: 1, minWidth: 0 },
   selectedActions: { alignItems: 'flex-end', gap: spacing.xs },
-  action: { fontWeight: '600' },
+  action: { fontFamily: activeFontFamilies.bodySemibold },
   backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: {
     maxHeight: '75%',

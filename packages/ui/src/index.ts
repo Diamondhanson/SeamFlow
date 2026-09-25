@@ -12,4 +12,5 @@
 
 export * from './tokens';
 export * from './theme/ThemeProvider';
+export * from './theme/platform';
 export * from './components';

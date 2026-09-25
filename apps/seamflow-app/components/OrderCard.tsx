@@ -23,15 +23,14 @@ import Animated, {
 import type { Order, OrderStatus } from '@seamflow/schemas';
 import { nextOrderStatuses } from '@seamflow/schemas';
 import { Ionicons } from '@expo/vector-icons';
-import {
+import { activeFontFamilies,
   Avatar,
   Chip,
   Text,
   useAtelierTheme,
   withAlpha,
   spacing,
-  press as motionPress,
-} from '@seamflow/ui';
+  press as motionPress } from '@seamflow/ui';
 import { STATUS_TONE, dueInfo } from '../lib/order-status';
 import { useTranslation } from '../lib/i18n';
 import { useResponsiveValue } from '../lib/use-breakpoint';
@@ -211,5 +210,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  advanceLabel: { fontWeight: '600' },
+  advanceLabel: { fontFamily: activeFontFamilies.bodySemibold },
 });

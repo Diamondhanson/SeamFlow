@@ -8,7 +8,7 @@ import {
 import { router } from 'expo-router';
 import type { CountryCode } from 'libphonenumber-js';
 import type { GroupOrderWithMembersCreateInput } from '@seamflow/schemas';
-import { Text } from '@seamflow/ui';
+import { activeFontFamilies, Text } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
@@ -408,16 +408,16 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
     marginBottom: -1,
   },
-  tabText: { fontWeight: '600' },
+  tabText: { fontFamily: activeFontFamilies.bodySemibold },
   hint: { marginTop: -spacing.sm },
-  linkDanger: { fontWeight: '600' },
+  linkDanger: { fontFamily: activeFontFamilies.bodySemibold },
   clientRow: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
     marginBottom: spacing.xs,
   },
-  clientName: { fontWeight: '600' },
+  clientName: { fontFamily: activeFontFamilies.bodySemibold },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     marginBottom: spacing.xs,
   },
-  memberName: { fontWeight: '600' },
+  memberName: { fontFamily: activeFontFamilies.bodySemibold },
   memberDraft: {
     marginTop: spacing.md,
     padding: spacing.md,

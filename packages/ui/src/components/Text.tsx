@@ -29,6 +29,26 @@ export interface TextProps extends RNTextProps {
   numeric?: boolean;
 }
 
+/**
+ * How far each variant may grow with the OS text-size setting.
+ *
+ * Not a refusal to scale: every number here still allows a real increase.
+ * It is a ceiling, so that someone who needs larger text gets it without the
+ * app becoming unusable at the extreme end of the slider.
+ */
+const MAX_SCALE: Record<TypeVariant, number> = {
+  display: 1.3,
+  h1: 1.3,
+  h2: 1.35,
+  h3: 1.4,
+  body: 1.8,
+  bodySm: 1.8,
+  label: 1.4,
+  caption: 1.5,
+  button: 1.3,
+  mono: 1.5,
+};
+
 export const Text = forwardRef<RNText, TextProps>(function Text(
   { variant = 'body', tone = 'text', numeric, style, ...rest },
   ref,
@@ -64,5 +84,20 @@ export const Text = forwardRef<RNText, TextProps>(function Text(
     base.fontVariant = [...v.fontVariant];
   }
 
-  return <RNText ref={ref} style={[base, style]} {...rest} />;
+  return (
+    <RNText
+      ref={ref}
+      // iOS Dynamic Type goes up to about 310% at the accessibility sizes, and
+      // a display heading at 3x does not wrap, it obliterates the screen. Body
+      // copy is what people actually turn the setting up to read, so it gets
+      // the most room; headings, buttons and chrome labels are capped tighter
+      // because they sit in fixed-height rows next to icons.
+      //
+      // Android honours the same prop with its font-size setting, so this is
+      // not an iOS-only guard, it is just where it bites hardest.
+      maxFontSizeMultiplier={MAX_SCALE[effectiveVariant]}
+      style={[base, style]}
+      {...rest}
+    />
+  );
 });

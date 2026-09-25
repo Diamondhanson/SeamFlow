@@ -14,7 +14,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } fro
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Conversation } from '@seamflow/schemas';
-import { Avatar, Text } from '@seamflow/ui';
+import { activeFontFamilies, Avatar, Text } from '@seamflow/ui';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
@@ -126,7 +126,7 @@ export default function Messages() {
                     <Text
                       variant="body"
                       numberOfLines={1}
-                      style={{ flex: 1, fontWeight: unread ? '700' : '500' }}
+                      style={{ flex: 1, fontFamily: unread ? activeFontFamilies.bodySemibold : activeFontFamilies.bodyMedium }}
                     >
                       {c.counterparty.name}
                     </Text>

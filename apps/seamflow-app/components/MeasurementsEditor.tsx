@@ -10,7 +10,7 @@
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Chip, Text } from '@seamflow/ui';
+import { Chip, Text, useKeyboardAppearance } from '@seamflow/ui';
 import { Input } from './Input';
 import { Button } from './Button';
 import { MeasurementValueInput } from './MeasurementValueInput';
@@ -86,6 +86,7 @@ export function MeasurementsEditor({
 }) {
   const { t } = useTranslation();
   const colors = useThemeColors();
+  const keyboardAppearance = useKeyboardAppearance();
   const [ownPending, setOwnPending] = useState<PendingMeasurement>(NO_PENDING);
 
   const row = pending ?? ownPending;

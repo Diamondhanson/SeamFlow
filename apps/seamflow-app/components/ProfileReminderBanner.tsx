@@ -14,7 +14,7 @@
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
 import { Button } from './Button';
 import { useMe } from '../lib/queries';
 import { useProfileReminder } from '../lib/reminders';
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title: { flex: 1, fontWeight: '600' },
+  title: { flex: 1, fontFamily: activeFontFamilies.bodySemibold },
   body: { marginBottom: spacing.xs },
   actions: { flexDirection: 'row', gap: spacing.sm },
   actionItem: { flex: 1 },

@@ -27,7 +27,7 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import { useBreakpoint } from '../lib/use-breakpoint';
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   askPressed: { transform: [{ scale: 0.94 }] },
-  askLabel: { fontWeight: '600' },
+  askLabel: { fontFamily: activeFontFamilies.bodySemibold },
   nav: {
     position: 'relative',
     flexDirection: 'row',
@@ -339,5 +339,5 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   labelWrap: { overflow: 'hidden' },
-  label: { fontWeight: '600' },
+  label: { fontFamily: activeFontFamilies.bodySemibold },
 });

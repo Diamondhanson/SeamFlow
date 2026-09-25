@@ -7,7 +7,7 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { formatTicketRef, type SupportTicket } from '@seamflow/schemas';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
 import { Button } from '../Button';
@@ -103,7 +103,7 @@ function TicketRow({ ticket, onPress }: { ticket: SupportTicket; onPress: () => 
         </Text>
         <SupportStatusChip status={ticket.status} />
       </View>
-      <Text variant="body" numberOfLines={1} style={{ fontWeight: unread ? '700' : '500' }}>
+      <Text variant="body" numberOfLines={1} style={{ fontFamily: unread ? activeFontFamilies.bodySemibold : activeFontFamilies.bodyMedium }}>
         {ticket.subject}
       </Text>
       <View style={styles.rowBottom}>

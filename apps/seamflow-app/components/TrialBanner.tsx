@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { shouldNagAboutTrial, useSubscription } from '../lib/subscription';
 import { canSellSubscriptions } from '../lib/platform-capabilities';
 import { radii, spacing } from '../lib/theme';
@@ -78,7 +78,7 @@ export function TrialBanner() {
           accessibilityRole="button"
           style={styles.cta}
         >
-          <Text variant="bodySm" style={{ color: colors.primary, fontWeight: '700' }}>
+          <Text variant="bodySm" style={{ color: colors.primary, fontFamily: activeFontFamilies.bodySemibold }}>
             {t('billing.seePlans')}
           </Text>
           <Ionicons name="chevron-forward" size={14} color={colors.primary} />
@@ -91,7 +91,7 @@ export function TrialBanner() {
 const styles = StyleSheet.create({
   wrap: { borderWidth: 1, padding: spacing.md, marginBottom: spacing.md, gap: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title: { flex: 1, fontWeight: '700' },
+  title: { flex: 1, fontFamily: activeFontFamilies.bodySemibold },
   body: { lineHeight: 18 },
   cta: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: spacing.xs },
 });

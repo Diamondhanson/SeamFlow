@@ -23,7 +23,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
 import { Button } from './Button';
 import { useDesigns, useWorks } from '../lib/queries';
 import { radii, spacing } from '../lib/theme';
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   tabs: { flexDirection: 'row', paddingHorizontal: spacing.lg, gap: spacing.lg },
   tab: { paddingVertical: spacing.sm, borderBottomWidth: 2 },
-  tabActive: { fontWeight: '600' },
+  tabActive: { fontFamily: activeFontFamilies.bodySemibold },
   center: { padding: spacing.xl, alignItems: 'center', gap: spacing.md },
   emptyText: { textAlign: 'center' },
   grid: {

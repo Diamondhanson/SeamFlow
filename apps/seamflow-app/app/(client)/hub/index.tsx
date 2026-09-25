@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { PendingDeletionBanner } from '../../../components/PendingDeletionBanner';
 import { SuspensionBanner } from '../../../components/SuspensionBanner';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
+import { activeFontFamilies, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useAuth } from '../../../lib/auth-context';
@@ -147,7 +147,7 @@ export default function ClientHome() {
           <View style={[styles.switchIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
             <Ionicons name="cut-outline" size={18} color={colors.primary} />
           </View>
-          <Text variant="bodySm" style={{ flex: 1, fontWeight: '600' }}>
+          <Text variant="bodySm" style={{ flex: 1, fontFamily: activeFontFamilies.bodySemibold }}>
             {t('role.switchToTailor')}
           </Text>
           <Ionicons name="chevron-forward" size={18} color={themeColors.textMuted} />
