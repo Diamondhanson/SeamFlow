@@ -538,6 +538,8 @@ Features that turn a useful tool into a tool tailors won't stop paying for. Most
 
 ### 2.10 Subscription billing for tailors
 
+> **Updated (2026-09-22):** the subscription model is now fully specified in **Appendix I**. In short: a 6 week free trial with everything unlocked, then a permanent limited Free tier (and we never lock a tailor out of their own data), with premium unlocking the caps and pro features. Paid by mobile money (manual prepaid, days stack on early renewal, reminders at 7, 3, 1 and 0 days) or by card (auto renew with a 7 day dunning grace and retries). Payment commissions and ads are out of scope for now. Read Appendix I as the source of truth for subscriptions.
+
 - **What:** Free tier (limited clients/orders) and Pro tier ($5–10/mo emerging markets, $20–30/mo developed) with cloud sync, unlimited everything, advanced features.
 - **Why:** Revenue. Without it, hosting kills the product at scale.
 - **Tech:** Stripe Billing globally, Paystack subscriptions for Africa.
@@ -2226,6 +2228,339 @@ requests/offers can be reported/blocked; country-scope posting requires verifica
 
 ---
 
+## Appendix I. Subscriptions (freemium): the SeamFlow money model (build spec)
+
+Status: proposal · Last updated: 2026-09-22
+
+This concretizes roadmap 2.10 and sets the ONE money model SeamFlow runs at
+launch. Payment commissions and ads are deliberately out of scope for now and
+come later. All monetization sits on the tailor and designer side. The client
+(consumer) app stays free forever, because a large free client audience is what
+makes discovery and every later revenue stream valuable.
+
+### I.0 The shape in one paragraph
+
+Every tailor gets a 6 week free trial with everything unlocked. When the trial
+ends they do not get locked out. They drop to a permanent, limited Free tier
+that is still useful, with the premium and scale features gated. They unlock
+everything again by subscribing. Tailors can pay with mobile money (MTN MoMo or
+Orange Money) as a manual prepaid subscription, or with a card as an automatic
+recurring subscription. One "premium until" date governs access no matter which
+method paid.
+
+### I.1 The golden rule (non negotiable)
+
+**Never lock a tailor out of their own data.** In every state, including Free
+and suspended, a tailor can always open SeamFlow and view their existing
+clients, saved measurements, and order history. Gating only ever closes the
+premium features and the free caps. It never hides data the tailor already
+created. Breaking this once destroys trust permanently, so the entitlement layer
+must treat "read my own existing data" as always allowed.
+
+### I.2 The three access levels
+
+**Trial.** On signup, the tailor gets 6 weeks (42 days) with every feature
+unlocked and no caps. Rationale: a garment takes weeks to make, so a shorter
+trial never lets a tailor watch a real order run from registered to delivered or
+feel a deadline reminder fire. Six weeks comfortably covers a full order cycle
+plus repeat use, so by the end the habit and the value are real.
+
+**Free tier.** Permanent. The tailor lands here when the trial ends or a paid
+subscription lapses. It is limited but genuinely usable, so a very small or
+casual tailor can stay on it for free, while a real, busy business hits the
+ceiling quickly and upgrades. See the caps in I.3.
+
+**Premium.** Paid. Unlocks everything and removes the caps. Bought via mobile
+money (manual, I.5) or card (automatic, I.6).
+
+### I.3 What is free, what is gated
+
+**Always free, never gated, in every state:**
+- Viewing all existing clients and their saved measurements.
+- Viewing full order history and order details.
+- The core save and track loop, within the Free caps below.
+
+**Free tier caps (tunable starting values):**
+- Up to 20 saved clients.
+- Up to 5 active orders at a time.
+- Basic order tracking (registered to delivered) and visible due dates.
+- A small photo and design storage allowance (start around 30 photos, tune later).
+- No group orders, no invoices or PDFs, no automatic reminders, no AI
+  measurement scan, no discovery boost.
+
+**Premium unlocks (this is what the trial shows off and what a subscription
+keeps):**
+- Unlimited clients and unlimited orders.
+- Group orders for weddings and events.
+- Invoices and PDF receipts.
+- Automatic deadline reminder notifications (Free users still see due dates, but
+  the app actively reminding them is premium).
+- The AI measurement scan.
+- Full photo and design storage.
+- Later: discovery boost or "featured tailor", and analytics.
+
+All of these caps and the split are config driven behind a feature flag
+(roadmap B.9) so they can be tuned per market without a code change.
+
+### I.4 Account states (build these as an explicit enum)
+
+- `trialing`: within the 6 week trial. Everything unlocked.
+- `active`: a paid subscription is current (premium_until is in the future).
+- `grace`: card only. A recurring charge failed and the 7 day recovery window is
+  running. Access stays unlocked during grace.
+- `free`: no active entitlement. Trial ended or subscription lapsed. Premium
+  features and caps are enforced. Data stays readable.
+
+Entitlement rule used everywhere: a tailor is premium when
+`status in (trialing, active, grace)` OR `premium_until >= today`. The gate
+checks this one function. Never trust the client app for it (see I.9).
+
+### I.5 Mobile money subscription (MTN MoMo and Orange Money): manual prepaid
+
+Mobile money rails do not support automatic recurring pulls, so this is a
+prepaid model. The tailor buys a block of time and it is on them to renew.
+
+- **Plans.** Offer more than one length, with a discount for longer prepay:
+  monthly, 3 months, and 12 months. Longer prepay is strongly encouraged because
+  every manual renewal is a chance to churn, and a tailor who paid for a year has
+  eleven fewer chances to forget.
+- **The "premium until" date.** Store one `premium_until` date on the account.
+  A successful payment sets `premium_until = max(today, premium_until) + plan
+  length`. This is the stacking rule: if a tailor renews before the current
+  period ends, the new days are ADDED to the end, so no paid time is ever lost.
+- **Reminders before expiry.** Send a renewal nudge (push now, SMS later) at 7
+  days before, 3 days before, 1 day before, and on the expiry day itself. Each
+  deep links straight to the renew screen.
+- **On expiry with no renewal.** The account moves to `free`. Premium features
+  and caps switch on. Data stays viewable. The tailor can re subscribe at any
+  time to unlock again instantly.
+- No auto renew, by design of the rails. The reminders plus the discounted long
+  plans are how we fight renewal churn.
+
+### I.6 Card subscription: automatic recurring
+
+For the minority who have a card (and diaspora tailors), run a standard
+recurring subscription.
+
+- **Start.** On subscribing, charge the card immediately and save (tokenize) it
+  with the provider. Set `premium_until = today + 30 days` and `status = active`.
+- **Renewal.** A daily job charges the saved card again roughly every 30 days
+  and extends `premium_until` by 30 days on each success.
+- **Failed charge (dunning).** If a renewal charge fails (usually insufficient
+  funds), enter `grace` for 7 days. During grace, keep access unlocked and
+  automatically retry the card on roughly day 1, 3, 5, and 7, notifying the
+  tailor each time. Card charges often fail one day and succeed a couple of days
+  later, so the retries matter more than a single reminder.
+- **After grace.** If still unpaid after the 7 day window, move to `free` (lock
+  premium features, keep data). Fixing the card at any point resumes premium
+  immediately.
+
+### I.7 One date, any method
+
+Whatever the method, there is a single `premium_until` per account, and a single
+entitlement check. A tailor can switch methods (for example move from card auto
+renew to manual mobile money) and it simply keeps extending the same date. If
+they turn on card auto renew, the renewal job extends that same date. This keeps
+the mental model and the code simple: methods are just different ways to push the
+one date forward.
+
+### I.8 Data model (server)
+
+New tables in `apps/seamflow-api/src/db/schema/`, migration in
+`supabase/migrations/`, RLS scoped to the owning tailor.
+
+**`subscriptions`** (one per tailor):
+- `id`, `tailor_id` unique.
+- `status` enum(`trialing`,`active`,`grace`,`free`).
+- `trial_ends_at` date.
+- `premium_until` date null.
+- `method` enum(`mtn_momo`,`orange_money`,`card`) null (the last method used).
+- `plan` enum(`monthly`,`quarterly`,`annual`) null.
+- `card_token` text null and `provider` text null (for card recurring).
+- `grace_until` date null (card dunning window).
+- `last_payment_at`, `created_at`, `updated_at`.
+
+**`subscription_payments`** (append only history of every subscription charge):
+- `id`, `tailor_id`, `amount numeric(12,2)`, `currency char(3)`,
+  `method`, `plan`, `days_added int`, `provider`, `provider_ref text`,
+  `status` enum(`succeeded`,`failed`,`pending`), `created_at`.
+
+**Usage counters** for the Free caps (clients count, active orders count) are
+computed from existing tables, cached on the tailor for fast gating.
+
+### I.9 Enforcement (server is the source of truth)
+
+- A single `isPremium(tailor)` check and a `withinFreeCaps(tailor, action)`
+  check gate every premium endpoint and every capped action on the server. The
+  app never decides entitlement on its own.
+- When a Free tailor tries a premium action or exceeds a cap, the API returns a
+  clear "needs upgrade" response, and the app shows a friendly upgrade sheet
+  rather than a raw error.
+- The client app mirrors the state to show or hide premium affordances and the
+  trial countdown, but it is a convenience only. The server enforces.
+
+### I.10 API and jobs
+
+**Endpoints (tailor, `requireTailorId`):**
+- `GET /me/subscription` returns `{ status, premium_until, trial_ends_at, plan,
+  method }`.
+- `POST /subscriptions/checkout` body `{ plan, method }` for mobile money.
+  Creates a pending `subscription_payments` row and starts the provider
+  collection (the MoMo or Orange prompt). Returns what the app needs to complete
+  the prompt.
+- `POST /subscriptions/card` saves the card, charges it, starts recurring.
+- `POST /subscriptions/cancel-autorenew` (card) stops future card charges;
+  access continues until `premium_until`.
+
+**Webhook:**
+- `POST /subscriptions/webhook/<provider>` verifies the signature, and on a
+  successful subscription payment extends `premium_until` using the stacking
+  rule, sets `status = active`, records the `subscription_payments` row, and
+  notifies the tailor. Idempotent.
+
+**Scheduled jobs (reuse the queue or cron):**
+- Daily reminder job: find mobile money subscriptions with `premium_until` at 7,
+  3, 1, and 0 days out and send the renewal nudge.
+- Daily card renewal job: find card subscriptions due and charge them; on failure
+  enter `grace` and schedule the retries.
+- Daily lapse job: move mobile money subscriptions past `premium_until`, and card
+  subscriptions past `grace_until`, to `free`.
+
+### I.11 App UX
+
+- **Trial countdown**: a subtle banner as the trial nears its end, deep linking
+  to the upgrade screen. Not naggy.
+- **Upgrade screen**: choose a plan (monthly, 3 months, 12 months with the
+  discount shown) and a method (MTN MoMo, Orange Money, or card), then pay.
+- **Renewal reminders**: push notifications (SMS later) that deep link to renew.
+- **Premium locked states**: on any gated feature or when a cap is hit, a warm
+  upgrade sheet, never a dead error.
+- **Manage subscription**: shows status, the renews or expires date, the method,
+  change plan, and for card, update card or turn off auto renew. Cancelling never
+  hides data.
+- **i18n**: every new string (banners, plan names, reminders, upgrade sheets,
+  errors) ships in English and French through `t()`, and `i18n:check` must pass,
+  per CLAUDE.md.
+
+### I.12 Provider mapping
+
+Reuse the single payment provider interface from Appendix F (B.4). Mobile money
+subscription collections go through Fapshi (one time collection per renewal).
+Card recurring goes through a provider that supports card tokenization and
+recurring billing (Flutterwave). Subscriptions are a separate concern from the
+order wallet in Appendix F, but they share the same provider adapters and the
+same webhook-verify discipline.
+
+### I.13 Build order (phased, with acceptance criteria)
+
+**S-P1: Entitlements, trial, and gating (no payment yet).**
+`subscriptions` table; the `isPremium` and `withinFreeCaps` checks; the 6 week
+trial on signup; server side gating on premium endpoints and caps; app upgrade
+sheets and the trial countdown; the drop to `free` when the trial ends. i18n.
+Done when: a new tailor has everything for 6 weeks, then lands on the Free tier
+with premium features gated and all their data still visible, with no payment
+system involved yet.
+
+**S-P2: Mobile money subscription.**
+Plans (monthly, 3 months, 12 months); `POST /subscriptions/checkout` plus the
+Fapshi collection and webhook; the `premium_until` stacking rule; the reminder
+job (7, 3, 1, 0 days); the lapse job. Done when: a tailor pays with MoMo or
+Orange, gets premium for the plan length, is reminded before expiry, gets extra
+days added if they renew early, and drops to Free if they let it lapse.
+
+**S-P3: Card subscription.**
+Card tokenization and the recurring charge job; dunning with 7 day grace and the
+day 1, 3, 5, 7 retries; suspend to `free` after grace; resume on fix; the manage
+and cancel-auto-renew UI. Done when: a card renews automatically every 30 days,
+survives a temporary failed charge via retries within grace, and only drops to
+Free after the full window with data intact.
+
+**S-P4: Polish and metrics.**
+The manage-subscription screen, plan switching, and the metrics in I.14.
+
+### I.14 Metrics to watch
+
+Trial to paid conversion; renewal (non renewal) rate on mobile money; involuntary
+churn from failed cards; which plan length is most popular; and how fast tailors
+hit a Free cap (a fast cap hit is a healthy upgrade signal, a slow one means the
+caps may be too generous).
+
+### I.15 Watch-outs
+
+- Mobile money has no auto renew. Manual prepaid is expected, not a flaw. The
+  discounted long plans plus the reminders are the churn defense.
+- Push may not reach everyone. Plan to add SMS reminders later (ties to the
+  messaging provider), because a missed renewal reminder is lost revenue.
+- Do not gate the habit forming core. Saving measurements and basic order
+  tracking must stay usable on Free, or tailors never build the habit that makes
+  them want to pay.
+- Never lock a tailor out of their own data (I.1). This is the one rule that,
+  if broken, ends the business by word of mouth.
+- Keep pricing local and affordable in XAF, and lead with mobile money, since
+  cards are a small minority in this market.
+
+### I.16 iOS and App Store compliance (how we sell the subscription on iPhone)
+
+This is a hard platform rule, not a preference. Apple treats a subscription that
+unlocks digital app features as something that must either use their In App
+Purchase (and pay Apple 15 to 30 percent) or not be sold inside the app at all.
+On top of that, outside the United States and the European Union, Apple still
+forbids "steering": the iOS app may not show a link, button, or message that
+points the user to pay somewhere else. SeamFlow launches in Cameroon, so the
+safe path is the multiplatform pattern that apps like Spotify and Netflix use:
+sell the subscription entirely off iOS, and have the iOS app simply honor the
+entitlement the tailor already bought.
+
+Concretely, on the iOS build:
+
+- **No subscribe route at all.** The iOS app never renders the upgrade or
+  checkout screen from I.11. A platform check (`Platform.OS === 'ios'`) hides the
+  whole subscribe flow. There is no MoMo, no Orange, no card, and no purchase
+  button anywhere in the iOS binary.
+- **Trial status and reminders stay.** Showing the tailor that their trial has X
+  days left, that it has ended, or that a premium feature is locked, is allowed.
+  These are status, not a sales pitch, so the trial countdown, the renewal
+  reminders, and the warm locked states from I.11 all remain on iOS.
+- **No in app "subscribe on the website" message, link, or CTA.** This is the
+  part that is easy to get wrong. Because we are outside the US and EU, we may
+  not tell the user inside the app to go pay on the web, and we may not link
+  there. The locked sheet on iOS explains that the feature is part of premium and
+  stops there, with no external call to action.
+- **Selling happens off the app.** All subscription selling for iOS tailors goes
+  through channels we control outside Apple's app: email, SMS, WhatsApp, and the
+  SeamFlow website. A tailor who wants premium subscribes on the web (mobile
+  money or card), and their account is upgraded there.
+- **Entitlement is decoupled from the purchase, so it just works.** Because
+  entitlement is a server side flag (I.4, I.8), once the tailor pays on the web
+  their `premium_until` updates and the next time the iOS app loads their
+  subscription state it shows premium and unlocks the gated features. The iOS app
+  reads the entitlement, it never creates it.
+- **Do not misrepresent location.** We do not spoof or fake the developer or user
+  region to unlock Apple's external purchase link entitlement. That entitlement
+  exists only for US and EU storefronts, and faking location is both against the
+  rules and pointless for a Cameroon launch.
+
+Android and web are unaffected. The full subscribe flow from I.11 (MoMo, Orange,
+card) ships normally on Android and on the web app, because Google Play allows
+external payment for this pattern more permissively and the web has no store
+rules. The iOS restriction is a per platform guard on top of the same
+entitlement engine, not a second billing system.
+
+Later, if and when we open a US or EU storefront, Apple's External Purchase Link
+Entitlement can be requested per region to add a compliant "manage on the web"
+link for those storefronts only, and native In App Purchase or Play Billing can
+be added later as one more provider adapter behind the same entitlement flag.
+Nothing here blocks that: the decoupled design in I.4 and I.8 is exactly what
+makes a future IAP adapter a drop in.
+
+**Build note for S-P2 and S-P3 (I.13):** when the subscribe flow is built, gate
+the entire checkout entry point behind the platform check so the iOS binary never
+ships a purchase route or a steering link, while trial status, reminders, and
+locked states stay visible on all platforms. This is a small guard added at the
+same time as the subscribe screens, not a separate phase.
+
+---
+
 ## Quick implementation order cheat-sheet
 
 If you only read one section, read this one. The literal next 12 things to build, in order, once Phase 0 is done:
@@ -2242,6 +2577,173 @@ If you only read one section, read this one. The literal next 12 things to build
 10. Search & filter (1.10)
 11. Ship to 50 tailors in one city. Talk to all of them.
 12. Pick the loudest pain point from those conversations to start Phase 2.
+
+---
+
+## Appendix J. Verification and trust: proving a shop is real (build spec)
+
+Status: agreed 2026-09-25 · Not started
+
+### The one rule
+
+**Nothing here ever blocks anyone.** A tailor who ignores verification entirely
+keeps every feature they have today, Discover included. Verification only ever
+ADDS: signal to clients, and a modest lift in the feed. Anything that turns
+into a gate has broken this appendix.
+
+### J.1 Why, and what the badge actually claims
+
+`tailors.is_verified` exists today, shows in the feed and the chat header, and
+is set by a staff button with no criteria behind it. A badge that clients read
+as "SeamFlow checked this person" while nobody checked anything is worse than
+no badge: it lends your credibility to a stranger.
+
+The claim is narrow and checkable:
+
+> This is a real business, run by a reachable person, and the work in their
+> feed is their own.
+
+Not a judgement of skill. The dominant fraud in fashion discovery is stolen
+photos, and the risk to clients is real: they send body measurements, photos,
+addresses and phone numbers to someone they found in a feed.
+
+### J.2 Two separate things
+
+**Verified** — binary, revocable, staff-granted, exactly two requirements:
+
+1. phone confirmed (`users.phone_verified_at`, already built, currently gates
+   nothing)
+2. one photo proving the work is theirs
+
+A genuine new tailor can earn it on day one, in about five minutes.
+
+**Trust signals** — automatic, no review, no effort from anyone: orders
+completed, on SeamFlow since, usually replies within a day, pieces published.
+
+Merging the two either locks out every newcomer or dilutes the badge into
+noise. Keep them apart.
+
+### J.3 What the tailor does
+
+One screen, from their profile and from a dismissible home card. Two steps,
+three optional extras, all skippable, the whole thing abandonable.
+
+- **Confirm your phone.** One OTP. Already built.
+- **Show us a piece you made.** The app opens the CAMERA, not the gallery —
+  that is the entire point. Either a garment in progress (on the machine, the
+  cutting table) or a piece already in their feed re-shot from a different
+  angle with a handwritten note showing the shop name and date. Someone who
+  took the photo from Pinterest can produce neither.
+
+Then submit. "We usually look within two days", a notification when decided,
+and a declined request says WHY, in words they can act on, and can be redone.
+
+Optional, framed as "make your shop stronger", never as requirements:
+
+- **Link a social account** — paste the handle, put a short code in the bio for
+  a day. Proves control rather than existence, and the handle then shows on
+  their storefront, which is a benefit to them.
+- **Confirm your area** — one location fix, FOREGROUND ONLY, taken while they
+  stand in the shop. See J.7.
+- **Business registration number**, for the minority who have one.
+
+### J.4 What staff do
+
+A Verification queue beside Support. Each request opens to everything at once:
+the photos full size, phone status, the distance between any location fix and
+the address they typed, the social handle and whether the code was found, and
+their actual behaviour (orders taken, pieces published, joined date).
+
+Approve, or decline with a reason that is REQUIRED and shown to them verbatim.
+Both write to `admin_actions`, so "who verified whom, on what evidence" already
+has an answer. Revocation is one click and recorded the same way.
+
+Evidence photos are deleted 90 days after a decision, reusing the chat-media
+retention pattern. Keep the decision and the note forever; do not keep a
+stranger's photos forever.
+
+### J.5 What clients see
+
+The badge appears where the decision is made: the feed card, the storefront and
+the chat header. Tapping it opens what was checked:
+
+> Phone confirmed · Work confirmed by SeamFlow, March 2026
+> On SeamFlow since January · 12 orders completed · usually replies within a day
+
+That sentence is the product. A tick nobody can interrogate is decoration.
+
+- **Discover**: verified gets a modest ranking lift and is the only tier
+  eligible for a featured row. Unverified still appear, are still found, are
+  still messaged.
+- **Offers board (appendix H)**: unverified tailors can still offer; verified
+  offers sort above them and an unverified one carries a quiet "not yet
+  verified" line. First place to tighten if fraud appears.
+
+### J.6 Data
+
+```
+verification_requests (
+  id, tailor_id, status: pending | approved | rejected | withdrawn,
+  submitted_at, decided_at, decided_by, decision_note,
+  evidence jsonb   -- [{kind:'work_photo', storagePath, capturedAt},
+                   --  {kind:'social', platform, handle, code, confirmedAt},
+                   --  {kind:'location', lat, lng, accuracy, distanceM},
+                   --  {kind:'registration', number}]
+)
+tailors: + verified_at, verified_note        -- is_verified stays the flag
+```
+
+Two new notification types (`verification.approved`, `verification.rejected`),
+which means copy in all six languages and a case in the union — see the note at
+the top of `locales/notifications.ts`.
+
+### J.7 Location: what was rejected and why
+
+A continuous background location permission, cross-checked against the claimed
+shop, was considered and rejected:
+
+- **Play listing risk.** Background location is a restricted permission needing
+  a declaration, a video demo and a justification as core functionality the
+  user benefits from. "We check our merchants are where they say" is fraud
+  tooling pointed at the person granting it. The package name is locked and the
+  listing is live.
+- **The consent would not be valid.** If verification (and therefore discovery)
+  depends on agreeing to be tracked, that consent is not freely given.
+- **It does not stop the adversary.** Mock locations, or an old phone left at
+  the address. Meanwhile it punishes the honest: tailors who work from home,
+  share a workshop, sell at the market, or travel for fittings. Absence is not
+  evidence of fraud.
+- **It changes what SeamFlow is** to the people who pay for it, and costs
+  battery on phones where battery is scarce.
+
+What replaces it: one foreground fix, taken by the tailor, when they choose.
+Plus signals already available at no cost — session country, whether delivery
+addresses on real orders cluster near the shop, and completed orders with real
+client accounts, which is the best evidence a shop exists.
+
+**Never show a client a precise coordinate.** A neighbourhood, never a pin:
+many tailors work from home.
+
+### J.8 Phases
+
+1. **The spine.** `verification_requests`, submit/withdraw, the two-step tailor
+   screen, the dashboard queue, the two notification types, the badge popover
+   that says what was checked. The useful half.
+2. **Trust signals.** Compute and display orders completed, joined date,
+   response time. No tailor-facing UI at all; it simply appears.
+3. **The extras.** Social handle with the bio code, the foreground check-in,
+   registration number, and the Discover ranking lift.
+
+### J.9 Explicitly not building
+
+- **No ID documents.** They prove identity, not craft, and holding them is a
+  liability until money flows through SeamFlow (see the payments note: KYC
+  becomes mandatory the day a client's money is paid out to a designer).
+- **No background location.** See J.7.
+- **No registration requirement.** Most of this market is informal; requiring
+  it would cut off supply.
+- **No paying for the badge.** Premium and verified are different claims. The
+  day clients work out the tick is for sale, it is worth nothing.
 
 ---
 
