@@ -10,6 +10,7 @@
 
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GlassLayer, glassOr } from './Glass';
 import { Ionicons } from '@expo/vector-icons';
 import { activeFontFamilies,
   Text,
@@ -60,13 +61,14 @@ export function OptionSheet({
       >
         {/* Swallow taps on the sheet so they don't dismiss. */}
         <Pressable
-          style={[styles.sheet, { backgroundColor: colors.overlay }, {
+          style={[styles.sheet, { backgroundColor: glassOr(colors.overlay) }, {
             // Clear of the home indicator. A bottom sheet whose last row sits
             // under that bar is reachable on Android and not on an iPhone.
             paddingBottom: insets.bottom + spacing.l,
           }]}
           onPress={() => {}}
         >
+          <GlassLayer radius={24} />
           <View style={styles.head}>
             <Text variant="h3">{title}</Text>
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">

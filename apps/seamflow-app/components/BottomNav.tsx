@@ -18,6 +18,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useAuth } from '../lib/auth-context';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GlassLayer, glassOr } from './Glass';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
@@ -132,11 +133,15 @@ function Chrome({
         <View
           style={[
             styles.nav,
-            { backgroundColor: colors.overlay, borderColor: colors.hairline },
+            { backgroundColor: glassOr(colors.overlay), borderColor: colors.hairline },
             shadows?.lg,
           ]}
           onLayout={(e) => setRowW(e.nativeEvent.layout.width - NAV_PAD * 2)}
         >
+          {/* The bar is chrome floating over content, which is exactly what
+              Liquid Glass is for. The Ask pill beside it stays solid: it is
+              the brand accent, and a tinted glass pill would lose it. */}
+          <GlassLayer radius={999} />
           {ready ? (
             <Blob
               x={active * inactiveW}

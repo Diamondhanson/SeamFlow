@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GlassLayer, glassOr } from './Glass';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, activeFontFamilies, spacing, useAtelierTheme, useFieldFocus, useKeyboardAppearance, squircle } from '@seamflow/ui';
 import { ALL_COUNTRIES, flagEmoji } from '../lib/countries';
@@ -69,11 +70,12 @@ export function CountryPickerModal({
       onRequestClose={onClose}
     >
       <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
-        <View style={[styles.sheet, { backgroundColor: colors.overlay }, {
+        <View style={[styles.sheet, { backgroundColor: glassOr(colors.overlay) }, {
             // Clear of the home indicator. A bottom sheet whose last row sits
             // under that bar is reachable on Android and not on an iPhone.
             paddingBottom: insets.bottom + spacing.l,
           }]} onStartShouldSetResponder={() => true}>
+            <GlassLayer radius={24} />
           <View style={styles.head}>
             <Text variant="h3">{title}</Text>
             <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">

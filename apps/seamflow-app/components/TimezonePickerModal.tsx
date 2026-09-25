@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GlassLayer, glassOr } from './Glass';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, activeFontFamilies, useAtelierTheme, useFieldFocus, useKeyboardAppearance, squircle } from '@seamflow/ui';
 import { TIMEZONES } from '../lib/timezones';
@@ -62,11 +63,12 @@ export function TimezonePickerModal({ visible, current, onClose, onSelect }: Pro
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={[styles.backdrop, { backgroundColor: colors.scrim }]} onPress={onClose}>
-        <View style={[styles.sheet, { backgroundColor: colors.overlay }, {
+        <View style={[styles.sheet, { backgroundColor: glassOr(colors.overlay) }, {
             // Clear of the home indicator. A bottom sheet whose last row sits
             // under that bar is reachable on Android and not on an iPhone.
             paddingBottom: insets.bottom + spacing.lg,
           }]} onStartShouldSetResponder={() => true}>
+            <GlassLayer radius={24} />
           <View style={styles.head}>
             <Text variant="h3">{t('settings.timezone')}</Text>
             <Pressable onPress={onClose} hitSlop={10}>

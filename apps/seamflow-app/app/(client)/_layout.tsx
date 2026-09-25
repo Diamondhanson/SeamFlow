@@ -7,10 +7,22 @@
 // ============================================================================
 
 import { Stack } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import { AtelierThemeProvider } from '@seamflow/ui';
 import { useThemeMode } from '../../lib/theme-mode';
 import { ClientBottomChrome } from '../../components/BottomNav';
+
+/**
+ * How a screen arrives.
+ *
+ * `default` on iOS is the platform's own push: the outgoing screen parallaxes
+ * behind the incoming one and the curve is the one every other iPhone app
+ * uses, which is most of why a transition feels native rather than animated.
+ * Android has no equivalent gesture-driven push, so it keeps the explicit
+ * slide it has always had.
+ */
+const PUSH_ANIMATION = Platform.OS === 'ios' ? ('default' as const) : ('slide_from_right' as const);
+
 
 export default function ClientLayout() {
   const { mode } = useThemeMode();
@@ -23,7 +35,7 @@ export default function ClientLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
-            animation: 'slide_from_right',
+            animation: PUSH_ANIMATION,
           }}
         />
         <ClientBottomChrome />

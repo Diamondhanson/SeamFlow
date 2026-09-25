@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, View, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -50,6 +50,18 @@ import { FavoritesProvider } from '../lib/favorites';
 import { GuidesProvider } from '../lib/guides';
 import { ModeProvider } from '../lib/mode';
 import { LanguageProvider } from '../lib/i18n';
+
+/**
+ * How a screen arrives.
+ *
+ * `default` on iOS is the platform's own push: the outgoing screen parallaxes
+ * behind the incoming one and the curve is the one every other iPhone app
+ * uses, which is most of why a transition feels native rather than animated.
+ * Android has no equivalent gesture-driven push, so it keeps the explicit
+ * slide it has always had.
+ */
+const PUSH_ANIMATION = Platform.OS === 'ios' ? ('default' as const) : ('slide_from_right' as const);
+
 
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -181,7 +193,7 @@ function ThemedRoot() {
                 screenOptions={{
                   headerShown: false,
                   contentStyle: { backgroundColor: colors.bg },
-                  animation: 'slide_from_right',
+                  animation: PUSH_ANIMATION,
                   animationDuration: 280,
                   gestureEnabled: true,
                   fullScreenGestureEnabled: true,

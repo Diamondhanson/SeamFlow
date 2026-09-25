@@ -24,6 +24,7 @@ import type {
 import { api } from './api';
 import { qk } from './query-keys';
 import { useMe } from './queries';
+import { haptics } from './haptics';
 import { canSellSubscriptions } from './platform-capabilities';
 
 /** Start nagging this close to the end of the trial, and not a day before. */
@@ -241,7 +242,12 @@ export function usePaymentAttempt(paymentId: string | null) {
 
   useEffect(() => {
     // A payment that succeeded changes what this tailor may do, everywhere.
-    if (q.data?.status === 'succeeded') void qc.invalidateQueries({ queryKey: qk.me() });
+    if (q.data?.status === 'succeeded') {
+      haptics.success();
+      void qc.invalidateQueries({ queryKey: qk.me() });
+    } else if (q.data?.status === 'failed') {
+      haptics.error();
+    }
   }, [q.data?.status, qc]);
 
   return q;

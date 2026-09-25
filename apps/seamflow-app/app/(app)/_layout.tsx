@@ -1,5 +1,5 @@
 import { Redirect, Stack } from 'expo-router';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, Platform } from 'react-native';
 import { useAuth } from '../../lib/auth-context';
 import { LockProvider, useLock } from '../../lib/lock-context';
 import { ProfileGateProvider } from '../../lib/profile-gate';
@@ -12,6 +12,18 @@ import { useSubscriptionWatch } from '../../lib/subscription';
 import { useThemeColors } from '../../lib/theme';
 import { SideRail } from '../../components/SideRail';
 import { useBreakpoint } from '../../lib/use-breakpoint';
+
+/**
+ * How a screen arrives.
+ *
+ * `default` on iOS is the platform's own push: the outgoing screen parallaxes
+ * behind the incoming one and the curve is the one every other iPhone app
+ * uses, which is most of why a transition feels native rather than animated.
+ * Android has no equivalent gesture-driven push, so it keeps the explicit
+ * slide it has always had.
+ */
+const PUSH_ANIMATION = Platform.OS === 'ios' ? ('default' as const) : ('slide_from_right' as const);
+
 
 export default function AppLayout() {
   // Keeps the trial countdown and the paywall state current while the app is
@@ -94,7 +106,7 @@ function GatedStack() {
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: colors.bg },
-            animation: 'slide_from_right',
+            animation: PUSH_ANIMATION,
             animationDuration: 280,
             gestureEnabled: true,
             fullScreenGestureEnabled: true,

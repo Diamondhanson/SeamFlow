@@ -33,6 +33,7 @@ import { activeFontFamilies,
   press as motionPress } from '@seamflow/ui';
 import { STATUS_TONE, dueInfo } from '../lib/order-status';
 import { useTranslation } from '../lib/i18n';
+import { haptics } from '../lib/haptics';
 import { useResponsiveValue } from '../lib/use-breakpoint';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -114,7 +115,11 @@ export function OrderCard({
                   status: t(`orders.status_${nextStatus}`),
                 })}
                 hitSlop={6}
-                onPress={() => onAdvance(nextStatus)}
+                onPress={() => {
+                  // A consequential, deliberate change to real work.
+                  haptics.commit();
+                  onAdvance(nextStatus);
+                }}
                 style={({ pressed }) => [
                   styles.advance,
                   {

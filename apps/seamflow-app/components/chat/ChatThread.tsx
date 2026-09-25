@@ -65,6 +65,7 @@ import { qk } from '../../lib/query-keys';
 import { api } from '../../lib/api';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
+import { haptics } from '../../lib/haptics';
 
 const REACTION_CHOICES = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 const URL_RE = /(https?:\/\/[^\s]+)/i;
@@ -507,6 +508,9 @@ export function ChatThread({
     const reply = replyingTo;
     setDraft('');
     setReplyingTo(null);
+    // Something left the device. The lightest impact there is, because the
+    // bubble already animates in beside it.
+    haptics.sent();
     await enqueue({
       conversationId: id,
       body,

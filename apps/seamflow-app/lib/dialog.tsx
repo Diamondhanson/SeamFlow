@@ -42,12 +42,14 @@ import Animated, { FadeIn, ZoomIn, useReducedMotion } from 'react-native-reanima
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, spacing, radii, type SemanticColors, useKeyboardAppearance } from '@seamflow/ui';
 import { squircle } from '@seamflow/ui';
+import { GlassLayer, glassOr } from '../components/Glass';
 import { Button } from '../components/Button';
 import { OptionSheet, type SheetOption } from '../components/OptionSheet';
 import { useResponsiveValue } from './use-breakpoint';
 import { useTranslation } from './i18n';
 import { toUserMessage } from './error-message';
 import { upgradePrompt } from './upgrade-prompt';
+import { haptics } from './haptics';
 
 // ----------------------------------------------------------------------------
 // Public types
@@ -146,6 +148,13 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const idRef = useRef(0);
 
   const enqueue = useCallback((req: Request) => {
+    // The phone confirms the OUTCOME, not the press. A dialog appearing is
+    // always the result of something having happened, which is exactly the
+    // moment a haptic belongs; the buttons that opened it stay silent.
+    const tone = 'tone' in req ? req.tone : undefined;
+    if (tone === 'success') haptics.success();
+    else if (tone === 'error') haptics.error();
+    else if (tone === 'warning') haptics.warning();
     return new Promise<unknown>((resolve) => {
       const p: Pending = { id: ++idRef.current, req, resolve };
       setPending((cur) => {
@@ -337,9 +346,14 @@ function CenteredDialog({
           <Animated.View entering={cardEntering}>
             {/* Swallow taps so pressing the card doesn't dismiss. */}
             <Pressable
-              style={[styles.card, { width: cardWidth, backgroundColor: colors.overlay }, shadows.xl]}
+              style={[
+                styles.card,
+                { width: cardWidth, backgroundColor: glassOr(colors.overlay) },
+                shadows.xl,
+              ]}
               onPress={() => {}}
             >
+              <GlassLayer radius={radii.l} />
               <View style={[styles.iconWrap, { backgroundColor: withToneWash(toneColor) }]}>
                 <Ionicons name={TONE_ICON[tone]} size={26} color={toneColor} />
               </View>
