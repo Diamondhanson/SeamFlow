@@ -41,7 +41,13 @@ export class AdminVerificationController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() body: VerificationDecideDto,
   ) {
-    const out = await this.verification.decide(user.id, id, body.approve, body.note ?? null);
+    const out = await this.verification.decide(
+      user.id,
+      id,
+      body.approve,
+      body.note ?? null,
+      body.confirmSocial ?? false,
+    );
     await this.audit.record(
       user.id,
       body.approve ? 'verification.approve' : 'verification.reject',
@@ -52,6 +58,9 @@ export class AdminVerificationController {
         // What was actually looked at, so the record survives the photos being
         // deleted 90 days from now.
         evidence: out.evidence.map((e) => e.kind),
+        // Recorded separately: it is its own decision, and the handle it
+        // publishes outlives the photos by design.
+        socialConfirmed: body.confirmSocial ?? false,
       },
     );
     return out;

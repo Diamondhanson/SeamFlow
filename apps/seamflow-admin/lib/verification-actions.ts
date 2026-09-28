@@ -28,6 +28,7 @@ export async function decide(
   requestId: string,
   approve: boolean,
   note: string | null,
+  confirmSocial = false,
 ): Promise<void> {
   const staff = await requireStaff();
   const res = await fetch(`${API_URL}/admin/verification/${requestId}/decide`, {
@@ -36,7 +37,7 @@ export async function decide(
       Authorization: `Bearer ${staff.accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ approve, note }),
+    body: JSON.stringify({ approve, note, confirmSocial }),
     cache: 'no-store',
   });
   if (!res.ok) {

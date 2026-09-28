@@ -144,6 +144,16 @@ export class VerificationService {
       }
     }
 
+    // At most one of each optional extra. Two social handles on one request is
+    // a question the staff queue cannot answer ("which one did I confirm?"),
+    // and the app never sends it — so refuse rather than silently take the
+    // first.
+    for (const kind of ['social', 'location', 'registration'] as const) {
+      if (evidence.filter((e) => e.kind === kind).length > 1) {
+        throw new BadRequestException(`Only one ${kind} can be sent at a time.`);
+      }
+    }
+
     try {
       const [created] = await db
         .insert(verificationRequests)
@@ -275,6 +285,7 @@ export class VerificationService {
     requestId: string,
     approve: boolean,
     note: string | null,
+    confirmSocial = false,
   ): Promise<VerificationRequest> {
     const db = this.dbService.db;
     const trimmed = note?.trim() || null;
@@ -314,6 +325,27 @@ export class VerificationService {
         .update(tailors)
         .set({ isVerified: true, verifiedAt: now, verifiedNote: trimmed, updatedAt: now })
         .where(eq(tailors.id, existing.tailorId));
+    }
+
+    // The social handle is published on its own evidence, not on the decision.
+    // A staff member who found the code confirms it whether or not they
+    // approved the rest — and one who did not find it publishes nothing, so a
+    // handle on a storefront always means somebody looked.
+    if (confirmSocial) {
+      const social = ((existing.evidence ?? []) as VerificationEvidence[]).find(
+        (e): e is Extract<VerificationEvidence, { kind: 'social' }> => e.kind === 'social',
+      );
+      if (social) {
+        await db
+          .update(tailors)
+          .set({
+            socialPlatform: social.platform,
+            socialHandle: social.handle,
+            socialConfirmedAt: now,
+            updatedAt: now,
+          })
+          .where(eq(tailors.id, existing.tailorId));
+      }
     }
 
     await this.notifyDecision(existing.tailorId, requestId, approve, trimmed);

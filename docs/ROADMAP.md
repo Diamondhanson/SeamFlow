@@ -2809,7 +2809,42 @@ many tailors work from home.
    designer profile as the platform's icon plus the handle itself — not as a
    bare string, and not only in the staff queue. It is evidence to us and a
    benefit to them in the same object, which is the reason it is worth asking
-   for at all (J.3).
+   for at all (J.3). DONE.
+
+   **Mostly DONE 2026-09-28.** Shipped: the social handle with the bio code, the
+   registration number, and Discover's ranking lift.
+
+   THE THREE PLATFORMS are Instagram, Facebook and TikTok, and the filter is
+   whether a STRANGER can read the bio without an account or a follow — which is
+   what makes the bio-code check possible at all. That rules out WhatsApp and
+   Snapchat despite both being enormous here (no public bio to put a code in;
+   WhatsApp is already served by the separate opt-in `public_whatsapp`), and it
+   rules out Pinterest on principle: it is where stolen portfolio photos come
+   from, so a Pinterest badge beside a "this work is their own" claim undercuts
+   it. Adding a fourth later is a migration plus two lines, so we wait for a
+   real tailor to ask.
+
+   The check is HUMAN and the copy says so. Reading an Instagram or TikTok bio
+   programmatically needs platform API access we do not have, so a staff member
+   opens the profile and looks. `confirmSocial` is therefore a SEPARATE decision
+   from `approve`: staff may believe the photo and not find the code (a private
+   account, a bio edited back), and a handle reaching a public storefront must
+   always mean somebody looked.
+
+   RANKING LIFT: a verified post sorts as if it were 3 days newer. Not a tier —
+   a tier buries every unverified shop below every verified one forever, and J's
+   one rule is that they are still found and still messaged. The lift decays on
+   its own. Implemented as a computed sort key so Discover's KEYSET pagination
+   keeps working; the cursor carries the lifted timestamp, not created_at, and
+   `pnpm test:discover-ranking` walks the feed one post at a time to prove no
+   page repeats or skips.
+
+   NOT DONE — the foreground location check-in. It needs `expo-location`, which
+   is a native dependency this repo does not have: adding it forces a dev-client
+   and EAS rebuild and a Play Store permission declaration, and it cannot be
+   verified on web at all. The staff queue already renders a `location` evidence
+   entry (with a map link and a warning never to show a client a coordinate), so
+   only the capture side is missing.
 
 ### J.9 Explicitly not building
 

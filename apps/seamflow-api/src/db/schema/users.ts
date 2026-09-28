@@ -117,6 +117,16 @@ export const tailors = pgTable(
      */
     completedOrders: integer('completed_orders').notNull().default(0),
 
+    // ── Confirmed social account (appendix J phase 3) ──────────────────────
+    // The only one of J's three optional extras a CLIENT ever sees: it is
+    // evidence to us and a benefit to them in the same object. Set only when a
+    // staff member opened the profile and found our code in the bio, so there
+    // is no state where a storefront shows a handle nobody checked. All three
+    // are set together or none is (DB check constraint).
+    socialPlatform: text('social_platform'),
+    socialHandle: text('social_handle'),
+    socialConfirmedAt: timestamp('social_confirmed_at', { withTimezone: true }),
+
     // ── Shareable catalogue (/t/<slug>) ────────────────────────────────────
     /**
      * Public catalogue address. Null until the tailor first shares — the slug

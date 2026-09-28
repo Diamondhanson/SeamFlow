@@ -38,6 +38,7 @@ import { Image, Pressable, ScrollView, Share, StyleSheet, View } from 'react-nat
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { VerifiedBadge } from '../VerifiedBadge';
+import { SocialHandle } from '../SocialHandle';
 import {
   garmentLabel,
   type FeedPostPublic,
@@ -361,6 +362,14 @@ function ShopHeader({
           </View>
         ) : null}
 
+        {/* A confirmed social account (appendix J phase 3). Absent on most
+            shops, and absent renders nothing at all. */}
+        {tailor.social ? (
+          <View style={styles.socialRow}>
+            <SocialHandle social={tailor.social} size={18} />
+          </View>
+        ) : null}
+
         {/* ---- Numbers a client actually weighs ---------------------- */}
         <View style={[styles.stats, { borderColor: colors.hairline }]}>
           <Stat value={String(designCount)} label={t('discover.statDesigns')} />
@@ -487,6 +496,7 @@ const styles = StyleSheet.create({
   },
   fact: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 
+  socialRow: { alignItems: 'center', marginTop: spacing.sm },
   stats: {
     flexDirection: 'row',
     alignItems: 'center',

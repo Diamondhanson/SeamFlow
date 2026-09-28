@@ -57,6 +57,14 @@ interface FeedRow {
    * degrades to a single-image carousel built from the post's cover columns.
    */
   images?: (typeof feedPostImages.$inferSelect)[];
+  /**
+   * The post's sort key in Discover: its creation time plus the verified lift.
+   *
+   * Present only on the ranked feed query, because only that one paginates on
+   * it — and the cursor must carry the same value the ORDER BY used, or a page
+   * can repeat or skip rows.
+   */
+  rankedAt?: Date | string;
 }
 
 /**
@@ -129,6 +137,15 @@ export class FeedService {
       followerCount: t.followerCount,
       currency: t.currency,
       memberSince: t.createdAt.toISOString(),
+      // Only when all three are set, which the DB constraint guarantees travel
+      // together. Null renders nothing rather than an empty icon.
+      social:
+        t.socialConfirmedAt && t.socialPlatform && t.socialHandle
+          ? {
+              platform: t.socialPlatform as 'instagram' | 'facebook' | 'tiktok',
+              handle: t.socialHandle,
+            }
+          : null,
     };
   }
 
@@ -224,6 +241,26 @@ export class FeedService {
   // and repeat posts as you scroll. The cursor encodes the last row's sort key
   // instead, so a page boundary stays put no matter what lands above it.
 
+  /**
+   * Discover's ranking lift for verified shops (appendix J.5).
+   *
+   * A verified post sorts as if it were VERIFIED_LIFT_DAYS newer than it is.
+   * Deliberately not a tier: tiers would bury every unverified shop below every
+   * verified one forever, and J's one rule is that unverified tailors are still
+   * found, still browsed and still messaged. A few days of nudge decays on its
+   * own — a month-old verified post still sits below a fresh unverified one.
+   *
+   * Expressed as a computed sort key rather than an extra ORDER BY column so
+   * the feed's keyset pagination keeps working on a single timestamp. The
+   * cursor carries this value, not created_at.
+   */
+  private static readonly VERIFIED_LIFT_DAYS = 3;
+
+  private rankedAt() {
+    return sql<Date>`(${feedPosts.createdAt} + case when ${tailors.isVerified}
+      then make_interval(days => ${FeedService.VERIFIED_LIFT_DAYS}) else make_interval() end)`;
+  }
+
   private encodeCursor(createdAt: Date, id: string): string {
     return Buffer.from(`${createdAt.toISOString()}|${id}`).toString('base64url');
   }
@@ -277,20 +314,24 @@ export class FeedService {
       }
     }
 
+    const ranked = this.rankedAt();
+
     const cur = this.decodeCursor(query.cursor);
     if (cur) {
-      // Strict "older than" on the composite (created_at, id) sort key.
-      const keyset = sql`(${feedPosts.createdAt}, ${feedPosts.id}) < (${cur.createdAt.toISOString()}::timestamptz, ${cur.id}::uuid)`;
+      // Strict "older than" on the composite (ranked_at, id) sort key. Note it
+      // is the RANKED timestamp, not created_at: the sort key and the cursor
+      // have to be the same value or a page can repeat or skip rows.
+      const keyset = sql`(${ranked}, ${feedPosts.id}) < (${cur.createdAt.toISOString()}::timestamptz, ${cur.id}::uuid)`;
       conditions.push(keyset);
     }
 
     // Fetch one extra to learn whether another page exists without a count(*).
     const rows = await this.dbService.db
-      .select({ post: feedPosts, tailor: tailors })
+      .select({ post: feedPosts, tailor: tailors, rankedAt: ranked })
       .from(feedPosts)
       .innerJoin(tailors, eq(tailors.id, feedPosts.tailorId))
       .where(and(...conditions))
-      .orderBy(desc(feedPosts.createdAt), desc(feedPosts.id))
+      .orderBy(desc(ranked), desc(feedPosts.id))
       .limit(limit + 1);
 
     const hasMore = rows.length > limit;
@@ -299,7 +340,14 @@ export class FeedService {
 
     return {
       items: page.map((r) => this.toPublicPost(r)),
-      nextCursor: hasMore && last ? this.encodeCursor(last.post.createdAt, last.post.id) : null,
+      // The cursor carries the RANKED timestamp, matching the sort key above.
+      // Falling back to created_at would be wrong rather than merely untidy:
+      // the next page's keyset would be compared against a different value than
+      // the one that ordered this page.
+      nextCursor:
+        hasMore && last
+          ? this.encodeCursor(new Date(last.rankedAt ?? last.post.createdAt), last.post.id)
+          : null,
       ...(relaxed ? { relaxed } : {}),
     };
   }

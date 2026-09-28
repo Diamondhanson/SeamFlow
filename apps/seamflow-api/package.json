@@ -35,7 +35,8 @@
     "test:phone": "nest build && node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-phone-verification.ts",
     "test:verification": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification.ts",
     "test:verification-retention": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification-retention.ts",
-    "test:trust-signals": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-trust-signals.ts"
+    "test:trust-signals": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-trust-signals.ts",
+    "test:discover-ranking": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-discover-ranking.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

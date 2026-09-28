@@ -59,11 +59,26 @@ export const WorkPhotoEvidenceSchema = z.object({
   capturedAt: z.string().nullable().optional(),
 });
 
-/** Phase 3. Proves CONTROL of an account rather than its existence. */
+export const SocialPlatformSchema = z.enum(['instagram', 'facebook', 'tiktok']);
+export type SocialPlatform = z.infer<typeof SocialPlatformSchema>;
+
+/**
+ * Phase 3. Proves CONTROL of an account rather than its existence.
+ *
+ * Anyone can type someone else's handle; only the person holding the account
+ * can put our code in its bio for a day. That is the entire check, and it is
+ * deliberately a HUMAN one: reading an Instagram or TikTok bio programmatically
+ * needs platform API access we do not have and would not get for this. A staff
+ * member opens the profile and looks.
+ *
+ * The handle reaches the public storefront on approval, which is the point —
+ * evidence to us, a benefit to them, one object.
+ */
 export const SocialEvidenceSchema = z.object({
   kind: z.literal('social'),
-  platform: z.enum(['instagram', 'facebook', 'tiktok']),
-  handle: z.string().min(1),
+  platform: SocialPlatformSchema,
+  /** Without the @; the app strips it so two tailors cannot differ by a glyph. */
+  handle: z.string().min(1).max(64),
   /** The short code we asked them to put in their bio for a day. */
   code: z.string().min(1),
   confirmedAt: z.string().nullable().optional(),
@@ -159,6 +174,19 @@ export type VerificationState = z.infer<typeof VerificationStateSchema>;
  *
  * Contains NOTHING private: no phone number, no coordinate, no evidence.
  */
+/**
+ * The confirmed social account, for the client-facing profile.
+ *
+ * Present only when staff found our code in the bio. Null is the common case
+ * and renders nothing at all — never a greyed-out icon, which would imply the
+ * shop failed something it never attempted.
+ */
+export const ConfirmedSocialSchema = z.object({
+  platform: SocialPlatformSchema,
+  handle: z.string(),
+});
+export type ConfirmedSocial = z.infer<typeof ConfirmedSocialSchema>;
+
 export const VerificationBadgeSchema = z.object({
   isVerified: z.boolean(),
   /** When SeamFlow confirmed the work. Null for badges predating appendix J. */

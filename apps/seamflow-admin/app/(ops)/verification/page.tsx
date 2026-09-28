@@ -1,7 +1,13 @@
 import Link from 'next/link';
 import { Empty, PageHeader, Tag } from '../../../components/primitives';
 import { relative } from '../../../lib/format';
-import { getQueue, QUEUE_TABS, type QueueRow, type QueueTab } from '../../../lib/queries/verification';
+import {
+  getQueue,
+  QUEUE_TABS,
+  type Evidence,
+  type QueueRow,
+  type QueueTab,
+} from '../../../lib/queries/verification';
 import { DecideButtons } from './decide-buttons';
 
 export const dynamic = 'force-dynamic';
@@ -84,6 +90,16 @@ export default async function VerificationQueue({
 
 function RequestCard({ row }: { row: QueueRow }) {
   const t = row.tailor;
+  const evidence = (row.evidence ?? []) as Evidence[];
+  const social = evidence.find((e): e is Extract<Evidence, { kind: 'social' }> =>
+    e.kind === 'social',
+  );
+  const location = evidence.find((e): e is Extract<Evidence, { kind: 'location' }> =>
+    e.kind === 'location',
+  );
+  const registration = evidence.find(
+    (e): e is Extract<Evidence, { kind: 'registration' }> => e.kind === 'registration',
+  );
   return (
     <article className="border border-rule p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -112,7 +128,7 @@ function RequestCard({ row }: { row: QueueRow }) {
         </div>
 
         {row.status === 'pending' ? (
-          <DecideButtons requestId={row.id} businessName={t.businessName} />
+          <DecideButtons requestId={row.id} businessName={t.businessName} social={social} />
         ) : null}
       </div>
 
@@ -152,6 +168,59 @@ function RequestCard({ row }: { row: QueueRow }) {
           ) : null}
         </div>
       )}
+
+      {/* The optional extras (J.3). Each is a separate judgement from the work
+          photo, and the social one has its own button in DecideButtons —
+          approving a shop says nothing about whether the code was in the bio. */}
+      {social || location || registration ? (
+        <dl className="mt-4 space-y-2 border-t border-rule pt-4 text-xs">
+          {social ? (
+            <div>
+              <dt className="text-faint">Social account to check</dt>
+              <dd className="text-ink">
+                <a
+                  href={
+                    social.platform === 'tiktok'
+                      ? `https://tiktok.com/@${social.handle}`
+                      : `https://${social.platform}.com/${social.handle}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline hover:text-primary"
+                >
+                  @{social.handle} on {social.platform}
+                </a>{' '}
+                — look for <span className="font-mono">{social.code}</span> in the bio. A private
+                profile is an instruction, not a verdict: tell them to make it public for a day.
+              </dd>
+            </div>
+          ) : null}
+          {location ? (
+            <div>
+              <dt className="text-faint">Where they said they were standing</dt>
+              <dd className="text-ink">
+                <a
+                  href={`https://www.google.com/maps?q=${location.lat},${location.lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline hover:text-primary"
+                >
+                  {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                </a>
+                {location.accuracy ? ` (±${Math.round(location.accuracy)}m)` : ''} — compare with{' '}
+                {[t.city, t.countryCode].filter(Boolean).join(', ') || 'the address they typed'}.
+                Never shown to a client.
+              </dd>
+            </div>
+          ) : null}
+          {registration ? (
+            <div>
+              <dt className="text-faint">Business registration number</dt>
+              <dd className="font-mono text-ink">{registration.number}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
 
       {row.decisionNote ? (
         <p className="mt-4 text-xs text-muted">

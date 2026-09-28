@@ -29,6 +29,13 @@ export interface EvidencePhoto {
   url: string | null;
 }
 
+/** The raw evidence array, so the queue can render the phase-3 extras. */
+export type Evidence =
+  | { kind: 'work_photo'; storagePath: string; capturedAt?: string | null }
+  | { kind: 'social'; platform: 'instagram' | 'facebook' | 'tiktok'; handle: string; code: string }
+  | { kind: 'location'; lat: number; lng: number; accuracy?: number | null }
+  | { kind: 'registration'; number: string };
+
 export interface QueueRow {
   id: string;
   tailorId: string;
@@ -37,6 +44,7 @@ export interface QueueRow {
   decidedAt: string | null;
   decisionNote: string | null;
   evidencePurged: boolean;
+  evidence: Evidence[];
   evidenceUrls: EvidencePhoto[];
   tailor: {
     id: string;

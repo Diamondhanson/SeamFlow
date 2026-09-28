@@ -256,6 +256,86 @@ async function main(): Promise<void> {
     assert(rejected?.params?.reason === REASON, 'the decline notification lost the reason');
     console.log('• Both decisions notify, and the decline carries its reason');
 
+    // ---- The social handle: confirmed separately, or not at all ------------
+    // A handle reaching a public storefront must always mean somebody opened
+    // the profile and found the code. Approving the shop is a DIFFERENT
+    // question, so approving without confirming must publish nothing.
+    const HANDLE = 'atelier.test.handle';
+    r = await api(tailor.jwt, 'POST', '/me/verification', {
+      evidence: [
+        { kind: 'work_photo', storagePath: `${tailor.id}/with-social.jpg` },
+        { kind: 'social', platform: 'instagram', handle: HANDLE, code: 'SF-K7M2Q' },
+        { kind: 'registration', number: 'RC/YAO/2026/B/123' },
+      ],
+    });
+    assert(r.status === 201, `submit with extras: ${r.status} ${JSON.stringify(r.data)}`);
+    const withSocial: string = r.data.id;
+
+    r = await api(staff.jwt, 'POST', `/admin/verification/${withSocial}/decide`, {
+      approve: true,
+      note: 'Work fine.',
+      confirmSocial: false,
+    });
+    assert(r.status === 200 || r.status === 201, `approve without social: ${r.status}`);
+
+    const { data: afterNoConfirm } = await admin
+      .from('tailors')
+      .select('social_handle, social_platform, social_confirmed_at')
+      .eq('id', tailorId)
+      .single();
+    assert(
+      !afterNoConfirm?.social_handle,
+      'a handle was published on a shop although staff never confirmed the code',
+    );
+    console.log('• Approving the shop does NOT publish an unconfirmed handle');
+
+    // Now the same handle, confirmed.
+    r = await api(tailor.jwt, 'POST', '/me/verification', {
+      evidence: [
+        { kind: 'work_photo', storagePath: `${tailor.id}/again-with-social.jpg` },
+        { kind: 'social', platform: 'instagram', handle: HANDLE, code: 'SF-K7M2Q' },
+      ],
+    });
+    assert(r.status === 201, `resubmit with social: ${r.status}`);
+    r = await api(staff.jwt, 'POST', `/admin/verification/${r.data.id}/decide`, {
+      approve: true,
+      note: 'Found the code in the bio.',
+      confirmSocial: true,
+    });
+    assert(r.status === 200 || r.status === 201, `approve with social: ${r.status}`);
+
+    const { data: afterConfirm } = await admin
+      .from('tailors')
+      .select('social_handle, social_platform, social_confirmed_at')
+      .eq('id', tailorId)
+      .single();
+    assert(afterConfirm?.social_handle === HANDLE, 'a confirmed handle was not stored');
+    assert(afterConfirm?.social_platform === 'instagram', 'the platform was lost');
+    assert(afterConfirm?.social_confirmed_at, 'the confirmation time was not recorded');
+    console.log('• A confirmed handle is stored, with its platform and when it was checked');
+
+    // And it reaches the public storefront, which is the tailor's side of the
+    // bargain: evidence to us, an audience for them.
+    r = await api(tailor.jwt, 'GET', `/tailors/${tailorId}/storefront`);
+    if (r.status === 200) {
+      assert(
+        r.data?.tailor?.social?.handle === HANDLE,
+        `the confirmed handle did not reach the public storefront: ${JSON.stringify(r.data?.tailor?.social)}`,
+      );
+      console.log('• It reaches the public storefront, which is what the tailor gets out of it');
+    }
+
+    // Two of a kind on one request is a question the queue cannot answer.
+    r = await api(tailor.jwt, 'POST', '/me/verification', {
+      evidence: [
+        { kind: 'work_photo', storagePath: `${tailor.id}/x.jpg` },
+        { kind: 'social', platform: 'instagram', handle: 'one', code: 'SF-AAAAA' },
+        { kind: 'social', platform: 'tiktok', handle: 'two', code: 'SF-BBBBB' },
+      ],
+    });
+    assert(r.status === 400, `two social handles on one request answered ${r.status}`);
+    console.log('• Two social handles on one request is refused, not silently halved');
+
     // ---- What a client sees -------------------------------------------------
     r = await api(tailor.jwt, 'GET', `/tailors/${tailorId}/badge`);
     if (r.status === 200) {

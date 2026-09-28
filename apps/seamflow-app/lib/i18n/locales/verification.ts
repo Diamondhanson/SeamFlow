@@ -51,6 +51,30 @@ export const verification = {
     promptDeclinedTitle: 'Your verification needs one more thing',
     promptDeclinedBody: 'We could not verify your shop yet. Open it to see why and send it again.',
     promptDeclinedAction: 'See why',
+    extrasTitle: 'Make your shop stronger',
+    extrasLede:
+      'Optional, and nothing here is needed to be verified. Each one gives a client one more reason to believe you.',
+    socialTitle: 'Link a social account',
+    socialBody:
+      'We give you a short code to put in your bio for a day. A person on our team looks for it, which is how we know the account is really yours. Your handle then shows on your shop.',
+    socialAction: 'Link an account',
+    socialChange: 'Use a different account',
+    socialPending:
+      'Waiting on @{handle}. Put {code} anywhere in your bio and leave it there until we have looked.',
+    socialPickTitle: 'Which account?',
+    socialInstagram: 'Instagram',
+    socialFacebook: 'Facebook',
+    socialTiktok: 'TikTok',
+    socialHandleTitle: 'Your handle',
+    socialHandleBody: 'Just the name, without the @. You can paste the link to your profile instead.',
+    socialHandlePlaceholder: 'yourshopname',
+    socialCodeTitle: 'Put this in your bio',
+    socialCodeBody:
+      'Add {code} anywhere in your bio and leave it there until we have looked. Your profile has to be public for us to see it. You can take it out once you are verified.',
+    registrationTitle: 'Business registration number',
+    registrationBody:
+      'Only if you have one. Most shops do not, and not having one counts against nobody.',
+    registrationLabel: 'Registration number',
     badgeTitle: 'Verified shop',
     badgeWork: 'SeamFlow has confirmed the work in this shop is their own.',
     badgeWorkOn: 'SeamFlow confirmed the work in this shop is their own, {date}.',
@@ -100,6 +124,30 @@ export const verification = {
     promptDeclinedBody:
       'Nous n’avons pas encore pu vérifier votre atelier. Ouvrez pour voir pourquoi et renvoyer.',
     promptDeclinedAction: 'Voir pourquoi',
+    extrasTitle: 'Renforcez votre atelier',
+    extrasLede:
+      'Facultatif : rien ici n’est nécessaire pour être vérifié. Chaque élément donne à une cliente une raison de plus de vous croire.',
+    socialTitle: 'Associer un compte social',
+    socialBody:
+      'Nous vous donnons un code court à mettre dans votre bio pendant une journée. Une personne de notre équipe le cherche : c’est ainsi que nous savons que le compte est bien le vôtre. Votre identifiant s’affiche ensuite sur votre vitrine.',
+    socialAction: 'Associer un compte',
+    socialChange: 'Utiliser un autre compte',
+    socialPending:
+      'En attente de @{handle}. Mettez {code} quelque part dans votre bio et laissez-le jusqu’à notre vérification.',
+    socialPickTitle: 'Quel compte ?',
+    socialInstagram: 'Instagram',
+    socialFacebook: 'Facebook',
+    socialTiktok: 'TikTok',
+    socialHandleTitle: 'Votre identifiant',
+    socialHandleBody: 'Juste le nom, sans le @. Vous pouvez aussi coller le lien de votre profil.',
+    socialHandlePlaceholder: 'nomdevotreatelier',
+    socialCodeTitle: 'Mettez ceci dans votre bio',
+    socialCodeBody:
+      'Ajoutez {code} quelque part dans votre bio et laissez-le jusqu’à notre vérification. Votre profil doit être public pour que nous puissions le voir. Vous pourrez le retirer une fois vérifié.',
+    registrationTitle: 'Numéro de registre de commerce',
+    registrationBody:
+      'Seulement si vous en avez un. La plupart des ateliers n’en ont pas, et ne pas en avoir ne pénalise personne.',
+    registrationLabel: 'Numéro de registre',
     badgeTitle: 'Atelier vérifié',
     badgeWork: 'SeamFlow a confirmé que le travail de cet atelier est bien le sien.',
     badgeWorkOn: 'SeamFlow a confirmé que le travail de cet atelier est bien le sien, en {date}.',
@@ -149,6 +197,30 @@ export const verification = {
     promptDeclinedBody:
       'Ainda não conseguimos verificar a sua oficina. Abra para ver porquê e enviar de novo.',
     promptDeclinedAction: 'Ver porquê',
+    extrasTitle: 'Reforce a sua oficina',
+    extrasLede:
+      'Opcional: nada aqui é preciso para ser verificada. Cada item dá a um cliente mais uma razão para acreditar em si.',
+    socialTitle: 'Associar uma conta social',
+    socialBody:
+      'Damos-lhe um código curto para pôr na sua bio durante um dia. Alguém da nossa equipa procura-o, e é assim que sabemos que a conta é mesmo sua. O seu nome de utilizador passa a aparecer na sua vitrine.',
+    socialAction: 'Associar uma conta',
+    socialChange: 'Usar outra conta',
+    socialPending:
+      'À espera de @{handle}. Ponha {code} em qualquer sítio da sua bio e deixe-o até termos visto.',
+    socialPickTitle: 'Que conta?',
+    socialInstagram: 'Instagram',
+    socialFacebook: 'Facebook',
+    socialTiktok: 'TikTok',
+    socialHandleTitle: 'O seu nome de utilizador',
+    socialHandleBody: 'Só o nome, sem o @. Também pode colar o link do seu perfil.',
+    socialHandlePlaceholder: 'nomedasuaoficina',
+    socialCodeTitle: 'Ponha isto na sua bio',
+    socialCodeBody:
+      'Adicione {code} em qualquer sítio da sua bio e deixe-o até termos visto. O seu perfil tem de estar público para o conseguirmos ver. Pode retirá-lo assim que for verificada.',
+    registrationTitle: 'Número de registo comercial',
+    registrationBody:
+      'Só se tiver um. A maioria das oficinas não tem, e não ter não conta contra ninguém.',
+    registrationLabel: 'Número de registo',
     badgeTitle: 'Oficina verificada',
     badgeWork: 'A SeamFlow confirmou que o trabalho desta oficina é mesmo dela.',
     badgeWorkOn: 'A SeamFlow confirmou que o trabalho desta oficina é mesmo dela, em {date}.',
@@ -197,6 +269,30 @@ export const verification = {
     promptDeclinedBody:
       'Todavía no hemos podido verificar tu taller. Ábrelo para ver por qué y enviarlo otra vez.',
     promptDeclinedAction: 'Ver por qué',
+    extrasTitle: 'Refuerza tu taller',
+    extrasLede:
+      'Opcional: nada de esto hace falta para estar verificado. Cada cosa le da a un cliente una razón más para creerte.',
+    socialTitle: 'Vincular una cuenta social',
+    socialBody:
+      'Te damos un código corto para poner en tu biografía durante un día. Alguien de nuestro equipo lo busca, y así sabemos que la cuenta es tuya de verdad. Tu usuario aparece luego en tu escaparate.',
+    socialAction: 'Vincular una cuenta',
+    socialChange: 'Usar otra cuenta',
+    socialPending:
+      'Esperando a @{handle}. Pon {code} en cualquier parte de tu biografía y déjalo hasta que lo hayamos mirado.',
+    socialPickTitle: '¿Qué cuenta?',
+    socialInstagram: 'Instagram',
+    socialFacebook: 'Facebook',
+    socialTiktok: 'TikTok',
+    socialHandleTitle: 'Tu usuario',
+    socialHandleBody: 'Solo el nombre, sin la @. También puedes pegar el enlace de tu perfil.',
+    socialHandlePlaceholder: 'nombredetutaller',
+    socialCodeTitle: 'Pon esto en tu biografía',
+    socialCodeBody:
+      'Añade {code} en cualquier parte de tu biografía y déjalo hasta que lo hayamos mirado. Tu perfil tiene que ser público para que podamos verlo. Puedes quitarlo cuando estés verificado.',
+    registrationTitle: 'Número de registro mercantil',
+    registrationBody:
+      'Solo si tienes uno. La mayoría de los talleres no lo tienen, y no tenerlo no perjudica a nadie.',
+    registrationLabel: 'Número de registro',
     badgeTitle: 'Taller verificado',
     badgeWork: 'SeamFlow ha confirmado que el trabajo de este taller es suyo.',
     badgeWorkOn: 'SeamFlow confirmó que el trabajo de este taller es suyo, en {date}.',
@@ -245,6 +341,30 @@ export const verification = {
     promptDeclinedBody:
       'Bado hatujaweza kuthibitisha duka lako. Fungua uone sababu na utume tena.',
     promptDeclinedAction: 'Ona sababu',
+    extrasTitle: 'Imarisha duka lako',
+    extrasLede:
+      'Ni hiari: hakuna kitu hapa kinachohitajika ili kuthibitishwa. Kila kimoja humpa mteja sababu moja zaidi ya kukuamini.',
+    socialTitle: 'Unganisha akaunti ya mtandao wa kijamii',
+    socialBody:
+      'Tunakupa msimbo mfupi wa kuweka kwenye wasifu wako kwa siku moja. Mtu wa timu yetu anautafuta, na hivyo ndivyo tunavyojua akaunti ni yako kweli. Jina lako la mtumiaji kisha linaonekana kwenye duka lako.',
+    socialAction: 'Unganisha akaunti',
+    socialChange: 'Tumia akaunti nyingine',
+    socialPending:
+      'Tunasubiri @{handle}. Weka {code} mahali popote kwenye wasifu wako na uuache hadi tuangalie.',
+    socialPickTitle: 'Akaunti ipi?',
+    socialInstagram: 'Instagram',
+    socialFacebook: 'Facebook',
+    socialTiktok: 'TikTok',
+    socialHandleTitle: 'Jina lako la mtumiaji',
+    socialHandleBody: 'Jina tu, bila @. Unaweza pia kubandika kiungo cha wasifu wako.',
+    socialHandlePlaceholder: 'jinaladukalako',
+    socialCodeTitle: 'Weka hii kwenye wasifu wako',
+    socialCodeBody:
+      'Ongeza {code} mahali popote kwenye wasifu wako na uuache hadi tuangalie. Wasifu wako lazima uwe wa umma ili tuweze kuuona. Unaweza kuuondoa ukishathibitishwa.',
+    registrationTitle: 'Namba ya usajili wa biashara',
+    registrationBody:
+      'Ikiwa tu unayo. Maduka mengi hayana, na kutokuwa nayo hakumdhuru mtu.',
+    registrationLabel: 'Namba ya usajili',
     badgeTitle: 'Duka lililothibitishwa',
     badgeWork: 'SeamFlow imethibitisha kuwa kazi ya duka hili ni yao wenyewe.',
     badgeWorkOn: 'SeamFlow ilithibitisha kuwa kazi ya duka hili ni yao wenyewe, {date}.',
@@ -292,6 +412,30 @@ export const verification = {
     promptDeclinedTitle: 'ينقص توثيقك شيء واحد',
     promptDeclinedBody: 'لم نتمكّن بعد من توثيق ورشتك. افتح لترى السبب وترسل مرّة أخرى.',
     promptDeclinedAction: 'اعرف السبب',
+    extrasTitle: 'قوِّ ورشتك',
+    extrasLede:
+      'اختياري: لا شيء هنا لازم للتوثيق. كلّ عنصر يمنح العميل سببًا إضافيًا لتصديقك.',
+    socialTitle: 'ربط حساب تواصل اجتماعي',
+    socialBody:
+      'نعطيك رمزًا قصيرًا تضعه في نبذتك ليوم واحد. يبحث عنه شخص من فريقنا، وبهذا نعرف أنّ الحساب لك فعلًا. ثمّ يظهر معرّفك على متجرك.',
+    socialAction: 'ربط حساب',
+    socialChange: 'استخدام حساب آخر',
+    socialPending:
+      'في انتظار @{handle}. ضع {code} في أيّ موضع من نبذتك واتركه حتى نطّلع عليه.',
+    socialPickTitle: 'أيّ حساب؟',
+    socialInstagram: 'إنستغرام',
+    socialFacebook: 'فيسبوك',
+    socialTiktok: 'تيك توك',
+    socialHandleTitle: 'معرّفك',
+    socialHandleBody: 'الاسم فقط، بدون @. ويمكنك لصق رابط ملفك الشخصي بدلًا من ذلك.',
+    socialHandlePlaceholder: 'اسم-ورشتك',
+    socialCodeTitle: 'ضع هذا في نبذتك',
+    socialCodeBody:
+      'أضِف {code} في أيّ موضع من نبذتك واتركه حتى نطّلع عليه. يجب أن يكون ملفك عامًّا كي نراه. ويمكنك إزالته بعد التوثيق.',
+    registrationTitle: 'رقم السجل التجاري',
+    registrationBody:
+      'فقط إن كان لديك واحد. معظم الورش ليس لديها، وعدم وجوده لا يُحسب على أحد.',
+    registrationLabel: 'رقم السجل',
     badgeTitle: 'ورشة موثَّقة',
     badgeWork: 'أكّدت SeamFlow أنّ العمل في هذه الورشة من صنعها.',
     badgeWorkOn: 'أكّدت SeamFlow أنّ العمل في هذه الورشة من صنعها، في {date}.',

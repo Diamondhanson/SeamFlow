@@ -114,6 +114,21 @@ export const TailorPublicProfileSchema = TailorMiniProfileSchema.extend({
   followerCount: z.number().int(),
   currency: z.string().length(3),
   memberSince: z.string().datetime(),
+  /**
+   * A social account SeamFlow confirmed the tailor controls (appendix J phase
+   * 3). Null unless staff found our code in the bio — an unconfirmed handle is
+   * never stored, so this is never a claim nobody checked.
+   *
+   * Public on purpose: it is the one extra a client sees, and the reason a
+   * tailor bothers with the bio-code dance at all.
+   */
+  social: z
+    .object({
+      platform: z.enum(['instagram', 'facebook', 'tiktok']),
+      handle: z.string(),
+    })
+    .nullable()
+    .default(null),
 });
 export type TailorPublicProfile = z.infer<typeof TailorPublicProfileSchema>;
 

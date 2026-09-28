@@ -32,6 +32,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SkeletonForm } from '../../components/Skeleton';
 import { Button } from '../../components/Button';
+import { Input } from '../../components/Input';
 import { useDialog } from '../../lib/dialog';
 import { haptics } from '../../lib/haptics';
 import { useTranslation } from '../../lib/i18n';
@@ -44,6 +45,24 @@ import {
   useWithdrawVerification,
 } from '../../lib/queries';
 import { radii, spacing } from '../../lib/theme';
+import type { SocialPlatform } from '@seamflow/schemas';
+
+/**
+ * The code a tailor puts in their bio for a day.
+ *
+ * Not a secret and not a password: it only has to be something a stranger would
+ * not have typed by accident, so that a staff member finding it in a bio knows
+ * the person holding that account put it there. Unambiguous alphabet — no O/0,
+ * no I/1 — because this gets read off one screen and typed into another.
+ */
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function makeBioCode(): string {
+  let out = '';
+  for (let i = 0; i < 5; i++) {
+    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return `SF-${out}`;
+}
 
 interface Shot {
   uri: string;
@@ -62,6 +81,12 @@ export default function Verification() {
 
   const [shots, setShots] = useState<Shot[]>([]);
   const [busy, setBusy] = useState(false);
+  // The optional extras (J.3). Null until the tailor chooses to add one; they
+  // are never prefilled and never required.
+  const [social, setSocial] = useState<
+    { platform: SocialPlatform; handle: string; code: string } | null
+  >(null);
+  const [registration, setRegistration] = useState('');
 
   const userId = me?.id;
   const request = state?.request ?? null;
@@ -89,17 +114,75 @@ export default function Verification() {
     }
   };
 
+  /**
+   * Link a social account: pick a platform, type the handle, get a code.
+   *
+   * The code goes in their bio for a day and a STAFF MEMBER looks for it.
+   * Reading an Instagram or TikTok bio programmatically needs platform API
+   * access we do not have and would not get for this, so the check is a human
+   * one and the copy says so rather than implying a robot is watching.
+   */
+  const linkSocial = async () => {
+    const platform = (await dialog.pick({
+      title: t('verification.socialPickTitle'),
+      options: [
+        { key: 'instagram', label: t('verification.socialInstagram') },
+        { key: 'facebook', label: t('verification.socialFacebook') },
+        { key: 'tiktok', label: t('verification.socialTiktok') },
+      ],
+    })) as SocialPlatform | null;
+    if (!platform) return;
+
+    const typed = await dialog.prompt({
+      title: t('verification.socialHandleTitle'),
+      message: t('verification.socialHandleBody'),
+      placeholder: t('verification.socialHandlePlaceholder'),
+    });
+    // Strip the @ and any URL the tailor pasted: two shops must not be able to
+    // differ by a glyph, and "instagram.com/name" is what people actually copy.
+    const handle = (typed ?? '')
+      .trim()
+      .replace(/^https?:\/\/[^/]+\//i, '')
+      .replace(/^@/, '')
+      .replace(/\/+$/, '')
+      .trim();
+    if (!handle) return;
+
+    const code = makeBioCode();
+    setSocial({ platform, handle, code });
+    await dialog.alert({
+      title: t('verification.socialCodeTitle'),
+      message: t('verification.socialCodeBody', { code }),
+      tone: 'info',
+    });
+  };
+
   const send = async () => {
     try {
-      await submit.mutateAsync(
-        shots.map((s) => ({
+      await submit.mutateAsync([
+        ...shots.map((s) => ({
           kind: 'work_photo' as const,
           storagePath: s.storagePath,
           capturedAt: s.capturedAt,
         })),
-      );
+        ...(social
+          ? [
+              {
+                kind: 'social' as const,
+                platform: social.platform,
+                handle: social.handle,
+                code: social.code,
+              },
+            ]
+          : []),
+        ...(registration.trim()
+          ? [{ kind: 'registration' as const, number: registration.trim() }]
+          : []),
+      ]);
       haptics.success();
       setShots([]);
+      setSocial(null);
+      setRegistration('');
       await dialog.alert({
         title: t('verification.sentTitle'),
         message: t('verification.sentBody'),
@@ -216,6 +299,48 @@ export default function Verification() {
             </Text>
           ) : null}
 
+          {/* ---- Optional extras (J.3) --------------------------------------
+              Framed as "make your shop stronger", never as requirements, and
+              placed AFTER the submit button on purpose: someone who wants the
+              five-minute version never has to scroll past them. */}
+          <Text variant="body" style={styles.extrasTitle}>
+            {t('verification.extrasTitle')}
+          </Text>
+          <Text variant="bodySm" tone="textMuted" style={styles.extrasLede}>
+            {t('verification.extrasLede')}
+          </Text>
+
+          <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
+            <Text variant="body" style={styles.stepTitle}>
+              {t('verification.socialTitle')}
+            </Text>
+            <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
+              {social
+                ? t('verification.socialPending', { handle: social.handle, code: social.code })
+                : t('verification.socialBody')}
+            </Text>
+            <Button
+              label={social ? t('verification.socialChange') : t('verification.socialAction')}
+              variant="secondary"
+              onPress={linkSocial}
+            />
+          </View>
+
+          <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
+            <Text variant="body" style={styles.stepTitle}>
+              {t('verification.registrationTitle')}
+            </Text>
+            <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
+              {t('verification.registrationBody')}
+            </Text>
+            <Input
+              label={t('verification.registrationLabel')}
+              value={registration}
+              onChangeText={setRegistration}
+              autoCapitalize="characters"
+            />
+          </View>
+
           <Text variant="caption" tone="textMuted" style={styles.footnote}>
             {t('verification.privacyNote')}
           </Text>
@@ -298,6 +423,8 @@ const styles = StyleSheet.create({
   lede: { marginBottom: spacing.lg },
   hint: { marginTop: spacing.sm },
   footnote: { marginTop: spacing.xl },
+  extrasTitle: { marginTop: spacing.xl, marginBottom: spacing.xs },
+  extrasLede: { marginBottom: spacing.md },
   note: {
     flexDirection: 'row',
     alignItems: 'center',

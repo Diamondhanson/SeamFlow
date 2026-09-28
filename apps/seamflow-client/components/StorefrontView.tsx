@@ -15,6 +15,7 @@ import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { VerifiedBadge } from './VerifiedBadge';
+import { SocialHandle } from './SocialHandle';
 import type { FeedPostPublic, TailorPublicProfile } from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -110,6 +111,8 @@ export function StorefrontView({
                 .filter(Boolean)
                 .join(' · ')}
             </Text>
+
+            {tailor.social ? <SocialHandle social={tailor.social} size={16} /> : null}
 
             {tailor.bio ? (
               <Text variant="body" style={styles.bio}>
