@@ -51,6 +51,12 @@ export const verification = {
     promptDeclinedTitle: 'Your verification needs one more thing',
     promptDeclinedBody: 'We could not verify your shop yet. Open it to see why and send it again.',
     promptDeclinedAction: 'See why',
+    badgeTitle: 'Verified shop',
+    badgeWork: 'SeamFlow has confirmed the work in this shop is their own.',
+    badgeWorkOn: 'SeamFlow confirmed the work in this shop is their own, {date}.',
+    badgePhone: 'Their phone number is confirmed, so they can be reached.',
+    badgeSince: 'On SeamFlow since {date}.',
+    badgeFootnote: 'This is not a rating. It means we checked the shop is real, not that we judged their work.',
   },
   fr: {
     title: 'Faire vérifier mon atelier',
@@ -91,6 +97,12 @@ export const verification = {
     promptDeclinedBody:
       'Nous n’avons pas encore pu vérifier votre atelier. Ouvrez pour voir pourquoi et renvoyer.',
     promptDeclinedAction: 'Voir pourquoi',
+    badgeTitle: 'Atelier vérifié',
+    badgeWork: 'SeamFlow a confirmé que le travail de cet atelier est bien le sien.',
+    badgeWorkOn: 'SeamFlow a confirmé que le travail de cet atelier est bien le sien, en {date}.',
+    badgePhone: 'Son numéro de téléphone est confirmé : on peut la joindre.',
+    badgeSince: 'Sur SeamFlow depuis {date}.',
+    badgeFootnote: 'Ce n’est pas une note. Cela veut dire que nous avons vérifié que l’atelier est réel, pas que nous avons jugé son travail.',
   },
   pt: {
     title: 'Verificar a minha oficina',
@@ -131,6 +143,12 @@ export const verification = {
     promptDeclinedBody:
       'Ainda não conseguimos verificar a sua oficina. Abra para ver porquê e enviar de novo.',
     promptDeclinedAction: 'Ver porquê',
+    badgeTitle: 'Oficina verificada',
+    badgeWork: 'A SeamFlow confirmou que o trabalho desta oficina é mesmo dela.',
+    badgeWorkOn: 'A SeamFlow confirmou que o trabalho desta oficina é mesmo dela, em {date}.',
+    badgePhone: 'O número de telefone está confirmado, por isso é possível contactá-la.',
+    badgeSince: 'Na SeamFlow desde {date}.',
+    badgeFootnote: 'Isto não é uma classificação. Significa que verificámos que a oficina é real, não que avaliámos o trabalho.',
   },
   es: {
     title: 'Verificar mi taller',
@@ -170,6 +188,12 @@ export const verification = {
     promptDeclinedBody:
       'Todavía no hemos podido verificar tu taller. Ábrelo para ver por qué y enviarlo otra vez.',
     promptDeclinedAction: 'Ver por qué',
+    badgeTitle: 'Taller verificado',
+    badgeWork: 'SeamFlow ha confirmado que el trabajo de este taller es suyo.',
+    badgeWorkOn: 'SeamFlow confirmó que el trabajo de este taller es suyo, en {date}.',
+    badgePhone: 'Su número de teléfono está confirmado, así que se le puede contactar.',
+    badgeSince: 'En SeamFlow desde {date}.',
+    badgeFootnote: 'Esto no es una valoración. Significa que comprobamos que el taller es real, no que juzgamos su trabajo.',
   },
   sw: {
     title: 'Thibitisha duka langu',
@@ -209,6 +233,12 @@ export const verification = {
     promptDeclinedBody:
       'Bado hatujaweza kuthibitisha duka lako. Fungua uone sababu na utume tena.',
     promptDeclinedAction: 'Ona sababu',
+    badgeTitle: 'Duka lililothibitishwa',
+    badgeWork: 'SeamFlow imethibitisha kuwa kazi ya duka hili ni yao wenyewe.',
+    badgeWorkOn: 'SeamFlow ilithibitisha kuwa kazi ya duka hili ni yao wenyewe, {date}.',
+    badgePhone: 'Namba yao ya simu imethibitishwa, hivyo wanaweza kupatikana.',
+    badgeSince: 'Kwenye SeamFlow tangu {date}.',
+    badgeFootnote: 'Hii si alama ya ubora. Inamaanisha tumethibitisha duka ni halisi, si kwamba tumepima kazi yao.',
   },
   ar: {
     title: 'توثيق ورشتي',
@@ -247,5 +277,11 @@ export const verification = {
     promptDeclinedTitle: 'ينقص توثيقك شيء واحد',
     promptDeclinedBody: 'لم نتمكّن بعد من توثيق ورشتك. افتح لترى السبب وترسل مرّة أخرى.',
     promptDeclinedAction: 'اعرف السبب',
+    badgeTitle: 'ورشة موثَّقة',
+    badgeWork: 'أكّدت SeamFlow أنّ العمل في هذه الورشة من صنعها.',
+    badgeWorkOn: 'أكّدت SeamFlow أنّ العمل في هذه الورشة من صنعها، في {date}.',
+    badgePhone: 'رقم هاتفها مؤكَّد، ويمكن الوصول إليها.',
+    badgeSince: 'على SeamFlow منذ {date}.',
+    badgeFootnote: 'هذا ليس تقييمًا. معناه أنّنا تحقّقنا من أنّ الورشة حقيقية، لا أنّنا حكمنا على عملها.',
   },
 } as const;

@@ -19,6 +19,7 @@ import { misc } from './locales/misc';
 import { discover } from './locales/discover';
 import { chat } from './locales/chat';
 import { notifications } from './locales/notifications';
+import { verification } from './locales/verification';
 import { requests } from './locales/requests';
 
 export type LanguageCode = 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
@@ -73,6 +74,7 @@ const NAMESPACES = {
   discover,
   chat,
   notifications,
+  verification,
   requests,
 } as const;
 

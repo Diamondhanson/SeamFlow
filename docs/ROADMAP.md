@@ -2763,9 +2763,24 @@ many tailors work from home.
    deliberately not a checklist step — see the note in VerificationPrompt.tsx
    for why each of those would break the one rule at the level of tone.
 
-   STILL TO DO on this phase: the badge popover in the app (the endpoint exists,
-   the feed card and chat header do not call it yet), and the 90-day retention
-   job for evidence photos.
+   The badge popover is live in both client surfaces (Discover feed card and
+   storefront, in seamflow-app and seamflow-client). It fetches on TAP, never on
+   render — a feed draws twenty ticks and must not make twenty requests about
+   ticks nobody asked about. It says what was checked and ends with "this is not
+   a rating", because people read a mark like this as an endorsement of skill
+   and it is not one.
+
+   Evidence retention runs nightly at 04:20: photos go 90 days after the
+   decision, the decision and its note are kept forever. A WITHDRAWN request has
+   no decided_at, so its clock runs from submission; a PENDING one is never
+   touched however old, because staff still need the evidence to decide.
+
+   NOT DONE on this phase: the chat header badge. J.1 says `is_verified` already
+   shows there; it does not, and never did — there is no tick in any chat header
+   in either app. Worth adding, but it is a new surface rather than a loose end.
+
+   NOTE: as of 2026-09-28 NO tailor is verified, so the "granted before criteria
+   existed" backfill concern is moot. Every badge from here carries verified_at.
 2. **Trust signals.** Compute and display orders completed, joined date,
    response time. No tailor-facing UI at all; it simply appears.
 3. **The extras.** Social handle with the bio code, the foreground check-in,

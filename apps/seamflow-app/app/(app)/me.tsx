@@ -39,24 +39,8 @@ import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode } from '../../lib/theme-mode';
 import { useSubscription } from '../../lib/subscription';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
+import { formatMonthYear } from '../../lib/month-year';
 import { openLegal } from '../../lib/legal-links';
-
-// Localized "Month YYYY" for the member-since line. Bundled month names keep
-// this deterministic under Hermes (Intl month formatting is unreliable there).
-const MONTHS: Record<LanguageCode, string[]> = {
-  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-  fr: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
-  pt: ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
-  es: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
-  sw: ['Januari', 'Februari', 'Machi', 'Aprili', 'Mei', 'Juni', 'Julai', 'Agosti', 'Septemba', 'Oktoba', 'Novemba', 'Desemba'],
-  ar: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
-};
-function formatMonthYear(iso: string | undefined, lang: LanguageCode): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return `${MONTHS[lang][d.getMonth()]} ${d.getFullYear()}`;
-}
 
 export default function Me() {
   const { signOut } = useAuth();

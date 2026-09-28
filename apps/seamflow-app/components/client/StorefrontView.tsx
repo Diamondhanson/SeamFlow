@@ -37,6 +37,7 @@
 import { Image, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { VerifiedBadge } from '../VerifiedBadge';
 import {
   garmentLabel,
   type FeedPostPublic,
@@ -338,7 +339,7 @@ function ShopHeader({
           )}
           {tailor.isVerified ? (
             <View style={[styles.verified, { backgroundColor: colors.bg }]}>
-              <Ionicons name="checkmark-circle" size={24} color={atelier.primary} />
+              <VerifiedBadge tailorId={tailor.id} isVerified size={24} color={atelier.primary} />
             </View>
           ) : null}
         </View>

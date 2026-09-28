@@ -3,6 +3,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { PhoneVerificationModule } from '../phone-verification/phone-verification.module';
 import { VerificationBadgeController, VerificationController } from './verification.controller';
 import { VerificationService } from './verification.service';
+import { VerificationRetentionService } from './verification-retention.service';
 
 /**
  * Verification (appendix J). Exported so the admin module can run the staff
@@ -12,7 +13,7 @@ import { VerificationService } from './verification.service';
 @Module({
   imports: [NotificationsModule, PhoneVerificationModule],
   controllers: [VerificationController, VerificationBadgeController],
-  providers: [VerificationService],
-  exports: [VerificationService],
+  providers: [VerificationService, VerificationRetentionService],
+  exports: [VerificationService, VerificationRetentionService],
 })
 export class VerificationModule {}

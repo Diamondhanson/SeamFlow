@@ -14,6 +14,7 @@
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { VerifiedBadge } from './VerifiedBadge';
 import type { FeedPostPublic, TailorPublicProfile } from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -79,9 +80,12 @@ export function StorefrontView({
           <View style={styles.profile}>
             <View style={styles.nameRow}>
               <Text variant="h3">{tailor.businessName}</Text>
-              {tailor.isVerified ? (
-                <Ionicons name="checkmark-circle" size={18} color={atelier.primary} />
-              ) : null}
+              <VerifiedBadge
+                tailorId={tailor.id}
+                isVerified={tailor.isVerified}
+                size={18}
+                color={atelier.primary}
+              />
             </View>
 
             <Text variant="bodySm" tone="textMuted">

@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Dimensions, Image, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { VerifiedBadge } from '../../../components/VerifiedBadge';
 import type { FeedImage, FeedPostPublic } from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
 import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
@@ -170,9 +171,12 @@ export default function DesignDetail() {
                 <Text variant="body" style={styles.attributionName} numberOfLines={1}>
                   {tailor.businessName}
                 </Text>
-                {tailor.isVerified ? (
-                  <Ionicons name="checkmark-circle" size={16} color={atelier.primary} />
-                ) : null}
+                <VerifiedBadge
+                  tailorId={tailor.id}
+                  isVerified={tailor.isVerified}
+                  size={16}
+                  color={atelier.primary}
+                />
               </View>
               <Text variant="caption" style={styles.attributionMeta} numberOfLines={1}>
                 {[

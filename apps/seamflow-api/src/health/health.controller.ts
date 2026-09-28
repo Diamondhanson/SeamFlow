@@ -3,6 +3,7 @@ import { DbService } from '../db/db.service';
 import { QueueService } from '../queue/queue.service';
 import { AccountPurgeService } from '../account/account-purge.service';
 import { ChatMediaRetentionService } from '../chat/chat-media-retention.service';
+import { VerificationRetentionService } from '../verification/verification-retention.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CheckoutService } from '../subscriptions/checkout.service';
 import { sentryEnabled } from '../common/sentry';
@@ -36,6 +37,7 @@ export class HealthController {
     private readonly queue: QueueService,
     private readonly purge: AccountPurgeService,
     private readonly retention: ChatMediaRetentionService,
+    private readonly verificationRetention: VerificationRetentionService,
     private readonly subscriptions: SubscriptionsService,
     private readonly checkout: CheckoutService,
   ) {}
@@ -64,6 +66,22 @@ export class HealthController {
       throw new NotFoundException();
     }
     return { removed: await this.retention.run() };
+  }
+
+  /**
+   * Same rules again: test hook for the verification evidence sweep.
+   *
+   * Worth having its own hook rather than folding it into the one above: the
+   * promise it keeps ("we delete these photos 90 days after we decide") is made
+   * to a person in the app's own words, and a test that can prove it must not
+   * depend on a cron firing at 04:20.
+   */
+  @Post('run-verification-retention')
+  async runVerificationRetention(): Promise<{ cleared: number }> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new NotFoundException();
+    }
+    return { cleared: await this.verificationRetention.run() };
   }
 
   /**
