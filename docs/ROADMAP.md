@@ -2775,9 +2775,16 @@ many tailors work from home.
    no decided_at, so its clock runs from submission; a PENDING one is never
    touched however old, because staff still need the evidence to decide.
 
-   NOT DONE on this phase: the chat header badge. J.1 says `is_verified` already
-   shows there; it does not, and never did — there is no tick in any chat header
-   in either app. Worth adding, but it is a new surface rather than a loose end.
+   The chat header badge is DONE too (2026-09-28). J.1 said `is_verified`
+   already showed there; it did not and never had. It does now, in both apps,
+   and it is the surface where it matters most: the thread is where a client
+   sends body measurements, photos and an address.
+
+   Shown only when the CLIENT is looking. `counterparty.id` is a tailor id only
+   on the client side, so rendering it on a tailor's thread would both claim a
+   person is a verified shop and point the popover at the wrong record.
+   `ScreenHeader` grew a `titleAccessory` slot for it — the mark belongs to the
+   title, not to `right`, which is an action.
 
    NOTE: as of 2026-09-28 NO tailor is verified, so the "granted before criteria
    existed" backfill concern is moot. Every badge from here carries verified_at.

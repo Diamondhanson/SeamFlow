@@ -43,6 +43,7 @@ import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme, useFieldFocus, useKeyboardAppearance, keyboardDismissOnDrag } from '@seamflow/ui';
 import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
+import { VerifiedBadge } from '../VerifiedBadge';
 import { SkeletonList } from '../Skeleton';
 import { useConversation, useMarkConversationRead, useMessages, useOrders } from '../../lib/queries';
 import { useConsumerMeasurements } from '../../lib/consumer-queries';
@@ -951,6 +952,25 @@ export function ChatThread({
       <View style={styles.padded}>
         <ScreenHeader
           title={conversation?.counterparty.name ?? tk('threadTitle')}
+          // The verified mark belongs here as much as on a feed card (J.5):
+          // a client sends body measurements and an address into this thread,
+          // which is the moment "is this shop real" matters most.
+          //
+          // Only when the CLIENT is looking. The counterparty on a tailor's
+          // thread is a person, not a shop, and people are not verified —
+          // `counterparty.id` is a tailor id only on the client side, so
+          // rendering it for a tailor would also point the popover at the
+          // wrong thing entirely.
+          titleAccessory={
+            role === 'client' && conversation?.counterparty.isVerified ? (
+              <VerifiedBadge
+                tailorId={conversation.counterparty.id}
+                isVerified
+                size={20}
+                color={atelier.primary}
+              />
+            ) : null
+          }
           right={
             conversation?.orderId ? (
               <Pressable onPress={() => onViewOrder(conversation.orderId!)}>

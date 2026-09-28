@@ -25,6 +25,15 @@ export interface ScreenHeaderProps {
   /** Render subtitle in mono (e.g. a year "2026"). */
   subtitleNumeric?: boolean;
   right?: ReactNode;
+  /**
+   * A small node rendered immediately after the title, on the same line.
+   *
+   * For marks that BELONG to the title rather than acting on the screen — a
+   * verified tick beside a shop's name. Distinct from `right`, which is an
+   * action and sits at the far edge; putting a badge there would read as
+   * something to press to change the screen.
+   */
+  titleAccessory?: ReactNode;
   showBack?: boolean;
   onBack?: () => void;
 }
@@ -34,6 +43,7 @@ export function ScreenHeader({
   subtitle,
   subtitleNumeric,
   right,
+  titleAccessory,
   showBack = true,
   onBack,
 }: ScreenHeaderProps) {
@@ -54,9 +64,14 @@ export function ScreenHeader({
       ) : null}
 
       <View style={styles.titleWrap}>
-        <Text variant="h1" numberOfLines={1}>
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          {/* The title shrinks rather than pushing the accessory off the edge:
+              a long shop name must not be able to hide the verified mark. */}
+          <Text variant="h1" numberOfLines={1} style={styles.titleText}>
+            {title}
+          </Text>
+          {titleAccessory}
+        </View>
         {subtitle ? (
           <Text
             variant={subtitleNumeric ? 'mono' : 'bodySm'}
@@ -74,6 +89,8 @@ export function ScreenHeader({
 }
 
 const styles = StyleSheet.create({
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  titleText: { flexShrink: 1 },
   container: {
     flexDirection: 'row',
     alignItems: 'center',

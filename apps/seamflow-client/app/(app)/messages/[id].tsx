@@ -34,6 +34,7 @@ import type { Message, MessageAttachment } from '@seamflow/schemas';
 import { Text, useAtelierTheme, useFieldFocus } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
+import { VerifiedBadge } from '../../../components/VerifiedBadge';
 import { SkeletonList } from '../../../components/Skeleton';
 import {
   useConversation,
@@ -313,6 +314,22 @@ export default function Thread() {
       <View style={styles.padded}>
         <ScreenHeader
           title={conversation?.counterparty.name ?? t('chat.threadTitle')}
+          // The verified mark belongs here as much as on a feed card (J.5):
+          // this is the thread where a client sends body measurements and an
+          // address, so "is this shop real" matters here most of all.
+          //
+          // No role check needed in this app — every thread here is a client
+          // looking at a shop, and `counterparty.id` is therefore a tailor id.
+          titleAccessory={
+            conversation?.counterparty.isVerified ? (
+              <VerifiedBadge
+                tailorId={conversation.counterparty.id}
+                isVerified
+                size={20}
+                color={atelier.primary}
+              />
+            ) : null
+          }
           right={
             conversation?.orderId ? (
               <Pressable
