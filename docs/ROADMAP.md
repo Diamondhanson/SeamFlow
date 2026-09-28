@@ -2746,9 +2746,26 @@ many tailors work from home.
    free tier, so until the organisation's first top-up every send answers 403.
    A key from a SANDBOX application exercises the whole flow for free.
 
-1. **The spine.** `verification_requests`, submit/withdraw, the two-step tailor
-   screen, the dashboard queue, the two notification types, the badge popover
-   that says what was checked. The useful half.
+1. **The spine — DONE 2026-09-28.** `verification_requests`, submit/withdraw,
+   the two-step tailor screen, the dashboard queue, the two notification types
+   and the badge endpoint.
+
+   Evidence is a discriminated array, so phase 3's three extra kinds need a
+   schema change and a card rather than a migration each. Photos live in the
+   private `verification-evidence` bucket under the uploader's own id, and the
+   API refuses a request whose paths sit under anybody else's.
+
+   `tailors.verified_at` is NOT backfilled: null on a verified shop means the
+   badge predates these criteria, so the dashboard can list exactly those.
+
+   The prompt is a home card that SNOOZES for seven days rather than dismissing
+   forever, sits below Getting started rather than in the banner stack, and is
+   deliberately not a checklist step — see the note in VerificationPrompt.tsx
+   for why each of those would break the one rule at the level of tone.
+
+   STILL TO DO on this phase: the badge popover in the app (the endpoint exists,
+   the feed card and chat header do not call it yet), and the 90-day retention
+   job for evidence photos.
 2. **Trust signals.** Compute and display orders completed, joined date,
    response time. No tailor-facing UI at all; it simply appears.
 3. **The extras.** Social handle with the bio code, the foreground check-in,

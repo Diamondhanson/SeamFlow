@@ -27,6 +27,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
     title: 'Supply · the tailor app',
     items: [
       { href: '/tailors', label: 'Tailors' },
+      { href: '/verification', label: 'Verification' },
       { href: '/orders', label: 'Orders' },
       { href: '/invoices', label: 'Invoices' },
       { href: '/feed', label: 'Feed & works' },
@@ -48,7 +49,17 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
   },
 ];
 
-export function Nav({ issues, support, email }: { issues: number; support: number; email: string }) {
+export function Nav({
+  issues,
+  support,
+  verification,
+  email,
+}: {
+  issues: number;
+  support: number;
+  verification: number;
+  email: string;
+}) {
   const path = usePathname();
   const active = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 
@@ -83,6 +94,14 @@ export function Nav({ issues, support, email }: { issues: number; support: numbe
                 {it.href === '/support' && support > 0 ? (
                   <span className="font-mono tnum text-2xs text-bad" title="Tickets waiting on us">
                     {support}
+                  </span>
+                ) : null}
+                {it.href === '/verification' && verification > 0 ? (
+                  <span
+                    className="font-mono tnum text-2xs text-bad"
+                    title="Shops waiting to be verified"
+                  >
+                    {verification}
                   </span>
                 ) : null}
               </Link>

@@ -16,6 +16,18 @@ import { DbService } from '../db/db.service';
 import { tailors, users, verificationRequests } from '../db/schema';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PhoneVerificationService } from '../phone-verification/phone-verification.service';
+import { SupabaseService } from '../supabase/supabase.service';
+
+/** The private bucket evidence lives in. Never public — see the migration. */
+const EVIDENCE_BUCKET = 'verification-evidence';
+/**
+ * How long a staff member's link to a photo lives.
+ *
+ * An hour is plenty to read a queue and long enough that a page left open over
+ * lunch still works, while a link copied out of the dashboard stops being a
+ * permanent handle on a stranger's workshop.
+ */
+const SIGNED_URL_TTL_S = 60 * 60;
 
 /**
  * Verification (appendix J, phase 1).
@@ -44,6 +56,7 @@ export class VerificationService {
     private readonly dbService: DbService,
     private readonly notifications: NotificationsService,
     private readonly phone: PhoneVerificationService,
+    private readonly supabase: SupabaseService,
   ) {}
 
   // -------------------------------------------------------------------------
@@ -210,8 +223,23 @@ export class VerificationService {
       )
       .limit(200);
 
+    // Sign every photo in the page in ONE storage call rather than per row.
+    const paths = rows.flatMap((r) =>
+      ((r.request.evidence ?? []) as VerificationEvidence[])
+        .filter((e) => e.kind === 'work_photo')
+        .map((e) => e.storagePath),
+    );
+    const signed = await this.signEvidence(paths);
+
     return rows.map((r) => ({
       ...this.toRequest(r.request),
+      // The same evidence, with a URL staff can actually open. Absent for a
+      // request whose photos are past retention, which is why the row also
+      // carries `evidencePurged` — "no photo" and "photo we deleted on purpose"
+      // must not look the same to whoever is reading.
+      evidenceUrls: ((r.request.evidence ?? []) as VerificationEvidence[])
+        .filter((e) => e.kind === 'work_photo')
+        .map((e) => ({ storagePath: e.storagePath, url: signed.get(e.storagePath) ?? null })),
       tailor: {
         id: r.tailorId,
         userId: r.userId,
@@ -343,6 +371,19 @@ export class VerificationService {
   }
 
   // -------------------------------------------------------------------------
+
+  /** One storage round trip for a whole page of evidence. */
+  private async signEvidence(paths: string[]): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    if (!paths.length) return out;
+    const { data, error } = await this.supabase
+      .admin()
+      .storage.from(EVIDENCE_BUCKET)
+      .createSignedUrls(paths, SIGNED_URL_TTL_S);
+    if (error) this.logger.warn(`Could not sign verification evidence: ${error.message}`);
+    for (const e of data ?? []) if (e.signedUrl && e.path) out.set(e.path, e.signedUrl);
+    return out;
+  }
 
   private async latestFor(tailorId: string): Promise<VerificationRequest | null> {
     const [row] = await this.dbService.db
