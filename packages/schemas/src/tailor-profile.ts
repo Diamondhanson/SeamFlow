@@ -57,6 +57,12 @@ export const TailorTrustSchema = z.object({
   /** Median reply latency in hours; null until they've replied enough to judge. */
   responseTimeHours: z.number().int().nullable(),
   followerCount: z.number().int(),
+  /**
+   * Orders delivered (appendix J phase 2). Defaulted rather than required, so
+   * an older cached response and a client built before this existed both stay
+   * valid and simply read zero.
+   */
+  completedOrders: z.number().int().default(0),
 });
 export type TailorTrust = z.infer<typeof TailorTrustSchema>;
 
@@ -79,6 +85,15 @@ export const TailorMiniProfileSchema = z.object({
   isVerified: z.boolean(),
   acceptsRemote: z.boolean(),
   responseTimeHours: z.number().int().nullable(),
+  /**
+   * Orders delivered (appendix J phase 2).
+   *
+   * On the MINI profile as well as the full one, because it is the cheapest
+   * reason to tap a card in Discover and withholding it until the second screen
+   * helps nobody. Defaulted, so an older client and a cached response both stay
+   * valid and read zero.
+   */
+  completedOrders: z.number().int().default(0),
 });
 export type TailorMiniProfile = z.infer<typeof TailorMiniProfileSchema>;
 

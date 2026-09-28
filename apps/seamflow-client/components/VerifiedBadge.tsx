@@ -67,6 +67,21 @@ export function VerifiedBadge({
           : t('verification.badgeWork'),
         badge.phoneConfirmed ? t('verification.badgePhone') : null,
         joined ? t('verification.badgeSince', { date: joined }) : null,
+        // Trust signals (phase 2). Shown beside the badge, never part of
+        // earning it — a shop verified on its first day has a badge and no
+        // history, and both readings are correct. Omitted at zero rather than
+        // rendered as "0 orders", which would read as a verdict on a newcomer.
+        badge.completedOrders > 0
+          ? t(
+              badge.completedOrders === 1
+                ? 'verification.badgeOrdersOne'
+                : 'verification.badgeOrders',
+              { count: badge.completedOrders },
+            )
+          : null,
+        badge.responseTimeHours != null
+          ? t('verification.badgeReplies', { hours: badge.responseTimeHours })
+          : null,
       ].filter(Boolean) as string[];
 
       await dialog.alert({

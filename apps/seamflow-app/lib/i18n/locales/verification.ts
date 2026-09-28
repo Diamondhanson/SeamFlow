@@ -56,6 +56,9 @@ export const verification = {
     badgeWorkOn: 'SeamFlow confirmed the work in this shop is their own, {date}.',
     badgePhone: 'Their phone number is confirmed, so they can be reached.',
     badgeSince: 'On SeamFlow since {date}.',
+    badgeOrders: '{count} orders completed through SeamFlow.',
+    badgeOrdersOne: '1 order completed through SeamFlow.',
+    badgeReplies: 'Usually replies within {hours}h.',
     badgeFootnote: 'This is not a rating. It means we checked the shop is real, not that we judged their work.',
   },
   fr: {
@@ -102,6 +105,9 @@ export const verification = {
     badgeWorkOn: 'SeamFlow a confirmé que le travail de cet atelier est bien le sien, en {date}.',
     badgePhone: 'Son numéro de téléphone est confirmé : on peut la joindre.',
     badgeSince: 'Sur SeamFlow depuis {date}.',
+    badgeOrders: '{count} commandes livrées via SeamFlow.',
+    badgeOrdersOne: '1 commande livrée via SeamFlow.',
+    badgeReplies: 'Répond généralement en {hours} h.',
     badgeFootnote: 'Ce n’est pas une note. Cela veut dire que nous avons vérifié que l’atelier est réel, pas que nous avons jugé son travail.',
   },
   pt: {
@@ -148,6 +154,9 @@ export const verification = {
     badgeWorkOn: 'A SeamFlow confirmou que o trabalho desta oficina é mesmo dela, em {date}.',
     badgePhone: 'O número de telefone está confirmado, por isso é possível contactá-la.',
     badgeSince: 'Na SeamFlow desde {date}.',
+    badgeOrders: '{count} encomendas concluídas através da SeamFlow.',
+    badgeOrdersOne: '1 encomenda concluída através da SeamFlow.',
+    badgeReplies: 'Costuma responder em {hours}h.',
     badgeFootnote: 'Isto não é uma classificação. Significa que verificámos que a oficina é real, não que avaliámos o trabalho.',
   },
   es: {
@@ -193,6 +202,9 @@ export const verification = {
     badgeWorkOn: 'SeamFlow confirmó que el trabajo de este taller es suyo, en {date}.',
     badgePhone: 'Su número de teléfono está confirmado, así que se le puede contactar.',
     badgeSince: 'En SeamFlow desde {date}.',
+    badgeOrders: '{count} pedidos completados a través de SeamFlow.',
+    badgeOrdersOne: '1 pedido completado a través de SeamFlow.',
+    badgeReplies: 'Suele responder en {hours} h.',
     badgeFootnote: 'Esto no es una valoración. Significa que comprobamos que el taller es real, no que juzgamos su trabajo.',
   },
   sw: {
@@ -238,6 +250,9 @@ export const verification = {
     badgeWorkOn: 'SeamFlow ilithibitisha kuwa kazi ya duka hili ni yao wenyewe, {date}.',
     badgePhone: 'Namba yao ya simu imethibitishwa, hivyo wanaweza kupatikana.',
     badgeSince: 'Kwenye SeamFlow tangu {date}.',
+    badgeOrders: 'Kazi {count} zimekamilika kupitia SeamFlow.',
+    badgeOrdersOne: 'Kazi 1 imekamilika kupitia SeamFlow.',
+    badgeReplies: 'Hujibu kwa kawaida ndani ya saa {hours}.',
     badgeFootnote: 'Hii si alama ya ubora. Inamaanisha tumethibitisha duka ni halisi, si kwamba tumepima kazi yao.',
   },
   ar: {
@@ -282,6 +297,9 @@ export const verification = {
     badgeWorkOn: 'أكّدت SeamFlow أنّ العمل في هذه الورشة من صنعها، في {date}.',
     badgePhone: 'رقم هاتفها مؤكَّد، ويمكن الوصول إليها.',
     badgeSince: 'على SeamFlow منذ {date}.',
+    badgeOrders: '{count} طلبات أُنجِزت عبر SeamFlow.',
+    badgeOrdersOne: 'طلب واحد أُنجِز عبر SeamFlow.',
+    badgeReplies: 'يردّ عادةً خلال {hours} ساعة.',
     badgeFootnote: 'هذا ليس تقييمًا. معناه أنّنا تحقّقنا من أنّ الورشة حقيقية، لا أنّنا حكمنا على عملها.',
   },
 } as const;

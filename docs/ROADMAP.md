@@ -2781,8 +2781,27 @@ many tailors work from home.
 
    NOTE: as of 2026-09-28 NO tailor is verified, so the "granted before criteria
    existed" backfill concern is moot. Every badge from here carries verified_at.
-2. **Trust signals.** Compute and display orders completed, joined date,
-   response time. No tailor-facing UI at all; it simply appears.
+2. **Trust signals — DONE 2026-09-28.** Orders delivered and median reply time,
+   recomputed nightly at 03:10 by `TrustSignalsService`. No tailor-facing UI at
+   all, as agreed: no screen, no prompt, no "improve your response time" nag.
+
+   `response_time_hours` was NOT new — it existed, and the feed, both
+   storefronts and Discover already read it. Nothing had ever written it, so
+   "Usually replies in Nh" had been blank for every shop since the column was
+   added. This phase was mostly making an existing promise true.
+
+   The reply median counts ONE TURN, ONE NUMBER: a client who sends three
+   messages before the tailor answers asked one question, and counting each
+   would flatter every shop whose clients type in bursts. Median not mean, so a
+   single midnight question answered at nine cannot move it. Null below three
+   answered turns — one conversation is an anecdote, and the only thing worse
+   than no signal is a confident wrong one. 180-day rolling window, because the
+   claim is about the shop NOW.
+
+   Displayed: the storefront stats row (tailor app), the storefront meta line
+   (client app), and the badge popover. Hidden at zero rather than shown as "0
+   orders", which reads as a verdict on a newcomer rather than an absence of
+   history. `pnpm test:trust-signals`.
 3. **The extras.** Social handle with the bio code, the foreground check-in,
    registration number, and the Discover ranking lift.
 

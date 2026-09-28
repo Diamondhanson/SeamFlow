@@ -353,6 +353,8 @@ export class VerificationService {
         verifiedAt: tailors.verifiedAt,
         joinedAt: tailors.createdAt,
         phoneVerifiedAt: users.phoneVerifiedAt,
+        completedOrders: tailors.completedOrders,
+        responseTimeHours: tailors.responseTimeHours,
       })
       .from(tailors)
       .innerJoin(users, eq(users.id, tailors.userId))
@@ -367,6 +369,10 @@ export class VerificationService {
       // Whether they are reachable, never the number itself.
       phoneConfirmed: Boolean(row.phoneVerifiedAt),
       memberSince: row.joinedAt?.toISOString() ?? null,
+      // Phase 2's signals ride along so the popover is a single call. They are
+      // shown beside the badge, never counted towards earning it.
+      completedOrders: row.completedOrders,
+      responseTimeHours: row.responseTimeHours ?? null,
     };
   }
 

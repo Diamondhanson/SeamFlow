@@ -366,6 +366,18 @@ function ShopHeader({
           <Stat value={String(designCount)} label={t('discover.statDesigns')} />
           <View style={[styles.statDivider, { backgroundColor: colors.hairline }]} />
           <Stat value={String(since)} label={t('discover.statSince')} />
+          {/* Appendix J phase 2. Hidden at zero rather than shown as "0", which
+              reads as a judgement on a new shop rather than as an absence of
+              history — and a newcomer with no orders is not a worse tailor. */}
+          {tailor.completedOrders > 0 ? (
+            <>
+              <View style={[styles.statDivider, { backgroundColor: colors.hairline }]} />
+              <Stat
+                value={String(tailor.completedOrders)}
+                label={t('discover.statOrders')}
+              />
+            </>
+          ) : null}
           {tailor.followerCount > 0 ? (
             <>
               <View style={[styles.statDivider, { backgroundColor: colors.hairline }]} />

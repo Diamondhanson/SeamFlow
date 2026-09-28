@@ -14,6 +14,7 @@ export const discover = {
     shareShop: 'Share this shop',
     statDesigns: 'Designs',
     statSince: 'Member since',
+    statOrders: 'Orders done',
     statFollowers: 'Followers',
     share: 'Share',
     // ── Feed ────────────────────────────────────────────────────────────────
@@ -92,6 +93,7 @@ export const discover = {
     shareShop: 'Partager cet atelier',
     statDesigns: 'Créations',
     statSince: 'Membre depuis',
+    statOrders: 'Commandes livrées',
     statFollowers: 'Abonnés',
     share: 'Partager',
     title: 'Découvrir',
@@ -164,6 +166,7 @@ export const discover = {
     shareShop: 'Partilhar este atelier',
     statDesigns: 'Criações',
     statSince: 'Membro desde',
+    statOrders: 'Encomendas feitas',
     statFollowers: 'Seguidores',
     share: 'Compartilhar',
     // ── Feed ────────────────────────────────────────────────────────────────
@@ -241,6 +244,7 @@ export const discover = {
     shareShop: 'Compartir este taller',
     statDesigns: 'Diseños',
     statSince: 'Miembro desde',
+    statOrders: 'Pedidos hechos',
     statFollowers: 'Seguidores',
     share: 'Compartir',
     // ── Muro ────────────────────────────────────────────────────────────────
@@ -317,6 +321,7 @@ export const discover = {
     shareShop: 'Shiriki duka hili',
     statDesigns: 'Miundo',
     statSince: 'Mwanachama tangu',
+    statOrders: 'Kazi zilizokamilika',
     statFollowers: 'Wafuasi',
     share: 'Shiriki',
     // ── Mkondo ──────────────────────────────────────────────────────────────
@@ -393,6 +398,7 @@ export const discover = {
     shareShop: 'مشاركة هذا المشغل',
     statDesigns: 'التصاميم',
     statSince: 'عضو منذ',
+    statOrders: 'طلبات مُنجَزة',
     statFollowers: 'المتابعون',
     share: 'مشاركة',
     // ── الواجهة ────────────────────────────────────────────────────────────

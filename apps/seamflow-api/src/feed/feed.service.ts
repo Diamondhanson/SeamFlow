@@ -113,6 +113,7 @@ export class FeedService {
       isVerified: t.isVerified,
       acceptsRemote: t.acceptsRemote,
       responseTimeHours: t.responseTimeHours ?? null,
+      completedOrders: t.completedOrders,
     };
   }
 

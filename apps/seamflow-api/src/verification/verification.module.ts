@@ -4,6 +4,7 @@ import { PhoneVerificationModule } from '../phone-verification/phone-verificatio
 import { VerificationBadgeController, VerificationController } from './verification.controller';
 import { VerificationService } from './verification.service';
 import { VerificationRetentionService } from './verification-retention.service';
+import { TrustSignalsService } from './trust-signals.service';
 
 /**
  * Verification (appendix J). Exported so the admin module can run the staff
@@ -13,7 +14,7 @@ import { VerificationRetentionService } from './verification-retention.service';
 @Module({
   imports: [NotificationsModule, PhoneVerificationModule],
   controllers: [VerificationController, VerificationBadgeController],
-  providers: [VerificationService, VerificationRetentionService],
-  exports: [VerificationService, VerificationRetentionService],
+  providers: [VerificationService, VerificationRetentionService, TrustSignalsService],
+  exports: [VerificationService, VerificationRetentionService, TrustSignalsService],
 })
 export class VerificationModule {}

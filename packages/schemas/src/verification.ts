@@ -165,5 +165,14 @@ export const VerificationBadgeSchema = z.object({
   verifiedAt: z.string().nullable(),
   phoneConfirmed: z.boolean(),
   memberSince: z.string().nullable(),
+  /**
+   * Trust signals (phase 2), carried here so the popover is one call.
+   *
+   * Shown ALONGSIDE the badge but never part of earning it — J.2 keeps the two
+   * apart, because a shop verified on its first day has a badge and no history,
+   * and that is the correct reading of both.
+   */
+  completedOrders: z.number().int().default(0),
+  responseTimeHours: z.number().int().nullable().default(null),
 });
 export type VerificationBadge = z.infer<typeof VerificationBadgeSchema>;

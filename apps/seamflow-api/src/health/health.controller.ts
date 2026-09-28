@@ -4,6 +4,7 @@ import { QueueService } from '../queue/queue.service';
 import { AccountPurgeService } from '../account/account-purge.service';
 import { ChatMediaRetentionService } from '../chat/chat-media-retention.service';
 import { VerificationRetentionService } from '../verification/verification-retention.service';
+import { TrustSignalsService } from '../verification/trust-signals.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CheckoutService } from '../subscriptions/checkout.service';
 import { sentryEnabled } from '../common/sentry';
@@ -38,6 +39,7 @@ export class HealthController {
     private readonly purge: AccountPurgeService,
     private readonly retention: ChatMediaRetentionService,
     private readonly verificationRetention: VerificationRetentionService,
+    private readonly trustSignals: TrustSignalsService,
     private readonly subscriptions: SubscriptionsService,
     private readonly checkout: CheckoutService,
   ) {}
@@ -82,6 +84,21 @@ export class HealthController {
       throw new NotFoundException();
     }
     return { cleared: await this.verificationRetention.run() };
+  }
+
+  /**
+   * Same rules: recompute the trust signals now rather than at 03:10.
+   *
+   * Also the only way to fill them in for the first time on an environment that
+   * has been running since before phase 2 — otherwise every shop reads zero
+   * orders and no reply time until the cron next fires.
+   */
+  @Post('run-trust-signals')
+  async runTrustSignals(): Promise<{ orders: number; replies: number }> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new NotFoundException();
+    }
+    return this.trustSignals.run();
   }
 
   /**

@@ -95,6 +95,17 @@ export function StorefrontView({
                 tailor.responseTimeHours != null
                   ? t('discover.repliesIn', { hours: tailor.responseTimeHours })
                   : null,
+                // Appendix J phase 2. Omitted at zero rather than shown as
+                // "0 orders", which reads as a judgement on a new shop rather
+                // than as an absence of history.
+                tailor.completedOrders > 0
+                  ? t(
+                      tailor.completedOrders === 1
+                        ? 'discover.ordersDoneOne'
+                        : 'discover.ordersDone',
+                      { count: tailor.completedOrders },
+                    )
+                  : null,
               ]
                 .filter(Boolean)
                 .join(' · ')}

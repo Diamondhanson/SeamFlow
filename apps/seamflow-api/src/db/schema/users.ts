@@ -108,6 +108,14 @@ export const tailors = pgTable(
     followerCount: integer('follower_count').notNull().default(0),
     /** Median tailor reply latency, recomputed nightly. Null until enough data. */
     responseTimeHours: integer('response_time_hours'),
+    /**
+     * Orders delivered, recomputed nightly by TrustSignalsService.
+     *
+     * Like `responseTimeHours` and `isVerified`, this is deliberately absent
+     * from TailorProfileUpdate: a trust signal the tailor can type in is not a
+     * trust signal.
+     */
+    completedOrders: integer('completed_orders').notNull().default(0),
 
     // ── Shareable catalogue (/t/<slug>) ────────────────────────────────────
     /**
