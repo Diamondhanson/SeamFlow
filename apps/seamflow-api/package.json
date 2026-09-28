@@ -32,7 +32,8 @@
     "test:media-retention": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-media-retention.ts",
     "test:subscriptions": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-subscriptions.ts",
     "test:fapshi": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-fapshi.ts",
-    "test:phone": "nest build && node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-phone-verification.ts"
+    "test:phone": "nest build && node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-phone-verification.ts",
+    "test:verification": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

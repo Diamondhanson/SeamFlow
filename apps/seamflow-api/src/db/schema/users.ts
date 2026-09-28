@@ -94,6 +94,16 @@ export const tailors = pgTable(
     languages: jsonb('languages').notNull().default([]),
     avatarPath: text('avatar_path'),
     isVerified: boolean('is_verified').notNull().default(false),
+    /**
+     * When the badge was granted on evidence (appendix J).
+     *
+     * Null on a verified shop means the badge predates appendix J — granted by
+     * a staff button with no criteria behind it. The dashboard lists exactly
+     * those so they can be worked through; nobody loses a badge silently.
+     */
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    /** What was checked, in staff words. Feeds the badge popover (J.5). */
+    verifiedNote: text('verified_note'),
     acceptsRemote: boolean('accepts_remote').notNull().default(false),
     followerCount: integer('follower_count').notNull().default(0),
     /** Median tailor reply latency, recomputed nightly. Null until enough data. */

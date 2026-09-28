@@ -23,5 +23,6 @@ export * from './phone-verifications';
 export * from './notifications';
 export * from './requests';
 export * from './support';
+export * from './verification-requests';
 export * from './subscriptions';
 export * from './admin-actions';

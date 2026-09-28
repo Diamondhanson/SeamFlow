@@ -32,4 +32,5 @@ export * from './phone-verification';
 export * from './notification';
 export * from './search';
 export * from './support';
+export * from './verification';
 export * from './subscription';

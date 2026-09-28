@@ -122,3 +122,17 @@ export const offerStatusEnum = pgEnum('offer_status', [
   'declined',
   'withdrawn',
 ]);
+
+/**
+ * Where a verification request stands (appendix J).
+ *
+ * `withdrawn` is distinct from `rejected` on purpose: a tailor taking their own
+ * request back is not a decision against them, and the queue must not read it
+ * as one.
+ */
+export const verificationStatusEnum = pgEnum('verification_status', [
+  'pending',
+  'approved',
+  'rejected',
+  'withdrawn',
+]);

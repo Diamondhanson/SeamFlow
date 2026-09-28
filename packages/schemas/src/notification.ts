@@ -59,6 +59,13 @@ export const NotificationTypeSchema = z.enum([
   // Subscriptions: the trial or paid time is about to run out, and the moment
   // it does some features stop. Push only — the plans screen is the record.
   'subscription.expiring',
+
+  // Verification (appendix J). Both are persisted and neither is pushed: the
+  // screen they open says far more than a tray line can, and a rejection in
+  // particular has to arrive with its reason attached rather than as a buzz
+  // that says "bad news, look inside".
+  'verification.approved',
+  'verification.rejected',
 ]);
 export type NotificationType = z.infer<typeof NotificationTypeSchema>;
 
@@ -70,6 +77,7 @@ export const NotificationEntityTypeSchema = z.enum([
   'offer',
   'invoice',
   'support_ticket',
+  'verification_request',
 ]);
 export type NotificationEntityType = z.infer<typeof NotificationEntityTypeSchema>;
 
