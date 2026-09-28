@@ -1,0 +1,251 @@
+// ============================================================================
+// Verification — proving a shop is real (appendix J).
+//
+// The copy here carries the one rule: nothing about verification blocks
+// anybody. Every string that could read as a requirement says the opposite out
+// loud — "skipping it changes nothing", "entirely optional" — because a tailor
+// who believes they must do this, and cannot, will simply leave.
+//
+// The step-two text is the longest string in the app on purpose. A camera-only
+// picker with no explanation reads as a broken feature, and people work around
+// things they think are broken; explaining that the live photo IS the check is
+// what makes it land as reasonable rather than as an obstacle.
+// ============================================================================
+
+export const verification = {
+  en: {
+    title: 'Get verified',
+    statusVerified: 'Verified',
+    statusPending: 'Waiting on us',
+    statusDeclined: 'Not yet',
+    statusNone: 'Not started',
+    lede:
+      'Two steps, about five minutes. It shows clients the work in your shop is your own. Skipping it changes nothing: you keep every feature, and you still appear in Discover.',
+    ledeVerified:
+      'Your shop is verified. You can send this again if anything about your shop has changed.',
+    alreadyVerified: 'SeamFlow has confirmed your shop.',
+    step1Title: 'Confirm your phone number',
+    step1Body: 'So a client can tell there is a reachable person behind the shop.',
+    step1Action: 'Confirm my number',
+    step2Title: 'Show us a piece you made',
+    step2Body:
+      'This opens your camera, and only your camera. Photograph something you are working on now, on the machine or the cutting table. Or re-shoot a piece from your feed from a new angle with a note showing your shop name and today\u2019s date. That is the whole check: anyone can save a picture, only you can take this one.',
+    step2Action: 'Open the camera',
+    step2Another: 'Take another',
+    submitAction: 'Send for review',
+    needPhoneFirst: 'Confirm your phone number to send this.',
+    sentTitle: 'Sent',
+    sentBody: 'We usually look within two days. We will let you know either way.',
+    pendingBody: 'Your request is with us. We usually look within two days.',
+    declinedBody: 'We could not verify your shop yet. {reason}',
+    withdrawAction: 'Take my request back',
+    withdrawTitle: 'Take it back?',
+    withdrawBody: 'We will stop looking. You can send a new request whenever you like.',
+    privacyNote:
+      'Only SeamFlow staff see these photos, and we delete them 90 days after we decide. They never appear on your shop or in Discover.',
+    promptTitle: 'Show clients the work is yours',
+    promptBody:
+      'Verified shops carry a mark clients can tap to see what we checked. Two steps, about five minutes. Entirely optional.',
+    promptAction: 'Start',
+    promptLater: 'Not now',
+    promptDeclinedTitle: 'Your verification needs one more thing',
+    promptDeclinedBody: 'We could not verify your shop yet. Open it to see why and send it again.',
+    promptDeclinedAction: 'See why',
+  },
+  fr: {
+    title: 'Faire vérifier mon atelier',
+    statusVerified: 'Vérifié',
+    statusPending: 'En attente de notre réponse',
+    statusDeclined: 'Pas encore',
+    statusNone: 'Pas commencé',
+    lede:
+      'Deux étapes, environ cinq minutes. Cela montre aux clientes que le travail de votre atelier est bien le vôtre. Ne rien faire ne change rien : vous gardez toutes les fonctions et vous apparaissez toujours dans Découvrir.',
+    ledeVerified:
+      'Votre atelier est vérifié. Vous pouvez renvoyer une demande si quelque chose a changé.',
+    alreadyVerified: 'SeamFlow a confirmé votre atelier.',
+    step1Title: 'Confirmez votre numéro de téléphone',
+    step1Body: 'Pour qu’une cliente sache qu’une personne joignable tient l’atelier.',
+    step1Action: 'Confirmer mon numéro',
+    step2Title: 'Montrez-nous une pièce que vous avez faite',
+    step2Body:
+      'Cela ouvre votre appareil photo, et rien d’autre. Photographiez ce sur quoi vous travaillez maintenant, sur la machine ou sur la table de coupe. Ou reprenez une pièce de votre vitrine sous un autre angle, avec un mot montrant le nom de votre atelier et la date du jour. C’est tout le contrôle : n’importe qui peut enregistrer une image, vous seule pouvez prendre celle-ci.',
+    step2Action: 'Ouvrir l’appareil photo',
+    step2Another: 'En prendre une autre',
+    submitAction: 'Envoyer pour vérification',
+    needPhoneFirst: 'Confirmez votre numéro de téléphone pour envoyer.',
+    sentTitle: 'Envoyé',
+    sentBody: 'Nous regardons généralement sous deux jours. Nous vous répondrons dans tous les cas.',
+    pendingBody: 'Votre demande est chez nous. Nous regardons généralement sous deux jours.',
+    declinedBody: 'Nous n’avons pas encore pu vérifier votre atelier. {reason}',
+    withdrawAction: 'Retirer ma demande',
+    withdrawTitle: 'Retirer la demande ?',
+    withdrawBody: 'Nous arrêterons de l’examiner. Vous pourrez en envoyer une autre quand vous voudrez.',
+    privacyNote:
+      'Seule l’équipe SeamFlow voit ces photos, et nous les supprimons 90 jours après notre réponse. Elles n’apparaissent jamais sur votre vitrine ni dans Découvrir.',
+    promptTitle: 'Montrez aux clientes que ce travail est le vôtre',
+    promptBody:
+      'Les ateliers vérifiés portent une marque sur laquelle les clientes peuvent appuyer pour voir ce que nous avons contrôlé. Deux étapes, environ cinq minutes. Entièrement facultatif.',
+    promptAction: 'Commencer',
+    promptLater: 'Plus tard',
+    promptDeclinedTitle: 'Il manque une chose à votre vérification',
+    promptDeclinedBody:
+      'Nous n’avons pas encore pu vérifier votre atelier. Ouvrez pour voir pourquoi et renvoyer.',
+    promptDeclinedAction: 'Voir pourquoi',
+  },
+  pt: {
+    title: 'Verificar a minha oficina',
+    statusVerified: 'Verificada',
+    statusPending: 'À espera de nós',
+    statusDeclined: 'Ainda não',
+    statusNone: 'Por começar',
+    lede:
+      'Dois passos, cerca de cinco minutos. Mostra aos clientes que o trabalho da sua oficina é mesmo seu. Não fazer nada não muda nada: mantém todas as funções e continua a aparecer em Descobrir.',
+    ledeVerified:
+      'A sua oficina está verificada. Pode enviar de novo se algo tiver mudado.',
+    alreadyVerified: 'A SeamFlow confirmou a sua oficina.',
+    step1Title: 'Confirme o seu número de telefone',
+    step1Body: 'Para que um cliente saiba que há uma pessoa contactável por trás da oficina.',
+    step1Action: 'Confirmar o meu número',
+    step2Title: 'Mostre-nos uma peça que fez',
+    step2Body:
+      'Isto abre a sua câmara, e só a câmara. Fotografe aquilo em que está a trabalhar agora, na máquina ou na mesa de corte. Ou volte a fotografar uma peça da sua vitrine noutro ângulo, com um papel onde se veja o nome da oficina e a data de hoje. É essa a verificação: qualquer pessoa guarda uma imagem, só você tira esta.',
+    step2Action: 'Abrir a câmara',
+    step2Another: 'Tirar outra',
+    submitAction: 'Enviar para análise',
+    needPhoneFirst: 'Confirme o seu número de telefone para enviar.',
+    sentTitle: 'Enviado',
+    sentBody: 'Costumamos ver dentro de dois dias. Damos notícias de qualquer forma.',
+    pendingBody: 'O seu pedido está connosco. Costumamos ver dentro de dois dias.',
+    declinedBody: 'Ainda não conseguimos verificar a sua oficina. {reason}',
+    withdrawAction: 'Retirar o meu pedido',
+    withdrawTitle: 'Retirar o pedido?',
+    withdrawBody: 'Deixamos de o analisar. Pode enviar outro quando quiser.',
+    privacyNote:
+      'Só a equipa da SeamFlow vê estas fotos, e apagamo-las 90 dias depois de decidirmos. Nunca aparecem na sua vitrine nem em Descobrir.',
+    promptTitle: 'Mostre aos clientes que o trabalho é seu',
+    promptBody:
+      'As oficinas verificadas têm uma marca que os clientes podem tocar para ver o que confirmámos. Dois passos, cerca de cinco minutos. Totalmente opcional.',
+    promptAction: 'Começar',
+    promptLater: 'Agora não',
+    promptDeclinedTitle: 'Falta uma coisa à sua verificação',
+    promptDeclinedBody:
+      'Ainda não conseguimos verificar a sua oficina. Abra para ver porquê e enviar de novo.',
+    promptDeclinedAction: 'Ver porquê',
+  },
+  es: {
+    title: 'Verificar mi taller',
+    statusVerified: 'Verificado',
+    statusPending: 'Esperándonos',
+    statusDeclined: 'Todavía no',
+    statusNone: 'Sin empezar',
+    lede:
+      'Dos pasos, unos cinco minutos. Muestra a los clientes que el trabajo de tu taller es tuyo. No hacerlo no cambia nada: conservas todas las funciones y sigues apareciendo en Descubrir.',
+    ledeVerified: 'Tu taller está verificado. Puedes enviarlo de nuevo si algo ha cambiado.',
+    alreadyVerified: 'SeamFlow ha confirmado tu taller.',
+    step1Title: 'Confirma tu número de teléfono',
+    step1Body: 'Para que un cliente sepa que hay una persona localizable detrás del taller.',
+    step1Action: 'Confirmar mi número',
+    step2Title: 'Enséñanos una pieza que hayas hecho',
+    step2Body:
+      'Esto abre tu cámara, y solo la cámara. Fotografía lo que estés haciendo ahora, en la máquina o en la mesa de corte. O vuelve a fotografiar una pieza de tu escaparate desde otro ángulo, con una nota donde se vea el nombre de tu taller y la fecha de hoy. Esa es toda la comprobación: cualquiera puede guardar una imagen, solo tú puedes hacer esta.',
+    step2Action: 'Abrir la cámara',
+    step2Another: 'Hacer otra',
+    submitAction: 'Enviar para revisión',
+    needPhoneFirst: 'Confirma tu número de teléfono para enviarlo.',
+    sentTitle: 'Enviado',
+    sentBody: 'Solemos mirarlo en dos días. Te avisaremos en cualquier caso.',
+    pendingBody: 'Tu solicitud está con nosotros. Solemos mirarla en dos días.',
+    declinedBody: 'Todavía no hemos podido verificar tu taller. {reason}',
+    withdrawAction: 'Retirar mi solicitud',
+    withdrawTitle: '¿Retirar la solicitud?',
+    withdrawBody: 'Dejaremos de revisarla. Puedes enviar otra cuando quieras.',
+    privacyNote:
+      'Solo el equipo de SeamFlow ve estas fotos, y las borramos 90 días después de decidir. Nunca aparecen en tu escaparate ni en Descubrir.',
+    promptTitle: 'Muestra a los clientes que el trabajo es tuyo',
+    promptBody:
+      'Los talleres verificados llevan una marca que los clientes pueden tocar para ver qué comprobamos. Dos pasos, unos cinco minutos. Totalmente opcional.',
+    promptAction: 'Empezar',
+    promptLater: 'Ahora no',
+    promptDeclinedTitle: 'A tu verificación le falta una cosa',
+    promptDeclinedBody:
+      'Todavía no hemos podido verificar tu taller. Ábrelo para ver por qué y enviarlo otra vez.',
+    promptDeclinedAction: 'Ver por qué',
+  },
+  sw: {
+    title: 'Thibitisha duka langu',
+    statusVerified: 'Limethibitishwa',
+    statusPending: 'Linatusubiri',
+    statusDeclined: 'Bado',
+    statusNone: 'Hujaanza',
+    lede:
+      'Hatua mbili, kama dakika tano. Huwaonyesha wateja kuwa kazi ya duka lako ni yako mwenyewe. Kutofanya hakubadilishi chochote: unabaki na kila kipengele, na bado unaonekana kwenye Gundua.',
+    ledeVerified: 'Duka lako limethibitishwa. Unaweza kutuma tena kama kitu kimebadilika.',
+    alreadyVerified: 'SeamFlow imethibitisha duka lako.',
+    step1Title: 'Thibitisha namba yako ya simu',
+    step1Body: 'Ili mteja ajue kuna mtu anayepatikana nyuma ya duka.',
+    step1Action: 'Thibitisha namba yangu',
+    step2Title: 'Tuonyeshe kipande ulichotengeneza',
+    step2Body:
+      'Hii inafungua kamera yako, na kamera pekee. Piga picha ya unachofanya sasa, kwenye cherehani au meza ya kukata. Au piga tena kipande kilicho kwenye duka lako kwa mtazamo mwingine, na karatasi inayoonyesha jina la duka lako na tarehe ya leo. Huo ndio ukaguzi wote: mtu yeyote anaweza kuhifadhi picha, wewe pekee unaweza kupiga hii.',
+    step2Action: 'Fungua kamera',
+    step2Another: 'Piga nyingine',
+    submitAction: 'Tuma ikaguliwe',
+    needPhoneFirst: 'Thibitisha namba yako ya simu ili kutuma.',
+    sentTitle: 'Imetumwa',
+    sentBody: 'Kwa kawaida tunaangalia ndani ya siku mbili. Tutakujulisha vyovyote itakavyokuwa.',
+    pendingBody: 'Ombi lako liko kwetu. Kwa kawaida tunaangalia ndani ya siku mbili.',
+    declinedBody: 'Bado hatujaweza kuthibitisha duka lako. {reason}',
+    withdrawAction: 'Ondoa ombi langu',
+    withdrawTitle: 'Uondoe ombi?',
+    withdrawBody: 'Tutaacha kuliangalia. Unaweza kutuma jipya wakati wowote.',
+    privacyNote:
+      'Wafanyakazi wa SeamFlow pekee wanaona picha hizi, na tunazifuta siku 90 baada ya kuamua. Hazionekani kamwe kwenye duka lako wala kwenye Gundua.',
+    promptTitle: 'Waonyeshe wateja kuwa kazi ni yako',
+    promptBody:
+      'Maduka yaliyothibitishwa yana alama ambayo wateja wanaweza kugusa kuona tulichokagua. Hatua mbili, kama dakika tano. Ni hiari kabisa.',
+    promptAction: 'Anza',
+    promptLater: 'Si sasa',
+    promptDeclinedTitle: 'Uthibitishaji wako unahitaji kitu kimoja zaidi',
+    promptDeclinedBody:
+      'Bado hatujaweza kuthibitisha duka lako. Fungua uone sababu na utume tena.',
+    promptDeclinedAction: 'Ona sababu',
+  },
+  ar: {
+    title: 'توثيق ورشتي',
+    statusVerified: 'موثَّقة',
+    statusPending: 'في انتظارنا',
+    statusDeclined: 'ليس بعد',
+    statusNone: 'لم تبدأ',
+    lede:
+      'خطوتان، نحو خمس دقائق. تُظهر للعملاء أنّ العمل في ورشتك من صنعك. وتركها لا يغيّر شيئًا: تحتفظ بكل الميزات، وتظل تظهر في «اكتشف».',
+    ledeVerified: 'ورشتك موثَّقة. يمكنك الإرسال مرّة أخرى إن تغيّر شيء.',
+    alreadyVerified: 'أكّدت SeamFlow ورشتك.',
+    step1Title: 'أكِّد رقم هاتفك',
+    step1Body: 'حتى يعرف العميل أنّ خلف الورشة شخصًا يمكن الوصول إليه.',
+    step1Action: 'تأكيد رقمي',
+    step2Title: 'أرِنا قطعة صنعتها',
+    step2Body:
+      'هذا يفتح الكاميرا، والكاميرا وحدها. صوِّر ما تعمل عليه الآن، على الماكينة أو على طاولة القص. أو أعِد تصوير قطعة من متجرك من زاوية أخرى، مع ورقة يظهر فيها اسم ورشتك وتاريخ اليوم. هذا هو الفحص كلّه: أيّ أحد يستطيع حفظ صورة، وأنت وحدك تستطيع التقاط هذه.',
+    step2Action: 'فتح الكاميرا',
+    step2Another: 'التقاط أخرى',
+    submitAction: 'إرسال للمراجعة',
+    needPhoneFirst: 'أكِّد رقم هاتفك لترسل.',
+    sentTitle: 'أُرسِل',
+    sentBody: 'ننظر عادةً خلال يومين. وسنخبرك بالنتيجة في الحالتين.',
+    pendingBody: 'طلبك عندنا. ننظر عادةً خلال يومين.',
+    declinedBody: 'لم نتمكّن بعد من توثيق ورشتك. {reason}',
+    withdrawAction: 'سحب طلبي',
+    withdrawTitle: 'سحب الطلب؟',
+    withdrawBody: 'سنتوقّف عن النظر فيه. ويمكنك إرسال طلب جديد متى شئت.',
+    privacyNote:
+      'لا يرى هذه الصور إلّا فريق SeamFlow، ونحذفها بعد 90 يومًا من قرارنا. ولا تظهر أبدًا في متجرك ولا في «اكتشف».',
+    promptTitle: 'أرِ العملاء أنّ العمل عملك',
+    promptBody:
+      'الورش الموثَّقة تحمل علامة يضغط عليها العميل ليرى ما فحصناه. خطوتان، نحو خمس دقائق. اختياري تمامًا.',
+    promptAction: 'ابدأ',
+    promptLater: 'ليس الآن',
+    promptDeclinedTitle: 'ينقص توثيقك شيء واحد',
+    promptDeclinedBody: 'لم نتمكّن بعد من توثيق ورشتك. افتح لترى السبب وترسل مرّة أخرى.',
+    promptDeclinedAction: 'اعرف السبب',
+  },
+} as const;

@@ -70,6 +70,9 @@ const TAILOR_ROUTES = {
   request: (id: string) => `/(app)/requests/${id}`,
   offer: (id: string) => `/(app)/requests/offers`,
   support_ticket: (id: string) => `/(app)/support/${id}`,
+  // One screen regardless of which request it was: it always shows the latest,
+  // and after a decline that is the one carrying the reason to act on.
+  verification_request: () => '/(app)/verification',
 };
 
 export default function Notifications() {

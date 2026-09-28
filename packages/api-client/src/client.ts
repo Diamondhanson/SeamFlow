@@ -74,6 +74,10 @@ import {
 import { makeRequestsResource, type RequestsResource } from './resources/requests';
 import { makeSupportResource, type SupportResource } from './resources/support';
 import { makeWorksResource, type WorksResource } from './resources/works';
+import {
+  makeVerificationResource,
+  type VerificationResource,
+} from './resources/verification';
 
 export interface ApiClient {
   health: HealthResource;
@@ -107,6 +111,8 @@ export interface ApiClient {
   requests: RequestsResource;
   support: SupportResource;
   works: WorksResource;
+  /** Proving a shop is real (appendix J). Never a gate. */
+  verification: VerificationResource;
 }
 
 export type ApiClientConfig = HttpConfig;
@@ -155,5 +161,6 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     requests: makeRequestsResource(http),
     support: makeSupportResource(http),
     works: makeWorksResource(http),
+    verification: makeVerificationResource(http),
   };
 }

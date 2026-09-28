@@ -39,6 +39,7 @@ const TITLE_KEY: Record<NotificationEntityType, string> = {
   request: 'notifications.aboutRequest',
   offer: 'notifications.aboutOffer',
   support_ticket: 'notifications.aboutSupport',
+  verification_request: 'notifications.aboutVerification',
 };
 
 const OPEN_KEY: Record<NotificationEntityType, string> = {
@@ -48,6 +49,7 @@ const OPEN_KEY: Record<NotificationEntityType, string> = {
   request: 'notifications.openRequest',
   offer: 'notifications.openOffer',
   support_ticket: 'notifications.openSupport',
+  verification_request: 'notifications.openVerification',
 };
 
 /** The full moment, not the list's shorthand: this is the detail view. */

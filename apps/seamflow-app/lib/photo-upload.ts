@@ -66,6 +66,9 @@ const CHAT_BUCKET = 'chat-media';
 const REQUESTS_BUCKET = 'requests';
 /** Help & Support screenshots — private, foldered by the uploader's user id. */
 const SUPPORT_BUCKET = 'support-media';
+// Private. Photos of somebody's workshop and their hands — never public, and
+// deleted 90 days after a decision (appendix J.4).
+const VERIFICATION_BUCKET = 'verification-evidence';
 
 // A profile photo needs just one modest square-ish variant.
 const AVATAR_MAX_DIM = 512;
@@ -708,4 +711,32 @@ function cryptoRandom(): string {
     '-' +
     Math.random().toString(36).slice(2, 10)
   );
+}
+
+/**
+ * Compress and upload a verification evidence photo into the PRIVATE
+ * `verification-evidence` bucket. Path: `<userId>/<uuid>.<ext>`.
+ *
+ * The prefix is not decoration: the bucket's storage policy only lets an
+ * authenticated user write under their own id, and the API refuses a request
+ * whose evidence sits under anybody else's. Both, because a client-supplied
+ * path with only one of them is a way to be verified on a stranger's work.
+ *
+ * Only a full-size image is uploaded. A thumbnail exists to make a list scroll
+ * cheaply; staff look at one of these at a time and need the detail, and every
+ * extra copy is another photo of someone's workshop to delete in 90 days.
+ */
+export async function uploadVerificationEvidence(args: {
+  userId: string;
+  asset: PickedAsset;
+}): Promise<{ storagePath: string; width: number | null; height: number | null }> {
+  const { userId, asset } = args;
+  const full = await encodeVariant(asset, FULL_MAX_DIM, FULL_QUALITY);
+  const storagePath = `${userId}/${cryptoRandom()}.${full.ext}`;
+  await uploadOne(VERIFICATION_BUCKET, storagePath, full);
+  return {
+    storagePath,
+    width: asset.width ?? null,
+    height: asset.height ?? null,
+  };
 }

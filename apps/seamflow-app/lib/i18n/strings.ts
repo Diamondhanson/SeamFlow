@@ -32,6 +32,7 @@ import { cnotifications } from './locales/cnotifications';
 import { crequests } from './locales/crequests';
 import { claim } from './locales/claim';
 import { settings } from './locales/settings';
+import { verification } from './locales/verification';
 import { account } from './locales/account';
 import { auth } from './locales/auth';
 import { home } from './locales/home';
@@ -118,6 +119,7 @@ const NAMESPACES = {
   crequests,
   claim,
   settings,
+  verification,
   account,
   auth,
   home,

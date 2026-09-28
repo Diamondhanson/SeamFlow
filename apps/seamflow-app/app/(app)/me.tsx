@@ -22,6 +22,7 @@ import {
   useMe,
   useNotificationPreferences,
   usePhoneStatus,
+  useVerification,
   useUpdateNotificationPreferences,
   useUpsertMyTailor,
 } from '../../lib/queries';
@@ -63,6 +64,7 @@ export default function Me() {
   const { data: me, isLoading } = useMe();
   // Cheap, cached, and decides whether the verification section exists at all.
   const { data: phone } = usePhoneStatus();
+  const { data: verification } = useVerification();
   const { t, language, setLanguage } = useTranslation();
   const { preference } = useThemeMode();
   const scroll = useFloatingScroll();
@@ -338,6 +340,23 @@ export default function Me() {
                 label={t('settings.phoneTitle')}
                 value={phone.verified ? (phone.phone ?? undefined) : t('settings.phoneNotConfirmed')}
                 onPress={() => router.push('/(app)/phone')}
+              />
+              {/* The permanent way in. The home card snoozes and the
+                  notification only fires on a decision, so this is what someone
+                  who dismissed everything else can still find. */}
+              <SettingsRow
+                icon="shield-checkmark-outline"
+                label={t('verification.title')}
+                value={
+                  verification?.isVerified
+                    ? t('verification.statusVerified')
+                    : verification?.request?.status === 'pending'
+                      ? t('verification.statusPending')
+                      : verification?.request?.status === 'rejected'
+                        ? t('verification.statusDeclined')
+                        : t('verification.statusNone')
+                }
+                onPress={() => router.push('/(app)/verification')}
               />
             </SettingsCard>
           </>

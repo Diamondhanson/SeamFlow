@@ -19,6 +19,7 @@ import { Screen } from '../../components/Screen';
 import { GettingStarted } from '../../components/GettingStarted';
 import { PendingDeletionBanner } from '../../components/PendingDeletionBanner';
 import { ProfileReminderBanner } from '../../components/ProfileReminderBanner';
+import { VerificationPrompt } from '../../components/VerificationPrompt';
 import { TrialBanner } from '../../components/TrialBanner';
 import { SuspensionBanner } from '../../components/SuspensionBanner';
 import { ColdStartBanner } from '../../components/ColdStartBanner';
@@ -281,6 +282,14 @@ export default function Home() {
         </View>
 
         <GettingStarted />
+        {/* Deliberately NOT in the banner stack at the top of this screen.
+            Those are states — a cold start, a pending deletion, a hold, a trial
+            running out — and they earn that position by being things the tailor
+            has to know before they do anything. Verification is optional
+            (appendix J's one rule), so it sits down here with the other
+            "when you have a minute" material and never above the shop's own
+            name. */}
+        <VerificationPrompt />
 
         {/* Shortcuts — a few high-value jumps; the long tail lives in "More". */}
         <View style={styles.slabel}>

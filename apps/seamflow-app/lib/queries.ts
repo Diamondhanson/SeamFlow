@@ -46,6 +46,7 @@ import type {
   PromoteMemberToClientInput,
   SaveMemberMeasurementsInput,
   TailorProfileUpdateInput,
+  VerificationEvidence,
   TailorUpsertInput,
   WorkAdoptInput,
   WorkImagesAddInput,
@@ -101,6 +102,32 @@ export function useConfirmPhoneVerification() {
       void qc.invalidateQueries({ queryKey: qk.phoneStatus() });
       void qc.invalidateQueries({ queryKey: qk.me() });
     },
+  });
+}
+
+/**
+ * Where this shop stands on verification, plus the preconditions.
+ *
+ * Never treat a failure here as blocking. Appendix J's one rule is that a
+ * tailor who ignores verification keeps every feature they have, so the only
+ * consequence of this query failing is that the prompt does not appear.
+ */
+export const useVerification = () =>
+  useQuery({ queryKey: qk.verification(), queryFn: () => api.verification.state() });
+
+export function useSubmitVerification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (evidence: VerificationEvidence[]) => api.verification.submit(evidence),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.verification() }),
+  });
+}
+
+export function useWithdrawVerification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.verification.withdraw(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.verification() }),
   });
 }
 
