@@ -4,6 +4,9 @@ import type {
   CheckoutResult,
   DeletionState,
   PaymentAttempt,
+  PhoneVerifyStartInput,
+  PhoneVerifyStartResult,
+  PhoneVerifyStatus,
   SubscriptionState,
   Tailor,
   User,
@@ -64,6 +67,41 @@ export function makeMeResource(http: HttpClient) {
     },
     payments(): Promise<{ items: PaymentAttempt[] }> {
       return http.get<{ items: PaymentAttempt[] }>('/subscriptions/payments');
+    },
+
+    /**
+     * GET /me/phone — is this account's number proven?
+     *
+     * `enabled` is false when the server has no OTP provider configured. Read
+     * it before offering the flow: the endpoints answer 503 otherwise, and an
+     * entry point that can only fail is worse than no entry point.
+     */
+    phoneStatus(): Promise<PhoneVerifyStatus> {
+      return http.get<PhoneVerifyStatus>('/me/phone');
+    },
+
+    /**
+     * POST /me/phone/start — send a code, WhatsApp first.
+     *
+     * Pass the number exactly as the user typed it plus `defaultCountry`; the
+     * server normalises to E.164 so the app never reimplements phone parsing.
+     * Render the `ttlMinutes` that comes back rather than assuming one — it is
+     * the provider's window, and providers disagree.
+     */
+    startPhoneVerification(input: PhoneVerifyStartInput): Promise<PhoneVerifyStartResult> {
+      return http.post<PhoneVerifyStartResult>('/me/phone/start', input);
+    },
+
+    /**
+     * POST /me/phone/confirm — prove it.
+     *
+     * On success the number is committed to the account and
+     * `phoneVerifiedAt` is set. Every failure answers the same 400, on purpose:
+     * telling a caller whether a code was wrong, expired or never existed tells
+     * an attacker which knob to turn.
+     */
+    confirmPhoneVerification(code: string): Promise<{ phone: string; verifiedAt: string }> {
+      return http.post<{ phone: string; verifiedAt: string }>('/me/phone/confirm', { code });
     },
   };
 }

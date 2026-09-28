@@ -82,9 +82,27 @@ export const envSchema = z.object({
   //   unset      → disabled, endpoints 503
   //   'console'  → dev only; logs the code instead of sending it. Refuses to
   //                run when NODE_ENV=production.
+  //   'didit'    → WhatsApp first with automatic SMS fallback. Needs
+  //                DIDIT_API_KEY. Didit owns the code itself, which is why the
+  //                seam has two provider shapes; see otp-provider.ts.
   //   (future)   → add the real provider slug here and a case in
-  //                phone-verification/otp-provider.ts
+  //                phone-verification/resolve-otp-provider.ts
   OTP_PROVIDER: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
+
+  // Didit's API key, from business.didit.me → your Application → API & Webhooks.
+  // Server-side only: it must never reach an app bundle. Without it,
+  // OTP_PROVIDER=didit resolves to the unconfigured provider and the endpoints
+  // answer 503 rather than pretending to work.
+  //
+  // NOTE ON BILLING: phone verification is pay-as-you-go and is NOT part of
+  // Didit's free tier (that covers full KYC only). Until the organisation's
+  // first top-up the module is disabled outright and every send answers 403,
+  // which surfaces as a 503 to the app and a loud line in the log. A working key
+  // with no credit looks exactly like a broken key unless you read that line.
+  //
+  // A key from a SANDBOX application verifies phones for free, so use one of
+  // those to exercise the flow end to end before spending anything.
+  DIDIT_API_KEY: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
 
   // Key for HMAC-hashing OTP codes at rest. Falls back to SHARE_LINK_JWT_SECRET
   // when unset, so there's one fewer secret to provision. Set it separately if

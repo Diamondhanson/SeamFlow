@@ -70,6 +70,32 @@ export const settings = {
     timezone: 'Time zone',
     timezoneAuto: 'Automatic (from your country)',
     notifLoadError: "Couldn't load notification settings.",
+    phoneSection: 'Verification',
+    phoneTitle: 'Phone number',
+    phoneNotConfirmed: 'Not confirmed',
+    phoneLede:
+      'Confirming your number shows clients there is a real person behind your shop. It is also the first step towards a verified badge.',
+    phoneLabel: 'Your phone number',
+    phoneChannelHint:
+      'We send the code on WhatsApp. If your number has no WhatsApp, it arrives as a text message instead.',
+    phoneSendAction: 'Send me a code',
+    phoneSendToNew: 'Send a code to this number',
+    phoneResendAction: 'Send a new code',
+    phoneResendIn: 'Send a new code in {seconds}s',
+    phoneCodeSentTo: 'We sent a code to {phone}.',
+    phoneCodeLabel: 'The code',
+    phoneCodeExpiresIn: 'Expires in {time}',
+    phoneCodeExpired: 'This code has expired. Send a new one.',
+    phoneConfirmAction: 'Confirm',
+    phoneChangeNumber: 'Use a different number',
+    phoneConfirmedTitle: 'Number confirmed',
+    phoneConfirmedBody:
+      'Your phone number is confirmed. It stays private: clients never see it unless you share it yourself.',
+    phoneAlreadyConfirmed: '{phone} is confirmed.',
+    phoneUnavailable:
+      'Confirming a number is not switched on yet. Nothing is wrong with your account, so check back soon.',
+    phonePrivacyNote:
+      'Your number is never shown in Discover or on your storefront. We use it to confirm you are reachable, and for the verified badge.',
   },
   fr: {
     messagesPhotosTitle: "Messages et photos",
@@ -142,6 +168,32 @@ export const settings = {
     timezone: 'Fuseau horaire',
     timezoneAuto: 'Automatique (selon votre pays)',
     notifLoadError: 'Impossible de charger les paramètres de notification.',
+    phoneSection: 'Vérification',
+    phoneTitle: 'Numéro de téléphone',
+    phoneNotConfirmed: 'Non confirmé',
+    phoneLede:
+      'Confirmer votre numéro montre aux clientes qu’une vraie personne tient cet atelier. C’est aussi la première étape vers le badge vérifié.',
+    phoneLabel: 'Votre numéro de téléphone',
+    phoneChannelHint:
+      'Nous envoyons le code sur WhatsApp. Si votre numéro n’a pas WhatsApp, il arrive par SMS.',
+    phoneSendAction: 'Envoyez-moi un code',
+    phoneSendToNew: 'Envoyer un code à ce numéro',
+    phoneResendAction: 'Envoyer un nouveau code',
+    phoneResendIn: 'Nouveau code dans {seconds}s',
+    phoneCodeSentTo: 'Nous avons envoyé un code au {phone}.',
+    phoneCodeLabel: 'Le code',
+    phoneCodeExpiresIn: 'Expire dans {time}',
+    phoneCodeExpired: 'Ce code a expiré. Envoyez-en un nouveau.',
+    phoneConfirmAction: 'Confirmer',
+    phoneChangeNumber: 'Utiliser un autre numéro',
+    phoneConfirmedTitle: 'Numéro confirmé',
+    phoneConfirmedBody:
+      'Votre numéro de téléphone est confirmé. Il reste privé : les clientes ne le voient jamais, sauf si vous le partagez vous-même.',
+    phoneAlreadyConfirmed: '{phone} est confirmé.',
+    phoneUnavailable:
+      'La confirmation de numéro n’est pas encore activée. Votre compte n’a aucun problème, revenez bientôt.',
+    phonePrivacyNote:
+      'Votre numéro n’apparaît jamais dans Découvrir ni sur votre vitrine. Il nous sert à confirmer que vous êtes joignable, et pour le badge vérifié.',
   },
   pt: {
     messagesPhotosTitle: "Mensagens e fotos",
@@ -214,6 +266,32 @@ export const settings = {
     timezone: 'Fuso horário',
     timezoneAuto: 'Automático (a partir do seu país)',
     notifLoadError: 'Não foi possível carregar as definições de notificação.',
+    phoneSection: 'Verificação',
+    phoneTitle: 'Número de telefone',
+    phoneNotConfirmed: 'Não confirmado',
+    phoneLede:
+      'Confirmar o seu número mostra aos clientes que existe uma pessoa real por trás da sua oficina. É também o primeiro passo para o selo de verificado.',
+    phoneLabel: 'O seu número de telefone',
+    phoneChannelHint:
+      'Enviamos o código pelo WhatsApp. Se o seu número não tiver WhatsApp, chega por SMS.',
+    phoneSendAction: 'Enviar-me um código',
+    phoneSendToNew: 'Enviar um código para este número',
+    phoneResendAction: 'Enviar um novo código',
+    phoneResendIn: 'Novo código em {seconds}s',
+    phoneCodeSentTo: 'Enviámos um código para {phone}.',
+    phoneCodeLabel: 'O código',
+    phoneCodeExpiresIn: 'Expira em {time}',
+    phoneCodeExpired: 'Este código expirou. Envie um novo.',
+    phoneConfirmAction: 'Confirmar',
+    phoneChangeNumber: 'Usar outro número',
+    phoneConfirmedTitle: 'Número confirmado',
+    phoneConfirmedBody:
+      'O seu número de telefone está confirmado. Continua privado: os clientes nunca o veem, a não ser que o partilhe.',
+    phoneAlreadyConfirmed: '{phone} está confirmado.',
+    phoneUnavailable:
+      'A confirmação de número ainda não está ativa. Não há nada de errado com a sua conta, volte em breve.',
+    phonePrivacyNote:
+      'O seu número nunca aparece em Descobrir nem na sua vitrine. Usamo-lo para confirmar que está contactável, e para o selo de verificado.',
   },
   es: {
     messagesPhotosTitle: "Mensajes y fotos",
@@ -286,6 +364,32 @@ export const settings = {
     timezone: 'Zona horaria',
     timezoneAuto: 'Automática (según su país)',
     notifLoadError: 'No se pudieron cargar los ajustes de notificaciones.',
+    phoneSection: 'Verificación',
+    phoneTitle: 'Número de teléfono',
+    phoneNotConfirmed: 'Sin confirmar',
+    phoneLede:
+      'Confirmar tu número muestra a los clientes que hay una persona real detrás de tu taller. También es el primer paso hacia la insignia de verificado.',
+    phoneLabel: 'Tu número de teléfono',
+    phoneChannelHint:
+      'Enviamos el código por WhatsApp. Si tu número no tiene WhatsApp, llega por SMS.',
+    phoneSendAction: 'Envíame un código',
+    phoneSendToNew: 'Enviar un código a este número',
+    phoneResendAction: 'Enviar un código nuevo',
+    phoneResendIn: 'Código nuevo en {seconds}s',
+    phoneCodeSentTo: 'Enviamos un código a {phone}.',
+    phoneCodeLabel: 'El código',
+    phoneCodeExpiresIn: 'Caduca en {time}',
+    phoneCodeExpired: 'Este código ha caducado. Envía uno nuevo.',
+    phoneConfirmAction: 'Confirmar',
+    phoneChangeNumber: 'Usar otro número',
+    phoneConfirmedTitle: 'Número confirmado',
+    phoneConfirmedBody:
+      'Tu número de teléfono está confirmado. Sigue siendo privado: los clientes no lo ven nunca, salvo que tú lo compartas.',
+    phoneAlreadyConfirmed: '{phone} está confirmado.',
+    phoneUnavailable:
+      'La confirmación de número aún no está activada. Tu cuenta no tiene ningún problema, vuelve pronto.',
+    phonePrivacyNote:
+      'Tu número nunca aparece en Descubrir ni en tu escaparate. Lo usamos para confirmar que se te puede contactar, y para la insignia de verificado.',
   },
   sw: {
     messagesPhotosTitle: "Ujumbe na picha",
@@ -358,6 +462,32 @@ export const settings = {
     timezone: 'Saa za eneo',
     timezoneAuto: 'Kiotomatiki (kutoka nchi yako)',
     notifLoadError: 'Haikuwezekana kupakia mipangilio ya arifa.',
+    phoneSection: 'Uthibitishaji',
+    phoneTitle: 'Namba ya simu',
+    phoneNotConfirmed: 'Haijathibitishwa',
+    phoneLede:
+      'Kuthibitisha namba yako huwaonyesha wateja kuna mtu halisi nyuma ya duka lako. Pia ni hatua ya kwanza kuelekea alama ya kuthibitishwa.',
+    phoneLabel: 'Namba yako ya simu',
+    phoneChannelHint:
+      'Tunatuma msimbo kwa WhatsApp. Kama namba yako haina WhatsApp, unafika kwa SMS.',
+    phoneSendAction: 'Nitumie msimbo',
+    phoneSendToNew: 'Tuma msimbo kwa namba hii',
+    phoneResendAction: 'Tuma msimbo mpya',
+    phoneResendIn: 'Msimbo mpya baada ya sekunde {seconds}',
+    phoneCodeSentTo: 'Tumetuma msimbo kwa {phone}.',
+    phoneCodeLabel: 'Msimbo',
+    phoneCodeExpiresIn: 'Unaisha muda baada ya {time}',
+    phoneCodeExpired: 'Msimbo huu umeisha muda. Tuma mpya.',
+    phoneConfirmAction: 'Thibitisha',
+    phoneChangeNumber: 'Tumia namba nyingine',
+    phoneConfirmedTitle: 'Namba imethibitishwa',
+    phoneConfirmedBody:
+      'Namba yako ya simu imethibitishwa. Inabaki ya faragha: wateja hawaioni isipokuwa uwashirikishe mwenyewe.',
+    phoneAlreadyConfirmed: '{phone} imethibitishwa.',
+    phoneUnavailable:
+      'Uthibitishaji wa namba haujawashwa bado. Hakuna tatizo kwenye akaunti yako, rudi hivi karibuni.',
+    phonePrivacyNote:
+      'Namba yako haionyeshwi kwenye Gundua wala kwenye duka lako. Tunaitumia kuthibitisha unafikika, na kwa alama ya kuthibitishwa.',
   },
   ar: {
     messagesPhotosTitle: "الرسائل والصور",
@@ -430,5 +560,31 @@ export const settings = {
     timezone: 'المنطقة الزمنية',
     timezoneAuto: 'تلقائيًا (حسب بلدك)',
     notifLoadError: 'تعذّر تحميل إعدادات الإشعارات.',
+    phoneSection: 'التحقّق',
+    phoneTitle: 'رقم الهاتف',
+    phoneNotConfirmed: 'غير مُؤكَّد',
+    phoneLede:
+      'تأكيد رقمك يُظهر للعملاء أنّ خلف الورشة شخصًا حقيقيًا. وهو أيضًا الخطوة الأولى نحو شارة التحقّق.',
+    phoneLabel: 'رقم هاتفك',
+    phoneChannelHint:
+      'نرسل الرمز عبر واتساب. وإن لم يكن رقمك على واتساب، فسيصل برسالة نصية.',
+    phoneSendAction: 'أرسِل لي رمزًا',
+    phoneSendToNew: 'أرسِل رمزًا إلى هذا الرقم',
+    phoneResendAction: 'أرسِل رمزًا جديدًا',
+    phoneResendIn: 'رمز جديد بعد {seconds} ثانية',
+    phoneCodeSentTo: 'أرسلنا رمزًا إلى {phone}.',
+    phoneCodeLabel: 'الرمز',
+    phoneCodeExpiresIn: 'ينتهي بعد {time}',
+    phoneCodeExpired: 'انتهت صلاحية هذا الرمز. أرسِل رمزًا جديدًا.',
+    phoneConfirmAction: 'تأكيد',
+    phoneChangeNumber: 'استخدام رقم آخر',
+    phoneConfirmedTitle: 'تم تأكيد الرقم',
+    phoneConfirmedBody:
+      'تم تأكيد رقم هاتفك. ويبقى خاصًّا: لا يراه العملاء إلّا إذا شاركته بنفسك.',
+    phoneAlreadyConfirmed: 'الرقم {phone} مُؤكَّد.',
+    phoneUnavailable:
+      'تأكيد الرقم غير مُفعَّل بعد. لا مشكلة في حسابك، عُد قريبًا.',
+    phonePrivacyNote:
+      'لا يظهر رقمك في «اكتشف» ولا في متجرك. نستخدمه للتأكّد من إمكانية الوصول إليك، ولشارة التحقّق.',
   },
 } as const;

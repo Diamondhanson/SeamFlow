@@ -5,6 +5,7 @@ import {
   timestamp,
   index,
   integer,
+  jsonb,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
@@ -30,11 +31,30 @@ export const phoneVerifications = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     phone: text('phone').notNull(),
-    codeHash: text('code_hash').notNull(),
+    /**
+     * HMAC of the code — null when the PROVIDER owns the code.
+     *
+     * A 'verifies' provider (Didit) mints and judges the code itself, so there
+     * is nothing for us to hash and `providerRef` carries the session instead.
+     * Exactly one of the two is set; the service is what enforces that.
+     */
+    codeHash: text('code_hash'),
     channel: otpChannelEnum('channel').notNull().default('whatsapp'),
-    /** Which adapter sent it (e.g. 'console', 'meta-cloud'). Null until sent. */
+    /** Which adapter sent it (e.g. 'console', 'didit'). Null until sent. */
     providerId: text('provider_id'),
     providerMessageId: text('provider_message_id'),
+    /** The vendor's handle on this challenge, when the vendor owns the code. */
+    providerRef: text('provider_ref'),
+    /**
+     * Carrier and line intelligence, recorded on a decided challenge.
+     *
+     * Shape is `OtpPhoneRisk` in ../../phone-verification/otp-provider.ts —
+     * carrier, line type, VoIP/disposable flags, the channel that actually
+     * carried the message, and how many other accounts have verified this same
+     * number. Read by appendix J's review queue, shown to staff only, and never
+     * a reason to reject anyone on its own.
+     */
+    risk: jsonb('risk'),
     attempts: integer('attempts').notNull().default(0),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     consumedAt: timestamp('consumed_at', { withTimezone: true }),

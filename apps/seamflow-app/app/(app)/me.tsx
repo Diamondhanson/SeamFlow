@@ -21,6 +21,7 @@ import { useGuides } from '../../lib/guides';
 import {
   useMe,
   useNotificationPreferences,
+  usePhoneStatus,
   useUpdateNotificationPreferences,
   useUpsertMyTailor,
 } from '../../lib/queries';
@@ -60,6 +61,8 @@ export default function Me() {
   const { signOut } = useAuth();
   const { previewWelcome } = useGuides();
   const { data: me, isLoading } = useMe();
+  // Cheap, cached, and decides whether the verification section exists at all.
+  const { data: phone } = usePhoneStatus();
   const { t, language, setLanguage } = useTranslation();
   const { preference } = useThemeMode();
   const scroll = useFloatingScroll();
@@ -317,6 +320,28 @@ export default function Me() {
             value={formatMonthYear(me?.tailor?.createdAt, language)}
           />
         </View>
+
+        {/* Verification (appendix J). One row today: the phone number, which is
+            the first of the two things a verified badge requires. The request
+            flow joins it here when the spine lands, which is why this is its
+            own section rather than a row tucked into Preferences.
+
+            Hidden when the server has no OTP provider configured, so nobody is
+            offered a flow that can only fail. */}
+        {phone?.enabled ? (
+          <>
+            <SectionTitle>{t('settings.phoneSection')}</SectionTitle>
+            <SettingsCard>
+              <SettingsRow
+                first
+                icon={phone.verified ? 'checkmark-circle-outline' : 'call-outline'}
+                label={t('settings.phoneTitle')}
+                value={phone.verified ? (phone.phone ?? undefined) : t('settings.phoneNotConfirmed')}
+                onPress={() => router.push('/(app)/phone')}
+              />
+            </SettingsCard>
+          </>
+        ) : null}
 
         {/* Preferences */}
         <SectionTitle>{t('settings.preferences')}</SectionTitle>

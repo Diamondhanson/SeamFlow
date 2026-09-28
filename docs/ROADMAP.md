@@ -2726,6 +2726,26 @@ many tailors work from home.
 
 ### J.8 Phases
 
+0. **Phone confirmation — DONE 2026-09-28.** J.2 called this "already built",
+   which was only true of the server: there was no api-client method, no screen
+   and no provider, so no tailor could meet requirement one. Now there is.
+
+   Didit is the provider (`OTP_PROVIDER=didit`, `DIDIT_API_KEY`), WhatsApp first
+   with automatic SMS fallback. It verifies rather than merely delivers, so the
+   seam grew a second provider shape: `mode: 'delivers'` (we mint the code, they
+   carry it — Meta's Cloud API when we move to it) and `mode: 'verifies'` (they
+   mint, carry and judge). The service still owns rate limiting, the one live
+   challenge per user, and the verify-then-write commit in both.
+
+   Their check answers with carrier, line type, VoIP/disposable flags and how
+   many other accounts have verified the same number, all stored on
+   `phone_verifications.risk` for the J.4 queue. Nothing auto-declines: the
+   `*_action` fields are pinned to `NO_ACTION`, per the one rule.
+
+   NOT YET LIVE: phone verification is pay-as-you-go and is not part of Didit's
+   free tier, so until the organisation's first top-up every send answers 403.
+   A key from a SANDBOX application exercises the whole flow for free.
+
 1. **The spine.** `verification_requests`, submit/withdraw, the two-step tailor
    screen, the dashboard queue, the two notification types, the badge popover
    that says what was checked. The useful half.

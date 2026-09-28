@@ -39,6 +39,7 @@ import type {
   OrderStatus,
   OrderTransitionInput,
   OrderUpdateInput,
+  PhoneVerifyStartInput,
   CopyMemberMeasurementsInput,
   OfferCreateInput,
   RequestQuery,
@@ -67,6 +68,41 @@ export { qk } from './query-keys';
 // ============================================================================
 
 export const useMe = () => useQuery({ queryKey: qk.me(), queryFn: () => api.me.get() });
+
+/**
+ * Is this account's number proven, and can it even be proven right now?
+ *
+ * `enabled: false` means the server has no OTP provider configured, and the
+ * screen hides the entry point rather than offering a flow that can only 503.
+ */
+export const usePhoneStatus = () =>
+  useQuery({ queryKey: qk.phoneStatus(), queryFn: () => api.me.phoneStatus() });
+
+/**
+ * Send a code. Resolves with the window the SERVER decided on — render
+ * `ttlMinutes` from the response rather than assuming, because it is the
+ * provider's number and providers disagree.
+ */
+export function useStartPhoneVerification() {
+  return useMutation({
+    mutationFn: (input: PhoneVerifyStartInput) => api.me.startPhoneVerification(input),
+  });
+}
+
+/**
+ * Prove it. On success both /me and the phone status change, so both are
+ * invalidated — the number lands on the user record as part of the same call.
+ */
+export function useConfirmPhoneVerification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => api.me.confirmPhoneVerification(code),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: qk.phoneStatus() });
+      void qc.invalidateQueries({ queryKey: qk.me() });
+    },
+  });
+}
 
 export function useUpsertMyTailor() {
   const qc = useQueryClient();

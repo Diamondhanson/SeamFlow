@@ -10,6 +10,7 @@ export const qk = {
   health: () => ['health'] as const,
   me: () => ['me'] as const,
   myTailor: () => ['me', 'tailor'] as const,
+  phoneStatus: () => ['me', 'phone'] as const,
 
   clients: (q?: string) => ['clients', { q: q ?? '' }] as const,
   client: (id: string) => ['clients', id] as const,

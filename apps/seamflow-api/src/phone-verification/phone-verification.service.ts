@@ -15,36 +15,46 @@ import { DbService } from '../db/db.service';
 import { phoneVerifications, users } from '../db/schema';
 import {
   OtpDeliveryError,
-  resolveOtpProvider,
   type OtpChannel,
-  type OtpDeliveryProvider,
+  type OtpPhoneRisk,
+  type OtpProvider,
+  type OtpSignals,
 } from './otp-provider';
+import { resolveOtpProvider } from './resolve-otp-provider';
 
-/** How long a code stays valid. Long enough for WhatsApp to actually arrive. */
-const TTL_MINUTES = 10;
-/** Wrong guesses allowed before the challenge is burned. */
-const MAX_ATTEMPTS = 5;
-/** Sends allowed to one number per window — each one costs money. */
+/**
+ * Sends allowed to one number per window — each one costs money.
+ *
+ * Ours, not the vendor's. Didit allows four an hour; that cap exists to protect
+ * Didit's carriers, not our balance or the person whose phone is buzzing, so we
+ * keep our own stricter one in front of it.
+ */
 const MAX_SENDS_PER_WINDOW = 3;
 const SEND_WINDOW_MINUTES = 60;
 
 /**
  * Phone verification via a one-time code.
  *
- * This service owns EVERYTHING security-relevant — code generation, hashing,
- * expiry, attempt counting, rate limiting, and the final commit to
- * `users.phone`. Providers only deliver a string. That split is deliberate: it
- * means choosing (or changing) a WhatsApp vendor cannot introduce a weakness
- * here, and two adapters can never disagree about how strict the rules are.
+ * Two kinds of provider exist (see otp-provider.ts): one delivers a code we
+ * minted, the other mints and judges its own. This service owns everything it
+ * can own in BOTH cases, so that choosing a vendor can never weaken the
+ * feature:
  *
- * The commit is verify-then-write: `users.phone` is only updated after a
- * challenge against the new number succeeds, so a typo or a hostile number can
- * never displace one that already works.
+ *   - rate limiting per number, and one live challenge per user
+ *   - the verify-then-write commit: `users.phone` is only updated after a
+ *     challenge against the new number succeeds, so a typo or a hostile number
+ *     can never displace one that already works
+ *   - treating nothing but an explicit approval as success
+ *
+ * In 'delivers' mode it also owns the code itself — generation, keyed hashing,
+ * constant-time comparison. In 'verifies' mode the vendor owns those, and the
+ * vendor's TTL and attempt budget become the ones we enforce, so the UI never
+ * promises a window the vendor will not honour.
  */
 @Injectable()
 export class PhoneVerificationService {
   private readonly logger = new Logger(PhoneVerificationService.name);
-  private readonly provider: OtpDeliveryProvider;
+  private readonly provider: OtpProvider;
   private readonly secret: string;
 
   constructor(
@@ -52,7 +62,11 @@ export class PhoneVerificationService {
     config: ConfigService,
   ) {
     const nodeEnv = config.get<string>('NODE_ENV') ?? 'development';
-    this.provider = resolveOtpProvider(config.get<string>('OTP_PROVIDER'), nodeEnv);
+    this.provider = resolveOtpProvider({
+      providerId: config.get<string>('OTP_PROVIDER'),
+      nodeEnv,
+      diditApiKey: config.get<string>('DIDIT_API_KEY'),
+    });
     // Reuse the share-link secret's guarantee (32+ bytes, not the Supabase JWT
     // secret) rather than inventing another env var before we need one. Hashing
     // is keyed so a stolen table alone can't be rainbow-tabled — codes are only
@@ -65,14 +79,33 @@ export class PhoneVerificationService {
       this.logger.warn(
         'Phone verification is INACTIVE — no OTP provider configured. ' +
           'POST /me/phone/start and /me/phone/confirm will return 503. ' +
-          'Set OTP_PROVIDER=console for local testing.',
+          'Set OTP_PROVIDER=console for local testing, or OTP_PROVIDER=didit ' +
+          'with DIDIT_API_KEY.',
+      );
+    } else if (!this.isEnabled) {
+      this.logger.warn(
+        `Phone verification is INACTIVE — provider '${this.provider.id}' needs a ` +
+          'hashing secret (OTP_HASH_SECRET or SHARE_LINK_JWT_SECRET) and none is set.',
       );
     }
   }
 
-  /** Whether the feature can currently do anything. Surfaced on /me. */
+  /**
+   * Whether the feature can currently do anything. Surfaced on /me so the app
+   * can hide the entry point rather than offer a flow that only 503s.
+   *
+   * The hashing secret is only load-bearing when WE own the code — a 'verifies'
+   * provider needs no local secret, and requiring one would have made Didit
+   * depend on an env var it never reads.
+   */
   get isEnabled(): boolean {
-    return this.provider.id !== 'unconfigured' && this.secret.length > 0;
+    if (this.provider.id === 'unconfigured') return false;
+    return this.provider.mode === 'verifies' || this.secret.length > 0;
+  }
+
+  /** What the app should tell the user about how long they have. */
+  get ttlMinutes(): number {
+    return this.provider.ttlMinutes;
   }
 
   private hash(code: string, phone: string): string {
@@ -87,7 +120,39 @@ export class PhoneVerificationService {
   }
 
   /**
-   * Start a challenge: normalise, rate-limit, mint, store, send.
+   * Turn a provider failure into the right HTTP answer for the right audience.
+   *
+   * The distinction that matters: an empty prepaid balance must not be reported
+   * to the user as an invalid phone number. Only 'caller' blames the user.
+   */
+  private rethrow(err: unknown, phone: string): never {
+    if (err instanceof OtpDeliveryError) {
+      if (err.blame === 'caller') throw new BadRequestException(err.message);
+      if (err.blame === 'rate') {
+        throw new HttpException(
+          'Too many codes requested just now. Please try again shortly.',
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+      // 'config' adapters have already logged the detail loudly; 'provider' is
+      // worth a line either way, since a run of them is an outage.
+      this.logger.error(
+        `OTP send failed for ${phone} (${err.blame}): ${err.message}` +
+          (err.cause ? ` — ${String(err.cause)}` : ''),
+      );
+      throw new ServiceUnavailableException(
+        'Could not send the code right now. Please try again shortly.',
+      );
+    }
+    this.logger.error(`OTP send failed for ${phone}`, err as Error);
+    throw new ServiceUnavailableException(
+      'Could not send the code right now. Please try again shortly.',
+    );
+  }
+
+  /**
+   * Start a challenge: normalise, rate-limit, then either mint-and-send or ask
+   * the vendor to do both.
    *
    * Returns only what the caller needs to render the next screen. Never returns
    * the code, and never reveals whether the number is already in use by another
@@ -100,6 +165,7 @@ export class PhoneVerificationService {
       locale?: 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar';
       channel?: OtpChannel;
       defaultCountry?: CountryCode;
+      signals?: OtpSignals;
     } = {},
   ): Promise<{ phone: string; channel: OtpChannel; expiresAt: Date; ttlMinutes: number }> {
     if (!this.isEnabled) {
@@ -148,9 +214,48 @@ export class PhoneVerificationService {
         and(eq(phoneVerifications.userId, userId), isNull(phoneVerifications.consumedAt)),
       );
 
-    const code = this.mintCode();
-    const expiresAt = new Date(Date.now() + TTL_MINUTES * 60_000);
+    const ttlMinutes = this.provider.ttlMinutes;
+    const expiresAt = new Date(Date.now() + ttlMinutes * 60_000);
 
+    if (this.provider.mode === 'verifies') {
+      // Vendor first, row second. There is no secret to protect by writing the
+      // row early, and the reverse order would leave a live challenge behind
+      // whenever a send failed. If the insert is what fails, the user simply
+      // gets a code they cannot use and asks for another.
+      let providerRef: string | null = null;
+      try {
+        const started = await this.provider.start({
+          toE164: phone,
+          channel,
+          locale: opts.locale ?? 'en',
+          // Our own id for the attempt, so a support question can be traced in
+          // their console. The user id, never an email or a name.
+          vendorData: userId,
+          signals: opts.signals,
+        });
+        providerRef = started.providerRef;
+      } catch (err) {
+        this.rethrow(err, phone);
+      }
+
+      await db.insert(phoneVerifications).values({
+        userId,
+        phone,
+        // Null on purpose: the vendor owns the code. See the table's comment.
+        codeHash: null,
+        channel,
+        expiresAt,
+        providerId: this.provider.id,
+        providerRef,
+      });
+
+      return { phone, channel, expiresAt, ttlMinutes };
+    }
+
+    // 'delivers': we own the code, so the row goes in before the send and is
+    // burned if the send fails — a code the user never received must not stay
+    // live.
+    const code = this.mintCode();
     const [row] = await db
       .insert(phoneVerifications)
       .values({
@@ -169,7 +274,7 @@ export class PhoneVerificationService {
         code,
         channel,
         locale: opts.locale ?? 'en',
-        ttlMinutes: TTL_MINUTES,
+        ttlMinutes,
       });
       if (providerMessageId && row) {
         await db
@@ -178,23 +283,16 @@ export class PhoneVerificationService {
           .where(eq(phoneVerifications.id, row.id));
       }
     } catch (err) {
-      // Burn the challenge — a code the user never received must not stay live.
       if (row) {
         await db
           .update(phoneVerifications)
           .set({ consumedAt: new Date() })
           .where(eq(phoneVerifications.id, row.id));
       }
-      if (err instanceof OtpDeliveryError && !err.retryable) {
-        throw new BadRequestException(err.message);
-      }
-      this.logger.error(`OTP send failed for ${phone}`, err as Error);
-      throw new ServiceUnavailableException(
-        'Could not send the code right now. Please try again shortly.',
-      );
+      this.rethrow(err, phone);
     }
 
-    return { phone, channel, expiresAt, ttlMinutes: TTL_MINUTES };
+    return { phone, channel, expiresAt, ttlMinutes };
   }
 
   /**
@@ -229,37 +327,98 @@ export class PhoneVerificationService {
 
     if (!row) throw invalid();
 
-    if (row.expiresAt.getTime() < Date.now() || row.attempts >= MAX_ATTEMPTS) {
-      await db
+    const burn = (risk?: OtpPhoneRisk | null) =>
+      db
         .update(phoneVerifications)
-        .set({ consumedAt: new Date() })
+        .set({ consumedAt: new Date(), ...(risk ? { risk } : {}) })
         .where(eq(phoneVerifications.id, row.id));
+
+    // Our own expiry and attempt ceiling, checked first in both modes. For a
+    // 'verifies' provider these mirror the vendor's own limits (see the
+    // provider's ttlMinutes/maxAttempts), so we stop asking at the same moment
+    // they stop accepting rather than sending a doomed request.
+    if (row.expiresAt.getTime() < Date.now() || row.attempts >= this.provider.maxAttempts) {
+      await burn();
       throw invalid();
     }
 
-    // Count the attempt BEFORE comparing, so a crash mid-compare can't be used
-    // to get free guesses.
+    // Count the attempt BEFORE checking, so a crash mid-check can't be used to
+    // get free guesses.
     await db
       .update(phoneVerifications)
       .set({ attempts: row.attempts + 1 })
       .where(eq(phoneVerifications.id, row.id));
 
+    const verifiedAt = new Date();
+
+    if (this.provider.mode === 'verifies') {
+      let result;
+      try {
+        result = await this.provider.check({ toE164: row.phone, code: code.trim() });
+      } catch (err) {
+        if (err instanceof OtpDeliveryError && err.blame === 'provider') {
+          // Their 5xx is documented as not consuming an attempt on their side,
+          // so it must not consume one here either — give the guess back.
+          await db
+            .update(phoneVerifications)
+            .set({ attempts: row.attempts })
+            .where(eq(phoneVerifications.id, row.id));
+        }
+        this.rethrow(err, row.phone);
+      }
+
+      // Anything short of an explicit approval is a failure. A declined
+      // challenge is dead; a wrong code leaves the remaining guesses alone.
+      if (result.outcome !== 'approved') {
+        if (result.outcome !== 'wrong_code') await burn(result.risk);
+        else if (result.risk) {
+          await db
+            .update(phoneVerifications)
+            .set({ risk: result.risk })
+            .where(eq(phoneVerifications.id, row.id));
+        }
+        if (result.outcome === 'declined') {
+          this.logger.warn(
+            `Provider declined ${row.phone}: ${result.detail ?? 'no detail'}` +
+              (result.risk?.warnings.length ? ` [${result.risk.warnings.join(', ')}]` : ''),
+          );
+        }
+        throw invalid();
+      }
+
+      await db
+        .update(phoneVerifications)
+        .set({ consumedAt: verifiedAt, risk: result.risk })
+        .where(eq(phoneVerifications.id, row.id));
+      await this.commit(userId, row.phone, verifiedAt);
+      return { phone: row.phone, verifiedAt };
+    }
+
+    // 'delivers': the comparison is ours. Constant-time, against a hash bound
+    // to this number.
+    if (!row.codeHash) {
+      // A row with no hash from a provider that should have made one. Refuse
+      // rather than guess: this is the invariant the table's comment describes.
+      this.logger.error(`Challenge ${row.id} has no code hash under a 'delivers' provider.`);
+      await burn();
+      throw invalid();
+    }
     const expected = Buffer.from(row.codeHash, 'hex');
     const actual = Buffer.from(this.hash(code.trim(), row.phone), 'hex');
     const ok = expected.length === actual.length && timingSafeEqual(expected, actual);
     if (!ok) throw invalid();
 
-    const verifiedAt = new Date();
-    await db
-      .update(phoneVerifications)
-      .set({ consumedAt: verifiedAt })
-      .where(eq(phoneVerifications.id, row.id));
-    await db
-      .update(users)
-      .set({ phone: row.phone, phoneVerifiedAt: verifiedAt, updatedAt: verifiedAt })
-      .where(eq(users.id, userId));
-
+    await burn();
+    await this.commit(userId, row.phone, verifiedAt);
     return { phone: row.phone, verifiedAt };
+  }
+
+  /** The verify-then-write commit, shared by both modes. */
+  private async commit(userId: string, phone: string, at: Date): Promise<void> {
+    await this.dbService.db
+      .update(users)
+      .set({ phone, phoneVerifiedAt: at, updatedAt: at })
+      .where(eq(users.id, userId));
   }
 
   /** Current verification state, for /me and the settings screen. */
