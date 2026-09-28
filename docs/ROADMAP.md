@@ -2786,6 +2786,12 @@ many tailors work from home.
 3. **The extras.** Social handle with the bio code, the foreground check-in,
    registration number, and the Discover ranking lift.
 
+   AGREED 2026-09-28: the social handle must appear on the CLIENT-FACING
+   designer profile as the platform's icon plus the handle itself — not as a
+   bare string, and not only in the staff queue. It is evidence to us and a
+   benefit to them in the same object, which is the reason it is worth asking
+   for at all (J.3).
+
 ### J.9 Explicitly not building
 
 - **No ID documents.** They prove identity, not craft, and holding them is a
