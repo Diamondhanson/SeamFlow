@@ -31,7 +31,9 @@
       "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "android.permission.READ_CONTACTS",
-        "android.permission.WRITE_CONTACTS"
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "intentFilters": [
         {
@@ -81,6 +83,16 @@
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos so you can attach reference images and order photos.",
           "cameraPermission": "Allow $(PRODUCT_NAME) to use your camera so you can photograph garments, fittings, and finished orders.",
           "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so you can talk to the assistant."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "SeamFlow never asks for your location in the background. This is only used once, when you choose to confirm where your shop is.",
+          "locationWhenInUsePermission": "Used once, only when you tap to confirm where your shop is, so SeamFlow can check it matches the address you gave. It is never tracked in the background.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
         }
       ],
       "expo-font",

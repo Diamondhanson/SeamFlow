@@ -45,6 +45,12 @@ import {
   useWithdrawVerification,
 } from '../../lib/queries';
 import { radii, spacing } from '../../lib/theme';
+import {
+  captureShopFix,
+  LocationDeniedError,
+  LocationUnavailableError,
+  type ShopFix,
+} from '../../lib/shop-location';
 import type { SocialPlatform } from '@seamflow/schemas';
 
 /**
@@ -87,6 +93,8 @@ export default function Verification() {
     { platform: SocialPlatform; handle: string; code: string } | null
   >(null);
   const [registration, setRegistration] = useState('');
+  const [fix, setFix] = useState<ShopFix | null>(null);
+  const [locating, setLocating] = useState(false);
 
   const userId = me?.id;
   const request = state?.request ?? null;
@@ -157,6 +165,52 @@ export default function Verification() {
     });
   };
 
+  /**
+   * One fix, taken now, in the foreground, because they tapped.
+   *
+   * The confirmation before asking is not ceremony: the OS prompt gives no
+   * room to explain, and a tailor who has just read J's own copy about never
+   * being tracked deserves to know what this single tap does before the system
+   * dialog appears over it.
+   */
+  const confirmArea = async () => {
+    const ok = await dialog.confirm({
+      title: t('verification.areaConfirmTitle'),
+      message: t('verification.areaConfirmBody'),
+      confirmLabel: t('verification.areaConfirmAction'),
+    });
+    if (!ok) return;
+
+    setLocating(true);
+    try {
+      setFix(await captureShopFix());
+      haptics.success();
+    } catch (err) {
+      haptics.error();
+      if (err instanceof LocationDeniedError) {
+        await dialog.alert({
+          title: t('verification.areaDeniedTitle'),
+          message: err.canAskAgain
+            ? t('verification.areaDeniedBody')
+            : t('verification.areaDeniedSettings'),
+          tone: 'warning',
+        });
+        return;
+      }
+      if (err instanceof LocationUnavailableError) {
+        await dialog.alert({
+          title: t('verification.areaFailedTitle'),
+          message: t('verification.areaFailedBody'),
+          tone: 'warning',
+        });
+        return;
+      }
+      await dialog.error(err);
+    } finally {
+      setLocating(false);
+    }
+  };
+
   const send = async () => {
     try {
       await submit.mutateAsync([
@@ -178,11 +232,15 @@ export default function Verification() {
         ...(registration.trim()
           ? [{ kind: 'registration' as const, number: registration.trim() }]
           : []),
+        ...(fix
+          ? [{ kind: 'location' as const, lat: fix.lat, lng: fix.lng, accuracy: fix.accuracy }]
+          : []),
       ]);
       haptics.success();
       setShots([]);
       setSocial(null);
       setRegistration('');
+      setFix(null);
       await dialog.alert({
         title: t('verification.sentTitle'),
         message: t('verification.sentBody'),
@@ -323,6 +381,21 @@ export default function Verification() {
               label={social ? t('verification.socialChange') : t('verification.socialAction')}
               variant="secondary"
               onPress={linkSocial}
+            />
+          </View>
+
+          <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
+            <Text variant="body" style={styles.stepTitle}>
+              {t('verification.areaTitle')}
+            </Text>
+            <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
+              {fix ? t('verification.areaDone') : t('verification.areaBody')}
+            </Text>
+            <Button
+              label={fix ? t('verification.areaRedo') : t('verification.areaAction')}
+              variant="secondary"
+              onPress={confirmArea}
+              loading={locating}
             />
           </View>
 

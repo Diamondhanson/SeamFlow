@@ -75,6 +75,24 @@ export const verification = {
     registrationBody:
       'Only if you have one. Most shops do not, and not having one counts against nobody.',
     registrationLabel: 'Registration number',
+    areaTitle: 'Confirm your area',
+    areaBody:
+      'Take one reading while you are standing in your shop. It tells us your address is real. Clients only ever see your neighbourhood, never a pin on a map.',
+    areaAction: 'Confirm where I am',
+    areaRedo: 'Take it again',
+    areaDone: 'Done. We have one reading from where you were standing.',
+    areaConfirmTitle: 'Once, and only now',
+    areaConfirmBody:
+      'SeamFlow reads your location one time, right now, and never again. We do not follow you, we do not run in the background, and there is nothing here to switch off later because nothing keeps running. Are you at your shop?',
+    areaConfirmAction: 'Yes, I am here',
+    areaDeniedTitle: 'No location, no problem',
+    areaDeniedBody:
+      'Nothing is lost. This step is optional and everything else about your verification still works.',
+    areaDeniedSettings:
+      'Your phone is set to refuse. You can turn location on for SeamFlow in your phone settings, or simply skip this: it is optional and everything else still works.',
+    areaFailedTitle: 'Could not get a reading',
+    areaFailedBody:
+      'Your phone could not find where it is. Standing near a window or stepping outside usually fixes it. You can also skip this.',
     badgeTitle: 'Verified shop',
     badgeWork: 'SeamFlow has confirmed the work in this shop is their own.',
     badgeWorkOn: 'SeamFlow confirmed the work in this shop is their own, {date}.',
@@ -148,6 +166,24 @@ export const verification = {
     registrationBody:
       'Seulement si vous en avez un. La plupart des ateliers n’en ont pas, et ne pas en avoir ne pénalise personne.',
     registrationLabel: 'Numéro de registre',
+    areaTitle: 'Confirmez votre quartier',
+    areaBody:
+      'Prenez une seule mesure pendant que vous êtes dans votre atelier. Cela nous montre que votre adresse est réelle. Les clientes ne voient que votre quartier, jamais un point sur une carte.',
+    areaAction: 'Confirmer où je suis',
+    areaRedo: 'Reprendre la mesure',
+    areaDone: 'C’est fait. Nous avons une mesure prise là où vous étiez.',
+    areaConfirmTitle: 'Une fois, et maintenant seulement',
+    areaConfirmBody:
+      'SeamFlow lit votre position une seule fois, maintenant, et plus jamais. Nous ne vous suivons pas, rien ne tourne en arrière-plan, et il n’y aura rien à désactiver plus tard puisque rien ne continue. Êtes-vous à votre atelier ?',
+    areaConfirmAction: 'Oui, je suis ici',
+    areaDeniedTitle: 'Pas de position, pas de souci',
+    areaDeniedBody:
+      'Rien n’est perdu. Cette étape est facultative et tout le reste de votre vérification fonctionne.',
+    areaDeniedSettings:
+      'Votre téléphone est réglé pour refuser. Vous pouvez activer la localisation pour SeamFlow dans les réglages, ou simplement passer : c’est facultatif et tout le reste fonctionne.',
+    areaFailedTitle: 'Mesure impossible',
+    areaFailedBody:
+      'Votre téléphone n’a pas trouvé sa position. Se mettre près d’une fenêtre ou sortir un instant suffit en général. Vous pouvez aussi passer cette étape.',
     badgeTitle: 'Atelier vérifié',
     badgeWork: 'SeamFlow a confirmé que le travail de cet atelier est bien le sien.',
     badgeWorkOn: 'SeamFlow a confirmé que le travail de cet atelier est bien le sien, en {date}.',
@@ -221,6 +257,24 @@ export const verification = {
     registrationBody:
       'Só se tiver um. A maioria das oficinas não tem, e não ter não conta contra ninguém.',
     registrationLabel: 'Número de registo',
+    areaTitle: 'Confirme a sua zona',
+    areaBody:
+      'Faça uma única leitura enquanto está na sua oficina. Mostra-nos que a sua morada é real. Os clientes só veem o seu bairro, nunca um ponto no mapa.',
+    areaAction: 'Confirmar onde estou',
+    areaRedo: 'Fazer outra leitura',
+    areaDone: 'Feito. Temos uma leitura de onde estava.',
+    areaConfirmTitle: 'Uma vez, e só agora',
+    areaConfirmBody:
+      'A SeamFlow lê a sua localização uma única vez, agora, e nunca mais. Não o seguimos, nada corre em segundo plano, e não haverá nada para desligar depois porque nada continua a correr. Está na sua oficina?',
+    areaConfirmAction: 'Sim, estou aqui',
+    areaDeniedTitle: 'Sem localização, sem problema',
+    areaDeniedBody:
+      'Não se perde nada. Este passo é opcional e todo o resto da sua verificação funciona na mesma.',
+    areaDeniedSettings:
+      'O seu telemóvel está configurado para recusar. Pode ativar a localização para a SeamFlow nas definições, ou simplesmente saltar: é opcional e o resto funciona na mesma.',
+    areaFailedTitle: 'Não foi possível obter uma leitura',
+    areaFailedBody:
+      'O seu telemóvel não conseguiu encontrar onde está. Ficar perto de uma janela ou sair um momento costuma resolver. Também pode saltar este passo.',
     badgeTitle: 'Oficina verificada',
     badgeWork: 'A SeamFlow confirmou que o trabalho desta oficina é mesmo dela.',
     badgeWorkOn: 'A SeamFlow confirmou que o trabalho desta oficina é mesmo dela, em {date}.',
@@ -293,6 +347,24 @@ export const verification = {
     registrationBody:
       'Solo si tienes uno. La mayoría de los talleres no lo tienen, y no tenerlo no perjudica a nadie.',
     registrationLabel: 'Número de registro',
+    areaTitle: 'Confirma tu zona',
+    areaBody:
+      'Haz una sola lectura mientras estás en tu taller. Nos muestra que tu dirección es real. Los clientes solo ven tu barrio, nunca un punto en el mapa.',
+    areaAction: 'Confirmar dónde estoy',
+    areaRedo: 'Hacer otra lectura',
+    areaDone: 'Hecho. Tenemos una lectura de donde estabas.',
+    areaConfirmTitle: 'Una vez, y solo ahora',
+    areaConfirmBody:
+      'SeamFlow lee tu ubicación una sola vez, ahora, y nunca más. No te seguimos, no hay nada corriendo en segundo plano, y no habrá nada que desactivar después porque nada sigue funcionando. ¿Estás en tu taller?',
+    areaConfirmAction: 'Sí, estoy aquí',
+    areaDeniedTitle: 'Sin ubicación, sin problema',
+    areaDeniedBody:
+      'No se pierde nada. Este paso es opcional y todo lo demás de tu verificación sigue funcionando.',
+    areaDeniedSettings:
+      'Tu teléfono está configurado para rechazar. Puedes activar la ubicación para SeamFlow en los ajustes, o simplemente saltarte esto: es opcional y lo demás sigue funcionando.',
+    areaFailedTitle: 'No se pudo obtener una lectura',
+    areaFailedBody:
+      'Tu teléfono no encontró dónde está. Ponerte cerca de una ventana o salir un momento suele bastar. También puedes saltarte este paso.',
     badgeTitle: 'Taller verificado',
     badgeWork: 'SeamFlow ha confirmado que el trabajo de este taller es suyo.',
     badgeWorkOn: 'SeamFlow confirmó que el trabajo de este taller es suyo, en {date}.',
@@ -365,6 +437,24 @@ export const verification = {
     registrationBody:
       'Ikiwa tu unayo. Maduka mengi hayana, na kutokuwa nayo hakumdhuru mtu.',
     registrationLabel: 'Namba ya usajili',
+    areaTitle: 'Thibitisha eneo lako',
+    areaBody:
+      'Chukua usomaji mmoja ukiwa umesimama dukani kwako. Hutuonyesha anwani yako ni halisi. Wateja wanaona mtaa wako tu, kamwe si alama kwenye ramani.',
+    areaAction: 'Thibitisha nilipo',
+    areaRedo: 'Chukua tena',
+    areaDone: 'Imekamilika. Tuna usomaji mmoja kutoka ulipokuwa umesimama.',
+    areaConfirmTitle: 'Mara moja, na sasa tu',
+    areaConfirmBody:
+      'SeamFlow inasoma eneo lako mara moja tu, sasa hivi, na kamwe tena. Hatukufuatilii, hakuna kinachoendelea nyuma, na hakutakuwa na kitu cha kuzima baadaye kwa sababu hakuna kinachoendelea. Uko dukani kwako?',
+    areaConfirmAction: 'Ndiyo, niko hapa',
+    areaDeniedTitle: 'Hakuna eneo, hakuna shida',
+    areaDeniedBody:
+      'Hakuna kilichopotea. Hatua hii ni ya hiari na kila kitu kingine cha uthibitishaji wako kinaendelea kufanya kazi.',
+    areaDeniedSettings:
+      'Simu yako imewekwa kukataa. Unaweza kuwasha eneo kwa SeamFlow kwenye mipangilio, au uruke tu: ni hiari na kila kitu kingine kinafanya kazi.',
+    areaFailedTitle: 'Haikuweza kupata usomaji',
+    areaFailedBody:
+      'Simu yako haikuweza kupata ilipo. Kusimama karibu na dirisha au kutoka nje kwa muda mfupi kwa kawaida hurekebisha. Unaweza pia kuruka hatua hii.',
     badgeTitle: 'Duka lililothibitishwa',
     badgeWork: 'SeamFlow imethibitisha kuwa kazi ya duka hili ni yao wenyewe.',
     badgeWorkOn: 'SeamFlow ilithibitisha kuwa kazi ya duka hili ni yao wenyewe, {date}.',
@@ -436,6 +526,24 @@ export const verification = {
     registrationBody:
       'فقط إن كان لديك واحد. معظم الورش ليس لديها، وعدم وجوده لا يُحسب على أحد.',
     registrationLabel: 'رقم السجل',
+    areaTitle: 'أكِّد منطقتك',
+    areaBody:
+      'خُذ قراءة واحدة وأنت واقف في ورشتك. تُظهر لنا أنّ عنوانك حقيقي. ولا يرى العملاء سوى الحيّ، ولا يرون أبدًا نقطة على الخريطة.',
+    areaAction: 'تأكيد مكاني',
+    areaRedo: 'إعادة القراءة',
+    areaDone: 'تمّ. لدينا قراءة واحدة من حيث كنت واقفًا.',
+    areaConfirmTitle: 'مرّة واحدة، والآن فقط',
+    areaConfirmBody:
+      'تقرأ SeamFlow موقعك مرّة واحدة، الآن، ولا تعود أبدًا. نحن لا نتتبّعك، ولا شيء يعمل في الخلفية، ولن يكون هناك ما تُوقفه لاحقًا لأنّ شيئًا لا يستمرّ. هل أنت في ورشتك؟',
+    areaConfirmAction: 'نعم، أنا هنا',
+    areaDeniedTitle: 'لا موقع، ولا مشكلة',
+    areaDeniedBody:
+      'لم يُفقد شيء. هذه الخطوة اختيارية وكلّ ما عداها في توثيقك يعمل كما هو.',
+    areaDeniedSettings:
+      'هاتفك مضبوط على الرفض. يمكنك تفعيل الموقع لـ SeamFlow من الإعدادات، أو تخطّي هذا ببساطة: فهو اختياري وكلّ ما عداه يعمل.',
+    areaFailedTitle: 'تعذّرت القراءة',
+    areaFailedBody:
+      'لم يتمكّن هاتفك من تحديد مكانه. الوقوف قرب نافذة أو الخروج لحظة يحلّ ذلك عادةً. ويمكنك أيضًا تخطّي هذه الخطوة.',
     badgeTitle: 'ورشة موثَّقة',
     badgeWork: 'أكّدت SeamFlow أنّ العمل في هذه الورشة من صنعها.',
     badgeWorkOn: 'أكّدت SeamFlow أنّ العمل في هذه الورشة من صنعها، في {date}.',

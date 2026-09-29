@@ -2724,6 +2724,51 @@ client accounts, which is the best evidence a shop exists.
 **Never show a client a precise coordinate.** A neighbourhood, never a pin:
 many tailors work from home.
 
+**Built 2026-09-29.** `lib/shop-location.ts` is the only place in the app that
+touches location, and it can do exactly one thing: read the position once, in
+the foreground, after an explicit tap. No watcher, no subscription, no
+background task — `expo-location` offers all three and none is imported.
+Android gets COARSE and FINE only; `ACCESS_BACKGROUND_LOCATION` is absent and
+must stay absent. A confirm dialog explains what the single tap does before the
+OS prompt appears over it, because the system dialog has no room to say
+"once, and never again".
+
+Coordinates are rounded to **3 decimals (~110 m) on the device, before they
+leave it.** The question staff answer is "is this the area they claim", not
+"which doorway", and a workshop is very often someone's home. Refusing is a
+first-class outcome: "No location, no problem — nothing is lost."
+
+### J.10 Location for MATCHING, which is a different question (agreed 2026-09-29)
+
+J.7 rejects location as fraud surveillance. It does not reject location for
+PROXIMITY MATCHING, and those are not the same decision — SeamFlow's premise is
+that clients find designers near them, and a marketplace cannot do that without
+knowing roughly where people are. Three of J.7's four objections fall away when
+the purpose changes: foreground needs no Play declaration, consent is valid when
+the benefit runs to the person granting it, and there is no adversary to defeat.
+
+What was agreed, so that "we already have location" never becomes an argument
+for more of it:
+
+- **Designers: store it.** A shop's location is business information; a shop
+  wants to be found, and its city is already public on the storefront.
+- **Clients: use it and discard it.** What matching needs is "roughly where am
+  I shopping today", not a history of where someone has physically been. A
+  coarse saved area is fine IF THE CLIENT CHOOSES IT. A trail is not.
+- **Coarse beats precise.** Ranking "same town first" needs a town. The
+  existing `request_location_scope` enum (town/region/country) is already the
+  right shape, and `tailors.city` + `country_code` get most of the value with
+  no permission prompt at all. Exhaust those first.
+- **Distance is a BOOST, never a filter.** A filter shows a client in a small
+  town an empty feed, which in a young marketplace is most clients. Same
+  architecture as the verified lift, and they compose on one score.
+- **Still refused:** background or continuous location for anyone; any location
+  history; and showing a client a precise pin.
+
+NOT YET DONE, and required before any of the above ships: the privacy policy
+and the store data-safety disclosures say nothing about location, because until
+now we collected none.
+
 ### J.8 Phases
 
 0. **Phone confirmation — DONE 2026-09-28.** J.2 called this "already built",
@@ -2846,12 +2891,11 @@ many tailors work from home.
    `pnpm test:discover-ranking` walks the feed one post at a time to prove no
    page repeats or skips.
 
-   NOT DONE — the foreground location check-in. It needs `expo-location`, which
-   is a native dependency this repo does not have: adding it forces a dev-client
-   and EAS rebuild and a Play Store permission declaration, and it cannot be
-   verified on web at all. The staff queue already renders a `location` evidence
-   entry (with a map link and a warning never to show a client a coordinate), so
-   only the capture side is missing.
+   The foreground check-in is DONE too (2026-09-29): `expo-location` at the SDK
+   55 line, foreground permissions only, one fix per tap, rounded on the device.
+   See J.7 for the full shape and J.10 for what was agreed about location for
+   matching. NEEDS A NATIVE REBUILD before it works in a store build — the web
+   preview exercised both the granted and denied paths.
 
 ### J.9 Explicitly not building
 

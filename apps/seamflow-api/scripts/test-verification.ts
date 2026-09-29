@@ -266,6 +266,10 @@ async function main(): Promise<void> {
         { kind: 'work_photo', storagePath: `${tailor.id}/with-social.jpg` },
         { kind: 'social', platform: 'instagram', handle: HANDLE, code: 'SF-K7M2Q' },
         { kind: 'registration', number: 'RC/YAO/2026/B/123' },
+        // The app rounds to 3 decimals (~110 m) before it ever leaves the
+        // device — the check is "right neighbourhood", not "right doorway",
+        // and a workshop is very often someone's home.
+        { kind: 'location', lat: 4.051, lng: 9.768, accuracy: 43 },
       ],
     });
     assert(r.status === 201, `submit with extras: ${r.status} ${JSON.stringify(r.data)}`);
@@ -288,6 +292,28 @@ async function main(): Promise<void> {
       'a handle was published on a shop although staff never confirmed the code',
     );
     console.log('• Approving the shop does NOT publish an unconfirmed handle');
+
+    // All three extras survive the round trip into the staff queue, where they
+    // are the only place any of them is ever shown.
+    r = await api(staff.jwt, 'GET', '/admin/verification?status=approved');
+    const withExtras = (r.data as { id: string; evidence: { kind: string }[] }[]).find(
+      (x) => x.id === withSocial,
+    );
+    assert(withExtras, 'the request with extras is missing from the queue');
+    const kinds = withExtras.evidence.map((e) => e.kind).sort();
+    assert(
+      kinds.join(',') === 'location,registration,social,work_photo',
+      `the queue lost an evidence kind: ${kinds.join(',')}`,
+    );
+    const loc = withExtras.evidence.find(
+      (e): e is { kind: string; lat: number; lng: number } & { kind: 'location' } =>
+        e.kind === 'location',
+    ) as unknown as { lat: number; lng: number };
+    assert(
+      String(loc.lat).split('.')[1]?.length <= 3 && String(loc.lng).split('.')[1]?.length <= 3,
+      `a location was stored finer than 3 decimals: ${loc.lat}, ${loc.lng}`,
+    );
+    console.log('• All four evidence kinds reach the queue, and the fix is no finer than ~110m');
 
     // Now the same handle, confirmed.
     r = await api(tailor.jwt, 'POST', '/me/verification', {
