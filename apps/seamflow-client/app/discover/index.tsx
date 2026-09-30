@@ -26,6 +26,7 @@ import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SkeletonGrid } from '../../components/Skeleton';
+import { ShopResults } from '../../components/ShopResults';
 import { useFeed } from '../../lib/queries';
 import { useGridColumns, useContentWidth } from '../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../lib/floating-scroll';
@@ -53,6 +54,9 @@ export default function Discover() {
   const filter = useMemo(() => ({ audience, occasion }), [audience, occasion]);
   const feedQ = useFeed(filter);
 
+  // First page only — the API omits them on later pages, since by then the
+  // shopper has already scrolled past this row.
+  const shops = feedQ.data?.pages[0]?.shops;
   const items: FeedPostPublic[] = useMemo(
     () => (feedQ.data?.pages ?? []).flatMap((p) => p.items),
     [feedQ.data],
@@ -118,6 +122,11 @@ export default function Discover() {
           />
         ) : null}
       </ScrollView>
+
+      {/* Shops matching the name, above the grid. "Take me to Gold Kaftan" and
+          "show me gold kaftans" are different questions; this answers the
+          first without the grid having to rank a shop against a photo. */}
+      <ShopResults shops={shops} hrefFor={(id: string) => `/(app)/discover/tailor/${id}`} />
 
       {feedQ.isLoading && items.length === 0 ? (
         <View style={styles.padded}>

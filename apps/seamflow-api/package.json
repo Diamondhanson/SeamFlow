@@ -37,6 +37,7 @@
     "test:verification-retention": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification-retention.ts",
     "test:trust-signals": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-trust-signals.ts",
     "backfill:design-tags": "nest build && node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/backfill-design-tags.ts",
+    "test:shop-search": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-shop-search.ts",
     "test:discover-ranking": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-discover-ranking.ts"
   },
   "dependencies": {

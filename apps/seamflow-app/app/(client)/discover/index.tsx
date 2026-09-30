@@ -29,6 +29,7 @@ import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonGrid } from '../../../components/Skeleton';
 import { SearchField } from '../../../components/SearchField';
+import { ShopResults } from '../../../components/ShopResults';
 import { Button } from '../../../components/Button';
 import { ImageCaption } from '../../../components/client/ImageCaption';
 import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
@@ -127,6 +128,9 @@ export default function Discover() {
   );
   // Set by the server when nothing matched every word and it widened to any.
   const relaxed = !!feedQ.data?.pages[0]?.relaxed;
+  // First page only — the API omits them on later pages, since by then the
+  // shopper has already scrolled past this row.
+  const shops = feedQ.data?.pages[0]?.shops;
 
   // ── Masonry ───────────────────────────────────────────────────────────────
   const columns = useGridColumns();
@@ -246,6 +250,11 @@ export default function Discover() {
           />
         ) : null}
       </ScrollView>
+
+      {/* Shops matching the name, above the grid. "Take me to Gold Kaftan" and
+          "show me gold kaftans" are different questions; this answers the
+          first without the grid having to rank a shop against a photo. */}
+      <ShopResults shops={shops} hrefFor={(id) => `/discover/tailor/${id}`} />
 
       {feedQ.isLoading && items.length === 0 ? (
         <View style={styles.padded}>

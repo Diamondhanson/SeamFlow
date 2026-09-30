@@ -30,7 +30,8 @@ import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { feedPostImages, feedPosts, orderPhotos, orders, tailors } from '../db/schema';
 import { ownerIsLive } from '../common/live-owner';
-import { escapeForRegex, parseSearchQuery } from '@seamflow/schemas';
+import { escapeForRegex, normalizeForSearch, parseSearchQuery } from '@seamflow/schemas';
+import type { FeedShopHit } from '@seamflow/schemas';
 
 const ORDER_PHOTOS_BUCKET = 'order-photos';
 const FEED_BUCKET = 'feed';
@@ -338,8 +339,13 @@ export class FeedService {
     const page = await this.attachImages(hasMore ? rows.slice(0, limit) : rows);
     const last = page[page.length - 1];
 
+    // Shops matching by NAME, on the first page only — a cursor means the
+    // shopper is already deep in the grid and has scrolled past this row.
+    const shops = query.q?.trim() && !cur ? await this.searchShops(query.q) : [];
+
     return {
       items: page.map((r) => this.toPublicPost(r)),
+      ...(shops.length ? { shops } : {}),
       // The cursor carries the RANKED timestamp, matching the sort key above.
       // Falling back to created_at would be wrong rather than merely untidy:
       // the next page's keyset would be compared against a different value than
@@ -404,6 +410,74 @@ export class FeedService {
       );
     }
     return out;
+  }
+
+  /**
+   * Shops whose NAME matches what was typed.
+   *
+   * DELIBERATELY IGNORES THE SEARCH VOCABULARY. Everything else in search
+   * resolves words against the garment/colour/style labels first, and only
+   * leftovers are matched as free text — which means a shop called "Gold
+   * Threads" or "Kaftan Palace" can never be found by its own name, because
+   * "gold" and "kaftan" are swallowed as concepts before any name is consulted.
+   * Worse, concepts are ANDed, so the shopper gets a confident page of OTHER
+   * shops' gold designs and concludes the one they were told about is not here.
+   *
+   * So this runs on the RAW words, in parallel, and cannot be affected by
+   * whatever the vocabulary grows to mean later.
+   *
+   * A shop with NO published designs still appears. That looks wrong until you
+   * remember why people search a name: they were told to. "My sister says go to
+   * X" is worth answering with the shop and a way to message them, even when
+   * the shop has posted nothing yet — and a brand-new shop is exactly the one
+   * being recommended by hand.
+   */
+  private async searchShops(raw: string, limit = 3): Promise<FeedShopHit[]> {
+    const words = normalizeForSearch(raw)
+      .split(' ')
+      .map((w) => w.trim())
+      .filter((w) => w.length >= 2);
+    if (words.length === 0) return [];
+
+    // Every word must appear in the name, as a word PREFIX — so "gold thr"
+    // finds "Gold Threads" but "old" does not, which is the same whole-word
+    // rule the rest of search uses to avoid matching cove-RED.
+    // `\m` is a word boundary, with no closing `\M` — so this is a PREFIX
+    // match: "gold thr" finds "Gold Threads", but "old" does not find "Gold".
+    // Same whole-word discipline the rest of search uses to avoid cove-RED.
+    const clauses = words.map(
+      (w) => sql`unaccent(${tailors.businessName}) ~* ${'\\m' + escapeForRegex(w)}`,
+    );
+
+    // The outer column is written OUT, not interpolated. Drizzle renders
+    // `${tailors.id}` unqualified inside a select-list expression ("id"), which
+    // inside this subquery resolves to fp.id — so the correlation silently
+    // became `fp.tailor_id = fp.id` and every shop reported zero designs. It
+    // qualifies correctly in ORDER BY, which is what made it look right.
+    const designCount = sql<number>`(
+      select count(*)::int from feed_posts fp
+       where fp.tailor_id = "tailors"."id" and fp.status = 'published'
+    )`;
+
+    const rows = await this.dbService.db
+      .select({ tailor: tailors, designCount })
+      .from(tailors)
+      .where(and(ownerIsLive(), ...clauses))
+      // Verified first — this is the row where the badge earns its keep, and
+      // the only real defence against two shops with near-identical names.
+      // Then by how much work they have to show.
+      .orderBy(desc(tailors.isVerified), desc(designCount))
+      .limit(limit);
+
+    return rows.map(({ tailor: t, designCount }) => ({
+      id: t.id,
+      businessName: t.businessName,
+      slug: t.slug ?? null,
+      city: t.city ?? null,
+      avatarUrl: this.avatarUrl(t.avatarPath) ?? t.photoUrl ?? null,
+      isVerified: t.isVerified,
+      designCount,
+    }));
   }
 
   async getPublic(id: string): Promise<{ post: FeedPostPublic; moreLikeThis: FeedPostPublic[] }> {

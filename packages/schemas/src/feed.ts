@@ -150,8 +150,34 @@ export const FeedQuerySchema = z.object({
 });
 export type FeedQuery = z.infer<typeof FeedQuerySchema>;
 
+/**
+ * A shop whose NAME matches what was typed (ROADMAP D.2.x).
+ *
+ * Separate from `items` on purpose. Word of mouth is how tailors get clients
+ * here — someone is told "go to LYZMA" and types it — and that is a different
+ * question from "show me gold kaftans". Answering both in one grid would mean
+ * ranking a shop against a photograph, which has no sensible answer.
+ */
+export const FeedShopHitSchema = z.object({
+  id: z.string().uuid(),
+  businessName: z.string(),
+  slug: z.string().nullable(),
+  city: z.string().nullable(),
+  avatarUrl: z.string().url().nullable(),
+  isVerified: z.boolean(),
+  /** Published designs. Zero is valid and still worth showing — see the service. */
+  designCount: z.number().int(),
+});
+export type FeedShopHit = z.infer<typeof FeedShopHitSchema>;
+
 export const FeedPageSchema = z.object({
   items: z.array(FeedPostPublicSchema),
+  /**
+   * Shops matching the search by NAME. Only on the first page (a cursor means
+   * the shopper is deep in the grid and has already seen these), and only when
+   * something was typed.
+   */
+  shops: z.array(FeedShopHitSchema).optional(),
   /** Null when this is the last page. */
   nextCursor: z.string().nullable(),
   /**
