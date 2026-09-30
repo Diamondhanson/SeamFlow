@@ -13,7 +13,7 @@
 import { Inject, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
-import { and, desc, eq, gte, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, gte, isNotNull, ne } from 'drizzle-orm';
 import {
   billingFor,
   planFor,
@@ -210,7 +210,20 @@ export class CheckoutService {
       this.logger.warn('Rejected an unverified subscription webhook');
       return { handled: false };
     }
-    return this.settle(event);
+    if (event.status !== 'succeeded' || !this.provider.fetchStatus) return this.settle(event);
+
+    // Money only moves on the provider's word, never on the body's. The shared
+    // secret proves the sender once knew it; it does not prove this payment
+    // happened. So before granting anything, ask the provider directly and
+    // settle on ITS answer — a leaked secret then buys nothing.
+    const confirmed = await this.provider.fetchStatus(event.providerRef);
+    if (!confirmed || confirmed.status !== 'succeeded') {
+      this.logger.error(
+        `Webhook claimed ${event.providerRef} succeeded; provider says ${confirmed?.status ?? 'unknown'} — not settling`,
+      );
+      return { handled: false };
+    }
+    return this.settle(confirmed);
   }
 
   private async settle(event: WebhookEvent): Promise<{ handled: boolean }> {
@@ -239,10 +252,29 @@ export class CheckoutService {
       return { handled: true };
     }
 
-    await this.db
+    // The payment this event names must be the one we started: a successful
+    // transaction for one attempt can't be replayed to settle another.
+    if (row.providerRef && row.providerRef !== event.providerRef) {
+      this.logger.error(`Webhook ${event.providerRef} does not match payment ${row.id} (${row.providerRef}) — not settling`);
+      return { handled: false };
+    }
+    // And it must have paid what we asked. Short is refused outright; the
+    // tailor keeps what they had and support can see why in the log.
+    if (event.amount != null && Number(event.amount) < Number(row.amount)) {
+      this.logger.error(
+        `Payment ${row.id} underpaid: got ${event.amount}, expected ${row.amount} — not settling`,
+      );
+      return { handled: false };
+    }
+
+    // Claim the row atomically. Two deliveries racing (webhook + reconcile cron,
+    // or a provider retry) would otherwise both see 'pending' and both extend.
+    const claimed = await this.db
       .update(subscriptionPayments)
       .set({ status: 'succeeded', providerRef: event.providerRef, updatedAt: new Date() })
-      .where(eq(subscriptionPayments.id, row.id));
+      .where(and(eq(subscriptionPayments.id, row.id), ne(subscriptionPayments.status, 'succeeded')))
+      .returning({ id: subscriptionPayments.id });
+    if (claimed.length === 0) return { handled: true };
     const updated = await this.subscriptions.extendPremium(row.tailorId, row.daysAdded, {
       plan: row.plan ?? undefined,
       method: row.method ?? undefined,

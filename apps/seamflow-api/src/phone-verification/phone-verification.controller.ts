@@ -9,6 +9,7 @@ import type { AuthedUser } from '../auth/auth.types';
 import { PhoneVerificationService } from './phone-verification.service';
 import type { OtpDevicePlatform } from './otp-provider';
 import { PhoneVerifyConfirmDto, PhoneVerifyStartDto } from './phone-verification.dto';
+import { Throttle } from '@nestjs/throttler';
 
 /**
  * Phone verification, for whoever is signed in — tailor or client alike.
@@ -17,6 +18,9 @@ import { PhoneVerifyConfirmDto, PhoneVerifyStartDto } from './phone-verification
  * deliberately no "verify someone else's number" route: the only person who can
  * prove control of a line is the person holding it.
  */
+// On top of the per-NUMBER send cap in the service: this one is per caller,
+// across every number, so one account can't spray codes at many phones.
+@Throttle({ default: { limit: 10, ttl: 60_000 } })
 @Controller('me/phone')
 export class PhoneVerificationController {
   constructor(private readonly service: PhoneVerificationService) {}

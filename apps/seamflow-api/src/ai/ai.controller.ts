@@ -10,7 +10,11 @@ import {
   ExtractMeasurementsDto,
   SummarizeNotesDto,
 } from './ai.dto';
+import { Throttle } from '@nestjs/throttler';
 
+// Each call spends Anthropic credit: 20 a minute is far above a person
+// working by hand, and far below what a script would need.
+@Throttle({ default: { limit: 20, ttl: 60_000 } })
 @Controller('ai')
 export class AiController {
   constructor(

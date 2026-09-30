@@ -4,7 +4,10 @@ import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { AssistantService } from './assistant.service';
 import { AssistantChatDto } from './assistant.dto';
+import { Throttle } from '@nestjs/throttler';
 
+// Every message is a paid model call. See ai.controller.ts.
+@Throttle({ default: { limit: 20, ttl: 60_000 } })
 @Controller('assistant')
 export class AssistantController {
   constructor(

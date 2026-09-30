@@ -4,6 +4,7 @@ import { SITE, withLang, LANGS, OG_LOCALE } from '../../lib/i18n';
 import { getCatalogueCopy } from '../../lib/catalogue';
 import { loadCatalogue } from '../../lib/catalogue-data';
 import { CatalogueView } from './CatalogueView';
+import { serialize } from '../JsonLd';
 
 /**
  * The EN and FR routes are two files so each gets its own canonical and its
@@ -134,7 +135,9 @@ function CatalogueJsonLd({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+      // Tailor-written text (bio, captions): `serialize` escapes `<` so a
+      // "</script>" in it cannot break out and run as code.
+      dangerouslySetInnerHTML={{ __html: serialize(json) }}
     />
   );
 }

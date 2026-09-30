@@ -4,6 +4,10 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
 
+  // Extra browser origins allowed by CORS, comma-separated and exact (e.g. a
+  // preview deployment's URL). The production sites are built in; see main.ts.
+  WEB_ORIGINS: z.string().optional(),
+
   // Supabase
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(1),

@@ -17,6 +17,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { CheckoutService } from './checkout.service';
+import { SkipThrottle } from '@nestjs/throttler';
 
 class CheckoutDto extends createZodDto(CheckoutSchema) {}
 
@@ -73,6 +74,9 @@ export class CheckoutController {
    * Always answers 200: a provider that receives an error retries for hours,
    * and a body we could not verify is not something a retry will fix.
    */
+  // The provider sends from a handful of IPs and does not retry a 429 well:
+  // throttling it would drop real payments. The secret check is the gate.
+  @SkipThrottle()
   @Public()
   @Post('webhook/:provider')
   async webhook(

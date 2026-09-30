@@ -21,8 +21,12 @@
 import type { Dict, Lang } from '../lib/i18n';
 import { SITE, withLang, LANGS } from '../lib/i18n';
 
-/** Escape the only sequence that can terminate a <script> block early. */
-function serialize(data: unknown): string {
+/**
+ * Escape the only sequence that can terminate a <script> block early.
+ * Shared: use this for ANY JSON-LD, and never bare JSON.stringify, whenever the
+ * data includes user-written text (a bio, a caption).
+ */
+export function serialize(data: unknown): string {
   return JSON.stringify(data).replace(/</g, '\\u003c');
 }
 
