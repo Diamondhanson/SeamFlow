@@ -65,6 +65,10 @@ export const chat = {
 
     // ── Thread ──────────────────────────────────────────────────────────────
     threadTitle: 'Conversation',
+    changesAsked: 'They asked for these changes',
+    changesAskedSent: 'You asked for these changes',
+    changeColor: 'Colour',
+    changeInsteadOf: '{to} — instead of {from}',
     aboutDesign: 'About this design',
     composerPlaceholder: 'Write a message…',
     send: 'Send',
@@ -191,6 +195,10 @@ export const chat = {
     designMessage: 'Un modèle',
 
     threadTitle: 'Conversation',
+    changesAsked: 'Elle demande ces changements',
+    changesAskedSent: 'Vous avez demandé ces changements',
+    changeColor: 'Couleur',
+    changeInsteadOf: '{to} — au lieu de {from}',
     aboutDesign: 'À propos de ce modèle',
     composerPlaceholder: 'Écrivez un message…',
     send: 'Envoyer',
@@ -313,6 +321,10 @@ export const chat = {
 
     // ── Conversa ────────────────────────────────────────────────────────────
     threadTitle: 'Conversa',
+    changesAsked: 'Pediu estas alterações',
+    changesAskedSent: 'Pediu estas alterações',
+    changeColor: 'Cor',
+    changeInsteadOf: '{to} — em vez de {from}',
     aboutDesign: 'Sobre esta criação',
     composerPlaceholder: 'Escreva uma mensagem…',
     send: 'Enviar',
@@ -439,6 +451,10 @@ export const chat = {
 
     // ── Conversación ────────────────────────────────────────────────────────
     threadTitle: 'Conversación',
+    changesAsked: 'Pide estos cambios',
+    changesAskedSent: 'Pediste estos cambios',
+    changeColor: 'Color',
+    changeInsteadOf: '{to} — en lugar de {from}',
     aboutDesign: 'Sobre este diseño',
     composerPlaceholder: 'Escriba un mensaje…',
     send: 'Enviar',
@@ -564,6 +580,10 @@ export const chat = {
 
     // ── Mazungumzo ──────────────────────────────────────────────────────────
     threadTitle: 'Mazungumzo',
+    changesAsked: 'Ameomba mabadiliko haya',
+    changesAskedSent: 'Umeomba mabadiliko haya',
+    changeColor: 'Rangi',
+    changeInsteadOf: '{to} — badala ya {from}',
     aboutDesign: 'Kuhusu ubunifu huu',
     composerPlaceholder: 'Andika ujumbe…',
     send: 'Tuma',
@@ -684,6 +704,10 @@ export const chat = {
     designMessage: 'تصميم',
 
     threadTitle: 'محادثة',
+    changesAsked: 'طلب هذه التعديلات',
+    changesAskedSent: 'طلبت هذه التعديلات',
+    changeColor: 'اللون',
+    changeInsteadOf: '{to} — بدلًا من {from}',
     aboutDesign: 'عن هذا التصميم',
     composerPlaceholder: 'اكتب رسالة…',
     send: 'إرسال',

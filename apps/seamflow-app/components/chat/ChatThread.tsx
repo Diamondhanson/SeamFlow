@@ -43,6 +43,11 @@ import { formatCurrency } from '@seamflow/utils';
 import { Text, useAtelierTheme, useFieldFocus, useKeyboardAppearance, keyboardDismissOnDrag } from '@seamflow/ui';
 import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
+import {
+  ATTRIBUTE_GROUP_LABELS,
+  attributeLabel,
+  colorLabel,
+} from '@seamflow/schemas';
 import { VerifiedBadge } from '../VerifiedBadge';
 import { SkeletonList } from '../Skeleton';
 import { useConversation, useMarkConversationRead, useMessages, useOrders } from '../../lib/queries';
@@ -101,7 +106,7 @@ export function ChatThread({
   onCreateQuote,
   onStartOrder,
 }: ChatThreadProps) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const tk = (k: string, p?: Record<string, string | number>) => t(`${ns}.${k}`, p);
   const colors = useThemeColors();
   const { colors: atelier } = useAtelierTheme();
@@ -831,6 +836,51 @@ export function ChatThread({
         </Pressable>
       );
     }
+    if (a.kind === 'design_change') {
+      // The brief. Rendered from KEYS, so each side reads it in its own
+      // language — the customer picked "Manches courtes", the tailor reads
+      // "Short sleeve", and neither has to interpret the other.
+      //
+      // Shown as a diff rather than a list, because "Knee-length instead of
+      // Maxi" is a cutting instruction and "Knee-length" on its own is not.
+      return (
+        <View
+          key={i}
+          style={[
+            styles.measureCard,
+            { backgroundColor: colors.bg, borderColor: colors.hairline, borderRadius: radii.md },
+          ]}
+        >
+          <View style={styles.measureHead}>
+            <Ionicons name="options-outline" size={16} color={atelier.primary} />
+            <Text variant="bodySm" style={{ flex: 1 }}>
+              {role === 'tailor' ? tk('changesAsked') : tk('changesAskedSent')}
+            </Text>
+          </View>
+          {a.changes.map((c) => {
+            const to =
+              c.group === 'color' ? colorLabel(c.to, language) : attributeLabel(c.to, language);
+            const from = c.from
+              ? c.group === 'color'
+                ? colorLabel(c.from, language)
+                : attributeLabel(c.from, language)
+              : null;
+            return (
+              <View key={`${c.group}:${c.to}`} style={styles.changeRow}>
+                <Text variant="caption" tone="textMuted" style={styles.changeGroup}>
+                  {c.group === 'color'
+                    ? tk('changeColor')
+                    : ATTRIBUTE_GROUP_LABELS[c.group][language]}
+                </Text>
+                <Text variant="bodySm" style={{ flex: 1 }}>
+                  {from ? tk('changeInsteadOf', { to, from }) : to}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      );
+    }
     if (a.kind === 'measurement_request') {
       // Both sides see this, each in their own language: the customer as an
       // ask with a way to answer it, the tailor as a record of having asked.
@@ -1324,6 +1374,8 @@ const styles = StyleSheet.create({
   orderIcon: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   orderThumb: { width: 40, height: 40 },
   measureCard: { minWidth: 220, padding: spacing.sm, borderWidth: StyleSheet.hairlineWidth, gap: 2 },
+  changeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, marginTop: spacing.xs },
+  changeGroup: { width: 78 },
   measureHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs },
   measureRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 2, borderTopWidth: StyleSheet.hairlineWidth },
   measureActions: {

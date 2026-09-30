@@ -30,6 +30,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { feedPosts } from '../db/schema';
 import { AiService } from '../ai/ai.service';
+import { colorHex, type DesignColor } from '@seamflow/schemas';
 
 const FEED_BUCKET = 'feed';
 
@@ -48,6 +49,23 @@ function worthRetrying(err: unknown): boolean {
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * The classifier returns colour KEYS; the column stores `DesignColor` objects.
+ *
+ * Not a formality. Colour search matches with `colors @> [{"key": …}]`, so a
+ * bare array of strings is invisible to every colour filter — and the publish
+ * screen has always written the object form. `share` descends by position
+ * because the model lists the dominant colour first, which is the same order
+ * the publish screen assumes.
+ */
+function toDesignColors(keys: string[]): DesignColor[] {
+  return keys.map((key, i) => ({
+    key,
+    hex: colorHex(key) ?? '#888888',
+    share: Number(((keys.length - i) / keys.length).toFixed(2)),
+  }));
+}
 
 /** One design's before/after, so a dry run is readable and a real run is auditable. */
 export interface BackfillRow {
@@ -82,6 +100,38 @@ export class DesignTagBackfillService {
     private readonly dbService: DbService,
     private readonly ai: AiService,
   ) {}
+
+  /**
+   * Rewrite colour arrays that were stored as bare strings.
+   *
+   * An earlier run of this backfill wrote the classifier's keys straight into
+   * `colors`, which the reader and every colour filter expect to be objects.
+   * Pure data repair — no model, no cost — and it only touches rows that are
+   * actually in the wrong shape, so running it twice is a no-op.
+   */
+  async repairColorShapes(apply = false): Promise<{ found: number; fixed: number }> {
+    const db = this.dbService.db;
+    const broken = (await db.execute(sql`
+      select id, colors from feed_posts
+       where jsonb_array_length(colors) > 0
+         and jsonb_typeof(colors -> 0) = 'string'
+    `)) as unknown as { id: string; colors: string[] }[];
+
+    let fixed = 0;
+    for (const row of broken) {
+      if (!apply) continue;
+      await db
+        .update(feedPosts)
+        .set({ colors: toDesignColors(row.colors) })
+        .where(eq(feedPosts.id, row.id));
+      fixed += 1;
+    }
+    this.logger.log(
+      `Colour shape repair: ${broken.length} in the wrong shape, ${fixed} fixed` +
+        (apply ? '' : ' (dry run)'),
+    );
+    return { found: broken.length, fixed };
+  }
 
   /**
    * @param apply false (the default) classifies and reports, writing nothing.
@@ -174,8 +224,8 @@ export class DesignTagBackfillService {
         // object: title and caption. Those are the tailor's voice.
         const patch: Record<string, unknown> = {};
         if (!post.garmentKey && out.garmentKey) patch.garmentKey = out.garmentKey;
-        if ((post.colors as string[]).length === 0 && out.colors.length) {
-          patch.colors = out.colors;
+        if ((post.colors as unknown[]).length === 0 && out.colors.length) {
+          patch.colors = toDesignColors(out.colors);
         }
         if ((post.attributes as string[]).length === 0 && out.attributes.length) {
           patch.attributes = out.attributes;

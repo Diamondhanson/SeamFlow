@@ -109,6 +109,43 @@ export const MessageMeasurementRequestAttachmentSchema = z.object({
   kind: z.literal('measurement_request'),
 });
 
+/**
+ * One thing the customer wants different from the design as published.
+ *
+ * `group` is the axis, `from` is what the design IS (null when the design was
+ * never tagged on that axis), `to` is what they want. Keys, never words — the
+ * card renders each side in ITS OWN language, so a customer picking "Manches
+ * courtes" in French is read as "Short sleeve" by an English tailor. No
+ * translation, no guessing what she meant.
+ */
+export const DesignChangeSchema = z.object({
+  group: z.enum(['color', 'silhouette', 'length', 'sleeve', 'neckline', 'detail']),
+  /** The design's current key on this axis. Null if it carried none. */
+  from: z.string().nullable(),
+  to: z.string(),
+});
+export type DesignChange = z.infer<typeof DesignChangeSchema>;
+
+/**
+ * "Like this, but…" — a customer's change request on a published design.
+ *
+ * The most valuable thing in the thread and the cheapest to produce: a tailor
+ * cannot act on "can you make it shorter?", but "Maxi → Knee-length" is a
+ * specification. It is a BRIEF, not a new design: it stays in the conversation
+ * with the designer who made the original, and there is deliberately no way to
+ * take it anywhere else.
+ *
+ * Capped at six because a request that changes everything is not a change
+ * request, it is a different garment — and the tailor should be asked for that
+ * in words.
+ */
+export const MessageDesignChangeAttachmentSchema = z.object({
+  kind: z.literal('design_change'),
+  /** The design being altered, so the card can sit next to the picture. */
+  designPostId: z.string().uuid(),
+  changes: z.array(DesignChangeSchema).min(1).max(6),
+});
+
 export const MessageAttachmentSchema = z.discriminatedUnion('kind', [
   MessageImageAttachmentSchema,
   MessageDesignAttachmentSchema,
@@ -116,6 +153,7 @@ export const MessageAttachmentSchema = z.discriminatedUnion('kind', [
   MessageOrderAttachmentSchema,
   MessageMeasurementAttachmentSchema,
   MessageMeasurementRequestAttachmentSchema,
+  MessageDesignChangeAttachmentSchema,
 ]);
 export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 
@@ -275,6 +313,14 @@ export const ConversationCreateSchema = z.object({
   tailorId: z.string().uuid(),
   designPostId: z.string().uuid().nullable().optional(),
   firstMessage: z.string().min(1).max(4000),
+  /**
+   * Attachments to ride along with the opening message.
+   *
+   * Exists for the change request: "like this, but knee-length" has to arrive
+   * WITH the enquiry, not as a second message a second later, or the tailor
+   * reads a bare question first and answers it before the brief lands.
+   */
+  firstAttachments: z.array(MessageAttachmentSchema).max(4).optional(),
   clientId: z.string().min(8).max(64).optional(),
 });
 export type ConversationCreateInput = z.infer<typeof ConversationCreateSchema>;

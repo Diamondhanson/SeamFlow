@@ -454,7 +454,20 @@ export class ChatService {
       // Attach the design to the OPENING message on a new thread, so the tailor
       // leads with the actual piece being asked about (a picture is far more
       // recognisable than a name). Reuses (re-inquiries) don't re-attach.
-      attachments: isNewThread && designPostId ? [{ kind: 'design', designPostId }] : undefined,
+      attachments: [
+        // Attach the design to the OPENING message on a new thread, so the
+        // tailor leads with the actual piece being asked about (a picture is
+        // far more recognisable than a name). Reuses don't re-attach.
+        ...(isNewThread && designPostId
+          ? [{ kind: 'design' as const, designPostId }]
+          : []),
+        // A change request rides with the enquiry rather than following it, so
+        // the tailor never answers the bare question before the brief arrives.
+        // Only ever about the design this thread is about.
+        ...(input.firstAttachments ?? []).filter(
+          (a) => a.kind === 'design_change' && a.designPostId === designPostId,
+        ),
+      ],
     });
 
     // A NEW enquiry is an event worth keeping; the messages inside it are not.

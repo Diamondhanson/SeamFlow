@@ -29,7 +29,16 @@ const limit = limitArg ? Number(limitArg.split('=')[1]) : 200;
 async function main(): Promise<void> {
   const app = await NestFactory.createApplicationContext(AppModule, { logger: ['warn', 'error'] });
   try {
-    const report = await app.get(DesignTagBackfillService).run({ apply, limit });
+    const svc = app.get(DesignTagBackfillService);
+
+    // Repair before classifying: a row whose colours are in the old shape is
+    // otherwise invisible to every colour filter, and it costs nothing to fix.
+    const repair = await svc.repairColorShapes(apply);
+    if (repair.found) {
+      console.log(`\nColours in the wrong shape: ${repair.found} found, ${repair.fixed} fixed`);
+    }
+
+    const report = await svc.run({ apply, limit });
 
     console.log(`\n${apply ? 'APPLIED' : 'DRY RUN — nothing written'}\n`);
     for (const row of report.rows) {

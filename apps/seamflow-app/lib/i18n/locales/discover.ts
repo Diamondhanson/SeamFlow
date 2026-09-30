@@ -15,6 +15,11 @@ export const discover = {
     statDesigns: 'Designs',
     statSince: 'Member since',
     statOrders: 'Orders done',
+    changeTitle: 'Want anything different?',
+    changeBody:
+      'Tap to change what you want. The designer sees exactly what you picked, so nothing gets lost in words.',
+    changeColor: 'Colour',
+    changeNotSet: 'Not set',
     statFollowers: 'Followers',
     share: 'Share',
     // ── Feed ────────────────────────────────────────────────────────────────
@@ -94,6 +99,11 @@ export const discover = {
     statDesigns: 'Créations',
     statSince: 'Membre depuis',
     statOrders: 'Commandes livrées',
+    changeTitle: 'Vous voulez autre chose ?',
+    changeBody:
+      'Appuyez pour changer ce que vous voulez. La créatrice voit exactement ce que vous avez choisi : rien ne se perd dans les mots.',
+    changeColor: 'Couleur',
+    changeNotSet: 'Non précisé',
     statFollowers: 'Abonnés',
     share: 'Partager',
     title: 'Découvrir',
@@ -167,6 +177,11 @@ export const discover = {
     statDesigns: 'Criações',
     statSince: 'Membro desde',
     statOrders: 'Encomendas feitas',
+    changeTitle: 'Quer algo diferente?',
+    changeBody:
+      'Toque para mudar o que quiser. A designer vê exatamente o que escolheu, por isso nada se perde nas palavras.',
+    changeColor: 'Cor',
+    changeNotSet: 'Não definido',
     statFollowers: 'Seguidores',
     share: 'Compartilhar',
     // ── Feed ────────────────────────────────────────────────────────────────
@@ -245,6 +260,11 @@ export const discover = {
     statDesigns: 'Diseños',
     statSince: 'Miembro desde',
     statOrders: 'Pedidos hechos',
+    changeTitle: '¿Quieres algo distinto?',
+    changeBody:
+      'Toca para cambiar lo que quieras. La diseñadora ve exactamente lo que elegiste, así que nada se pierde en las palabras.',
+    changeColor: 'Color',
+    changeNotSet: 'Sin definir',
     statFollowers: 'Seguidores',
     share: 'Compartir',
     // ── Muro ────────────────────────────────────────────────────────────────
@@ -322,6 +342,11 @@ export const discover = {
     statDesigns: 'Miundo',
     statSince: 'Mwanachama tangu',
     statOrders: 'Kazi zilizokamilika',
+    changeTitle: 'Unataka kitu tofauti?',
+    changeBody:
+      'Gusa kubadilisha unachotaka. Mbunifu anaona hasa ulichochagua, hivyo hakuna kinachopotea kwenye maneno.',
+    changeColor: 'Rangi',
+    changeNotSet: 'Haijawekwa',
     statFollowers: 'Wafuasi',
     share: 'Shiriki',
     // ── Mkondo ──────────────────────────────────────────────────────────────
@@ -399,6 +424,11 @@ export const discover = {
     statDesigns: 'التصاميم',
     statSince: 'عضو منذ',
     statOrders: 'طلبات مُنجَزة',
+    changeTitle: 'تريد شيئًا مختلفًا؟',
+    changeBody:
+      'اضغط لتغيير ما تريد. يرى المصمّم تمامًا ما اخترته، فلا يضيع شيء في الكلمات.',
+    changeColor: 'اللون',
+    changeNotSet: 'غير محدّد',
     statFollowers: 'المتابعون',
     share: 'مشاركة',
     // ── الواجهة ────────────────────────────────────────────────────────────
