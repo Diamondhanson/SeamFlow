@@ -105,6 +105,11 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radii.lg,
     padding: spacing.md,
+    // Owns the gap ABOVE it as well as below. What precedes this on the home
+    // screen varies — "Start new order", the Getting-started card, or nothing
+    // at all — and none of those carry a bottom margin, so a nudge that only
+    // spaced itself downwards sat flush against the CTA.
+    marginTop: spacing.lg,
     marginBottom: spacing.md,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

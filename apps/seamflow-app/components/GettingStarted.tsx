@@ -165,6 +165,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xs,
+    // Same reason as the verification nudge: the home CTA above it carries no
+    // bottom margin, so this card has to space itself away from it.
+    marginTop: spacing.lg,
     marginBottom: spacing.lg,
   },
   header: { flexDirection: 'row', alignItems: 'flex-start' },

@@ -21,10 +21,21 @@
 // Submitted → waiting → approved, or declined with the staff's reason shown
 // word for word and the step re-openable. A decline that cannot be acted on is
 // just a door closing.
+//
+// EXPLAIN AT THE TAP, NOT BEFORE IT
+//
+// The first draft of this screen said all of the above on first paint: two
+// steps fully explained, three optional extras fully explained, ~290 words
+// before anything could be pressed. Every sentence was needed; none of them
+// were needed YET, and the sum read as a form to fill in rather than five
+// minutes of work. So the long material now arrives at the moment it answers a
+// question the tailor is actually asking — the camera rationale when they reach
+// for the camera, the extras when they ask for them — and the first screen is
+// short enough to see the end of.
 // ============================================================================
 
 import { useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -70,6 +81,9 @@ function makeBioCode(): string {
   return `SF-${out}`;
 }
 
+/** Social, area, registration — the row names the count so it can be judged. */
+const EXTRAS = 3;
+
 interface Shot {
   uri: string;
   storagePath: string;
@@ -95,15 +109,33 @@ export default function Verification() {
   const [registration, setRegistration] = useState('');
   const [fix, setFix] = useState<ShopFix | null>(null);
   const [locating, setLocating] = useState(false);
+  const [extrasOpen, setExtrasOpen] = useState(false);
 
   const userId = me?.id;
   const request = state?.request ?? null;
   const pending = request?.status === 'pending';
   const declined = request?.status === 'rejected';
   const verified = Boolean(state?.isVerified);
+  const phoneDone = Boolean(state?.phoneVerified);
+  const doneCount = (phoneDone ? 1 : 0) + (shots.length > 0 ? 1 : 0);
 
   const takePhoto = async () => {
     if (!userId) return;
+
+    // The rationale, at the moment it is the answer to a question. A picker
+    // with no gallery option reads as a broken feature, and people work around
+    // what they think is broken — so this still has to be said, just not to
+    // someone who has not yet decided to do it. Only before the FIRST shot:
+    // by "take another" it has been read and repeating it is nagging.
+    if (shots.length === 0) {
+      const go = await dialog.confirm({
+        title: t('verification.step2WhyTitle'),
+        message: t('verification.step2Why'),
+        confirmLabel: t('verification.step2Action'),
+      });
+      if (!go) return;
+    }
+
     setBusy(true);
     try {
       // Camera only. There is deliberately no library branch to fall back to.
@@ -313,10 +345,20 @@ export default function Verification() {
             {verified ? t('verification.ledeVerified') : t('verification.lede')}
           </Text>
 
+          {/* The end is visible from the start. Two is a small number and
+              saying it out loud is most of what stops this feeling open-ended. */}
+          <Text variant="caption" tone="textMuted" style={styles.progress}>
+            {t('verification.progress', { done: doneCount })}
+          </Text>
+
+          {/* A finished step has said everything it had to say. Collapsing it
+              to a ticked line keeps the evidence that it is done without
+              spending a card on instructions nobody needs again. */}
           <Step
             n={1}
-            done={Boolean(state?.phoneVerified)}
-            title={t('verification.step1Title')}
+            done={phoneDone}
+            collapsed={phoneDone}
+            title={phoneDone ? t('verification.step1Done') : t('verification.step1Title')}
             body={t('verification.step1Body')}
             actionLabel={t('verification.step1Action')}
             onPress={() => router.push('/(app)/phone')}
@@ -360,59 +402,88 @@ export default function Verification() {
           {/* ---- Optional extras (J.3) --------------------------------------
               Framed as "make your shop stronger", never as requirements, and
               placed AFTER the submit button on purpose: someone who wants the
-              five-minute version never has to scroll past them. */}
-          <Text variant="body" style={styles.extrasTitle}>
-            {t('verification.extrasTitle')}
-          </Text>
-          <Text variant="bodySm" tone="textMuted" style={styles.extrasLede}>
-            {t('verification.extrasLede')}
-          </Text>
+              five-minute version never has to scroll past them.
 
-          <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
-            <Text variant="body" style={styles.stepTitle}>
-              {t('verification.socialTitle')}
-            </Text>
-            <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
-              {social
-                ? t('verification.socialPending', { handle: social.handle, code: social.code })
-                : t('verification.socialBody')}
-            </Text>
-            <Button
-              label={social ? t('verification.socialChange') : t('verification.socialAction')}
-              variant="secondary"
-              onPress={linkSocial}
+              CLOSED until asked for. Three permanently-open cards, each with a
+              paragraph, were over a third of this screen — spent on things the
+              copy itself calls unnecessary. The row says what is in there and
+              how many, which is all anyone needs to decide whether to look. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: extrasOpen }}
+            onPress={() => setExtrasOpen((o) => !o)}
+            style={[
+              styles.step,
+              styles.disclosure,
+              { backgroundColor: colors.surface, borderRadius: radii.lg },
+            ]}
+          >
+            <View style={styles.disclosureText}>
+              <Text variant="body">{t('verification.extrasTitle')}</Text>
+              <Text variant="caption" tone="textMuted" style={styles.disclosureSub}>
+                {t('verification.extrasSubtitle', { count: EXTRAS })}
+              </Text>
+            </View>
+            <Ionicons
+              name={extrasOpen ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={colors.textMuted}
             />
-          </View>
+          </Pressable>
 
-          <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
-            <Text variant="body" style={styles.stepTitle}>
-              {t('verification.areaTitle')}
+          {extrasOpen ? (
+            <>
+            <Text variant="bodySm" tone="textMuted" style={styles.extrasLede}>
+              {t('verification.extrasLede')}
             </Text>
-            <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
-              {fix ? t('verification.areaDone') : t('verification.areaBody')}
-            </Text>
-            <Button
-              label={fix ? t('verification.areaRedo') : t('verification.areaAction')}
-              variant="secondary"
-              onPress={confirmArea}
-              loading={locating}
-            />
-          </View>
 
-          <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
-            <Text variant="body" style={styles.stepTitle}>
-              {t('verification.registrationTitle')}
-            </Text>
-            <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
-              {t('verification.registrationBody')}
-            </Text>
-            <Input
-              label={t('verification.registrationLabel')}
-              value={registration}
-              onChangeText={setRegistration}
-              autoCapitalize="characters"
-            />
-          </View>
+            <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
+              <Text variant="body" style={styles.stepTitle}>
+                {t('verification.socialTitle')}
+              </Text>
+              <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
+                {social
+                  ? t('verification.socialPending', { handle: social.handle, code: social.code })
+                  : t('verification.socialBody')}
+              </Text>
+              <Button
+                label={social ? t('verification.socialChange') : t('verification.socialAction')}
+                variant="secondary"
+                onPress={linkSocial}
+              />
+            </View>
+
+            <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
+              <Text variant="body" style={styles.stepTitle}>
+                {t('verification.areaTitle')}
+              </Text>
+              <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
+                {fix ? t('verification.areaDone') : t('verification.areaBody')}
+              </Text>
+              <Button
+                label={fix ? t('verification.areaRedo') : t('verification.areaAction')}
+                variant="secondary"
+                onPress={confirmArea}
+                loading={locating}
+              />
+            </View>
+
+            <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
+              <Text variant="body" style={styles.stepTitle}>
+                {t('verification.registrationTitle')}
+              </Text>
+              <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
+                {t('verification.registrationBody')}
+              </Text>
+              <Input
+                label={t('verification.registrationLabel')}
+                value={registration}
+                onChangeText={setRegistration}
+                autoCapitalize="characters"
+              />
+            </View>
+            </>
+          ) : null}
 
           <Text variant="caption" tone="textMuted" style={styles.footnote}>
             {t('verification.privacyNote')}
@@ -426,6 +497,7 @@ export default function Verification() {
 function Step({
   n,
   done,
+  collapsed,
   title,
   body,
   actionLabel,
@@ -434,6 +506,8 @@ function Step({
 }: {
   n: number;
   done: boolean;
+  /** Show the ticked title only — for a step that has nothing left to explain. */
+  collapsed?: boolean;
   title: string;
   body: string;
   actionLabel: string;
@@ -442,7 +516,13 @@ function Step({
 }) {
   const { colors } = useAtelierTheme();
   return (
-    <View style={[styles.step, { backgroundColor: colors.surface, borderRadius: radii.lg }]}>
+    <View
+      style={[
+        styles.step,
+        collapsed && styles.stepCollapsed,
+        { backgroundColor: colors.surface, borderRadius: radii.lg },
+      ]}
+    >
       <View style={styles.stepHead}>
         <View
           style={[
@@ -462,10 +542,14 @@ function Step({
           {title}
         </Text>
       </View>
-      <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
-        {body}
-      </Text>
-      <Button label={actionLabel} variant="secondary" onPress={onPress} loading={busy} />
+      {collapsed ? null : (
+        <>
+          <Text variant="bodySm" tone="textMuted" style={styles.stepBody}>
+            {body}
+          </Text>
+          <Button label={actionLabel} variant="secondary" onPress={onPress} loading={busy} />
+        </>
+      )}
     </View>
   );
 }
@@ -493,11 +577,14 @@ function Note({
 }
 
 const styles = StyleSheet.create({
-  lede: { marginBottom: spacing.lg },
+  lede: { marginBottom: spacing.sm },
   hint: { marginTop: spacing.sm },
   footnote: { marginTop: spacing.xl },
-  extrasTitle: { marginTop: spacing.xl, marginBottom: spacing.xs },
+  progress: { marginBottom: spacing.lg },
   extrasLede: { marginBottom: spacing.md },
+  disclosure: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xl },
+  disclosureText: { flex: 1 },
+  disclosureSub: { marginTop: 2 },
   note: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -507,6 +594,7 @@ const styles = StyleSheet.create({
   },
   noteText: { flex: 1 },
   step: { padding: spacing.md, marginBottom: spacing.md },
+  stepCollapsed: { paddingVertical: spacing.sm },
   stepHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   bullet: {
     width: 24,

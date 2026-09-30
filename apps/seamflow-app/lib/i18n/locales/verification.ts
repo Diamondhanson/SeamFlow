@@ -20,15 +20,19 @@ export const verification = {
     statusDeclined: 'Not yet',
     statusNone: 'Not started',
     lede:
-      'Two steps, about five minutes. It shows clients the work in your shop is your own. Skipping it changes nothing: you keep every feature, and you still appear in Discover.',
+      'Two steps, about five minutes — it shows clients the work in your shop is your own. Entirely optional.',
     ledeVerified:
       'Your shop is verified. You can send this again if anything about your shop has changed.',
     alreadyVerified: 'SeamFlow has confirmed your shop.',
+    progress: '{done} of 2 done',
+    step1Done: 'Phone number confirmed',
     step1Title: 'Confirm your phone number',
     step1Body: 'So a client can tell there is a reachable person behind the shop.',
     step1Action: 'Confirm my number',
     step2Title: 'Show us a piece you made',
-    step2Body:
+    step2Body: 'A live photo of something you are making now.',
+    step2WhyTitle: 'Why the camera only',
+    step2Why:
       'This opens your camera, and only your camera. Photograph something you are working on now, on the machine or the cutting table. Or re-shoot a piece from your feed from a new angle with a note showing your shop name and today\u2019s date. That is the whole check: anyone can save a picture, only you can take this one.',
     step2Action: 'Open the camera',
     step2Another: 'Take another',
@@ -52,8 +56,8 @@ export const verification = {
     promptDeclinedBody: 'We could not verify your shop yet. Open it to see why and send it again.',
     promptDeclinedAction: 'See why',
     extrasTitle: 'Make your shop stronger',
-    extrasLede:
-      'Optional, and nothing here is needed to be verified. Each one gives a client one more reason to believe you.',
+    extrasSubtitle: 'Optional · {count} things',
+    extrasLede: 'Each one gives a client one more reason to believe you.',
     socialTitle: 'Link a social account',
     socialBody:
       'We give you a short code to put in your bio for a day. A person on our team looks for it, which is how we know the account is really yours. Your handle then shows on your shop.',
@@ -110,15 +114,19 @@ export const verification = {
     statusDeclined: 'Pas encore',
     statusNone: 'Pas commencé',
     lede:
-      'Deux étapes, environ cinq minutes. Cela montre aux clientes que le travail de votre atelier est bien le vôtre. Ne rien faire ne change rien : vous gardez toutes les fonctions et vous apparaissez toujours dans Découvrir.',
+      'Deux étapes, environ cinq minutes — cela montre aux clientes que le travail de votre atelier est bien le vôtre. Entièrement facultatif.',
     ledeVerified:
       'Votre atelier est vérifié. Vous pouvez renvoyer une demande si quelque chose a changé.',
     alreadyVerified: 'SeamFlow a confirmé votre atelier.',
+    progress: '{done} sur 2 fait',
+    step1Done: 'Numéro de téléphone confirmé',
     step1Title: 'Confirmez votre numéro de téléphone',
     step1Body: 'Pour qu’une cliente sache qu’une personne joignable tient l’atelier.',
     step1Action: 'Confirmer mon numéro',
     step2Title: 'Montrez-nous une pièce que vous avez faite',
-    step2Body:
+    step2Body: 'Une photo prise maintenant de ce que vous êtes en train de faire.',
+    step2WhyTitle: 'Pourquoi seulement l’appareil photo',
+    step2Why:
       'Cela ouvre votre appareil photo, et rien d’autre. Photographiez ce sur quoi vous travaillez maintenant, sur la machine ou sur la table de coupe. Ou reprenez une pièce de votre vitrine sous un autre angle, avec un mot montrant le nom de votre atelier et la date du jour. C’est tout le contrôle : n’importe qui peut enregistrer une image, vous seule pouvez prendre celle-ci.',
     step2Action: 'Ouvrir l’appareil photo',
     step2Another: 'En prendre une autre',
@@ -143,8 +151,8 @@ export const verification = {
       'Nous n’avons pas encore pu vérifier votre atelier. Ouvrez pour voir pourquoi et renvoyer.',
     promptDeclinedAction: 'Voir pourquoi',
     extrasTitle: 'Renforcez votre atelier',
-    extrasLede:
-      'Facultatif : rien ici n’est nécessaire pour être vérifié. Chaque élément donne à une cliente une raison de plus de vous croire.',
+    extrasSubtitle: 'Facultatif · {count} éléments',
+    extrasLede: 'Chaque élément donne à une cliente une raison de plus de vous croire.',
     socialTitle: 'Associer un compte social',
     socialBody:
       'Nous vous donnons un code court à mettre dans votre bio pendant une journée. Une personne de notre équipe le cherche : c’est ainsi que nous savons que le compte est bien le vôtre. Votre identifiant s’affiche ensuite sur votre vitrine.',
@@ -201,15 +209,19 @@ export const verification = {
     statusDeclined: 'Ainda não',
     statusNone: 'Por começar',
     lede:
-      'Dois passos, cerca de cinco minutos. Mostra aos clientes que o trabalho da sua oficina é mesmo seu. Não fazer nada não muda nada: mantém todas as funções e continua a aparecer em Descobrir.',
+      'Dois passos, cerca de cinco minutos — mostra aos clientes que o trabalho da sua oficina é mesmo seu. Totalmente opcional.',
     ledeVerified:
       'A sua oficina está verificada. Pode enviar de novo se algo tiver mudado.',
     alreadyVerified: 'A SeamFlow confirmou a sua oficina.',
+    progress: '{done} de 2 feito',
+    step1Done: 'Número de telefone confirmado',
     step1Title: 'Confirme o seu número de telefone',
     step1Body: 'Para que um cliente saiba que há uma pessoa contactável por trás da oficina.',
     step1Action: 'Confirmar o meu número',
     step2Title: 'Mostre-nos uma peça que fez',
-    step2Body:
+    step2Body: 'Uma foto tirada agora daquilo que está a fazer.',
+    step2WhyTitle: 'Porque só a câmara',
+    step2Why:
       'Isto abre a sua câmara, e só a câmara. Fotografe aquilo em que está a trabalhar agora, na máquina ou na mesa de corte. Ou volte a fotografar uma peça da sua vitrine noutro ângulo, com um papel onde se veja o nome da oficina e a data de hoje. É essa a verificação: qualquer pessoa guarda uma imagem, só você tira esta.',
     step2Action: 'Abrir a câmara',
     step2Another: 'Tirar outra',
@@ -234,8 +246,8 @@ export const verification = {
       'Ainda não conseguimos verificar a sua oficina. Abra para ver porquê e enviar de novo.',
     promptDeclinedAction: 'Ver porquê',
     extrasTitle: 'Reforce a sua oficina',
-    extrasLede:
-      'Opcional: nada aqui é preciso para ser verificada. Cada item dá a um cliente mais uma razão para acreditar em si.',
+    extrasSubtitle: 'Opcional · {count} itens',
+    extrasLede: 'Cada um dá a um cliente mais uma razão para acreditar em si.',
     socialTitle: 'Associar uma conta social',
     socialBody:
       'Damos-lhe um código curto para pôr na sua bio durante um dia. Alguém da nossa equipa procura-o, e é assim que sabemos que a conta é mesmo sua. O seu nome de utilizador passa a aparecer na sua vitrine.',
@@ -292,14 +304,18 @@ export const verification = {
     statusDeclined: 'Todavía no',
     statusNone: 'Sin empezar',
     lede:
-      'Dos pasos, unos cinco minutos. Muestra a los clientes que el trabajo de tu taller es tuyo. No hacerlo no cambia nada: conservas todas las funciones y sigues apareciendo en Descubrir.',
+      'Dos pasos, unos cinco minutos: muestra a los clientes que el trabajo de tu taller es tuyo. Totalmente opcional.',
     ledeVerified: 'Tu taller está verificado. Puedes enviarlo de nuevo si algo ha cambiado.',
     alreadyVerified: 'SeamFlow ha confirmado tu taller.',
+    progress: '{done} de 2 hecho',
+    step1Done: 'Número de teléfono confirmado',
     step1Title: 'Confirma tu número de teléfono',
     step1Body: 'Para que un cliente sepa que hay una persona localizable detrás del taller.',
     step1Action: 'Confirmar mi número',
     step2Title: 'Enséñanos una pieza que hayas hecho',
-    step2Body:
+    step2Body: 'Una foto tomada ahora de lo que estás haciendo.',
+    step2WhyTitle: 'Por qué solo la cámara',
+    step2Why:
       'Esto abre tu cámara, y solo la cámara. Fotografía lo que estés haciendo ahora, en la máquina o en la mesa de corte. O vuelve a fotografiar una pieza de tu escaparate desde otro ángulo, con una nota donde se vea el nombre de tu taller y la fecha de hoy. Esa es toda la comprobación: cualquiera puede guardar una imagen, solo tú puedes hacer esta.',
     step2Action: 'Abrir la cámara',
     step2Another: 'Hacer otra',
@@ -324,8 +340,8 @@ export const verification = {
       'Todavía no hemos podido verificar tu taller. Ábrelo para ver por qué y enviarlo otra vez.',
     promptDeclinedAction: 'Ver por qué',
     extrasTitle: 'Refuerza tu taller',
-    extrasLede:
-      'Opcional: nada de esto hace falta para estar verificado. Cada cosa le da a un cliente una razón más para creerte.',
+    extrasSubtitle: 'Opcional · {count} cosas',
+    extrasLede: 'Cada cosa le da a un cliente una razón más para creerte.',
     socialTitle: 'Vincular una cuenta social',
     socialBody:
       'Te damos un código corto para poner en tu biografía durante un día. Alguien de nuestro equipo lo busca, y así sabemos que la cuenta es tuya de verdad. Tu usuario aparece luego en tu escaparate.',
@@ -382,14 +398,18 @@ export const verification = {
     statusDeclined: 'Bado',
     statusNone: 'Hujaanza',
     lede:
-      'Hatua mbili, kama dakika tano. Huwaonyesha wateja kuwa kazi ya duka lako ni yako mwenyewe. Kutofanya hakubadilishi chochote: unabaki na kila kipengele, na bado unaonekana kwenye Gundua.',
+      'Hatua mbili, kama dakika tano — huwaonyesha wateja kuwa kazi ya duka lako ni yako mwenyewe. Ni hiari kabisa.',
     ledeVerified: 'Duka lako limethibitishwa. Unaweza kutuma tena kama kitu kimebadilika.',
     alreadyVerified: 'SeamFlow imethibitisha duka lako.',
+    progress: '{done} kati ya 2 zimekamilika',
+    step1Done: 'Namba ya simu imethibitishwa',
     step1Title: 'Thibitisha namba yako ya simu',
     step1Body: 'Ili mteja ajue kuna mtu anayepatikana nyuma ya duka.',
     step1Action: 'Thibitisha namba yangu',
     step2Title: 'Tuonyeshe kipande ulichotengeneza',
-    step2Body:
+    step2Body: 'Picha unayopiga sasa ya unachotengeneza.',
+    step2WhyTitle: 'Kwa nini kamera pekee',
+    step2Why:
       'Hii inafungua kamera yako, na kamera pekee. Piga picha ya unachofanya sasa, kwenye cherehani au meza ya kukata. Au piga tena kipande kilicho kwenye duka lako kwa mtazamo mwingine, na karatasi inayoonyesha jina la duka lako na tarehe ya leo. Huo ndio ukaguzi wote: mtu yeyote anaweza kuhifadhi picha, wewe pekee unaweza kupiga hii.',
     step2Action: 'Fungua kamera',
     step2Another: 'Piga nyingine',
@@ -414,8 +434,8 @@ export const verification = {
       'Bado hatujaweza kuthibitisha duka lako. Fungua uone sababu na utume tena.',
     promptDeclinedAction: 'Ona sababu',
     extrasTitle: 'Imarisha duka lako',
-    extrasLede:
-      'Ni hiari: hakuna kitu hapa kinachohitajika ili kuthibitishwa. Kila kimoja humpa mteja sababu moja zaidi ya kukuamini.',
+    extrasSubtitle: 'Hiari · vitu {count}',
+    extrasLede: 'Kila kimoja humpa mteja sababu moja zaidi ya kukuamini.',
     socialTitle: 'Unganisha akaunti ya mtandao wa kijamii',
     socialBody:
       'Tunakupa msimbo mfupi wa kuweka kwenye wasifu wako kwa siku moja. Mtu wa timu yetu anautafuta, na hivyo ndivyo tunavyojua akaunti ni yako kweli. Jina lako la mtumiaji kisha linaonekana kwenye duka lako.',
@@ -472,14 +492,18 @@ export const verification = {
     statusDeclined: 'ليس بعد',
     statusNone: 'لم تبدأ',
     lede:
-      'خطوتان، نحو خمس دقائق. تُظهر للعملاء أنّ العمل في ورشتك من صنعك. وتركها لا يغيّر شيئًا: تحتفظ بكل الميزات، وتظل تظهر في «اكتشف».',
+      'خطوتان، نحو خمس دقائق — تُظهر للعملاء أنّ العمل في ورشتك من صنعك. اختياري تمامًا.',
     ledeVerified: 'ورشتك موثَّقة. يمكنك الإرسال مرّة أخرى إن تغيّر شيء.',
     alreadyVerified: 'أكّدت SeamFlow ورشتك.',
+    progress: 'اكتمل {done} من 2',
+    step1Done: 'تم تأكيد رقم الهاتف',
     step1Title: 'أكِّد رقم هاتفك',
     step1Body: 'حتى يعرف العميل أنّ خلف الورشة شخصًا يمكن الوصول إليه.',
     step1Action: 'تأكيد رقمي',
     step2Title: 'أرِنا قطعة صنعتها',
-    step2Body:
+    step2Body: 'صورة تلتقطها الآن لما تعمل عليه.',
+    step2WhyTitle: 'لماذا الكاميرا وحدها',
+    step2Why:
       'هذا يفتح الكاميرا، والكاميرا وحدها. صوِّر ما تعمل عليه الآن، على الماكينة أو على طاولة القص. أو أعِد تصوير قطعة من متجرك من زاوية أخرى، مع ورقة يظهر فيها اسم ورشتك وتاريخ اليوم. هذا هو الفحص كلّه: أيّ أحد يستطيع حفظ صورة، وأنت وحدك تستطيع التقاط هذه.',
     step2Action: 'فتح الكاميرا',
     step2Another: 'التقاط أخرى',
@@ -503,8 +527,8 @@ export const verification = {
     promptDeclinedBody: 'لم نتمكّن بعد من توثيق ورشتك. افتح لترى السبب وترسل مرّة أخرى.',
     promptDeclinedAction: 'اعرف السبب',
     extrasTitle: 'قوِّ ورشتك',
-    extrasLede:
-      'اختياري: لا شيء هنا لازم للتوثيق. كلّ عنصر يمنح العميل سببًا إضافيًا لتصديقك.',
+    extrasSubtitle: 'اختياري · {count} عناصر',
+    extrasLede: 'كلّ عنصر يمنح العميل سببًا إضافيًا لتصديقك.',
     socialTitle: 'ربط حساب تواصل اجتماعي',
     socialBody:
       'نعطيك رمزًا قصيرًا تضعه في نبذتك ليوم واحد. يبحث عنه شخص من فريقنا، وبهذا نعرف أنّ الحساب لك فعلًا. ثمّ يظهر معرّفك على متجرك.',
