@@ -2,12 +2,18 @@
 // <BottomChrome> — the persistent phone navigation: an animated bottom tab bar
 // plus a small floating "Ask" pill for the assistant.
 //
-// The app navigates from a tile grid on phones; this gives those widths a real
-// bottom bar so switching sections is one tap, not back-then-scroll. On the
-// `expanded` breakpoint the <SideRail> already does this job, so the chrome
-// hides there. Rendered once by (app)/_layout beside the Stack, and shown only
-// on the five top-level routes (Home / Orders / Clients / Calendar / More) so
-// detail screens stay full-screen.
+// The app navigates from a tile grid; this gives every width a real bottom bar
+// so switching sections is one tap, not back-then-scroll. Rendered once by
+// (app)/_layout beside the Stack, and shown only on the five top-level routes
+// (Home / Orders / Clients / Calendar / More) so detail screens stay
+// full-screen.
+//
+// It renders at EVERY width. A desktop-only side rail used to stand in for it
+// above 840 dp, which meant two different navigations to keep in step, a whole
+// second set of destinations, and — since the Ask pill lives in here — no
+// assistant at all on a wide screen. The bar is a floating pill capped at 480
+// and centred, so a browser window is just a phone with more room around it;
+// the customer side has always worked this way.
 //
 // Motion (reduced-motion aware): the active pill slides + springs between tabs,
 // the active icon pops, and its label reveals. Mirrors the approved mockup.
@@ -31,7 +37,6 @@ import * as Haptics from 'expo-haptics';
 import { activeFontFamilies, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
-import { useBreakpoint } from '../lib/use-breakpoint';
 
 // Approx height the chrome occupies — screens add this as bottom padding so
 // content never hides behind the bar (see BOTTOM_CHROME_SPACE users).
@@ -78,18 +83,16 @@ function haptic() {
 
 export function BottomChrome() {
   const pathname = usePathname();
-  const { isExpanded } = useBreakpoint();
 
-  // Wide screens use the SideRail; detail/modal screens go full-bleed.
-  if (isExpanded || !SHOW_ON.has(pathname)) return null;
+  // Detail and modal screens go full-bleed.
+  if (!SHOW_ON.has(pathname)) return null;
   return <Chrome pathname={pathname} tabs={TABS} ask={<AskPill />} />;
 }
 
 /**
  * The customer-side bar. Same animated chrome, different tabs, no Ask pill (the
  * assistant is a tailor tool). Shown only once signed in — Discover is browsable
- * signed-out, but every tab past it needs an account — and on all widths, since
- * the client experience has no side rail to fall back to.
+ * signed-out, but every tab past it needs an account.
  */
 export function ClientBottomChrome() {
   const pathname = usePathname();

@@ -10,8 +10,6 @@ import { useNotificationTapHandler } from '../../lib/notifications';
 import { useShareListener } from '../../lib/use-share-listener';
 import { useSubscriptionWatch } from '../../lib/subscription';
 import { useThemeColors } from '../../lib/theme';
-import { SideRail } from '../../components/SideRail';
-import { useBreakpoint } from '../../lib/use-breakpoint';
 
 /**
  * How a screen arrives.
@@ -63,10 +61,6 @@ export default function AppLayout() {
 }
 
 function GatedStack() {
-  // Rail only where there's real width to spare (desktop browsers, big
-  // tablets in landscape). Phones keep the tile-grid flow.
-  const { isExpanded } = useBreakpoint();
-  const showRail = isExpanded;
   const { ready, pinSet, locked } = useLock();
   const colors = useThemeColors();
 
@@ -97,11 +91,6 @@ function GatedStack() {
   return (
     <FloatingScrollProvider>
       <View style={[styles.flex, { backgroundColor: colors.bg }]}>
-        {/* Wide screens get a persistent nav rail beside the stack so you
-            don't have to return to the home grid to switch sections. */}
-        <View style={showRail ? styles.railRow : styles.flex}>
-        {showRail ? <SideRail /> : null}
-        <View style={styles.flex}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -127,12 +116,10 @@ function GatedStack() {
             options={{ presentation: 'modal', gestureEnabled: true }}
           />
         </Stack>
-        </View>
-        </View>
 
-        {/* Persistent phone navigation + Ask pill. Renders itself only on the
-            top-level routes and only below the `expanded` breakpoint (where the
-            SideRail takes over). Sits above the Stack, below the PIN gate. */}
+        {/* Persistent navigation + Ask pill, at every width. Renders itself
+            only on the top-level routes. Sits above the Stack, below the PIN
+            gate. */}
         <BottomChrome />
 
         {/* PIN gate rendered as an overlay ON TOP of the Stack — not in place
@@ -151,7 +138,6 @@ function GatedStack() {
 }
 
 const styles = StyleSheet.create({
-  railRow: { flex: 1, flexDirection: 'row' },
   flex: { flex: 1 },
   center: {
     flex: 1,
