@@ -8,17 +8,20 @@
 // through a 1,000-line component that two other screens depend on.
 // ============================================================================
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Keyboard,
+  Platform,
   Pressable,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import Animated from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import {
   formatTicketRef,
@@ -44,6 +47,11 @@ import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
 import { useDialog } from '../../lib/dialog';
 import { radii, spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
+import {
+  COMPOSER_CONTROL,
+  COMPOSER_LINE_H,
+  useComposerKeyboard,
+} from '../../lib/use-composer-keyboard';
 import { SupportStatusChip } from './SupportStatusChip';
 import { shortDate } from './SupportTicketList';
 
@@ -56,6 +64,20 @@ export function SupportThread({ id }: { id: string }) {
   const reply = useReplySupportTicket(id);
   const resolve = useResolveSupportTicket(id);
   const composerFocus = useFieldFocus();
+  const { listPad, stickyOffset } = useComposerKeyboard();
+  const [draftH, setDraftH] = useState(COMPOSER_LINE_H);
+
+  // This list is not inverted, so shrinking it for the keyboard scrolls the
+  // newest reply out of sight. Follow it down, the way the thread does for
+  // free. iOS fires WillShow in time to move with the keyboard; Android only
+  // has DidShow.
+  useEffect(() => {
+    const sub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50),
+    );
+    return () => sub.remove();
+  }, []);
   const listRef = useRef<FlatList<SupportMessage>>(null);
 
   const [draft, setDraft] = useState('');
@@ -74,6 +96,10 @@ export function SupportThread({ id }: { id: string }) {
       {
         onSuccess: () => {
           setDraft('');
+          // Collapse the field with it. onContentSizeChange usually reports
+          // the new height anyway, but not reliably on an empty value, and a
+          // composer that stays six lines tall after sending looks broken.
+          setDraftH(COMPOSER_LINE_H);
           requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
         },
         onError: (err) => void dialog.error(err),
@@ -183,7 +209,7 @@ export function SupportThread({ id }: { id: string }) {
         ) : null}
       </View>
 
-      <KeyboardAvoidingView style={styles.kav} behavior="padding" keyboardVerticalOffset={0}>
+      <Animated.View style={[styles.fill, listPad]}>
         <FlatList
           ref={listRef}
           data={messages}
@@ -247,7 +273,9 @@ export function SupportThread({ id }: { id: string }) {
             );
           }}
         />
+      </Animated.View>
 
+      <KeyboardStickyView offset={stickyOffset}>
         <View style={[styles.composer, { borderTopColor: colors.hairline, backgroundColor: colors.bg }]}>
           <Pressable
             onPress={() => void attach()}
@@ -262,21 +290,34 @@ export function SupportThread({ id }: { id: string }) {
               <Ionicons name="image-outline" size={22} color={colors.textMuted} />
             )}
           </Pressable>
-          <TextInput
-          keyboardAppearance={keyboardAppearance}
-            value={draft}
-            onChangeText={setDraft}
-            placeholder={t('support.replyPlaceholder')}
-            placeholderTextColor={colors.textMuted}
-            multiline
-            maxLength={4000}
-            {...composerFocus.focusProps}
+          {/* Centred by the wrapper, not by textAlignVertical — that prop is
+              Android-only and would leave the placeholder on the top edge on
+              iOS. See lib/use-composer-keyboard. */}
+          <View
             style={[
-              styles.input,
-              { color: colors.text, backgroundColor: colors.surface, borderRadius: radii.lg },
-              composerFocus.webReset,
+              styles.inputWrap,
+              { backgroundColor: colors.surface, borderRadius: radii.lg },
             ]}
-          />
+          >
+            <TextInput
+              keyboardAppearance={keyboardAppearance}
+              value={draft}
+              onChangeText={setDraft}
+              placeholder={t('support.replyPlaceholder')}
+              placeholderTextColor={colors.textMuted}
+              multiline
+              maxLength={4000}
+              onContentSizeChange={(e) => setDraftH(e.nativeEvent.contentSize.height)}
+              scrollEnabled={draftH > COMPOSER_MAX_H}
+              {...composerFocus.focusProps}
+              style={[
+                styles.input,
+                { color: colors.text },
+                { height: Math.min(Math.max(draftH, COMPOSER_LINE_H), COMPOSER_MAX_H) },
+                composerFocus.webReset,
+              ]}
+            />
+          </View>
           <Pressable
             onPress={() => send()}
             disabled={!canSend}
@@ -294,7 +335,7 @@ export function SupportThread({ id }: { id: string }) {
             )}
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
 
       {viewer ? (
         <FullscreenGallery
@@ -327,11 +368,14 @@ function ThreadSkeleton() {
   );
 }
 
+/** Six lines, then the field scrolls instead of eating the thread. */
+const COMPOSER_MAX_H = COMPOSER_LINE_H * 6;
+
 const styles = StyleSheet.create({
   center: { alignItems: 'center', paddingTop: spacing.xl, gap: spacing.md },
   statusBar: { borderWidth: 1, padding: spacing.md, gap: spacing.xs, marginBottom: spacing.sm },
   statusTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  kav: { flex: 1 },
+  fill: { flex: 1 },
   list: { paddingVertical: spacing.md, gap: spacing.md },
   opened: { textAlign: 'center', marginBottom: spacing.sm },
   row: { flexDirection: 'row' },
@@ -349,16 +393,26 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  attachBtn: { height: 40, justifyContent: 'center', paddingHorizontal: 4 },
-  input: {
+  attachBtn: {
+    width: COMPOSER_CONTROL,
+    height: COMPOSER_CONTROL,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputWrap: {
     flex: 1,
-    maxHeight: 120,
-    minHeight: 40,
+    minHeight: COMPOSER_CONTROL,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    fontSize: 15,
   },
-  sendBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  input: { fontSize: 15, lineHeight: COMPOSER_LINE_H, padding: 0 },
+  sendBtn: {
+    width: COMPOSER_CONTROL,
+    height: COMPOSER_CONTROL,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   skel: { gap: spacing.lg, paddingTop: spacing.sm },
   skelBubble: { gap: spacing.xs, alignItems: 'flex-start' },
   skelMine: { alignItems: 'flex-end' },

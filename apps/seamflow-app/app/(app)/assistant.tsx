@@ -25,15 +25,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
-// KeyboardStickyView translates the composer bar in lockstep with the real
-// keyboard (native IME insets), and useReanimatedKeyboardAnimation drives the
-// matching list padding — reliable under edge-to-edge Android (phones and
-// tablets alike), where OS window modes and generic avoiding views misbehave.
-import {
-  KeyboardStickyView,
-  useReanimatedKeyboardAnimation,
-} from 'react-native-keyboard-controller';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// The bar rides the keyboard; lib/use-composer-keyboard explains how and why
+// the chat thread, the support thread and this screen all share one answer.
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -85,6 +79,11 @@ import {
 import { useMe } from '../../lib/queries';
 import { radii, spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
+import {
+  COMPOSER_CONTROL,
+  COMPOSER_LINE_H,
+  useComposerKeyboard,
+} from '../../lib/use-composer-keyboard';
 import { useDialog } from '../../lib/dialog';
 
 const SPEAK_PREF_KEY = 'seamflow.assistant.speakReplies';
@@ -92,7 +91,7 @@ const SPEAK_PREF_KEY = 'seamflow.assistant.speakReplies';
 // Composer growth: one line tall at rest, grows with content to 5 lines, then
 // scrolls internally. Height is driven from onContentSizeChange because iOS
 // doesn't reliably auto-grow multiline TextInputs the way Android does.
-const INPUT_LINE_H = 20;
+const INPUT_LINE_H = COMPOSER_LINE_H;
 const INPUT_MAX_H = INPUT_LINE_H * 5;
 
 export default function AssistantScreen() {
@@ -134,14 +133,7 @@ export default function AssistantScreen() {
     }
   }, [params.focus, tailorId]);
 
-  // Keyboard-follow: the composer translates up by (keyboard − bottom inset)
-  // via KeyboardStickyView; the list gets the same amount of animated bottom
-  // padding so the newest messages stay visible above the raised bar.
-  const insets = useSafeAreaInsets();
-  const { height: kbHeight } = useReanimatedKeyboardAnimation(); // 0 → -kb px
-  const listKbPad = useAnimatedStyle(() => ({
-    paddingBottom: Math.max(0, -kbHeight.value - insets.bottom),
-  }));
+  const { listPad: listKbPad, stickyOffset } = useComposerKeyboard();
 
   // ---- on-device thread: load per tailor, persist on every change ----------
   useEffect(() => {
@@ -527,7 +519,7 @@ export default function AssistantScreen() {
 
       </Animated.View>
 
-      <KeyboardStickyView offset={{ closed: 0, opened: insets.bottom }}>
+      <KeyboardStickyView offset={stickyOffset}>
         {listening ? (
           <View style={styles.listeningRow}>
             <PulsingDot color={colors.danger} />
@@ -817,6 +809,10 @@ const styles = StyleSheet.create({
   },
   inputBar: {
     flexDirection: 'row',
+    // flex-end so the mic and send stay on the last line as the field grows.
+    // At rest all three are COMPOSER_CONTROL tall, which is what makes the row
+    // read as level — a 36 dp field between 44 dp buttons bottom-aligned 8 px
+    // low, and that is the misalignment this replaces.
     alignItems: 'flex-end',
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -826,10 +822,15 @@ const styles = StyleSheet.create({
   },
   inputWrap: {
     flex: 1,
+    minHeight: COMPOSER_CONTROL,
+    // Centres the text in the pill on BOTH platforms. The old per-platform
+    // vertical padding was an attempt at the same thing that could only ever
+    // be right for one line of text on one OS.
+    justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
-    paddingVertical: Platform.OS === 'ios' ? spacing.sm : 8,
+    paddingVertical: spacing.sm,
   },
   input: { fontSize: 15, lineHeight: INPUT_LINE_H, padding: 0 },
 });

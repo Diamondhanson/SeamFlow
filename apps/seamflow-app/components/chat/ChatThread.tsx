@@ -7,11 +7,10 @@
 // props so every feature — reactions, replies, link previews, order cards,
 // the design opening bubble, the offline outbox — is written and fixed once.
 //
-// Keyboard: the composer rides above the keyboard via keyboard-controller's
-// KeyboardAvoidingView (padding). It wraps only the list + composer so the
-// header stays put. With android.softwareKeyboardLayoutMode = "pan" (app.json)
-// the OS no longer also resizes the window, so the library owns the inset and
-// the composer clears the IME suggestion strip too.
+// Keyboard: the composer and the list share one contract — see
+// lib/use-composer-keyboard. The bar is a KeyboardStickyView translated by the
+// real IME frame, and the list carries the matching bottom padding so the
+// newest message stays above it. The header is outside both, so it stays put.
 // ============================================================================
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -27,7 +26,8 @@ import {
   View,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import Animated from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
@@ -72,8 +72,16 @@ import { api } from '../../lib/api';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 import { haptics } from '../../lib/haptics';
+import {
+  COMPOSER_CONTROL,
+  COMPOSER_LINE_H,
+  useComposerKeyboard,
+} from '../../lib/use-composer-keyboard';
 
 const REACTION_CHOICES = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+/** Six lines of text, then the field scrolls instead of eating the thread. */
+const COMPOSER_MAX_H = COMPOSER_LINE_H * 6;
 const URL_RE = /(https?:\/\/[^\s]+)/i;
 
 export interface ChatThreadProps {
@@ -129,6 +137,10 @@ export function ChatThread({
   /** The measurement message currently being filed, so its card can say so. */
   const [filing, setFiling] = useState<string | null>(null);
   const listRef = useRef<FlatList<Row>>(null);
+  const { listPad, stickyOffset } = useComposerKeyboard();
+  // Measured, not guessed: the field grows with the text and the row grows
+  // with it, which is only possible if we know how tall the text actually is.
+  const [draftH, setDraftH] = useState(COMPOSER_LINE_H);
 
   // ── Outbox ────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -513,6 +525,10 @@ export function ChatThread({
     if (!body) return;
     const reply = replyingTo;
     setDraft('');
+    // Collapse the field with it. onContentSizeChange usually reports
+    // the new height anyway, but not reliably on an empty value, and a
+    // composer that stays six lines tall after sending looks broken.
+    setDraftH(COMPOSER_LINE_H);
     setReplyingTo(null);
     // Something left the device. The lightest impact there is, because the
     // bubble already animates in beside it.
@@ -1089,15 +1105,19 @@ export function ChatThread({
         </Pressable>
       ) : null}
 
-      <KeyboardAvoidingView style={styles.kav} behavior="padding" keyboardVerticalOffset={0}>
+      {/* The list shrinks by exactly what the bar rises by. Inverted, so the
+          newest message is pinned to the bottom edge of this box — shrink the
+          box and it stays visible above the keyboard instead of sliding under
+          it, which is the whole of the familiar chat behaviour. */}
+      <Animated.View style={[styles.fill, listPad]}>
         {msgsQ.isLoading && messages.length === 0 ? (
-          <View style={[styles.padded, styles.kav]}>
+          <View style={[styles.padded, styles.fill]}>
             <SkeletonList leading="none" />
           </View>
         ) : (
           <FlatList
             ref={listRef}
-            style={styles.kav}
+            style={styles.fill}
             data={rows}
             inverted
             keyExtractor={(r) =>
@@ -1123,8 +1143,11 @@ export function ChatThread({
             }
           />
         )}
+      </Animated.View>
 
-        {/* Reply banner */}
+      {/* The reply banner belongs to the composer, not the thread: it rises
+          with it. */}
+      <KeyboardStickyView offset={stickyOffset}>
         {replyingTo ? (
           <View style={[styles.replyBar, { backgroundColor: colors.card, borderColor: colors.hairline }]}>
             <View style={[styles.replyAccent, { backgroundColor: atelier.primary }]} />
@@ -1153,19 +1176,35 @@ export function ChatThread({
               <Ionicons name="add" size={24} color={colors.textMuted} />
             )}
           </Pressable>
-          <TextInput
-          keyboardAppearance={keyboardAppearance}
-            value={draft}
-            onChangeText={(v) => {
-              setDraft(v);
-              notifyTyping();
-            }}
-            placeholder={tk('composerPlaceholder')}
-            placeholderTextColor={colors.textMuted}
-            multiline
-            {...composerFocus.focusProps}
-            style={[styles.input, { color: colors.text }, composerFocus.webReset]}
-          />
+          {/* The field is centred by its WRAPPER, not by textAlignVertical:
+              that prop is Android-only, so relying on it would leave the
+              placeholder sitting on the top edge on iOS. A box of the same
+              height as the buttons, with the text centred inside it, is the
+              one arrangement that reads level on both. */}
+          <View style={styles.inputWrap}>
+            <TextInput
+              keyboardAppearance={keyboardAppearance}
+              value={draft}
+              onChangeText={(v) => {
+                setDraft(v);
+                notifyTyping();
+              }}
+              placeholder={tk('composerPlaceholder')}
+              placeholderTextColor={colors.textMuted}
+              multiline
+              onContentSizeChange={(e) => setDraftH(e.nativeEvent.contentSize.height)}
+              // Only scroll once it has stopped growing, or the field fights
+              // the caret on the very first line.
+              scrollEnabled={draftH > COMPOSER_MAX_H}
+              {...composerFocus.focusProps}
+              style={[
+                styles.input,
+                { color: colors.text },
+                { height: Math.min(Math.max(draftH, COMPOSER_LINE_H), COMPOSER_MAX_H) },
+                composerFocus.webReset,
+              ]}
+            />
+          </View>
           <Pressable
             onPress={send}
             disabled={!draft.trim()}
@@ -1178,7 +1217,7 @@ export function ChatThread({
             <Ionicons name="send" size={18} color={atelier.textOnPrimary} />
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
 
       {/* WhatsApp-style long-press overlay: dim the thread, float the bubble in
           the middle with an emoji reaction bar above and an action menu below. */}
@@ -1337,7 +1376,7 @@ function dayLabel(dateString: string, t: (k: string) => string): string {
 
 const styles = StyleSheet.create({
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
-  kav: { flex: 1 },
+  fill: { flex: 1 },
   pinned: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1476,13 +1515,33 @@ const styles = StyleSheet.create({
   replyAccent: { width: 3, alignSelf: 'stretch', borderRadius: 2 },
   composer: {
     flexDirection: 'row',
+    // flex-end, not center: once the text wraps, the field grows UPWARDS and
+    // the two buttons stay on the last line where a thumb expects them. At
+    // rest every child is COMPOSER_CONTROL tall, so this reads as centred.
     alignItems: 'flex-end',
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  attachBtn: { padding: spacing.sm },
-  input: { flex: 1, maxHeight: 120, paddingVertical: spacing.sm, fontSize: 15 },
-  sendBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  attachBtn: {
+    width: COMPOSER_CONTROL,
+    height: COMPOSER_CONTROL,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputWrap: { flex: 1, minHeight: COMPOSER_CONTROL, justifyContent: 'center' },
+  input: {
+    fontSize: 15,
+    // Explicit, because the platform default is not the same on both and the
+    // field's height is what everything else lines up against.
+    lineHeight: COMPOSER_LINE_H,
+    padding: 0,
+  },
+  sendBtn: {
+    width: COMPOSER_CONTROL,
+    height: COMPOSER_CONTROL,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
