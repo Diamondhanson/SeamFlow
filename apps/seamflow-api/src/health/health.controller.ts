@@ -9,6 +9,7 @@ import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CheckoutService } from '../subscriptions/checkout.service';
 import { sentryEnabled } from '../common/sentry';
 import { Public } from '../auth/decorators/public.decorator';
+import { SkipThrottle } from '@nestjs/throttler';
 
 type HealthStatus = 'up' | 'down' | 'not_configured' | 'disabled';
 
@@ -30,6 +31,8 @@ interface HealthResponse {
   sentry: 'enabled' | 'disabled';
 }
 
+// Render polls this; it must never be the thing that fails a health check.
+@SkipThrottle()
 @Public()
 @Controller('health')
 export class HealthController {
@@ -100,7 +103,6 @@ export class HealthController {
     }
     return this.trustSignals.run();
   }
-
   /**
    * Dev-only subscription hooks (404 in production, like run-purge). They let
    * the entitlement test drive months of calendar in seconds — granting days,
