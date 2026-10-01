@@ -126,7 +126,14 @@ export default function More() {
 
   return (
     <Screen padded={false} width="wide">
-      <ScreenHeader title={t('home.more')} />
+      {/* The grid below scrolls edge-to-edge and carries its own padding,
+          which is why this screen opts out of <Screen>'s. The header has to
+          get that padding back explicitly or the back button sits hard
+          against the bezel, 16 px left of where it is on every other screen
+          and out of line with the tiles directly beneath it. */}
+      <View style={styles.padded}>
+        <ScreenHeader title={t('home.more')} />
+      </View>
       <ScrollView
         {...scroll}
         contentContainerStyle={styles.body}
@@ -145,6 +152,7 @@ export default function More() {
 }
 
 const styles = StyleSheet.create({
+  padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   body: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

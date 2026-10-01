@@ -46,7 +46,10 @@ export default function Search() {
 
   return (
     <Screen padded={false}>
-      <ScreenHeader title={t('home.searchA11y')} />
+      {/* Padded explicitly — see the note in more.tsx. */}
+      <View style={styles.padded}>
+        <ScreenHeader title={t('home.searchA11y')} />
+      </View>
       <View style={styles.searchWrap}>
         <SearchField value={q} onChangeText={setQ} placeholder={t('home.searchPrompt')} />
       </View>
@@ -129,6 +132,7 @@ export default function Search() {
 
 const styles = StyleSheet.create({
   searchWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
+  padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   body: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },
   hint: { textAlign: 'center', marginTop: spacing.xl },
   section: { marginTop: spacing.lg, marginBottom: spacing.sm },
