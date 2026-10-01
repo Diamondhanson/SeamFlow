@@ -12,6 +12,7 @@
 // ============================================================================
 
 import { useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export type Breakpoint = 'compact' | 'medium' | 'expanded';
 
@@ -78,8 +79,19 @@ export function useGridColumns(): number {
  */
 export function useContentWidth(variant: ContentWidth = 'reading'): number {
   const { width } = useWindowDimensions();
+  // The horizontal safe area comes off FIRST, because <Screen> hands this
+  // number to a child of a view that is already padded by those insets. A cap
+  // measured against the whole window is therefore a width the child cannot
+  // have: on a notched iPhone in landscape the window is 932 but the padded
+  // box is 814, and a child asking for 932 simply overflows — centred, so it
+  // spills under the notch on BOTH sides and takes the back button with it.
+  //
+  // Zero in portrait and on Android, where there are no side insets, so this
+  // changes nothing for the overwhelming majority of sessions. It only earns
+  // its keep when the phone is turned sideways.
+  const insets = useSafeAreaInsets();
   const cap = variant === 'wide' ? WIDE_MAX_WIDTH : CONTENT_MAX_WIDTH;
-  return Math.min(width, cap);
+  return Math.min(width - insets.left - insets.right, cap);
 }
 
 /**
