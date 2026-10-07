@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   useQuery,
   useMutation,
@@ -112,6 +112,29 @@ export function useConfirmPhoneVerification() {
  * tailor who ignores verification keeps every feature they have, so the only
  * consequence of this query failing is that the prompt does not appear.
  */
+/**
+ * The tailor ids this viewer has blocked, as a Set for filtering Discover.
+ *
+ * Discover is a public route, so the server cannot do this — see the note in
+ * BlockedUserSchema. Cached generously: a block list changes when someone taps
+ * Block, and that path invalidates it explicitly.
+ *
+ * Returns an EMPTY set on failure and when signed out. Filtering nothing is
+ * the right failure here: a feed that silently emptied itself because one call
+ * failed would be far worse than briefly showing a shop someone blocked.
+ */
+export function useBlockedTailorIds(): Set<string> {
+  const q = useQuery({
+    queryKey: qk.blocks(),
+    queryFn: () => api.moderation.blocks(),
+    staleTime: 5 * 60_000,
+  });
+  return useMemo(
+    () => new Set((q.data ?? []).map((b) => b.tailorId).filter((x): x is string => Boolean(x))),
+    [q.data],
+  );
+}
+
 export const useVerification = () =>
   useQuery({ queryKey: qk.verification(), queryFn: () => api.verification.state() });
 

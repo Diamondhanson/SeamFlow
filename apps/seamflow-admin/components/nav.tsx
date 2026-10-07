@@ -28,6 +28,7 @@ const GROUPS: { title: string; items: { href: string; label: string }[] }[] = [
     items: [
       { href: '/tailors', label: 'Tailors' },
       { href: '/verification', label: 'Verification' },
+      { href: '/reports', label: 'Reports' },
       { href: '/orders', label: 'Orders' },
       { href: '/invoices', label: 'Invoices' },
       { href: '/feed', label: 'Feed & works' },

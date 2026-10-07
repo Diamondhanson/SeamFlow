@@ -31,7 +31,7 @@ export interface LegalDoc {
 }
 
 /** ISO date shown as "Last updated" on both legal pages. */
-export const LEGAL_UPDATED = '2026-10-04';
+export const LEGAL_UPDATED = '2026-10-08';
 
 export const privacy: Record<Lang, LegalDoc> = {
   en: {
@@ -872,6 +872,8 @@ export const terms: Record<Lang, LegalDoc> = {
           'Use SeamFlow only for lawful purposes. Do not misuse the service, attempt to disrupt or reverse-engineer it, or use it to store or share unlawful content.',
           'Do not publish work that is not yours, impersonate another shop or person, harass anyone, or send unsolicited advertising through messages.',
           'You are responsible for the client and order information you enter, and for respecting the privacy and rights of the people whose details you record.',
+          'Do not publish or send sexual or nude content, graphic violence, or anything that attacks a person or group for who they are. This is a place of work. We remove such content when we find it or when it is reported, and we suspend accounts that post it.',
+          'Every design, shop and message carries a Report action, and you can block anyone you are in a conversation with. Blocking stops messages in both directions and is never disclosed to the other person.',
         ],
       },
       {
@@ -987,6 +989,8 @@ export const terms: Record<Lang, LegalDoc> = {
           'N’utilisez SeamFlow qu’à des fins licites. N’abusez pas du service, ne tentez pas de le perturber ni de l’analyser par rétro-ingénierie, et ne l’utilisez pas pour stocker ou diffuser des contenus illicites.',
           'Ne publiez pas un travail qui n’est pas le vôtre, n’usurpez pas l’identité d’un autre atelier ou d’une autre personne, ne harcelez personne et n’envoyez pas de publicité non sollicitée par message.',
           'Vous êtes responsable des informations clients et commandes que vous saisissez, et du respect de la vie privée et des droits des personnes dont vous enregistrez les données.',
+          'Ne publiez et n’envoyez pas de contenu sexuel ou de nudité, de violence explicite, ni rien qui s’en prenne à une personne ou à un groupe pour ce qu’ils sont. Ceci est un lieu de travail. Nous retirons ces contenus lorsque nous les trouvons ou qu’ils nous sont signalés, et nous suspendons les comptes qui en publient.',
+          'Chaque création, atelier et message comporte une action Signaler, et vous pouvez bloquer toute personne avec qui vous échangez. Le blocage arrête les messages dans les deux sens et n’est jamais révélé à l’autre personne.',
         ],
       },
       {
@@ -1102,6 +1106,8 @@ export const terms: Record<Lang, LegalDoc> = {
           'Use o SeamFlow apenas para fins lícitos. Não abuse do serviço, não tente perturbá-lo nem fazer engenharia inversa, e não o use para guardar ou partilhar conteúdo ilícito.',
           'Não publique trabalho que não é seu, não se faça passar por outra oficina ou pessoa, não assedie ninguém e não envie publicidade não solicitada por mensagem.',
           'É responsável pelas informações de clientes e encomendas que introduz, e por respeitar a privacidade e os direitos das pessoas cujos dados regista.',
+          'Não publique nem envie conteúdo sexual ou de nudez, violência explícita, nem nada que ataque uma pessoa ou um grupo por aquilo que é. Isto é um lugar de trabalho. Removemos esse conteúdo quando o encontramos ou quando nos é denunciado, e suspendemos as contas que o publicam.',
+          'Cada criação, oficina e mensagem tem uma ação Denunciar, e pode bloquear qualquer pessoa com quem esteja a conversar. O bloqueio impede mensagens nos dois sentidos e nunca é revelado à outra pessoa.',
         ],
       },
       {
@@ -1217,6 +1223,8 @@ export const terms: Record<Lang, LegalDoc> = {
           'Use SeamFlow solo con fines lícitos. No abuse del servicio, no intente interrumpirlo ni aplicarle ingeniería inversa, y no lo use para almacenar o compartir contenido ilícito.',
           'No publique trabajo que no sea suyo, no suplante a otro taller o persona, no acose a nadie y no envíe publicidad no solicitada por mensaje.',
           'Es responsable de la información de clientes y pedidos que introduce, y de respetar la privacidad y los derechos de las personas cuyos datos registra.',
+          'No publique ni envíe contenido sexual o desnudos, violencia explícita, ni nada que ataque a una persona o a un grupo por lo que es. Esto es un lugar de trabajo. Retiramos ese contenido cuando lo encontramos o cuando nos lo denuncian, y suspendemos las cuentas que lo publican.',
+          'Cada diseño, taller y mensaje tiene una acción Denunciar, y puede bloquear a cualquier persona con la que esté conversando. El bloqueo detiene los mensajes en ambos sentidos y nunca se revela a la otra persona.',
         ],
       },
       {
@@ -1332,6 +1340,8 @@ export const terms: Record<Lang, LegalDoc> = {
           'Tumia SeamFlow kwa madhumuni halali pekee. Usitumie vibaya huduma, usijaribu kuivuruga au kuichambua kwa njia ya kurudi nyuma, na usiitumie kuhifadhi au kushiriki maudhui haramu.',
           'Usichapishe kazi isiyo yako, usijifanye kuwa duka au mtu mwingine, usimsumbue yeyote, na usitume matangazo yasiyoombwa kupitia ujumbe.',
           'Una wajibu kwa taarifa za wateja na maagizo unazoingiza, na kwa kuheshimu faragha na haki za watu unaorekodi taarifa zao.',
+          'Usichapishe wala kutuma maudhui ya ngono au uchi, vurugu za kutisha, wala chochote kinachomshambulia mtu au kundi kwa sababu ya alivyo. Hapa ni mahali pa kazi. Tunaondoa maudhui hayo tunapoyakuta au yanaporipotiwa, na tunasimamisha akaunti zinazoyachapisha.',
+          'Kila mtindo, duka na ujumbe una kitufe cha Ripoti, na unaweza kumzuia yeyote unayezungumza naye. Kuzuia husimamisha ujumbe pande zote mbili na hakuambiwi mtu mwingine.',
         ],
       },
       {
@@ -1447,6 +1457,8 @@ export const terms: Record<Lang, LegalDoc> = {
           'استخدم SeamFlow لأغراض مشروعة فقط. لا تُسئ استخدام الخدمة، ولا تحاول تعطيلها أو هندستها عكسيًّا، ولا تستخدمها لتخزين محتوى غير مشروع أو مشاركته.',
           'لا تنشر عملًا ليس لك، ولا تنتحل صفة ورشة أو شخص آخر، ولا تضايق أحدًا، ولا ترسل إعلانات غير مطلوبة عبر الرسائل.',
           'أنت مسؤول عن معلومات العملاء والطلبات التي تُدخلها، وعن احترام خصوصية وحقوق الأشخاص الذين تسجّل بياناتهم.',
+          'لا تنشر ولا ترسل محتوى جنسيًّا أو عاريًا، ولا عنفًا صادمًا، ولا أي شيء يهاجم شخصًا أو جماعة لما هم عليه. هذا مكان عمل. ونزيل هذا المحتوى حين نجده أو حين يُبلَّغ عنه، ونعلّق الحسابات التي تنشره.',
+          'لكل تصميم وورشة ورسالة إجراءُ إبلاغ، ويمكنك حظر أي شخص تتحادث معه. والحظر يوقف الرسائل في الاتجاهين ولا يُكشف للطرف الآخر أبدًا.',
         ],
       },
       {

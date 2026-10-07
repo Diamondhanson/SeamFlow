@@ -4,6 +4,7 @@ import { OrdersModule } from '../orders/orders.module';
 import { InvoicesModule } from '../invoices/invoices.module';
 import { ClientsModule } from '../clients/clients.module';
 import { MeasurementSetsModule } from '../measurement-sets/measurement-sets.module';
+import { ModerationModule } from '../moderation/moderation.module';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { ChatMediaRetentionService } from './chat-media-retention.service';
@@ -15,6 +16,7 @@ import { ChatMediaRetentionService } from './chat-media-retention.service';
     InvoicesModule,
     ClientsModule,
     MeasurementSetsModule,
+    ModerationModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatMediaRetentionService],

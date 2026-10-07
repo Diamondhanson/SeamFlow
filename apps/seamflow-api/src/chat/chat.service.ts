@@ -22,6 +22,7 @@ import type {
   SaveChatMeasurementResult,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
+import { ModerationService } from '../moderation/moderation.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { OrdersService } from '../orders/orders.service';
@@ -90,6 +91,7 @@ export class ChatService {
     private readonly invoices: InvoicesService,
     private readonly clients: ClientsService,
     private readonly measurementSets: MeasurementSetsService,
+    private readonly moderation: ModerationService,
   ) {}
 
   // ── Actor + access ────────────────────────────────────────────────────────
@@ -104,6 +106,20 @@ export class ChatService {
   }
 
   /** Which side of this thread is the caller on? Throws if neither. */
+  /** The `users` id of whoever the sender is not. */
+  private async counterpartyUserId(
+    convo: ConversationRow,
+    side: 'client' | 'tailor',
+  ): Promise<string | null> {
+    if (side === 'tailor') return convo.clientUserId;
+    const [row] = await this.dbService.db
+      .select({ userId: tailors.userId })
+      .from(tailors)
+      .where(eq(tailors.id, convo.tailorId))
+      .limit(1);
+    return row?.userId ?? null;
+  }
+
   private sideOf(convo: ConversationRow, actor: ChatActor): 'client' | 'tailor' {
     if (actor.tailorId && convo.tailorId === actor.tailorId) return 'tailor';
     if (convo.clientUserId === actor.userId) return 'client';
@@ -307,6 +323,7 @@ export class ChatService {
       const t = rows[0];
       counterparty = {
         id: convo.tailorId,
+        userId: t?.userId ?? convo.clientUserId,
         name: t?.businessName ?? 'Tailor',
         avatarUrl: t?.avatarPath ? this.publicUrl(AVATARS_BUCKET, t.avatarPath) : (t?.photoUrl ?? null),
         isVerified: t?.isVerified ?? false,
@@ -316,6 +333,7 @@ export class ChatService {
       const u = rows[0];
       counterparty = {
         id: convo.clientUserId,
+        userId: convo.clientUserId,
         // NEVER fall back to phone or email here. This string is rendered in the
         // tailor's conversation list, and public.users.full_name defaults to ''
         // — so falling through to a contact field silently disclosed the
@@ -650,6 +668,19 @@ export class ChatService {
   ): Promise<Message> {
     const db = this.dbService.db;
     const attachments = (input.attachments ?? []) as MessageAttachment[];
+
+    // A block stops messages in BOTH directions, so this one question covers
+    // both ends. Checked on the single write path rather than at the two
+    // callers, because a route that forgot it would be a silent hole in the
+    // only promise blocking makes.
+    //
+    // The error says who cannot be reached, never who did the blocking — a
+    // block is private, and telling someone they have been blocked is how a
+    // block turns into an argument.
+    const otherUserId = await this.counterpartyUserId(convo, side);
+    if (otherUserId && (await this.moderation.blockedBetween(actor.userId, otherUserId))) {
+      throw new ForbiddenException('You can no longer send messages in this conversation.');
+    }
 
     // Idempotency: a retried send with the same clientId must not double-post.
     if (input.clientId) {

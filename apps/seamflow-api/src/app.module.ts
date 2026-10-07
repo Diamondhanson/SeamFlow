@@ -20,6 +20,7 @@ import { AccountModule } from './account/account.module';
 import { AdminModule } from './admin/admin.module';
 import { PhoneVerificationModule } from './phone-verification/phone-verification.module';
 import { VerificationModule } from './verification/verification.module';
+import { ModerationModule } from './moderation/moderation.module';
 import { TailorsModule } from './tailors/tailors.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { ClientsModule } from './clients/clients.module';
@@ -65,6 +66,7 @@ import { RemindersModule } from './notifications/reminders.module';
     AccountModule,
     AdminModule,
     PhoneVerificationModule,
+    ModerationModule,
     VerificationModule,
     TailorsModule,
     SubscriptionsModule,

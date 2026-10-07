@@ -25,6 +25,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { router } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import Animated from 'react-native-reanimated';
@@ -72,6 +73,7 @@ import { api } from '../../lib/api';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 import { haptics } from '../../lib/haptics';
+import { blockUser, reportContent } from '../../lib/report';
 import {
   COMPOSER_CONTROL,
   COMPOSER_LINE_H,
@@ -1279,6 +1281,31 @@ export function ChatThread({
                           <Ionicons name="copy-outline" size={20} color={colors.text} />
                         </Pressable>
                       ) : null}
+                      {/* Reporting and blocking only make sense for something
+                          the OTHER person said. On your own message these two
+                          rows would be noise at best and a trap at worst. */}
+                      {!mine ? (
+                        <>
+                          <View style={[styles.actionSep, { backgroundColor: colors.hairline }]} />
+                          <Pressable
+                            style={styles.actionRow}
+                            onPress={() => {
+                              setMenu(null);
+                              void reportContent(dialog, t, 'message', m.id);
+                            }}
+                          >
+                            <Text variant="body">{t('report.reportAction')}</Text>
+                            <Ionicons name="flag-outline" size={20} color={colors.text} />
+                          </Pressable>
+                          <View style={[styles.actionSep, { backgroundColor: colors.hairline }]} />
+                          <Pressable style={styles.actionRow} onPress={() => void blockFromThread()}>
+                            <Text variant="body" style={{ color: colors.danger }}>
+                              {t('report.blockAction')}
+                            </Text>
+                            <Ionicons name="hand-left-outline" size={20} color={colors.danger} />
+                          </Pressable>
+                        </>
+                      ) : null}
                     </View>
                   </View>
                 </Pressable>
@@ -1288,6 +1315,25 @@ export function ChatThread({
       </Modal>
     </Screen>
   );
+
+  /**
+   * Block the person on the other side of this thread.
+   *
+   * Reached from a message's menu rather than a header button: blocking is a
+   * response to something that was said, and putting it in the header makes it
+   * a permanent invitation rather than a remedy.
+   */
+  async function blockFromThread() {
+    const other = conversation?.counterparty;
+    if (!other?.userId) return;
+    setMenu(null);
+    const done = await blockUser(dialog, t, other.userId, other.name || tk('threadTitle'));
+    if (done) {
+      await qc.invalidateQueries({ queryKey: qk.conversation(id) });
+      await qc.invalidateQueries({ queryKey: qk.conversations() });
+      router.back();
+    }
+  }
 
   function onFailedPress(p: PendingMessage) {
     void dialog

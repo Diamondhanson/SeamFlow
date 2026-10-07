@@ -12,6 +12,7 @@ export const qk = {
   myTailor: () => ['me', 'tailor'] as const,
   phoneStatus: () => ['me', 'phone'] as const,
   verification: () => ['me', 'verification'] as const,
+  blocks: () => ['blocks'] as const,
 
   clients: (q?: string) => ['clients', { q: q ?? '' }] as const,
   client: (id: string) => ['clients', id] as const,

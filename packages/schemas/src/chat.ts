@@ -243,6 +243,15 @@ export type MessageHydrateInput = z.infer<typeof MessageHydrateSchema>;
 export const ConversationCounterpartySchema = z.object({
   /** Tailor id when the caller is a client; user id when the caller is a tailor. */
   id: z.string().uuid(),
+  /**
+   * Always the `users` id, whichever side is looking.
+   *
+   * `id` above is role-relative — a tailor id for one caller, a user id for
+   * the other — which is right for navigation and useless for blocking, since
+   * a block is always between two accounts. This is the one the Block action
+   * sends.
+   */
+  userId: z.string().uuid(),
   name: z.string(),
   avatarUrl: z.string().url().nullable(),
   isVerified: z.boolean().optional(),

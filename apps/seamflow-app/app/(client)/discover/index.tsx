@@ -34,6 +34,7 @@ import { Button } from '../../../components/Button';
 import { ImageCaption } from '../../../components/client/ImageCaption';
 import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 import { useFeed } from '../../../lib/consumer-queries';
+import { useBlockedTailorIds } from '../../../lib/queries';
 import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
@@ -122,9 +123,18 @@ export default function Discover() {
   const filter = useMemo(() => ({ audience, occasion, q }), [audience, occasion, q]);
   const feedQ = useFeed(filter);
 
+  // Blocked shops come out here, not on the server: /feed is a public route
+  // with no viewer, so the only place that knows who is looking is this one.
+  // Fetched once and cached; an empty list (signed out, or the call failed)
+  // simply filters nothing, which is the right way for this to fail.
+  const blockedQ = useBlockedTailorIds();
+
   const items: FeedPostPublic[] = useMemo(
-    () => (feedQ.data?.pages ?? []).flatMap((p) => p.items),
-    [feedQ.data],
+    () =>
+      (feedQ.data?.pages ?? [])
+        .flatMap((p) => p.items)
+        .filter((post) => !blockedQ.has(post.tailor.id)),
+    [feedQ.data, blockedQ],
   );
   // Set by the server when nothing matched every word and it widened to any.
   const relaxed = !!feedQ.data?.pages[0]?.relaxed;

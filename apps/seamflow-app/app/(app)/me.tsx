@@ -389,6 +389,14 @@ export default function Me() {
               onPress={() => router.push('/(app)/pin')}
             />
           ) : null}
+          {/* Always shown, even at zero. Blocking happens in the moment from a
+              message menu; this is the only place it can be undone, so it has
+              to be findable by someone who does not remember doing it. */}
+          <SettingsRow
+            icon="hand-left-outline"
+            label={t('report.blockedTitle')}
+            onPress={() => router.push('/(app)/blocked')}
+          />
         </SettingsCard>
 
         {/* Subscription. On the web this leads to the plans; in a store build

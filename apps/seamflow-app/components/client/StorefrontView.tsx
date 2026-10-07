@@ -62,6 +62,8 @@ import { useGridColumns, useContentWidth } from '../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../lib/floating-scroll';
 import { config } from '../../lib/config';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
+import { useDialog } from '../../lib/dialog';
+import { reportContent } from '../../lib/report';
 import { useTranslation } from '../../lib/i18n';
 
 export interface StorefrontViewProps {
@@ -232,6 +234,7 @@ function ShopHeader({
   onInquire: () => void;
 }) {
   const { t } = useTranslation();
+  const dialog = useDialog();
   const colors = useThemeColors();
   const { colors: atelier } = useAtelierTheme();
 
@@ -315,6 +318,20 @@ function ShopHeader({
             <Ionicons name="share-outline" size={20} color="#fff" />
           </Pressable>
         ) : null}
+
+        {/* Report the shop, beside share. A storefront is the other thing a
+            stranger puts in front of you — a whole identity rather than one
+            photograph — and "this shop is not real" is a different complaint
+            from "this picture is not theirs". */}
+        <Pressable
+          onPress={() => void reportContent(dialog, t, 'shop', tailor.id)}
+          style={[styles.roundBtn, styles.roundBtnReport]}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('report.reportAction')}
+        >
+          <Ionicons name="flag-outline" size={18} color="#fff" />
+        </Pressable>
       </View>
 
       {/* ---- Identity -------------------------------------------------- */}
@@ -465,6 +482,8 @@ const styles = StyleSheet.create({
   // buttons stacked in the top-left corner and share hid the way back.
   roundBtnLeft: { left: spacing.md },
   roundBtnRight: { right: spacing.md },
+  // One button in from share, so the two never stack when a slug exists.
+  roundBtnReport: { right: spacing.md + 44 },
 
   identity: {
     alignItems: 'center',

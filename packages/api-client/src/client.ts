@@ -78,6 +78,10 @@ import {
   makeVerificationResource,
   type VerificationResource,
 } from './resources/verification';
+import {
+  makeModerationResource,
+  type ModerationResource,
+} from './resources/moderation';
 
 export interface ApiClient {
   health: HealthResource;
@@ -113,6 +117,7 @@ export interface ApiClient {
   works: WorksResource;
   /** Proving a shop is real (appendix J). Never a gate. */
   verification: VerificationResource;
+  moderation: ModerationResource;
 }
 
 export type ApiClientConfig = HttpConfig;
@@ -162,5 +167,6 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     support: makeSupportResource(http),
     works: makeWorksResource(http),
     verification: makeVerificationResource(http),
+    moderation: makeModerationResource(http),
   };
 }

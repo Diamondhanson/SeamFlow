@@ -17,7 +17,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { adminActions, users } from '../db/schema';
 
-export type AuditTargetType = 'tailor' | 'user' | 'feed_post' | 'platform';
+export type AuditTargetType = 'tailor' | 'user' | 'feed_post' | 'platform' | 'report';
 
 export interface AuditEntry {
   id: string;

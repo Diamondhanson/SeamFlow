@@ -46,6 +46,7 @@ import { designs } from './locales/designs';
 import { invoices } from './locales/invoices';
 import { guides } from './locales/guides';
 import { misc } from './locales/misc';
+import { report } from './locales/report';
 import { assistant } from './locales/assistant';
 import { feed } from './locales/feed';
 import { chat } from './locales/chat';
@@ -133,6 +134,7 @@ const NAMESPACES = {
   invoices,
   guides,
   misc,
+  report,
   assistant,
   feed,
   chat,

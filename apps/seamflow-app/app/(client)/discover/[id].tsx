@@ -39,6 +39,7 @@ import { config } from '../../../lib/config';
 import { useAuth } from '../../../lib/auth-context';
 import { useDialog } from '../../../lib/dialog';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
+import { reportContent } from '../../../lib/report';
 import { useTranslation } from '../../../lib/i18n';
 
 export default function DesignDetail() {
@@ -154,6 +155,18 @@ export default function DesignDetail() {
             accessibilityLabel={t('discover.share')}
           >
             <Ionicons name="share-outline" size={20} color="#fff" />
+          </Pressable>
+
+          {/* Report, beside share rather than hidden in a menu. This is a
+              public photograph from a stranger, and the whole point of the
+              obligation is that saying "this is not theirs" takes one tap
+              from the thing itself. */}
+          <Pressable
+            onPress={() => void reportContent(dialog, t, 'design', post.id)}
+            style={styles.report}
+            accessibilityLabel={t('report.reportAction')}
+          >
+            <Ionicons name="flag-outline" size={18} color="#fff" />
           </Pressable>
 
           {/* ── Tailor attribution overlay ── */}
@@ -447,6 +460,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     right: spacing.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  report: {
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    position: 'absolute',
+    top: spacing.md,
+    // One button in from share: 36 wide plus a gap, so the two do not stack.
+    right: spacing.md + 44,
     width: 36,
     height: 36,
     borderRadius: 18,
