@@ -56,6 +56,30 @@ export async function setEnforcement(enforced: boolean): Promise<void> {
   revalidatePath('/subscriptions');
 }
 
+/**
+ * Is verification being offered to tailors?
+ *
+ * Nothing to do with the paywall: this one says whether we can afford to run
+ * the phone codes. While it is off the app shows no prompt and no Settings
+ * rows, and the API refuses the flow outright, so an older build cannot spend
+ * credit we do not have.
+ */
+export async function getVerificationVisible(): Promise<boolean> {
+  const staff = await requireStaff();
+  const { visible } = await get<{ visible: boolean }>(
+    staff.accessToken,
+    '/admin/subscriptions/verification-visible',
+  );
+  return visible;
+}
+
+/** Show or hide the whole verification surface, platform-wide. */
+export async function setVerificationVisible(visible: boolean): Promise<void> {
+  const staff = await requireStaff();
+  await post(staff.accessToken, '/admin/subscriptions/verification-visible', { visible });
+  revalidatePath('/subscriptions');
+}
+
 /** Add (or with a negative number, take back) paid days for one tailor. */
 export async function grantDays(tailorId: string, days: number, reason?: string): Promise<void> {
   const staff = await requireStaff();

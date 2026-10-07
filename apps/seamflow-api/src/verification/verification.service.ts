@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import type {
@@ -92,9 +93,10 @@ export class VerificationService {
       isVerified: Boolean(row?.isVerified),
       verifiedAt: row?.verifiedAt?.toISOString() ?? null,
       phoneVerified: Boolean(row?.phoneVerifiedAt),
-      // Requirement one is impossible without an OTP provider, so the app hides
-      // the prompt rather than offering a road that ends in a wall.
-      available: this.phone.isEnabled,
+      // Requirement one is impossible without a funded OTP provider AND the
+      // dashboard switch, so the app hides the prompt rather than offering a
+      // road that ends in a wall. See PlatformSettingsService.verificationVisible.
+      available: await this.phone.isLive(),
     };
   }
 
@@ -109,6 +111,14 @@ export class VerificationService {
    */
   async submit(userId: string, evidence: VerificationEvidence[]): Promise<VerificationRequest> {
     const db = this.dbService.db;
+
+    // Closed while the switch is off. Nobody can reach this through the UI —
+    // the whole surface is hidden — but an app build that predates the switch
+    // still has the screens, and a queue filling up with requests we have no
+    // way to review would be worse than the feature being invisible.
+    if (!(await this.phone.isLive())) {
+      throw new ServiceUnavailableException('Verification is not open at the moment.');
+    }
 
     const [row] = await db
       .select({

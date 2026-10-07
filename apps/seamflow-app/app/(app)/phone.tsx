@@ -155,8 +155,10 @@ export default function PhoneVerification() {
     );
   }
 
-  // No provider configured on this server: there is nothing this screen can do,
-  // and pretending otherwise would hand the user a button that only fails.
+  // Either no provider on this server, or the whole feature is switched off
+  // from the dashboard — `enabled` now means "offer this to people", not just
+  // "a provider exists". Either way there is nothing this screen can do, and
+  // pretending otherwise would hand the user a button that only fails.
   if (status && !status.enabled) {
     return (
       <Screen scroll>

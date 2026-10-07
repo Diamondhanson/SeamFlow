@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { PlatformSettingsModule } from '../subscriptions/platform-settings.module';
 import { PhoneVerificationController } from './phone-verification.controller';
 import { PhoneVerificationService } from './phone-verification.service';
 
@@ -8,6 +9,7 @@ import { PhoneVerificationService } from './phone-verification.service';
  * without duplicating the check.
  */
 @Module({
+  imports: [PlatformSettingsModule],
   controllers: [PhoneVerificationController],
   providers: [PhoneVerificationService],
   exports: [PhoneVerificationService],

@@ -5,7 +5,12 @@ import { StaffGuard } from '../common/staff.guard';
 import { SubscriptionsService } from './subscriptions.service';
 import { CheckoutService } from './checkout.service';
 import { AdminAuditService } from '../admin/admin-audit.service';
-import { ENFORCEMENT_KEY, PRICES_KEY, PlatformSettingsService } from './platform-settings.service';
+import {
+  ENFORCEMENT_KEY,
+  PRICES_KEY,
+  VERIFICATION_KEY,
+  PlatformSettingsService,
+} from './platform-settings.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 
@@ -51,6 +56,32 @@ export class SubscriptionsAdminController {
       enforced: body.enforced === true,
     });
     return { enforced: await this.subscriptions.enforced() };
+  }
+
+  /**
+   * The verification switch.
+   *
+   * Separate from enforcement because it answers a different question: not
+   * "are we charging yet" but "can we afford to run the phone codes yet". Both
+   * default off, and both are flipped from the dashboard the moment the answer
+   * changes — no deploy, no app update. Turning this on makes the home prompt
+   * and the Settings rows appear for every tailor on their next load.
+   */
+  @Get('verification-visible')
+  async verificationVisible() {
+    return { visible: await this.settings.verificationVisible() };
+  }
+
+  @Post('verification-visible')
+  async setVerificationVisible(
+    @CurrentUser() user: AuthedUser,
+    @Body() body: { visible: boolean },
+  ) {
+    await this.settings.set(VERIFICATION_KEY, body.visible === true, user.id);
+    await this.audit.record(user.id, 'platform.verification_visible', { type: 'platform' }, {
+      visible: body.visible === true,
+    });
+    return { visible: await this.settings.verificationVisible() };
   }
 
   /**

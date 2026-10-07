@@ -3,8 +3,10 @@ import { Cell, Empty, PageHeader, Row, Stat, StatRow, Table, Tag } from '../../.
 import { FilterBar, Search } from '../../../components/filters';
 import { date, num, relative } from '../../../lib/format';
 import { getSubscriptions, getSubscriptionRevenue, SUBS_TABS, type SubsTab } from '../../../lib/queries/subscriptions';
-import { getEnforcement, getPayments, getPrices } from '../../../lib/subscription-actions';
-import { EnforcementSwitch, ExtendAllTrials, PriceEditor, RecheckPayment, RowActions } from './actions';
+import { getEnforcement,
+  getVerificationVisible, getPayments, getPrices } from '../../../lib/subscription-actions';
+import { EnforcementSwitch,
+  VerificationSwitch, ExtendAllTrials, PriceEditor, RecheckPayment, RowActions } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +18,11 @@ export default async function SubscriptionsPage({
   const sp = await searchParams;
   const tab: SubsTab = SUBS_TABS.some((t) => t.key === sp.tab) ? (sp.tab as SubsTab) : 'trialing';
   const q = sp.q ?? '';
-  const [{ counts, rows }, revenue, enforced, priceState, payments] = await Promise.all([
+  const [{ counts, rows }, revenue, enforced, verificationVisible, priceState, payments] = await Promise.all([
     getSubscriptions(tab, q),
     getSubscriptionRevenue(),
     getEnforcement().catch(() => false),
+    getVerificationVisible().catch(() => false),
     // The API is the only place that knows what is really being charged. If it
     // cannot be reached the page still renders; it just cannot offer the form.
     getPrices().catch(() => null),
@@ -62,6 +65,12 @@ export default async function SubscriptionsPage({
 
       <div className="mt-8 border-y border-rule bg-surface px-4 py-4">
         <EnforcementSwitch enforced={enforced} />
+      </div>
+      {/* Beside the paywall switch because they are the same kind of lever —
+          a thing the platform can do that is turned off until it is paid for —
+          and whoever is about to flip one should see the state of the other. */}
+      <div className="mt-4 border-b border-rule bg-surface px-4 py-4">
+        <VerificationSwitch visible={verificationVisible} />
       </div>
       <div className="mt-4 border-b border-rule bg-surface px-4 py-3">
         <ExtendAllTrials />

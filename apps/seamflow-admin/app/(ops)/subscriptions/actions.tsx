@@ -8,6 +8,7 @@ import {
   recheckPayment,
   setEnforcement,
   setPrices,
+  setVerificationVisible,
   type PriceTable,
 } from '../../../lib/subscription-actions';
 
@@ -65,6 +66,68 @@ export function EnforcementSwitch({ enforced }: { enforced: boolean }) {
         }`}
       >
         {pending ? 'Working…' : on ? 'Turn limits off' : 'Turn limits on'}
+      </button>
+      {error ? <p className="w-full text-xs text-bad">{error}</p> : null}
+    </div>
+  );
+}
+
+/**
+ * The verification switch.
+ *
+ * Phone confirmation costs money per code. Until that is funded, every
+ * invitation in the app leads to a step that answers 403 — so this hides the
+ * whole surface rather than advertising something we cannot honour: the home
+ * prompt, the Settings rows, and the screens behind them.
+ *
+ * Turning it on reaches every tailor on their next load. Nobody has to update
+ * the app, because the app was only ever asking the server whether to show it.
+ */
+export function VerificationSwitch({ visible }: { visible: boolean }) {
+  const [pending, start] = useTransition();
+  const [on, setOn] = useState(visible);
+  const [error, setError] = useState<string | null>(null);
+
+  const flip = (next: boolean) => {
+    const question = next
+      ? 'Show verification to everyone? Make sure the phone-code provider is funded first — every tailor will be invited to confirm their number.'
+      : 'Hide verification from everyone? The prompt and the Settings rows disappear. Shops already verified keep their mark.';
+    if (!confirm(question)) return;
+    start(async () => {
+      setError(null);
+      try {
+        await setVerificationVisible(next);
+        setOn(next);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    });
+  };
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div className="text-2xs uppercase tracking-widest text-faint">Verification</div>
+        <div className="mt-1 text-sm">
+          <span className={on ? 'font-medium text-good' : 'font-medium text-muted'}>
+            {on ? 'ON — tailors are being invited to verify' : 'OFF — hidden from everyone'}
+          </span>
+          <span className="block text-xs text-muted">
+            {on
+              ? 'The home prompt and the Settings rows are visible. Turn this off if the phone-code credit runs out.'
+              : 'Turn this on once the phone-code provider is funded. It applies within seconds, no app update.'}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => flip(!on)}
+        className={`border px-4 py-2 text-sm font-medium disabled:opacity-60 ${
+          on ? 'border-rule text-ink hover:border-ink' : 'border-ink bg-ink text-paper hover:opacity-90'
+        }`}
+      >
+        {pending ? 'Working…' : on ? 'Hide verification' : 'Show verification'}
       </button>
       {error ? <p className="w-full text-xs text-bad">{error}</p> : null}
     </div>

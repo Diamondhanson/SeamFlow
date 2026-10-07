@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AdminModule } from '../admin/admin.module';
 import { TailorsModule } from '../tailors/tailors.module';
 import { SubscriptionsService } from './subscriptions.service';
-import { PlatformSettingsService } from './platform-settings.service';
+import { PlatformSettingsModule } from './platform-settings.module';
 import { CheckoutService } from './checkout.service';
 import { CheckoutController } from './checkout.controller';
 import { paymentProviderFactory } from './providers/payment-provider.factory';
@@ -16,9 +16,9 @@ import { StaffGuard } from '../common/staff.guard';
  * ask the ONE entitlement question, rather than reading dates itself.
  */
 @Module({
-  imports: [TailorsModule, NotificationsModule, AdminModule],
+  imports: [TailorsModule, NotificationsModule, AdminModule, PlatformSettingsModule],
   controllers: [SubscriptionsController, SubscriptionsAdminController, CheckoutController],
-  providers: [SubscriptionsService, PlatformSettingsService, CheckoutService, StaffGuard, paymentProviderFactory],
-  exports: [SubscriptionsService, PlatformSettingsService, CheckoutService],
+  providers: [SubscriptionsService, CheckoutService, StaffGuard, paymentProviderFactory],
+  exports: [SubscriptionsService, PlatformSettingsModule, CheckoutService],
 })
 export class SubscriptionsModule {}

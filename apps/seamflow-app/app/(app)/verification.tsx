@@ -307,6 +307,22 @@ export default function Verification() {
     );
   }
 
+  // Switched off platform-wide (the dashboard lever). Nothing here can be
+  // completed while the phone step is closed, so the screen says so plainly
+  // instead of offering two steps and a dead submit button. Normally
+  // unreachable — Settings hides the row on the same flag — but a build that
+  // predates the switch still has this route, and a deep link still resolves.
+  if (!state?.available) {
+    return (
+      <Screen scroll>
+        <ScreenHeader title={t('verification.title')} />
+        <Note tone="info" icon="time-outline">
+          {t('verification.unavailable')}
+        </Note>
+      </Screen>
+    );
+  }
+
   return (
     <Screen scroll>
       <ScreenHeader title={t('verification.title')} />

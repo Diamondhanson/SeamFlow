@@ -2,7 +2,7 @@
   "name": "seamflow-api",
   "version": "0.1.0",
   "private": true,
-  "description": "SeamFlow NestJS API — REST backend, payments webhooks, background jobs.",
+  "description": "SeamFlow NestJS API \u2014 REST backend, payments webhooks, background jobs.",
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
@@ -34,6 +34,7 @@
     "test:fapshi": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-fapshi.ts",
     "test:phone": "nest build && node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-phone-verification.ts",
     "test:verification": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification.ts",
+    "test:verification-switch": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification-switch.ts",
     "test:verification-retention": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification-retention.ts",
     "test:trust-signals": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-trust-signals.ts",
     "backfill:design-tags": "nest build && node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/backfill-design-tags.ts",

@@ -17,6 +17,7 @@ import { DbService } from '../db/db.service';
 import { platformSettings } from '../db/schema';
 
 export const ENFORCEMENT_KEY = 'subscription_enforcement';
+export const VERIFICATION_KEY = 'verification_visible';
 export const PRICES_KEY = 'subscription_prices';
 const CACHE_MS = 15_000;
 
@@ -74,6 +75,26 @@ export class PlatformSettingsService {
   async enforcementOn(): Promise<boolean> {
     if (this.config.get<boolean>('SUBSCRIPTION_ENFORCEMENT') === true) return true;
     return this.get<boolean>(ENFORCEMENT_KEY, false);
+  }
+
+  /**
+   * Should the app offer verification at all?
+   *
+   * Phone confirmation is step one of two, and it costs money per code. Until
+   * that is funded, every invitation in the app leads to a step that answers
+   * 403 — so the honest thing is to show nothing rather than an invitation we
+   * cannot honour. This switch hides the whole surface: the home prompt, the
+   * Settings rows, and the screens behind them.
+   *
+   * OFF by default, and off is also what a failed read falls back to. A
+   * database blip must not start advertising a feature that cannot run.
+   *
+   * It is deliberately separate from whether an OTP provider is CONFIGURED.
+   * A provider can be wired up and still have no credit, which is exactly the
+   * state this exists for; both have to be true before anyone is invited.
+   */
+  async verificationVisible(): Promise<boolean> {
+    return this.get<boolean>(VERIFICATION_KEY, false);
   }
 
   /**

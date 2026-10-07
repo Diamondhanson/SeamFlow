@@ -14,6 +14,8 @@
 
 export const verification = {
   en: {
+    unavailable:
+      'Verification is not switched on yet. Nothing is wrong with your shop, so check back soon.',
     title: 'Get verified',
     statusVerified: 'Verified',
     statusPending: 'Waiting on us',
@@ -108,6 +110,8 @@ export const verification = {
     badgeFootnote: 'This is not a rating. It means we checked the shop is real, not that we judged their work.',
   },
   fr: {
+    unavailable:
+      'La vérification n’est pas encore activée. Votre atelier n’a aucun problème, revenez bientôt.',
     title: 'Faire vérifier mon atelier',
     statusVerified: 'Vérifié',
     statusPending: 'En attente de notre réponse',
@@ -203,6 +207,8 @@ export const verification = {
     badgeFootnote: 'Ce n’est pas une note. Cela veut dire que nous avons vérifié que l’atelier est réel, pas que nous avons jugé son travail.',
   },
   pt: {
+    unavailable:
+      'A verificação ainda não está ativa. Não há nada de errado com a sua oficina, volte em breve.',
     title: 'Verificar a minha oficina',
     statusVerified: 'Verificada',
     statusPending: 'À espera de nós',
@@ -298,6 +304,8 @@ export const verification = {
     badgeFootnote: 'Isto não é uma classificação. Significa que verificámos que a oficina é real, não que avaliámos o trabalho.',
   },
   es: {
+    unavailable:
+      'La verificación aún no está activada. Tu taller no tiene ningún problema, vuelve pronto.',
     title: 'Verificar mi taller',
     statusVerified: 'Verificado',
     statusPending: 'Esperándonos',
@@ -392,6 +400,8 @@ export const verification = {
     badgeFootnote: 'Esto no es una valoración. Significa que comprobamos que el taller es real, no que juzgamos su trabajo.',
   },
   sw: {
+    unavailable:
+      'Uthibitisho haujawashwa bado. Hakuna tatizo kwenye duka lako, rudi hivi karibuni.',
     title: 'Thibitisha duka langu',
     statusVerified: 'Limethibitishwa',
     statusPending: 'Linatusubiri',
@@ -486,6 +496,8 @@ export const verification = {
     badgeFootnote: 'Hii si alama ya ubora. Inamaanisha tumethibitisha duka ni halisi, si kwamba tumepima kazi yao.',
   },
   ar: {
+    unavailable:
+      'التوثيق غير مُفعَّل بعد. لا مشكلة في ورشتك، عُد قريبًا.',
     title: 'توثيق ورشتي',
     statusVerified: 'موثَّقة',
     statusPending: 'في انتظارنا',

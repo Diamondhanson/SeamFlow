@@ -12,6 +12,7 @@ import type { CountryCode } from 'libphonenumber-js';
 import { normalizePhone } from '@seamflow/utils';
 import { ConfigService } from '@nestjs/config';
 import { DbService } from '../db/db.service';
+import { PlatformSettingsService } from '../subscriptions/platform-settings.service';
 import { phoneVerifications, users } from '../db/schema';
 import {
   OtpDeliveryError,
@@ -59,6 +60,7 @@ export class PhoneVerificationService {
 
   constructor(
     private readonly dbService: DbService,
+    private readonly settings: PlatformSettingsService,
     config: ConfigService,
   ) {
     const nodeEnv = config.get<string>('NODE_ENV') ?? 'development';
@@ -101,6 +103,17 @@ export class PhoneVerificationService {
   get isEnabled(): boolean {
     if (this.provider.id === 'unconfigured') return false;
     return this.provider.mode === 'verifies' || this.secret.length > 0;
+  }
+
+  /**
+   * Configured AND switched on.
+   *
+   * `isEnabled` only says a provider is wired up. It can be wired up with no
+   * credit, which is the state this whole switch exists for — so every entry
+   * point asks this, not `isEnabled`.
+   */
+  async isLive(): Promise<boolean> {
+    return this.isEnabled && (await this.settings.verificationVisible());
   }
 
   /** What the app should tell the user about how long they have. */
@@ -168,9 +181,12 @@ export class PhoneVerificationService {
       signals?: OtpSignals;
     } = {},
   ): Promise<{ phone: string; channel: OtpChannel; expiresAt: Date; ttlMinutes: number }> {
-    if (!this.isEnabled) {
+    // Also refuses while the dashboard switch is off. An app build that still
+    // has the old screens cached must not be able to drive a flow we are not
+    // paying for, and the client is never the place that decision lives.
+    if (!(await this.isLive())) {
       throw new ServiceUnavailableException(
-        'Phone verification is not configured on this server.',
+        'Phone verification is not available on this server.',
       );
     }
 
@@ -306,9 +322,12 @@ export class PhoneVerificationService {
     userId: string,
     code: string,
   ): Promise<{ phone: string; verifiedAt: Date }> {
-    if (!this.isEnabled) {
+    // Also refuses while the dashboard switch is off. An app build that still
+    // has the old screens cached must not be able to drive a flow we are not
+    // paying for, and the client is never the place that decision lives.
+    if (!(await this.isLive())) {
       throw new ServiceUnavailableException(
-        'Phone verification is not configured on this server.',
+        'Phone verification is not available on this server.',
       );
     }
 
@@ -433,7 +452,9 @@ export class PhoneVerificationService {
     return {
       phone: row?.phone ?? null,
       verified: Boolean(row?.verifiedAt),
-      enabled: this.isEnabled,
+      // The app hides its whole Verification section on this flag, so it has
+      // to mean "offer this to people", not merely "a provider exists".
+      enabled: await this.isLive(),
     };
   }
 }
