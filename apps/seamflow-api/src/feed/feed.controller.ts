@@ -49,6 +49,46 @@ export class FeedController {
     return this.feed.listPublic(query);
   }
 
+  // ── Saved designs ─────────────────────────────────────────────────────────
+  //
+  // Authenticated, unlike the rest of the feed: a save belongs to a person.
+  // No counts are exposed on any of these — see the note in
+  // packages/schemas/src/saved-design.ts for why there is no "like".
+
+  @Get('me/saved')
+  listSaved(@CurrentUser() user: AuthedUser, @Query() query: { limit?: string; cursor?: string }) {
+    const limit = Math.min(Math.max(Number(query.limit) || 24, 1), 48);
+    return this.feed.listSaved(user.id, limit, query.cursor);
+  }
+
+  /** Which of a batch of designs the caller has saved — fills the hearts. */
+  @Post('me/saved/among')
+  savedAmong(@CurrentUser() user: AuthedUser, @Body() body: { ids?: string[] }) {
+    return this.feed.savedAmong(user.id, (body.ids ?? []).slice(0, 100));
+  }
+
+  @Post('feed/:id/save')
+  save(@CurrentUser() user: AuthedUser, @Param('id', new ParseUUIDPipe()) id: string) {
+    return this.feed.save(user.id, id);
+  }
+
+  @Delete('feed/:id/save')
+  unsave(@CurrentUser() user: AuthedUser, @Param('id', new ParseUUIDPipe()) id: string) {
+    return this.feed.unsave(user.id, id);
+  }
+
+  /**
+   * How many people saved each of MY designs.
+   *
+   * The maker's half of a like, and the only place a save count exists at all.
+   * Scoped to the caller's own tailor id, so it cannot report on anyone else.
+   */
+  @Get('me/designs/save-counts')
+  async mySaveCounts(@CurrentUser() user: AuthedUser) {
+    const tailorId = await this.tailors.requireTailorId(user.id);
+    return this.feed.saveCountsForTailor(tailorId);
+  }
+
   @Public()
   @Get('feed/:id')
   get(@Param('id', new ParseUUIDPipe()) id: string) {

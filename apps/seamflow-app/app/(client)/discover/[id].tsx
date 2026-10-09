@@ -39,6 +39,8 @@ import { config } from '../../../lib/config';
 import { useAuth } from '../../../lib/auth-context';
 import { useDialog } from '../../../lib/dialog';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
+import { api } from '../../../lib/api';
+import { haptics } from '../../../lib/haptics';
 import { reportContent } from '../../../lib/report';
 import { useTranslation } from '../../../lib/i18n';
 
@@ -53,6 +55,43 @@ export default function DesignDetail() {
   const postQ = useFeedPost(id);
   const post = postQ.data?.post;
   const more = postQ.data?.moreLikeThis ?? [];
+
+  // Saving. Optimistic on purpose: the heart flips immediately and only goes
+  // back if the server refuses, because on a slow connection a control that
+  // waits for a round trip reads as broken rather than as careful.
+  //
+  // Signed out, the heart is hidden entirely rather than shown-and-failing —
+  // a save belongs to an account, and a prompt here would interrupt the one
+  // thing the person came to do, which is look at the design.
+  const [isSaved, setIsSaved] = useState(false);
+  useEffect(() => {
+    if (!session || !id) return;
+    let cancelled = false;
+    void api.feed
+      .savedAmong([id])
+      .then((ids) => {
+        if (!cancelled) setIsSaved(ids.includes(id));
+      })
+      .catch(() => {
+        /* an unknown save state shows as unsaved; tapping still works */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session, id]);
+
+  const toggleSave = async () => {
+    if (!session || !id) return;
+    const next = !isSaved;
+    setIsSaved(next);
+    haptics.success();
+    try {
+      await (next ? api.feed.save(id) : api.feed.unsave(id));
+    } catch (err) {
+      setIsSaved(!next);
+      await dialog.error(err);
+    }
+  };
 
   // Lifted out of the carousel so the gallery opens on the angle you were
   // looking at, and closing it returns you to the angle you swiped to.
@@ -156,6 +195,26 @@ export default function DesignDetail() {
           >
             <Ionicons name="share-outline" size={20} color="#fff" />
           </Pressable>
+
+          {/* Save. The heart sits on the image because that is where the
+              decision happens — you are looking at the piece, not reading
+              about it. Optimistic: the fill flips on tap and only reverts if
+              the server says no, because a heart that waits for a round trip
+              on a slow connection feels broken. */}
+          {session ? (
+          <Pressable
+            onPress={() => void toggleSave()}
+            style={styles.saveBtn}
+            accessibilityRole="button"
+            accessibilityLabel={isSaved ? t('saved.unsaveA11y') : t('saved.saveA11y')}
+          >
+            <Ionicons
+              name={isSaved ? 'heart' : 'heart-outline'}
+              size={20}
+              color={isSaved ? '#ff4d6d' : '#fff'}
+            />
+          </Pressable>
+          ) : null}
 
           {/* Report, beside share rather than hidden in a menu. This is a
               public photograph from a stranger, and the whole point of the
@@ -460,6 +519,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     right: spacing.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveBtn: {
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    position: 'absolute',
+    top: spacing.md,
+    // Two buttons in from share, so share / report / save sit in a row.
+    right: spacing.md + 88,
     width: 36,
     height: 36,
     borderRadius: 18,

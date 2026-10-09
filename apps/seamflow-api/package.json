@@ -36,6 +36,7 @@
     "test:verification": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification.ts",
     "test:verification-switch": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification-switch.ts",
     "test:moderation": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-moderation.ts",
+    "test:saved-designs": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-saved-designs.ts",
     "test:verification-retention": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-verification-retention.ts",
     "test:trust-signals": "node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/test-trust-signals.ts",
     "backfill:design-tags": "nest build && node --env-file=.env --experimental-strip-types --no-warnings=ExperimentalWarning scripts/backfill-design-tags.ts",

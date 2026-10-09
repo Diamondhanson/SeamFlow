@@ -37,6 +37,8 @@ import { useDialog } from '../../../lib/dialog';
 import { useRequireProfile } from '../../../lib/profile-gate';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { Ionicons } from '@expo/vector-icons';
+import { api } from '../../../lib/api';
 
 const AUDIENCES: WorkAudience[] = ['women', 'men', 'unisex', 'children'];
 const OCCASIONS: WorkOccasion[] = [
@@ -86,6 +88,27 @@ export default function EditWork() {
   }, [work]);
 
   const currency = work?.currency ?? me?.tailor?.currency ?? 'XAF';
+
+  // Private to this maker. One request for every design they own rather than
+  // one per screen, because the map is small and this screen is reached by
+  // tapping through a grid of them.
+  const [saveCount, setSaveCount] = useState(0);
+  useEffect(() => {
+    const postId = work?.feedPostId;
+    if (!work?.isPublished || !postId) return;
+    let cancelled = false;
+    void api.feed
+      .mySaveCounts()
+      .then((counts) => {
+        if (!cancelled) setSaveCount(counts[postId] ?? 0);
+      })
+      .catch(() => {
+        /* no count is better than a wrong one; the row simply reads zero */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [work?.feedPostId, work?.isPublished]);
 
   const save = async () => {
     const trimmed = price.replace(/[\s,]/g, '');
@@ -305,6 +328,26 @@ export default function EditWork() {
           />
         </View>
 
+        {/* How many people kept this one.
+            This is the ONLY save count anywhere in SeamFlow, and only its maker
+            sees it. It is the useful half of a "like" — learning which work
+            lands, so you make more of it — without a public number that would
+            let a new shop with nothing on it lose to an established one before
+            anyone read a word. Shown only once published, because an unpublished
+            design nobody could save would always read zero. */}
+        {work?.isPublished && work.feedPostId ? (
+          <View style={styles.saveCount}>
+            <Ionicons name="heart-outline" size={14} color={colors.textMuted} />
+            <Text variant="caption" tone="textMuted">
+              {saveCount === 0
+                ? t('saved.countNone')
+                : saveCount === 1
+                  ? t('saved.countOne')
+                  : t('saved.countMany', { count: saveCount })}
+            </Text>
+          </View>
+        ) : null}
+
         <View style={styles.submit}>
           <Button
             label={t('feed.saveDesign')}
@@ -347,6 +390,7 @@ const styles = StyleSheet.create({
   pickerLabel: { marginTop: spacing.md, marginBottom: spacing.xs },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+  saveCount: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
   toggle: {
     flexDirection: 'row',
     alignItems: 'center',

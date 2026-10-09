@@ -87,6 +87,7 @@ export default function ClientHome() {
       icon: 'notifications-outline', live: true,
       go: () => router.push('/hub/notifications') },
     { key: 'support', label: t('support.title'), sub: t('support.yourTickets'), icon: 'help-buoy-outline', live: true, go: () => router.push('/hub/support') },
+    { key: 'saved', label: t('saved.tile'), sub: t('saved.tileSub'), icon: 'heart-outline', live: true, go: () => router.push('/hub/saved') },
     { key: 'lookbook', label: t('chome.lookbookTile'), sub: t('chome.lookbookTileSub'), icon: 'images-outline', go: comingSoon },
     { key: 'tailors', label: t('chome.tailorsTile'), sub: t('chome.tailorsTileSub'), icon: 'people-outline', go: comingSoon },
   ];

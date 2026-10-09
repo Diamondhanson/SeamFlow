@@ -35,3 +35,4 @@ export * from './support';
 export * from './verification';
 export * from './subscription';
 export * from './moderation';
+export * from './saved-design';

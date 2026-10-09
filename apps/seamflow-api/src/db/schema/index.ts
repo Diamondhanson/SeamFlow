@@ -27,3 +27,4 @@ export * from './verification-requests';
 export * from './subscriptions';
 export * from './admin-actions';
 export * from './moderation';
+export * from './saved-designs';

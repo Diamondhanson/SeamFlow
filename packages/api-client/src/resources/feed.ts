@@ -7,6 +7,7 @@ import type {
   FeedPostDetail,
   FeedPostUpdateInput,
   FeedQuery,
+  SavedDesignPage,
   TailorPublicProfile,
   Work,
 } from '@seamflow/schemas';
@@ -99,6 +100,46 @@ export function makeFeedResource(http: HttpClient) {
     mine(): Promise<ListMyFeedPostsResponse> {
       return http.get<ListMyFeedPostsResponse>('/feed-posts/mine');
     },
+
+    /**
+     * Save a design to come back to.
+     *
+     * Private: there is no public count and no "like" — see the note in
+     * @seamflow/schemas saved-design.ts. Saving twice is a no-op rather than
+     * an error, because the heart may well be tapped from a stale screen.
+     */
+    save(id: string): Promise<{ saved: true }> {
+      return http.post<{ saved: true }>(`/feed/${id}/save`, {});
+    },
+
+    unsave(id: string): Promise<{ saved: false }> {
+      return http.delete<{ saved: false }>(`/feed/${id}/save`);
+    },
+
+    /** The saved list, newest save first. A null `post` means it has gone. */
+    saved(params: { limit?: number; cursor?: string } = {}): Promise<SavedDesignPage> {
+      const q = new URLSearchParams();
+      if (params.limit) q.set('limit', String(params.limit));
+      if (params.cursor) q.set('cursor', params.cursor);
+      const qs = q.toString();
+      return http.get<SavedDesignPage>(`/me/saved${qs ? `?${qs}` : ''}`);
+    },
+
+    /** Which of these ids the caller has saved — fills the hearts in a grid. */
+    savedAmong(ids: string[]): Promise<string[]> {
+      return http.post<string[]>('/me/saved/among', { ids });
+    },
+
+    /**
+     * How many people saved each of MY designs.
+     *
+     * The only save count that exists anywhere, and it is only ever the
+     * caller's own work.
+     */
+    mySaveCounts(): Promise<Record<string, number>> {
+      return http.get<Record<string, number>>('/me/designs/save-counts');
+    },
+
   };
 }
 

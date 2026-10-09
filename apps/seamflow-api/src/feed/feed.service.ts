@@ -28,9 +28,21 @@ import {
 } from '@seamflow/utils';
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
-import { feedPostImages, feedPosts, orderPhotos, orders, tailors } from '../db/schema';
+import {
+  feedPostImages,
+  feedPosts,
+  orderPhotos,
+  orders,
+  savedDesigns,
+  tailors,
+} from '../db/schema';
 import { ownerIsLive } from '../common/live-owner';
-import { escapeForRegex, normalizeForSearch, parseSearchQuery } from '@seamflow/schemas';
+import {
+  escapeForRegex,
+  normalizeForSearch,
+  parseSearchQuery,
+  type SavedDesignPage,
+} from '@seamflow/schemas';
 import type { FeedShopHit } from '@seamflow/schemas';
 
 const ORDER_PHOTOS_BUCKET = 'order-photos';
@@ -495,6 +507,115 @@ export class FeedService {
     const moreLikeThis = await this.moreLikeThis(row.post);
 
     return { post: this.toPublicPost(withImages ?? row), moreLikeThis };
+  }
+
+  // ── Saved designs ─────────────────────────────────────────────────────────
+  //
+  // Lives here rather than in a module of its own so it can reuse the ONE
+  // projection the feed already has. A saved design must look exactly like a
+  // design in Discover — same images, same maker, same tags — and a second
+  // copy of that mapping would drift the first time either changed.
+
+  /** Save, or do nothing if it is already saved. */
+  async save(userId: string, feedPostId: string): Promise<{ saved: true }> {
+    // Only something actually published can be saved. Without this a guessed
+    // id would quietly bookmark a draft the person cannot see.
+    const [exists] = await this.dbService.db
+      .select({ id: feedPosts.id })
+      .from(feedPosts)
+      .innerJoin(tailors, eq(tailors.id, feedPosts.tailorId))
+      .where(and(eq(feedPosts.id, feedPostId), eq(feedPosts.status, 'published'), ownerIsLive()))
+      .limit(1);
+    if (!exists) throw new NotFoundException('That design is not available.');
+
+    await this.dbService.db
+      .insert(savedDesigns)
+      .values({ userId, feedPostId })
+      .onConflictDoNothing();
+    return { saved: true };
+  }
+
+  async unsave(userId: string, feedPostId: string): Promise<{ saved: false }> {
+    await this.dbService.db
+      .delete(savedDesigns)
+      .where(and(eq(savedDesigns.userId, userId), eq(savedDesigns.feedPostId, feedPostId)));
+    return { saved: false };
+  }
+
+  /** Which of these designs has this person saved? Drives the filled heart. */
+  async savedAmong(userId: string, feedPostIds: string[]): Promise<string[]> {
+    if (feedPostIds.length === 0) return [];
+    const rows = await this.dbService.db
+      .select({ id: savedDesigns.feedPostId })
+      .from(savedDesigns)
+      .where(and(eq(savedDesigns.userId, userId), inArray(savedDesigns.feedPostId, feedPostIds)));
+    return rows.map((r) => r.id);
+  }
+
+  /**
+   * The saved list, newest save first.
+   *
+   * A design that is no longer public comes back as an entry with a null post
+   * rather than being left out. Someone saved it for a reason, and silently
+   * returning one fewer card than they remember is worse than telling them it
+   * has gone — which is also the honest outcome after staff take something
+   * down following a report.
+   */
+  async listSaved(userId: string, limit = 24, cursor?: string): Promise<SavedDesignPage> {
+    const where = [eq(savedDesigns.userId, userId)];
+    if (cursor) where.push(lt(savedDesigns.createdAt, new Date(cursor)));
+
+    const saved = await this.dbService.db
+      .select({ feedPostId: savedDesigns.feedPostId, createdAt: savedDesigns.createdAt })
+      .from(savedDesigns)
+      .where(and(...where))
+      .orderBy(desc(savedDesigns.createdAt))
+      .limit(limit + 1);
+
+    const page = saved.slice(0, limit);
+    const nextCursor =
+      saved.length > limit ? (page[page.length - 1]?.createdAt.toISOString() ?? null) : null;
+
+    // One query for everything still public; whatever is missing from the
+    // result is what has since been unpublished or taken down.
+    const ids = page.map((r) => r.feedPostId);
+    let byId = new Map<string, FeedPostPublic>();
+    if (ids.length) {
+      const rows = await this.dbService.db
+        .select({ post: feedPosts, tailor: tailors })
+        .from(feedPosts)
+        .innerJoin(tailors, eq(tailors.id, feedPosts.tailorId))
+        .where(and(inArray(feedPosts.id, ids), eq(feedPosts.status, 'published'), ownerIsLive()));
+      const withImages = await this.attachImages(rows);
+      byId = new Map(withImages.map((r) => [r.post.id, this.toPublicPost(r)]));
+    }
+
+    return {
+      items: page.map((r) => ({
+        feedPostId: r.feedPostId,
+        savedAt: r.createdAt.toISOString(),
+        post: byId.get(r.feedPostId) ?? null,
+      })),
+      nextCursor,
+    };
+  }
+
+  /**
+   * How many people saved each of this tailor's designs.
+   *
+   * The useful half of a "like" — a maker learning which work lands, so they
+   * can make more of it — without the public counter that would let a number
+   * decide between a new shop and an established one. Scoped to the caller's
+   * own tailor id, so it can only ever report on their own work.
+   */
+  async saveCountsForTailor(tailorId: string): Promise<Record<string, number>> {
+    const rows = await this.dbService.db
+      .select({ id: savedDesigns.feedPostId, n: sql<number>`count(*)::int` })
+      .from(savedDesigns)
+      .innerJoin(feedPosts, eq(feedPosts.id, savedDesigns.feedPostId))
+      .where(eq(feedPosts.tailorId, tailorId))
+      .groupBy(savedDesigns.feedPostId);
+    return Object.fromEntries(rows.map((r) => [r.id, r.n]));
   }
 
   /**
