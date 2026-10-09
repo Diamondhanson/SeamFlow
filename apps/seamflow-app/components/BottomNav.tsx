@@ -245,7 +245,19 @@ function TabButton({
         accessibilityLabel={t(tab.labelKey)}
         onPress={() => {
           haptic();
-          router.navigate(tab.href as never);
+          // REPLACE, not navigate. A tab bar should not have a history, and
+          // `navigate` pushed one: Home → Orders → Clients left three entries,
+          // so a swipe back walked between tabs instead of leaving the screen.
+          //
+          // Replacing keeps the stack one deep at the top level, which is what
+          // disables going "back" from a tab — on BOTH inputs. The swipe and
+          // Android's Back button are different things, and setting
+          // `gestureEnabled: false` would only have stopped the first.
+          //
+          // Nothing is lost by not keeping per-tab history: the bar renders
+          // only on the five top-level routes (SHOW_ON), so a tab can never be
+          // tapped from a detail screen in the first place.
+          router.replace(tab.href as never);
         }}
       >
         <Animated.View style={iconStyle}>

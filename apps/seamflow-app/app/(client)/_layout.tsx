@@ -37,7 +37,20 @@ export default function ClientLayout() {
             headerShown: false,
             animation: PUSH_ANIMATION,
           }}
-        />
+        >
+          {/* The five screens the tab bar is visible on.
+              Gesture off: with tab taps replacing rather than pushing there is
+              normally nothing behind these to swipe back to, so this is the
+              backstop for the paths that can still leave something there — a
+              deep link, a notification tap, a cold start into a sub-route.
+              The rule the app promises is simple: while the tab bar is on
+              screen, the bar is the only way to move. */}
+          <Stack.Screen name="discover/index" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="hub/index" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="hub/requests/index" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="hub/messages/index" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="hub/orders/index" options={{ gestureEnabled: false }} />
+        </Stack>
         <ClientBottomChrome />
       </View>
     </AtelierThemeProvider>

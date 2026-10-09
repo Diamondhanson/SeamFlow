@@ -39,6 +39,7 @@ import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { useThemeMode } from '../../lib/theme-mode';
 import { useSubscription } from '../../lib/subscription';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
+import { goToClientSide } from '../../lib/switch-side';
 import { formatMonthYear } from '../../lib/month-year';
 import { openLegal } from '../../lib/legal-links';
 
@@ -66,11 +67,14 @@ export default function Me() {
   const requireProfile = useRequireProfile();
   const { setMode } = useMode();
 
-  // Soft switch to the customer experience (discovery). A tailor can browse and
-  // order as a customer too; their shop is still one tap back via the client hub.
+  // Switch to the customer experience. A tailor can browse and order as a
+  // customer too; their shop is one tap back via the client hub.
+  //
+  // Resets the history rather than replacing the top of it — see
+  // lib/switch-side for why a plain replace left the two sides interleaved.
   const goClient = () => {
     setMode('client');
-    router.replace('/(client)/discover' as never);
+    goToClientSide();
   };
   const upsert = useUpsertMyTailor();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);

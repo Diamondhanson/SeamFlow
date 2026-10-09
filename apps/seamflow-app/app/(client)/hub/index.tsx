@@ -12,6 +12,7 @@ import { useMode } from '../../../lib/mode';
 import { useMe, useUnreadNotificationCount } from '../../../lib/queries';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../../lib/i18n';
+import { goToDesignerSide } from '../../../lib/switch-side';
 
 function greetingKey(hour: number): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
   if (hour < 12) return 'goodMorning';
@@ -41,7 +42,7 @@ export default function ClientHome() {
   // into the (skippable) shop-setup flow; otherwise straight to the CRM.
   const goTailor = () => {
     setMode('tailor');
-    router.replace((me?.tailor ? '/(app)' : '/(app)/profile-edit?onboarding=1') as never);
+    goToDesignerSide(Boolean(me?.tailor));
   };
 
   const greeting = t(`chome.${greetingKey(new Date().getHours())}`);
