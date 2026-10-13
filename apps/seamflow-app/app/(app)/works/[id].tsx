@@ -8,10 +8,15 @@
 // ============================================================================
 
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import type { WorkAudience, WorkImage, WorkOccasion } from '@seamflow/schemas';
-import { MAX_WORK_IMAGES, StartingPriceSchema } from '@seamflow/schemas';
+import type { GarmentCategory, WorkAudience, WorkImage, WorkOccasion } from '@seamflow/schemas';
+import {
+  GARMENT_CATEGORY_LABELS,
+  garmentsByCategory,
+  MAX_WORK_IMAGES,
+  StartingPriceSchema,
+} from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
 import { Text, Toggle } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
@@ -50,7 +55,12 @@ const OCCASIONS: WorkOccasion[] = [
 ];
 
 export default function EditWork() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  // The garment taxonomy carries its own translations, keyed by a narrower set
+  // than the app's language list. Same narrowing as the publish screen.
+  const lang = (['en', 'fr', 'pt', 'es', 'sw', 'ar'] as const).includes(language as never)
+    ? (language as 'en' | 'fr' | 'pt' | 'es' | 'sw' | 'ar')
+    : 'en';
   const colors = useThemeColors();
   const dialog = useDialog();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -69,7 +79,9 @@ export default function EditWork() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [garmentType, setGarmentType] = useState('');
+  const [garmentKey, setGarmentKey] = useState<string | null>(null);
+  // Same source as the publish screen, so the two can never offer different lists.
+  const garmentGroups = garmentsByCategory();
   const [fabric, setFabric] = useState('');
   const [price, setPrice] = useState('');
   const [audience, setAudience] = useState<WorkAudience | null>(null);
@@ -80,7 +92,7 @@ export default function EditWork() {
     if (!work) return;
     setTitle(work.title ?? '');
     setDescription(work.description ?? '');
-    setGarmentType(work.garmentType ?? '');
+    setGarmentKey(work.garmentKey ?? null);
     setFabric(work.fabric ?? '');
     setPrice(work.startingPrice ?? '');
     setAudience(work.audience);
@@ -123,7 +135,13 @@ export default function EditWork() {
         input: {
           title: title.trim() || null,
           description: description.trim() || null,
-          garmentType: garmentType.trim() || null,
+          // Both: `garmentKey` is the taxonomy the whole app filters and
+          // searches on, `garmentType` is the human label kept in step so the
+          // older reads that still use it do not go stale.
+          garmentKey,
+          garmentType: garmentKey
+            ? (garmentGroups.flatMap((g) => g.items).find((g) => g.key === garmentKey)?.en ?? null)
+            : null,
           fabric: fabric.trim() || null,
           startingPrice: trimmed || null,
           currency: trimmed ? currency : null,
@@ -266,12 +284,44 @@ export default function EditWork() {
           onChangeText={setDescription}
           multiline
         />
-        <Input
-          label={t('feed.garmentTypeLabel')}
-          placeholder={t('feed.garmentTypePlaceholder')}
-          value={garmentType}
-          onChangeText={setGarmentType}
-        />
+        {/* What kind of garment this is.
+            Pills, not a text box. This was free text, and free text is how the
+            old `garment_type` column drifted into a hundred spellings of
+            "dress" — unsearchable, unfilterable, and useless to the change
+            picker, which can only offer "knee-length instead of maxi" when it
+            knows what the thing is. The publish screen has always used this
+            taxonomy; editing a design afterwards quietly did not, so one screen
+            could undo the other.
+
+            Grouped by category and scrolling sideways, the same shape as the
+            filter pills in Discover — the vocabulary is identical, so the
+            control someone learns on one side reads the same on the other. */}
+        <Text variant="label" tone="textMuted" style={styles.section}>
+          {t('feed.garmentTypeLabel')}
+        </Text>
+        {garmentGroups.map(({ category, items }) => (
+          <View key={category} style={styles.garmentGroup}>
+            <Text variant="caption" tone="textMuted" style={styles.garmentGroupTitle}>
+              {GARMENT_CATEGORY_LABELS[category as GarmentCategory][lang]}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.garmentRow}
+            >
+              {items.map((g) => (
+                <OptionChip
+                  key={g.key}
+                  label={g[lang]}
+                  active={garmentKey === g.key}
+                  // Tapping the selected one clears it: a design whose kind you
+                  // are unsure of is better untagged than wrongly tagged.
+                  onPress={() => setGarmentKey(garmentKey === g.key ? null : g.key)}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        ))}
         <Input
           label={t('feed.fabricLabel')}
           placeholder={t('feed.fabricPlaceholder')}
@@ -390,6 +440,10 @@ const styles = StyleSheet.create({
   pickerLabel: { marginTop: spacing.md, marginBottom: spacing.xs },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+  section: { marginTop: spacing.lg, marginBottom: spacing.xs },
+  garmentGroup: { marginBottom: spacing.sm },
+  garmentGroupTitle: { marginBottom: spacing.xs },
+  garmentRow: { flexDirection: 'row', gap: spacing.xs, paddingRight: spacing.lg },
   saveCount: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
   toggle: {
     flexDirection: 'row',
