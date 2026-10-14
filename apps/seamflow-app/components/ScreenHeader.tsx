@@ -15,7 +15,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme, spacing } from '@seamflow/ui';
 import { isWeb } from '../lib/platform-capabilities';
@@ -49,6 +49,7 @@ export function ScreenHeader({
   onBack,
 }: ScreenHeaderProps) {
   const { colors } = useAtelierTheme();
+  const pathname = usePathname();
 
   // Web: every screen renders this header, so it's the natural place to keep
   // the browser tab / history entry in sync. Native ignores it.
@@ -61,13 +62,43 @@ export function ScreenHeader({
     }
   }, [title]);
 
+  /**
+   * Back, and never a dead button.
+   *
+   * Tab switches replace rather than push (see components/BottomNav), so a tab
+   * screen has nothing behind it — and `router.back()` on an empty stack does
+   * nothing at all. The chevron was still drawn, so it read as broken.
+   *
+   * When there is no history we go UP instead: to the home of whichever side
+   * the person is on. That is not a workaround for the tab change — on Android
+   * a toolbar arrow has always meant Up ("go to the parent"), which for a tab
+   * screen is the section's home. Back and Up are different affordances and
+   * this is the one a header chevron is.
+   *
+   * It also fixes a case that predates all of this: open a notification or a
+   * shared link straight into a detail screen and the stack is one deep, so the
+   * chevron was equally dead there. Now it lands you somewhere real.
+   */
+  const goBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    // `/discover` and `/hub` are the customer side; everything else is the
+    // designer's. `/t/<slug>` is a public shopfront reachable from either, so
+    // it is deliberately NOT treated as customer-only — whoever opened it gets
+    // sent to their own home rather than across the app.
+    const onClientSide = pathname.startsWith('/discover') || pathname.startsWith('/hub');
+    router.replace((onClientSide ? '/(client)/discover' : '/(app)') as never);
+  };
+
   return (
     <View style={styles.container}>
       {showBack ? (
         <IconButton
           variant="surface"
           size="md"
-          onPress={onBack ?? (() => router.back())}
+          onPress={onBack ?? goBack}
           style={styles.back}
           accessibilityLabel="Go back"
         >
