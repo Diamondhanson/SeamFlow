@@ -65,6 +65,31 @@ export class GroupOrderMembersService {
     }
   }
 
+  /**
+   * Verifies the measurement template belongs to the tailor. Throws 400 if not.
+   *
+   * This existed for `clientId` from the start and not for `templateId`, which
+   * let a member be pointed at another tailor's template — and `resolveTemplate`
+   * then read that template by id alone and reported its field count back in
+   * `targetFields`. The write check and the scoped read together close it; each
+   * one alone would leave half the hole open.
+   */
+  private async assertTemplateOwned(tailorId: string, templateId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: measurementTemplates.id })
+      .from(measurementTemplates)
+      .where(
+        and(
+          eq(measurementTemplates.tailorId, tailorId),
+          eq(measurementTemplates.id, templateId),
+        ),
+      )
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Template ${templateId} does not belong to this tailor`);
+    }
+  }
+
   async listForGroup(
     tailorId: string,
     groupOrderId: string,
@@ -101,6 +126,7 @@ export class GroupOrderMembersService {
   ): Promise<GroupOrderMemberRow> {
     await this.assertGroupOwned(tailorId, groupOrderId);
     if (data.clientId) await this.assertClientOwned(tailorId, data.clientId);
+    if (data.templateId) await this.assertTemplateOwned(tailorId, data.templateId);
 
     const rows = await this.dbService.db
       .insert(groupOrderMembers)
@@ -129,6 +155,7 @@ export class GroupOrderMembersService {
   ): Promise<GroupOrderMemberRow> {
     await this.getById(tailorId, id);
     if (data.clientId) await this.assertClientOwned(tailorId, data.clientId);
+    if (data.templateId) await this.assertTemplateOwned(tailorId, data.templateId);
 
     const patch: Partial<typeof groupOrderMembers.$inferInsert> = {
       updatedAt: new Date(),
@@ -205,6 +232,7 @@ export class GroupOrderMembersService {
    * caller has to report honestly rather than paper over.
    */
   private async resolveTemplate(
+    tailorId: string,
     member: GroupOrderMemberRow,
   ): Promise<{ templateId: string | null; fieldKeys: string[] }> {
     let templateId = member.templateId;
@@ -213,17 +241,28 @@ export class GroupOrderMembersService {
       const groupRows = await this.dbService.db
         .select({ templateId: groupOrders.templateId })
         .from(groupOrders)
-        .where(eq(groupOrders.id, member.groupOrderId))
+        .where(
+          and(eq(groupOrders.tailorId, tailorId), eq(groupOrders.id, member.groupOrderId)),
+        )
         .limit(1);
       templateId = groupRows[0]?.templateId ?? null;
     }
     if (!templateId) return { templateId: null, fieldKeys: [] };
 
+    // Scoped to the tailor, not just the id. A template id that is not theirs
+    // reads as "no template configured" — the same honest empty state as a
+    // group with none — rather than quietly returning someone else's fields.
     const tplRows = await this.dbService.db
       .select({ fields: measurementTemplates.fields })
       .from(measurementTemplates)
-      .where(eq(measurementTemplates.id, templateId))
+      .where(
+        and(
+          eq(measurementTemplates.tailorId, tailorId),
+          eq(measurementTemplates.id, templateId),
+        ),
+      )
       .limit(1);
+    if (!tplRows[0]) return { templateId: null, fieldKeys: [] };
 
     const fields = (tplRows[0]?.fields ?? []) as { key?: string }[];
     const fieldKeys = fields.map((f) => f.key).filter((k): k is string => !!k);
@@ -272,7 +311,7 @@ export class GroupOrderMembersService {
       .where(eq(measurementSets.clientId, member.clientId))
       .orderBy(desc(measurementSets.createdAt));
 
-    const { templateId, fieldKeys } = await this.resolveTemplate(member);
+    const { templateId, fieldKeys } = await this.resolveTemplate(tailorId, member);
 
     const countMatches = (values: unknown): number => {
       if (!fieldKeys.length) return 0;
@@ -373,14 +412,16 @@ export class GroupOrderMembersService {
       throw new BadRequestException('This member has no measurements to save');
     }
 
-    const { templateId } = await this.resolveTemplate(member);
+    const { templateId } = await this.resolveTemplate(tailorId, member);
 
     let label = input.label?.trim() || member.garmentType?.trim() || null;
     if (!label) {
       const groupRows = await this.dbService.db
         .select({ name: groupOrders.name, garmentType: groupOrders.garmentType })
         .from(groupOrders)
-        .where(eq(groupOrders.id, member.groupOrderId))
+        .where(
+          and(eq(groupOrders.tailorId, tailorId), eq(groupOrders.id, member.groupOrderId)),
+        )
         .limit(1);
       label = groupRows[0]?.garmentType?.trim() || groupRows[0]?.name || 'Group order';
     }
