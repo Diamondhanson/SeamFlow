@@ -1,0 +1,55 @@
+name: CI
+
+# Nothing guarded `main` before this. The gate is deliberately the same two
+# commands a contributor runs locally — `turbo run lint` and `turbo run test`
+# — so a green CI means "it passes on my machine" is actually true.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push supersedes the run in flight for the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Turbo prints a progress bar that is noise in CI logs.
+  TURBO_TELEMETRY_DISABLED: 1
+  DO_NOT_TRACK: 1
+
+jobs:
+  verify:
+    name: lint & test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm before node, so setup-node can use the pnpm store for its cache.
+      # The version comes from the root manifest's `packageManager` field —
+      # never a number written here, which would be a second source of truth
+      # that silently drifts.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # .nvmrc is the one place the version lives.
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # `lint` is typecheck everywhere (`tsc --noEmit`), plus eslint and the
+      # i18n guard in the two Expo apps. turbo builds the shared packages
+      # first, because the apps resolve @seamflow/* through their built dist.
+      - name: Lint and typecheck
+        run: pnpm turbo run lint
+
+      - name: Test
+        run: pnpm turbo run test

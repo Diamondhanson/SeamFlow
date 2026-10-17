@@ -9,7 +9,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "jest --watchAll",
+    "test": "jest --ci --passWithNoTests",
+    "test:watch": "jest --watchAll",
     "i18n:check": "node scripts/verify-i18n.mjs",
     "lint": "expo lint && node scripts/verify-i18n.mjs",
     "eas-build-post-install": "pnpm --filter \"seamflow-client^...\" build"
