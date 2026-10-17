@@ -19,6 +19,7 @@ import { WorksService } from '../works/works.service';
 import {
   FeedQueryDto,
   PublishOrderPhotoDto,
+  SavedAmongDto,
   UpdateFeedPostDto,
   UpdateTailorProfileDto,
 } from './feed.dto';
@@ -63,7 +64,7 @@ export class FeedController {
 
   /** Which of a batch of designs the caller has saved — fills the hearts. */
   @Post('me/saved/among')
-  savedAmong(@CurrentUser() user: AuthedUser, @Body() body: { ids?: string[] }) {
+  savedAmong(@CurrentUser() user: AuthedUser, @Body() body: SavedAmongDto) {
     return this.feed.savedAmong(user.id, (body.ids ?? []).slice(0, 100));
   }
 

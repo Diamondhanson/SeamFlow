@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { AccountExport, DeletionState } from '@seamflow/schemas';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AllowSuspended } from '../auth/decorators/allow-suspended.decorator';
@@ -23,6 +24,9 @@ export class AccountController {
     return this.account.getState(user.id);
   }
 
+  // Asking to be deleted starts a 30-day clock and sends email. Nobody
+  // needs to ask twice in the same second.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('deletion')
   async request(
     @CurrentUser() user: AuthedUser,

@@ -17,7 +17,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { CheckoutService } from './checkout.service';
-import { SkipThrottle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 class CheckoutDto extends createZodDto(CheckoutSchema) {}
 
@@ -36,6 +36,9 @@ export class CheckoutController {
    * for features unlocked inside an app. The app already hides the flow there;
    * this is the backstop if a future change forgets to.
    */
+  // Starting a payment asks a provider to contact a phone. Ten a minute is
+  // far above any real use and far below a way to pester someone.
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('checkout')
   async start(
     @CurrentUser() user: AuthedUser,

@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type {
   VerificationBadge,
   VerificationRequest,
@@ -27,6 +28,8 @@ export class VerificationController {
   }
 
   /** Ask to be verified. */
+  // Submitting evidence puts work in a human review queue.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post()
   @HttpCode(201)
   submit(
