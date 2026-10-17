@@ -355,6 +355,18 @@ export class WorksService {
     };
   }
 
+  /** The order a design cites must be one of this tailor's own. */
+  private async assertOrderOwned(tailorId: string, orderId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: orders.id })
+      .from(orders)
+      .where(and(eq(orders.tailorId, tailorId), eq(orders.id, orderId)))
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Order ${orderId} does not belong to this tailor`);
+    }
+  }
+
   private async requireOwned(tailorId: string, id: string): Promise<WorkRow> {
     const rows = await this.dbService.db
       .select()
@@ -401,6 +413,11 @@ export class WorksService {
         throw new NotFoundException('Image does not belong to this tailor');
       }
     }
+
+    // The images were guarded; the order backlink was not. A work could cite
+    // another tailor's order id — which is returned on the work and so would
+    // have put a foreign id on a public storefront row.
+    if (input.orderId) await this.assertOrderOwned(tailorId, input.orderId);
 
     const cover = input.images[0]!;
     const db = this.dbService.db;

@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { clients, groupOrderMembers, groupOrders } from '../db/schema';
+import {
+  clients,
+  fabrics,
+  groupOrderMembers,
+  groupOrders,
+  measurementTemplates,
+} from '../db/schema';
 import type {
   GroupOrderCreateInput,
   GroupOrderStatus,
@@ -22,6 +28,91 @@ interface ListOptions {
 @Injectable()
 export class GroupOrdersService {
   constructor(private readonly dbService: DbService) {}
+
+  // ── Ownership of everything a group points at ─────────────────────────────
+  //
+  // `createWithMembers` has always verified `existingClientId` against the
+  // tailor before using it. The plain `create`/`update` pair did not check any
+  // of their four foreign keys, so a group could be built pointing at another
+  // tailor's fabric, template, client or member row. Nothing was readable
+  // through it directly — every read in this service is scoped by tailorId —
+  // but it put rows in the database that cross a tenant boundary, and one of
+  // those pointers (templateId) was being dereferenced elsewhere by id alone.
+  //
+  // 400 rather than 404: the caller named something real, it simply is not
+  // theirs to use, and saying "not found" about their own request body reads
+  // as a bug in the app.
+
+  private async assertFabricOwned(tailorId: string, fabricId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: fabrics.id })
+      .from(fabrics)
+      .where(and(eq(fabrics.tailorId, tailorId), eq(fabrics.id, fabricId)))
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Fabric ${fabricId} does not belong to this tailor`);
+    }
+  }
+
+  private async assertTemplateOwned(tailorId: string, templateId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: measurementTemplates.id })
+      .from(measurementTemplates)
+      .where(
+        and(
+          eq(measurementTemplates.tailorId, tailorId),
+          eq(measurementTemplates.id, templateId),
+        ),
+      )
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Template ${templateId} does not belong to this tailor`);
+    }
+  }
+
+  private async assertClientOwned(tailorId: string, clientId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.tailorId, tailorId), eq(clients.id, clientId)))
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Client ${clientId} does not belong to this tailor`);
+    }
+  }
+
+  /**
+   * The legacy owner pointer. The schema says "keep null on new groups", so a
+   * value here on create necessarily names a member of some OTHER group — which
+   * must at least be a group this tailor owns.
+   */
+  private async assertMemberOwned(tailorId: string, memberId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: groupOrderMembers.id })
+      .from(groupOrderMembers)
+      .innerJoin(groupOrders, eq(groupOrders.id, groupOrderMembers.groupOrderId))
+      .where(and(eq(groupOrders.tailorId, tailorId), eq(groupOrderMembers.id, memberId)))
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Member ${memberId} does not belong to this tailor`);
+    }
+  }
+
+  /** Every foreign key on the create/update bodies, checked in one place. */
+  private async assertReferencesOwned(
+    tailorId: string,
+    data: {
+      sharedFabricId?: string | null;
+      templateId?: string | null;
+      ownerMemberId?: string | null;
+      ownerClientId?: string | null;
+    },
+  ): Promise<void> {
+    if (data.sharedFabricId) await this.assertFabricOwned(tailorId, data.sharedFabricId);
+    if (data.templateId) await this.assertTemplateOwned(tailorId, data.templateId);
+    if (data.ownerMemberId) await this.assertMemberOwned(tailorId, data.ownerMemberId);
+    if (data.ownerClientId) await this.assertClientOwned(tailorId, data.ownerClientId);
+  }
 
   async list(tailorId: string, opts: ListOptions): Promise<GroupOrderRow[]> {
     const filters = [eq(groupOrders.tailorId, tailorId)];
@@ -57,6 +148,7 @@ export class GroupOrdersService {
   }
 
   async create(tailorId: string, data: GroupOrderCreateInput): Promise<GroupOrderRow> {
+    await this.assertReferencesOwned(tailorId, data);
     const rows = await this.dbService.db
       .insert(groupOrders)
       .values({
@@ -99,6 +191,10 @@ export class GroupOrdersService {
     tailorId: string,
     data: GroupOrderWithMembersCreateInput,
   ): Promise<GroupOrderWithMembers> {
+    await this.assertReferencesOwned(tailorId, {
+      sharedFabricId: data.sharedFabricId,
+      templateId: data.templateId,
+    });
     return this.dbService.db.transaction(async (tx) => {
       // -------- 1. Resolve owner --------
       let ownerClientId: string;
@@ -181,6 +277,7 @@ export class GroupOrdersService {
     data: GroupOrderUpdateInput,
   ): Promise<GroupOrderRow> {
     await this.getById(tailorId, id);
+    await this.assertReferencesOwned(tailorId, data);
 
     const patch: Partial<typeof groupOrders.$inferInsert> = { updatedAt: new Date() };
     if (data.name !== undefined) patch.name = data.name;
