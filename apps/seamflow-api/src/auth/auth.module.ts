@@ -8,7 +8,8 @@ import { AppThrottlerGuard } from '../common/throttle.guard';
 /**
  * Registers the global guards. Order matters:
  *   1. SupabaseAuthGuard — verifies the token, populates req.user
- *   2. RolesGuard        — role-based access
+ *   2. RolesGuard        — role-based access, but see its own comment: no
+ *                          route carries @Roles(), so today it is a pass-through
  *   3. AppThrottlerGuard — rate limit, keyed by the VERIFIED user id (or IP
  *                          for public routes), so a forged token can't be used
  *                          to pick someone else's bucket
