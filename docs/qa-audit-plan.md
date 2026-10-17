@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0 and 1 complete, Phase 1 findings fixed. Phase 2 not started.**
+Started: 2026-10-17. Status: **Phases 0–2 complete; Phase 1 findings fixed, Phase 2 findings reported. Phase 3 not started.**
 
 ---
 
@@ -163,7 +163,43 @@ defence-in-depth that was applied to six tables and not the other twelve.
   that over-return (other people's phone numbers, emails, exact addresses),
   log lines containing PII or measurements.
 
-## Phase 2 — API correctness
+## Phase 2 — API correctness — **DONE** (2026-10-17)
+
+Audited 30 multi-write service methods, 10 scheduled jobs, the order state
+machine, the payment settlement path and the account-deletion lifecycle.
+Read-only throughout; nothing was changed.
+
+**One theme accounts for most of it: mark the state, then apply the effect,
+with no transaction and nothing to reconcile the gap.** That is not
+carelessness — the same author solved exactly this in `works.publish` with a
+compensating delete, and used an atomic claim in `settle` to stop a payment
+being granted twice. It is missed in three places, and in two of them the
+state that gets marked first is the thing that blocks the retry.
+
+### Verified sound
+
+- **The order state machine.** Every status reachable from `registered`, no
+  dead ends, no self-edges, and `nextOrderStatuses` (which the app reads to
+  build its buttons) agrees with `canTransitionOrderStatus` (which the server
+  enforces) for all 25 pairs. 13 new tests in `packages/schemas`.
+- **`purgeUser` is a correct saga, not a missing transaction.** It spans
+  storage, the database and Supabase auth, so no DB transaction could make it
+  atomic. It is ordered so the ids outlive what they locate, each step is
+  idempotent, and a failure leaves the account pending for tomorrow's run —
+  "better a late deletion we can see in the logs than a half-finished one we
+  cannot".
+- **`works.publish`** inserts the post, copies the images, then corrects the
+  cover columns — and deletes the row in a `catch`, naming the exact `.pending`
+  404 it is avoiding.
+- **`settle`'s other defences**: it re-asks the provider instead of trusting
+  the webhook body (so a leaked secret buys nothing), refuses a ref belonging
+  to another payment, refuses underpayment, and claims the row with
+  `ne(status, 'succeeded')` so a webhook racing the reconcile cron cannot
+  double-grant.
+- **Idempotency where it exists is done properly**: chat sends carry a
+  device-minted key, support tickets dedupe on `(user, clientId)`, and order
+  reminders use `order_reminder_log` with `onConflictDoNothing()`.
+
 
 - 2.1 Domain invariants: order state machine, group-order atomicity, invoice
   math, deposit/payment arithmetic, subscription entitlement and caps.
@@ -349,4 +385,12 @@ Filled in as each phase runs. Pre-audit observations from the initial scan:
 | P-29 | Low | AuthZ | `RolesGuard` is registered globally but `@Roles()` appears on **0 of 218 routes** — the role system is dead code. Role separation rests entirely on `requireTailorId` throwing 404 and `resolveActor`. That works, but a guard that looks like it enforces something and does not is worse than no guard: the next person will assume it covers a route it does not. Wire it or delete it. | `auth/roles.guard.ts`, `auth/auth.module.ts:27` |
 | P-30 | Low | Privacy | `feed_posts_public_read` has no `ownerIsLive()` counterpart, so a deletion-pending tailor's published posts stay readable on the direct REST path even though the API filters them out — and "vanish from every public surface immediately" is the stated promise in `common/live-owner.ts`. Latent today: 2 accounts are leaving, 0 of their posts are published. | storage policy `feed_posts_public_read` |
 | P-31 | Low | Process | `expo lint` — which is what the app's `lint` script and therefore CI runs — covers a narrower surface than `eslint .`: it skips `babel.config.js`, `scripts/` and `babel-plugins/`. That is why Phase 0 measured 27 warnings and 0 errors while a full `eslint .` found 33 warnings **and an error** in `babel.config.js`. CI would not have caught it. Point the app's lint script at the whole directory. | `apps/seamflow-app/package.json` |
-
+| Q-1 | High | Correctness | **Cancelling a deletion can destroy an account's data with no trace.** `cancelDeletion` requires only `deletedAt is null` — not that the deadline is still in the future. The purge deletes the `tailors` row (cascading clients, orders, invoices, everything) at step 2 and writes the `deletedAt` tombstone at step 4, and credentials survive until step 5, so there is a window in which the user can still sign in with `deletedAt` null and all their business data already gone. Cancelling in that window succeeds, clears `deletionRequestedAt`/`deletionScheduledFor`, and leaves a live, un-flagged account with nothing in it and no record that a deletion ever ran — the next cron will not pick them up either. No failure is required: a cancel racing a purge that is mid-run does it. Fix: refuse cancellation once `deletionScheduledFor <= now()`. | `account/account.service.ts:152`, `account/account-purge.service.ts:82` |
+| Q-2 | High | Correctness | **A paid subscription can be lost silently and permanently.** `settle` claims the payment row as `succeeded` — correctly, to stop a double grant — and *then* calls `extendPremium`. If that throws (it does `ensureFor` plus an update, and returns `updated!` with a non-null assertion), the payment reads succeeded and the premium is never granted. Every recovery path is then shut: a redelivered webhook returns early on `row.status === 'succeeded'`, `reconcilePending` only selects `status = 'pending'`, and the staff `recheck` goes through the same `settle`. A grep confirms exactly one statement in the subscription code touches `succeeded`, and it is the claim — so nothing in the system can ever grant that payment. Fix: claim and extend in one transaction, so a failed grant rolls the claim back and the existing retry works. | `subscriptions/checkout.service.ts:271-283` |
+| Q-3 | Medium | Correctness | **An approved verification can leave the badge off, unrecoverably.** `decide` marks the request `approved`, then updates `tailors.isVerified` — the comment says "the badge and its provenance move together", and nothing enforces it. If the second update fails, the request is approved and the badge is absent; `decide` then refuses any non-pending request with 409, so staff cannot retry. Needs a manual database edit. Same shape as Q-2. | `verification/verification.service.ts:318-340` |
+| Q-4 | Medium | Correctness | **Re-publishing a design can strip its images.** `syncPublicImages` removes the old public copies from storage *and* deletes their rows before copying the new ones. The new-post path wraps it in a `try/catch` that deletes the post; the re-publish path (`existing` branch) calls it with no protection, so a storage error there leaves a live feed post with zero images and no sweeper to notice. | `works/works.service.ts:774`, `:850` |
+| Q-5 | Medium | Scalability | **Ten `@Cron` jobs, no locking and no timezone.** They run in-process, so a second Render instance runs every one of them twice. Most survive it; `renewalReminders` does not — it has no dedupe at all, so every tailor gets the expiry email *and* push twice, and these are the emails about money. The right pattern already exists in this codebase (`order_reminder_log` + `onConflictDoNothing`) and this job does not use it. Separately, no `@Cron` passes `timeZone`, so "09:00" means the host's clock — UTC on Render, not the WAT its tailors live in — and would shift silently if the host region or base image ever changed. | `subscriptions/subscriptions.service.ts:499`, and the nine other `@Cron` sites |
+| Q-6 | Medium | Correctness | **P-7 confirmed.** `orders.create` writes the order, its line items and the `created` audit event as three separate statements. A failure after the first leaves an order with no items and no creation event — and `order_events` is append-only, so nothing reconstructs it. The codebase has a real transaction a few files away in `group-orders.createWithMembers`. | `orders/orders.service.ts:196-230` |
+| Q-7 | Low | Product/correctness | **An order cannot be cancelled.** The state machine's only ending is `delivered`, so a client who walks away leaves an order that can either sit in `on_pause` forever or be marked delivered, which is false. It compounds: the free-tier `active_orders` cap counts orders that are not delivered, so an abandoned order permanently consumes one of the slots and the only ways to free it are recording a lie or deleting the history. | `packages/schemas/src/order.ts:19`, `subscriptions/subscriptions.service.ts:315` |
+| Q-8 | Low | Correctness | The payment webhook's docstring says it "always answers 200", because a provider that receives an error retries for hours. There is no `try/catch`, so an unexpected throw returns 500 — and those retries are then no-ops, because the row was already claimed (Q-2). The stated contract and the code disagree. | `subscriptions/checkout.controller.ts:84-93` |
+| Q-9 | Low | Correctness | Two different error shapes reach the app. There is no global exception filter, so most failures use Nest's `{ message, statusCode }`, while some throw an object body instead — `{ error: 'account_suspended', reason, since }`, `{ error: 'mfa_required', message }`. The app copes in `lib/errors.ts`, but any new client has to know both. | `auth/supabase-auth.guard.ts:116`, `common/staff.guard.ts:34` |
