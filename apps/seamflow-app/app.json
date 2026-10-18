@@ -19,7 +19,10 @@
       },
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "associatedDomains": [
+        "applinks:www.seamflowtech.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -35,6 +38,26 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "www.seamflowtech.com",
+              "pathPrefix": "/t"
+            },
+            {
+              "scheme": "https",
+              "host": "www.seamflowtech.com",
+              "pathPrefix": "/fr/t"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
         {
           "action": "SEND",
           "category": [
