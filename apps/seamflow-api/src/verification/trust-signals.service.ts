@@ -20,6 +20,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { sql } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 
@@ -49,7 +50,7 @@ export class TrustSignalsService {
 
   // 03:10, before the retention sweeps, so a night's work is: recompute, then
   // tidy up. Nothing here depends on that order; it just reads better in logs.
-  @Cron('10 3 * * *')
+  @Cron('10 3 * * *', { timeZone: CRON_TZ })
   async nightly(): Promise<void> {
     if (!this.dbService.isConfigured()) return;
     try {

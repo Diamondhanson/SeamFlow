@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { and, eq, isNotNull, ne } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import {
@@ -40,7 +41,7 @@ export class RemindersService {
    * their chosen reminder hour, scan open orders and send any due/overdue
    * reminders they haven't been sent yet.
    */
-  @Cron('0 * * * *')
+  @Cron('0 * * * *', { timeZone: CRON_TZ })
   async runDueReminders(now = new Date()): Promise<void> {
     if (!this.dbService.db) return;
 

@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { and, asc, desc, eq, lt, sql } from 'drizzle-orm';
 import type {
   SupportAttachment,
@@ -321,7 +322,7 @@ export class SupportService {
    * a ticket nobody is going to answer isn't open — and the user can reopen it
    * any time just by replying.
    */
-  @Cron('40 * * * *')
+  @Cron('40 * * * *', { timeZone: CRON_TZ })
   async autoCloseStale(): Promise<void> {
     if (!this.dbService.isConfigured()) return;
     const cutoff = new Date(Date.now() - AUTO_CLOSE_DAYS * 24 * 60 * 60 * 1000);

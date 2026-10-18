@@ -21,6 +21,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { and, eq, inArray, isNotNull, isNull, lte, or } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -55,7 +56,7 @@ export class AccountPurgeService {
    * Nightly. Deliberately off the hour — the API shares a free instance and
    * every other scheduled job in this codebase already crowds :00.
    */
-  @Cron('20 3 * * *')
+  @Cron('20 3 * * *', { timeZone: CRON_TZ })
   async purgeDue(): Promise<void> {
     if (!this.db.isConfigured()) return;
 
