@@ -18,7 +18,17 @@ export default defineConfig({
   test: {
     include: ['src/**/*.spec.ts'],
     environment: 'node',
-    // Jobs, retention and purge tests touch timers; keep them isolated.
-    pool: 'threads',
+    // Forks, not threads, and this is not a preference.
+    //
+    // `threads` was the original choice here and it segfaulted CI the first
+    // time a spec reached @sentry/profiling-node, which ships a native .node
+    // addon: loading one inside a worker thread crashes the worker, and it
+    // crashes nondeterministically, so it looked like a flake locally (one
+    // SIGKILL that was wrongly dismissed as memory pressure) before it became a
+    // reliable segfault on a Linux runner.
+    //
+    // A forked process can load native addons safely, and it isolates timers
+    // better than a thread anyway — which was the reason threads were picked.
+    pool: 'forks',
   },
 });

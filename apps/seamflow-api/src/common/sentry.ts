@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/nestjs';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 let initialized = false;
 
@@ -8,11 +7,34 @@ export function initSentry(): boolean {
   const dsn = process.env.SENTRY_DSN;
   if (!dsn) return false;
 
+  // Required lazily, not imported at the top of the file.
+  //
+  // @sentry/profiling-node ships a native .node addon that loads the moment the
+  // module is imported — in every process that touches this file, including
+  // tests and the 30 integration scripts, whether or not Sentry is ever
+  // switched on. In a vitest worker thread that load is a segfault.
+  //
+  // Behind the DSN check it loads only where it is actually used, and a missing
+  // or unbuildable binary degrades to Sentry-without-profiling instead of
+  // taking the process down.
+  // `integrations` can be an array OR a function, so narrow to the array form.
+  type IntegrationList = Extract<NonNullable<Sentry.NodeOptions['integrations']>, unknown[]>;
+  const integrations: IntegrationList = [];
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const profiling = require('@sentry/profiling-node') as {
+      nodeProfilingIntegration: () => IntegrationList[number];
+    };
+    integrations.push(profiling.nodeProfilingIntegration());
+  } catch {
+    // Profiling is a nice-to-have; error reporting is not.
+  }
+
   Sentry.init({
     dsn,
     environment: process.env.NODE_ENV ?? 'development',
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    integrations: [nodeProfilingIntegration()],
+    integrations,
     profilesSampleRate: 1.0,
   });
   initialized = true;
