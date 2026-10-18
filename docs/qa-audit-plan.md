@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–4 complete; all code findings fixed. Phase 4 runtime sweep and the Apple-gated items outstanding.**
+Started: 2026-10-17. Status: **Phases 0–5 complete; 0–4 code findings fixed. Phase 5 findings reported; runtime sweep and Apple-gated items outstanding.**
 
 ---
 
@@ -526,6 +526,28 @@ A-2 (Apple Sign-In), A-3 (the first iOS build, and APNs credentials) and A-4
 rebuild. A-2 is the submission blocker: Google sign-in is offered, so guideline
 4.8 requires an equivalent, and the button currently shows a coming-soon dialog.
 
+## Phase 5 — the app, non-functional — **DONE** (2026-10-18)
+
+Startup path, list virtualization, image handling, listener and timer lifecycles,
+the PIN lock, and what is checkable of App Store readiness.
+
+### Verified sound
+
+- **No leaks.** Every `setInterval` has a `clearInterval` in the same file,
+  listeners are 15 added to 14 removed (the odd one is a module-level
+  `AppState` listener that is meant to outlive any screen), and the single
+  realtime channel is unsubscribed twice over.
+- **The PIN lock is properly built.** HMAC-SHA-256 over a 32-byte random salt in
+  SecureStore; 4 digits with 5 attempts, and crossing that forces a sign-out
+  which dumps the Supabase session — so the data becomes *unreachable*, not
+  merely hidden behind a screen. The code is honest that 10,000 combinations is
+  not the barrier and the attempt limit is.
+- **The clipboard is only ever used for share URLs** — never measurements.
+- **Export compliance** (`usesNonExemptEncryption: false`) is correct: standard
+  crypto only, no custom algorithms.
+- **The web session falls back to `localStorage`** with an honest comment about
+  it being weaker at rest. It is also the only option in a browser.
+
 ## Findings log
 
 Filled in as each phase runs. Pre-audit observations from the initial scan:
@@ -587,3 +609,9 @@ Filled in as each phase runs. Pre-audit observations from the initial scan:
 | A-6 | Medium | UX | Seven data-backed screens have no skeleton, against the mandate in `CLAUDE.md`, and three of them show a bare spinner instead: `designs/[id]`, `share-receive`, `works/describe`, `discover/tailor/[tailorId]`, `(client)/t/[slug]`, `hub/claim`, `assistant`. Pure forms and the home dashboard are exempt by that same document and are excluded here. | as listed |
 | A-7 | Low | Accessibility | Four icon-only buttons carry no `accessibilityLabel`, so a screen reader announces nothing: `share-receive.tsx`, `LibraryPickerSheet.tsx`, `OptionSheet.tsx`, `chat/ChatThread.tsx`. `accessibilityHint` is unused app-wide, which is defensible. | as listed |
 | A-8 | Low | UX | Declining push leaves no way back. The code says so — they can flip it in OS settings or via a future in-app re-ask UI — but nothing tells the tailor why they get no notifications, and unlike the camera and photo flows there is no Settings route offered. | `lib/notifications.ts:111` |
+| B-1 | High | Observability | **The app has no crash reporting of any kind.** No Sentry, no error boundary, no `ErrorUtils.setGlobalHandler`, no `expo-updates`. The API is fully instrumented — Sentry is enabled and `/health` confirms it live — so the asymmetry is the finding: the backend tells you when it breaks and the app does not. In a release build an unhandled JS error closes the app with no stack, no breadcrumb and no user context, and with no error boundary a single bad render takes down the whole tree rather than one screen. This is about to ship to the App Store, where the only signal left would be a one-star review. `@sentry/react-native` plus one boundary around the router is most of the fix. | `apps/seamflow-app` |
+| B-2 | Medium | Performance | **Two infinite-scroll lists are unvirtualized.** `notifications.tsx` and `messages/index.tsx` both call `fetchNextPage()` from inside a plain `ScrollView` and render their rows with `.map()`, so every page ever loaded stays mounted and memory grows monotonically as a tailor scrolls back through their history. A `.map` does not trip React Native's nested-VirtualizedList warning, which is why this is silent rather than noisy. The same codebase uses `FlatList` correctly on orders, clients, groups and fabrics, so the pattern is understood — these two were missed. | `app/(app)/notifications.tsx:207`, `app/(app)/messages/index.tsx:119` |
+| B-3 | Medium | Performance/cost | **There is no image caching.** `expo-image` is not a dependency; all 53 `<Image>` usages are React Native's, whose cache is in-memory and small. Discover, the storefronts and the design carousels are grids of remote Supabase images, so scrolling away and back re-downloads them — on the mobile data this product is explicitly built for, and the same bytes the tailor's clients pay for twice. `expo-image` is the Expo-recommended drop-in and brings a disk cache, placeholders and `contentFit`. | `apps/seamflow-app` |
+| B-4 | Medium | Performance | **Fifteen font faces across six families gate the first paint.** `_layout.tsx` holds a spinner behind `if (!fontsReady)` until every one has loaded. The two Arabic families are loaded unconditionally and the comment explains why — a tailor with Arabic client names needs those glyphs on an English UI — which is right. What is worth revisiting is gating the *whole app* on them: React Native can paint with a system fallback and re-render when the faces land. This is paid on every cold start, on the cheap Android phones named as the target market. | `app/_layout.tsx:104-136` |
+| B-5 | Low | iOS | **The iOS privacy manifest is unverified.** There is no `ios.privacyManifests` in `app.json`. Expo's prebuild generates a baseline `PrivacyInfo.xcprivacy` covering its own modules, so this may well be fine — but it cannot be checked without generating the iOS project, which this machine cannot do, and a missing or incomplete manifest is a routine rejection. Check it on the first EAS iOS build (see A-3) rather than at submission. | `app.json` |
+| B-6 | Low | iOS | **App Store data-use disclosures, listed from the code so the form is not filled from memory.** The app requests contacts, coarse and fine location, camera, photo library, microphone and speech recognition, and it collects body measurements, phone numbers and postal addresses. Every one of those has to be declared in App Store Connect's privacy questionnaire, and measurements in particular are health-adjacent data that reviewers read carefully. A questionnaire that disagrees with the `Info.plist` is a rejection. | `app.json` plugins and permissions |
