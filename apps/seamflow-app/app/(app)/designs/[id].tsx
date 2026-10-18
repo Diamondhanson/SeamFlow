@@ -11,6 +11,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
+import { SkeletonDetail } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
@@ -104,11 +106,23 @@ export default function DesignDetail() {
     });
   };
 
+  // `!design` covered three different situations with one bare "Loading…":
+  // still fetching, the fetch failed, and the design is genuinely gone. The
+  // middle one never resolved — it sat on that word indefinitely.
+  if (designQ.isError && !design) {
+    return (
+      <Screen>
+        <ScreenHeader title={t('designs.designTitle')} />
+        <LoadFailed onRetry={() => void designQ.refetch()} />
+      </Screen>
+    );
+  }
+
   if (!design) {
     return (
       <Screen>
         <ScreenHeader title={t('designs.designTitle')} />
-        <Text variant="bodySm" tone="textMuted">{t('common.loading')}</Text>
+        <SkeletonDetail />
       </Screen>
     );
   }

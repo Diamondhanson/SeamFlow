@@ -6,6 +6,7 @@ import type { Order } from '@seamflow/schemas';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { OrderCard } from '../../../components/OrderCard';
 import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
@@ -55,7 +56,7 @@ export default function CalendarScreen() {
     };
   }, [year, month]);
 
-  const { data, isLoading } = useOrders(range);
+  const { data, isLoading, isError, refetch } = useOrders(range);
 
   const ordersByDay = useMemo(() => {
     const map = new Map<number, Order[]>();
@@ -206,6 +207,10 @@ export default function CalendarScreen() {
             </View>
             {isLoading && selectedOrders.length === 0 ? (
               <SkeletonList count={3} leading="circle" chip />
+            ) : isError && selectedOrders.length === 0 ? (
+              // Otherwise a failed fetch reads as "nothing due today", which is
+              // the one thing a tailor checks this screen to find out.
+              <LoadFailed onRetry={() => void refetch()} />
             ) : selectedOrders.length === 0 ? (
               <Text variant="bodySm" tone="textMuted" style={styles.muted}>
                 {t('misc.noDeliveriesThisDay')}

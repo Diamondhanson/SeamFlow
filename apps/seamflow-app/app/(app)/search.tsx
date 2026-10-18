@@ -14,6 +14,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { SearchField } from '../../components/SearchField';
 import { SkeletonList } from '../../components/Skeleton';
+import { LoadFailed } from '../../components/LoadFailed';
 import { OrderCard } from '../../components/OrderCard';
 import { useClients, useOrders } from '../../lib/queries';
 import { useDebouncedValue } from '../../lib/use-debounced-value';
@@ -33,6 +34,9 @@ export default function Search() {
   // A new query string is a fresh key with no cache → isLoading. Show a skeleton
   // while either half is still resolving so the screen never just sits blank.
   const searching = active && (clientsQ.isLoading || ordersQ.isLoading);
+  // "No results" is a believable answer to a search, which is exactly why a
+  // failed one must not borrow it.
+  const searchFailed = active && !searching && (clientsQ.isError || ordersQ.isError);
 
   const clients = useMemo(
     () => (active ? (clientsQ.data?.items ?? []).slice(0, 8) : []),
@@ -70,7 +74,16 @@ export default function Search() {
           </View>
         ) : null}
 
-        {empty ? (
+        {searchFailed ? (
+          <LoadFailed
+            onRetry={() => {
+              void clientsQ.refetch();
+              void ordersQ.refetch();
+            }}
+          />
+        ) : null}
+
+        {empty && !searchFailed ? (
           <Text variant="bodySm" tone="textMuted" style={styles.hint}>
             {t('home.searchNoResults')}
           </Text>

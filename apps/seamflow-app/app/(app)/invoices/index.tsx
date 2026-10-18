@@ -6,6 +6,7 @@ import { Text, ListRow, useAtelierTheme } from '@seamflow/ui';
 import { formatCurrency } from '@seamflow/utils';
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { HelpCard } from '../../../components/HelpCard';
 import { useInvoices, useOrders } from '../../../lib/queries';
@@ -55,6 +56,9 @@ export default function InvoicingHome() {
   );
 
   const loading = ordersQ.isLoading || invoicesQ.isLoading;
+  // Either half failing means the page cannot be trusted: an invoice list with
+  // the orders half missing would quietly under-report what is awaiting one.
+  const failed = ordersQ.isError || invoicesQ.isError;
 
   return (
     <Screen padded={false} width="wide">
@@ -73,6 +77,13 @@ export default function InvoicingHome() {
       >
         {loading ? (
           <SkeletonList leading="square" />
+        ) : failed ? (
+          <LoadFailed
+            onRetry={() => {
+              void ordersQ.refetch();
+              void invoicesQ.refetch();
+            }}
+          />
         ) : (
           <>
             {/* Recent orders awaiting an invoice */}

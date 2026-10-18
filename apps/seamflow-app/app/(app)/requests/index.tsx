@@ -21,6 +21,7 @@ import { Screen } from '../../../components/Screen';
 import { FormScroll } from '../../../components/FormScroll';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { SkeletonList } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { HelpCard } from '../../../components/HelpCard';
 import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { useMe, useOpenRequests } from '../../../lib/queries';
@@ -83,6 +84,8 @@ export default function RequestsBoard() {
 
         {q.isLoading ? (
           <SkeletonList leading="square" chip />
+        ) : q.isError && items.length === 0 ? (
+          <LoadFailed onRetry={() => void q.refetch()} />
         ) : items.length === 0 ? (
           <View style={styles.empty}>
             <Ionicons name="albums-outline" size={28} color={colors.textMuted} />

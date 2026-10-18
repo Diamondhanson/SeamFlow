@@ -46,6 +46,8 @@ export default function Storefront() {
       tailor={tailor}
       posts={q.data?.posts.items ?? []}
       isLoading={q.isLoading}
+      isError={q.isError}
+      onRetry={() => void q.refetch()}
       onInquire={inquire}
     />
   );

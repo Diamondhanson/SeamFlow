@@ -18,6 +18,7 @@ import {
 } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { HelpCard } from '../../../components/HelpCard';
 import { useGroupOrders } from '../../../lib/queries';
@@ -108,7 +109,7 @@ function GroupCard({ group, onPress }: { group: GroupOrder; onPress: () => void 
 
 export default function GroupsList() {
   const premium = usePremiumGate();
-  const { data, isLoading, error } = useGroupOrders();
+  const { data, isLoading, isError, error, refetch } = useGroupOrders();
   const { colors } = useAtelierTheme();
   const { t } = useTranslation();
   const scroll = useFloatingScroll();
@@ -172,6 +173,10 @@ export default function GroupsList() {
         <View style={styles.skeletonWrap}>
           <SkeletonList leading="none" chip />
         </View>
+      ) : isError && items.length === 0 ? (
+        // A failed request used to fall through to the empty state below, so a
+        // tailor was told they had nothing rather than that it did not load.
+        <LoadFailed onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
           {t('groups.noGroupsYet')}

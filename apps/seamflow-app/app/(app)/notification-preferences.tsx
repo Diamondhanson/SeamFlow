@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Toggle, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -8,6 +8,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { TimezonePickerModal } from '../../components/TimezonePickerModal';
 import { useFloatingScroll } from '../../lib/floating-scroll';
+import { getPushPermissionState } from '../../lib/notifications';
 import {
   useNotificationPreferences,
   useNotificationSettings,
@@ -48,6 +49,20 @@ export default function NotificationPreferences() {
   const { colors } = useAtelierTheme();
   const scroll = useFloatingScroll();
   const prefsQ = useNotificationPreferences();
+
+  // Every switch below is moot if the OS is dropping the notifications, and
+  // nothing told the tailor that. Read-only — opening a settings screen must
+  // never raise a system permission dialog.
+  const [pushBlocked, setPushBlocked] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void getPushPermissionState().then((state) => {
+      if (alive) setPushBlocked(state === 'denied');
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   const update = useUpdateNotificationPreferences();
   const [tzOpen, setTzOpen] = useState(false);
   const settingsQ = useNotificationSettings();
@@ -91,6 +106,21 @@ export default function NotificationPreferences() {
           <SkeletonForm fields={4} />
         ) : (
           <View>
+            {pushBlocked ? (
+              <View style={styles.notifError}>
+                <Text variant="caption" tone="textMuted" style={{ flex: 1 }}>
+                  {t('settings.notifBlocked')}
+                </Text>
+                <Button
+                  label={t('misc.openSettings')}
+                  variant="secondary"
+                  size="sm"
+                  fullWidth={false}
+                  onPress={() => void Linking.openSettings()}
+                />
+              </View>
+            ) : null}
+
             {offline ? (
               <View style={styles.notifError}>
                 <Text variant="caption" tone="textMuted" style={{ flex: 1 }}>
