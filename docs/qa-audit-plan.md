@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–2 complete; Phase 1 findings fixed, Phase 2 findings reported. Phase 3 not started.**
+Started: 2026-10-17. Status: **Phases 0–2 complete and their findings fixed. Phase 3 in progress.**
 
 ---
 
@@ -347,6 +347,48 @@ Repairing it means telling Supabase those 35 are already applied
 (`supabase migration repair --status applied <version>` per version). That
 writes to production's migration table, so it needs your explicit go-ahead —
 it is not something to do as part of a code fix.
+
+## Phase 2 fixes — applied 2026-10-18
+
+API tests 68 → 92. `turbo run lint test` 23/23 green, `nest build` still ships
+no test code. Q-1 and Q-2 were each verified by reverting the fix and watching
+the tests go red (4 of 11 for the pair).
+
+The transaction fixes needed a fake that models rollback — `fakeTxDb` reports
+which writes actually committed, so a test can tell "the second write failed, so
+the first must not have stuck" from "the code ran". Without that a test passes
+whether or not a transaction was opened at all, which is the one thing in
+question.
+
+| # | What changed | Test |
+|---|---|---|
+| Q-1 | `cancelDeletion` now requires `deletion_scheduled_for` to still be in the future, and refuses with `deletion_already_due` rather than silently doing nothing. A cancel with nothing pending is still a harmless no-op, so a double tap is not an error. | `account.service.spec.ts`, 4 tests |
+| Q-2 | The claim and the grant commit together. `extendPremium`, `ensureFor` and `rowFor` take an optional `Executor` (a new type in `db.service.ts` that both the pooled handle and a transaction satisfy), so `settle` can run the grant inside the transaction that claims the row. A failed grant now rolls the claim back and leaves the row `pending`, which is exactly what the provider's retry and the reconcile cron already know how to finish. Also removed the `updated!` non-null assertion that would have returned undefined into a dereference. | `checkout.service.spec.ts`, 7 tests — incl. one asserting the grant is handed the transaction, because passing the plain handle would undo the whole fix |
+| Q-3 | `verification.decide` wraps its three writes in one transaction, so the request cannot be left `approved` with no badge — a state `decide` itself refuses to retry. | `verification.service.spec.ts`, 4 tests |
+| Q-4 | A failed re-publish takes the post out of the feed (`status: 'hidden'`) and rethrows, instead of leaving a live design with no images. Damage control rather than a fix — the old public copies are already gone by then — so the tailor still gets the real error. | `works.service.spec.ts`, 2 added |
+| Q-5 | All ten `@Cron`s pin `timeZone: CRON_TZ` ('UTC'), so a cron expression no longer means whatever clock the host happens to keep. **The cross-instance half is NOT fixed** — see below. | `cron.spec.ts`, 4 tests, incl. one that fails if any new job forgets |
+| Q-6 | `orders.create` writes the order, its items and its `created` event in one transaction. | `orders.service.spec.ts`, 3 added |
+| Q-8 | The webhook's docstring now matches what it does, and says why an unexpected failure *should* be a 500: with Q-2 fixed, that is the request asking to be retried, and the retry now works. | — |
+
+### Two left deliberately
+
+- **Q-5's duplicate-reminder half.** Pinning the timezone was free. Stopping a
+  second instance from sending every billing email twice needs durable state,
+  and the usual trick — a Postgres advisory lock — is unavailable here: the
+  connection goes through pgBouncer in *transaction* mode, where a session-level
+  lock is not held to the session that took it. So it needs a lease table, which
+  is a schema change queued behind the migration-history repair. The assumption
+  is now written down in `common/cron.ts` instead of being implicit, so running
+  a second instance is a decision rather than a surprise.
+- **Q-7, no way to cancel an order.** Adding a status is a product change, not a
+  fix: it needs a database enum, UI, both translations, and a decision about
+  whether a cancelled order should free a free-tier slot (it should, which is
+  half the point). That is yours to call, not something to slip into a
+  correctness pass.
+- **Q-9, two error shapes.** Normalising them means a global exception filter,
+  which changes the body of every error the app already parses. Not a trade
+  worth making days before a store submission for a cosmetic inconsistency the
+  app handles.
 
 ## Findings log
 
