@@ -11,7 +11,7 @@
 // ============================================================================
 
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Conversation } from '@seamflow/schemas';
@@ -109,14 +109,26 @@ export default function Messages() {
           ) : null}
         </View>
       ) : (
-        <ScrollView
+        /* FlatList, not ScrollView + .map: this list pages in more
+           conversations as you scroll, so with .map every page ever loaded
+           stayed mounted and memory grew for as long as someone kept going.
+           `{...scroll}` passes straight through, the same way the orders list
+           already uses it. */
+        <FlatList
           {...scroll}
+          data={items}
+          keyExtractor={(c) => c.id}
           contentContainerStyle={styles.list}
-          onMomentumScrollEnd={() => {
-            if (q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage();
+          onEndReached={() => {
+            if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage();
           }}
-        >
-          {items.map((c) => {
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            q.isFetchingNextPage ? (
+              <ActivityIndicator style={{ marginTop: spacing.lg }} color={colors.textMuted} />
+            ) : null
+          }
+          renderItem={({ item: c }) => {
             const unread = c.unreadCount > 0;
             return (
               <Pressable
@@ -195,11 +207,8 @@ export default function Messages() {
                 </View>
               </Pressable>
             );
-          })}
-          {q.isFetchingNextPage ? (
-            <ActivityIndicator style={{ marginTop: spacing.lg }} color={colors.textMuted} />
-          ) : null}
-        </ScrollView>
+          }}
+        />
       )}
     </Screen>
   );

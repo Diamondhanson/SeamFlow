@@ -21,7 +21,7 @@
 // ============================================================================
 
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Notification } from '@seamflow/schemas';
@@ -181,19 +181,24 @@ export default function Notifications() {
         </View>
       ) : null}
 
-      <ScrollView
+      {/* FlatList, not ScrollView + .map.
+          This is an infinite list: it calls fetchNextPage as you reach the
+          bottom, so with .map every page ever loaded stayed mounted and memory
+          grew for as long as a tailor kept scrolling back through their
+          history. A .map does not trip React Native's nested-VirtualizedList
+          warning, which is why it went unnoticed — the orders, clients, groups
+          and fabrics lists all use FlatList already. */}
+      <FlatList
+        data={items}
+        keyExtractor={(n) => n.id}
         contentContainerStyle={styles.list}
-        onScroll={({ nativeEvent: e }) => {
-          const nearEnd =
-            e.layoutMeasurement.height + e.contentOffset.y >=
-            e.contentSize.height - 400;
-          if (nearEnd && q.hasNextPage && !q.isFetchingNextPage) {
-            void q.fetchNextPage();
-          }
+        // onEndReached replaces the hand-rolled onScroll arithmetic; 0.4 is
+        // roughly the 400px lookahead that code was aiming for.
+        onEndReached={() => {
+          if (q.hasNextPage && !q.isFetchingNextPage) void q.fetchNextPage();
         }}
-        scrollEventThrottle={200}
-      >
-        {items.length === 0 ? (
+        onEndReachedThreshold={0.4}
+        ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="notifications-outline" size={40} color={colors.textMuted} />
             <Text variant="h3" style={{ marginTop: spacing.md }}>
@@ -203,60 +208,52 @@ export default function Notifications() {
               {t('notifications.emptyBody')}
             </Text>
           </View>
-        ) : (
-          items.map((n, i) => (
-            <Pressable
-              key={n.id}
-              onPress={() => void open(n)}
-              style={[
-                styles.row,
-                // An unread row is a raised card, and the card itself separates
-                // it from its neighbours. A read row drops that background and
-                // would otherwise float with nothing between it and the next —
-                // so it becomes a plain list row divided by a hairline.
-                //
-                // The radius goes to 0 with it: a bottom border on a rounded box
-                // curves away at both ends and reads as a smile, not a divider.
-                // The bottom margin goes too, so the line sits against the next
-                // row instead of hanging in space above the gap.
-                n.readAt
-                  ? { backgroundColor: 'transparent', borderRadius: 0, marginBottom: 0 }
-                  : { backgroundColor: colors.card, borderRadius: radii.md },
-                // Skipped on the last row: a trailing rule under the final item
-                // divides it from nothing and reads as an unfinished list.
-                n.readAt && i < items.length - 1
-                  ? {
-                      borderBottomWidth: StyleSheet.hairlineWidth,
-                      borderBottomColor: colors.hairline,
-                    }
-                  : null,
-              ]}
-            >
-              <View
-                style={[styles.icon, { backgroundColor: colors.card }]}
-              >
-                <Ionicons name={iconFor(n.type)} size={18} color={colors.accent} />
-              </View>
-              <View style={styles.body}>
-                <Text variant="body">
-                  {/* Keys are dotted in the API, underscored in locale files. */}
-                  {t(`notifications.type_${n.type.replace(/\./g, '_')}`, n.params)}
-                </Text>
-                <Text variant="caption" tone="textMuted" style={{ marginTop: 2 }}>
-                  {whenLabel(n.createdAt, t)}
-                </Text>
-              </View>
-              {!n.readAt ? (
-                <View style={[styles.dot, { backgroundColor: colors.accent }]} />
-              ) : null}
-            </Pressable>
-          ))
+        }
+        ListFooterComponent={
+          q.isFetchingNextPage ? (
+            <ActivityIndicator style={{ marginVertical: spacing.md }} color={colors.textMuted} />
+          ) : null
+        }
+        renderItem={({ item: n, index: i }) => (
+          <Pressable
+            key={n.id}
+            onPress={() => void open(n)}
+            style={[
+              styles.row,
+              // An unread row is a raised card, and the card itself separates
+              // it from its neighbours. A read row drops that background and
+              // would otherwise float with nothing between it and the next —
+              n.readAt
+                ? { backgroundColor: 'transparent', borderRadius: 0, marginBottom: 0 }
+                : { backgroundColor: colors.card, borderRadius: radii.md },
+              // Skipped on the last row: a trailing rule under the final item
+              // divides it from nothing and reads as an unfinished list.
+              n.readAt && i < items.length - 1
+                ? {
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: colors.hairline,
+                  }
+                : null,
+            ]}
+          >
+            <View style={[styles.icon, { backgroundColor: colors.card }]}>
+              <Ionicons name={iconFor(n.type)} size={18} color={colors.accent} />
+            </View>
+            <View style={styles.body}>
+              <Text variant="body">
+                {/* Keys are dotted in the API, underscored in locale files. */}
+                {t(`notifications.type_${n.type.replace(/\./g, '_')}`, n.params)}
+              </Text>
+              <Text variant="caption" tone="textMuted" style={{ marginTop: 2 }}>
+                {whenLabel(n.createdAt, t)}
+              </Text>
+            </View>
+            {!n.readAt ? (
+              <View style={[styles.dot, { backgroundColor: colors.accent }]} />
+            ) : null}
+          </Pressable>
         )}
-
-        {q.isFetchingNextPage ? (
-          <ActivityIndicator style={{ marginVertical: spacing.md }} color={colors.textMuted} />
-        ) : null}
-      </ScrollView>
+      />
     </Screen>
   );
 }
