@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–5 complete; 0–4 code findings fixed. Phase 5 findings reported; runtime sweep and Apple-gated items outstanding.**
+Started: 2026-10-17. Status: **Phases 0–5 complete and fixed, bar what needs a native rebuild (see docs/ios-submission-checklist.md). Phase 6 not started.**
 
 ---
 
@@ -547,6 +547,34 @@ the PIN lock, and what is checkable of App Store readiness.
   crypto only, no custom algorithms.
 - **The web session falls back to `localStorage`** with an honest comment about
   it being weaker at rest. It is also the only option in a browser.
+
+## Phase 5 fixes — applied 2026-10-18
+
+`turbo run lint test` 23/23 green, i18n clean in both apps, eslint back to its
+pre-existing 33 warnings (no new ones).
+
+| # | What changed |
+|---|---|
+| B-1 | `<AppErrorBoundary>` inside the providers and around the router, so it has the theme and translations and catches every screen. "Try again" changes a key so the subtree genuinely remounts rather than re-rendering the same failing elements — which fixes the common case of a screen rendering against data in an unexpected shape. `lib/crash-reporting.ts` is the reporting seam and is **deliberately empty**: with no DSN it reports nothing and costs nothing, so behaviour is unchanged today. Switching it on is a native dependency and therefore a rebuild — see below. |
+| B-2 | Both infinite lists are `FlatList` now. `onEndReached` replaces the hand-rolled `onScroll` arithmetic in notifications and the `onMomentumScrollEnd` in messages; empty and footer states moved to `ListEmptyComponent`/`ListFooterComponent`. Row markup unchanged. |
+| B-4 | **Fixed differently than the finding suggested.** `expo-splash-screen` was a dependency, configured in `app.json`, and never called in code — so the splash auto-hid and the tailor then watched a spinner on a blank themed screen while fifteen font faces came off disk. Splash → spinner → app, every cold start. Holding the splash until the fonts are in collapses that to splash → app. Rendering immediately with system fonts (what the finding implied) would swap every piece of type a moment later, which looks worse than a splash that stays a beat longer. Errors are swallowed and the splash hides on font failure too, because a splash that fails to hide is an app nobody can use. |
+| B-5, B-6 | Folded into `docs/ios-submission-checklist.md` with the Apple-gated items. |
+
+**Bookkeeping:** the B-4 change rode along in commit `abeed18`, whose message
+only describes the error boundary — both touched `app/_layout.tsx` and the
+whole file was staged. Recorded here rather than rewritten, since the branch
+has later commits on top.
+
+### Left out on purpose: the native dependencies
+
+B-1's Sentry half and **B-3** (image caching via `expo-image`) both need a
+native dependency and therefore a rebuild, which means neither does anything
+until that build happens. A-1, A-2 and A-3 need the same build.
+
+So they are consolidated into `docs/ios-submission-checklist.md` rather than
+dripped in one at a time. A native dependency added during a bug-fix pass is a
+dependency nobody decided on, and there is exactly one build coming that can
+carry all five.
 
 ## Findings log
 
