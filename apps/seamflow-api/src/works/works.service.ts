@@ -842,7 +842,27 @@ export class WorksService {
     const existing = await this.postFor(id);
     if (existing) {
       // Already has a post — refresh its images and fields, and flip it live.
-      const cover = await this.syncPublicImages(existing.id, tailorId, id);
+      //
+      // syncPublicImages tears the OLD public copies down before making the new
+      // ones, so a failure halfway leaves this post with no images at all. The
+      // new-post path below handles that by deleting the row it just made; here
+      // there is no row to delete, and the old copies are already gone, so the
+      // honest recovery is to take the post out of the feed rather than leave a
+      // live design showing nothing. The tailor gets the real error and can
+      // publish again; what they must not get is a silently empty storefront.
+      let cover;
+      try {
+        cover = await this.syncPublicImages(existing.id, tailorId, id);
+      } catch (err) {
+        await db
+          .update(feedPosts)
+          .set({ status: 'hidden', updatedAt: new Date() })
+          .where(eq(feedPosts.id, existing.id));
+        this.logger.error(
+          `Re-publish of work ${id} failed; post ${existing.id} hidden rather than left empty: ${(err as Error).message}`,
+        );
+        throw err;
+      }
       await db
         .update(feedPosts)
         .set({
