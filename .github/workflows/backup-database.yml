@@ -1,0 +1,99 @@
+name: Backup database
+
+# There were no backups at all. Supabase's free tier provides none, and because
+# the migration history has drifted, rebuilding from supabase/migrations would
+# not reproduce production either — so nothing could recover this database.
+#
+# 02:20 UTC is deliberate: the API's account purge runs at 03:20, so there is
+# always a snapshot taken BEFORE the one scheduled job that destroys data.
+#
+# TO TURN THIS ON, add two repository secrets (Settings → Secrets and variables
+# → Actions):
+#
+#   BACKUP_DATABASE_URL    the Supabase connection string. Use port 5432 (the
+#                          SESSION pooler) — pg_dump needs one session for the
+#                          whole dump and the 6543 transaction pooler cannot
+#                          give it one. The script rewrites the port anyway.
+#   BACKUP_GPG_PASSPHRASE  a long random passphrase. KEEP A COPY SOMEWHERE
+#                          THAT IS NOT THIS REPOSITORY — without it the
+#                          backups are unreadable, including by you.
+#
+# Until both exist the job runs, says it is not configured, and succeeds. It
+# does not fail noisily every night for something nobody has set up yet.
+#
+# This is a stopgap, not the destination. Supabase Pro gives daily backups and
+# point-in-time recovery, which is a better answer than a nightly artifact the
+# moment there is real money in the business. See docs/database-recovery.md.
+
+on:
+  schedule:
+    - cron: '20 2 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: backup-database
+  cancel-in-progress: false
+
+jobs:
+  dump:
+    name: dump and encrypt
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check it is configured
+        id: gate
+        env:
+          HAVE_URL: ${{ secrets.BACKUP_DATABASE_URL != '' }}
+          HAVE_PASS: ${{ secrets.BACKUP_GPG_PASSPHRASE != '' }}
+        run: |
+          if [[ "$HAVE_URL" != "true" || "$HAVE_PASS" != "true" ]]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Backups not configured::Add the BACKUP_DATABASE_URL and BACKUP_GPG_PASSPHRASE secrets to enable nightly backups. See the comment at the top of this workflow."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The runner's default client trails the server, and pg_dump refuses to
+      # dump a newer server than itself. Install the matching major from PGDG
+      # rather than hoping the image happens to ship it.
+      - name: Install PostgreSQL 17 client
+        if: steps.gate.outputs.configured == 'true'
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          pg_dump --version
+
+      - name: Dump and encrypt
+        if: steps.gate.outputs.configured == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: ./scripts/backup-db.sh
+
+      # Encrypted, so the artifact is useless to anyone without the passphrase
+      # — which matters because the dump holds client names, phone numbers,
+      # addresses and body measurements, and an artifact is readable by anyone
+      # with access to this repository.
+      - name: Upload
+        if: steps.gate.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: seamflow-db-${{ github.run_id }}
+          path: backups/*.dump.gpg
+          retention-days: 90
+          if-no-files-found: error
+
+      # A backup nobody is told about is a backup nobody notices has stopped.
+      - name: Say it failed
+        if: failure() && steps.gate.outputs.configured == 'true'
+        run: |
+          echo "::error title=Database backup failed::No backup was taken tonight. Check this run's log, then run ./scripts/backup-db.sh locally to get one now."
