@@ -25,6 +25,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { and, eq, isNotNull, isNull, lt, sql } from 'drizzle-orm';
 import type { VerificationEvidence } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
@@ -46,7 +47,7 @@ export class VerificationRetentionService {
   ) {}
 
   // Twenty past four, so it is not competing with the chat photo sweep at 3:50.
-  @Cron('20 4 * * *')
+  @Cron('20 4 * * *', { timeZone: CRON_TZ })
   async nightly(): Promise<void> {
     if (!this.dbService.isConfigured()) return;
     try {

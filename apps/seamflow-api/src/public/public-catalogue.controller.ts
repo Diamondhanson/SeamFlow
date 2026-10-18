@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Header, Param, Query } from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator';
+import { PUBLIC_CACHE } from '../common/cache';
 import { FeedService } from '../feed/feed.service';
 import { FeedQueryDto } from '../feed/feed.dto';
 
@@ -20,6 +21,7 @@ import { FeedQueryDto } from '../feed/feed.dto';
 export class PublicCatalogueController {
   constructor(private readonly feed: FeedService) {}
 
+  @Header('Cache-Control', PUBLIC_CACHE)
   @Get(':slug/catalogue')
   async catalogue(@Param('slug') slug: string, @Query() query: FeedQueryDto) {
     return this.feed.storefrontBySlug(slug, query);

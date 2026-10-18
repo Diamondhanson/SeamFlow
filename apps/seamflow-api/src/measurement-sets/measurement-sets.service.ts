@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
-import { clients, measurementSets } from '../db/schema';
+import { clients, measurementSets, measurementTemplates } from '../db/schema';
 import type {
   MeasurementSetCreateInput,
   MeasurementSetUpdateInput,
@@ -20,6 +20,28 @@ export class MeasurementSetsService {
       .where(and(eq(clients.tailorId, tailorId), eq(clients.id, clientId)))
       .limit(1);
     if (!rows[0]) throw new NotFoundException(`Client ${clientId} not found`);
+  }
+
+  /**
+   * The template a set was measured against. Checked for the same reason
+   * `clientId` is: a set that cites another tailor's template is a row that
+   * crosses a tenant boundary, and `templateId` is compared against elsewhere
+   * to decide whether a saved set matches the garment being made.
+   */
+  private async assertTemplateOwned(tailorId: string, templateId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: measurementTemplates.id })
+      .from(measurementTemplates)
+      .where(
+        and(
+          eq(measurementTemplates.tailorId, tailorId),
+          eq(measurementTemplates.id, templateId),
+        ),
+      )
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Template ${templateId} does not belong to this tailor`);
+    }
   }
 
   async listForClient(
@@ -57,6 +79,7 @@ export class MeasurementSetsService {
     data: MeasurementSetCreateInput,
   ): Promise<MeasurementSetRow> {
     await this.assertClientOwned(tailorId, clientId);
+    if (data.templateId) await this.assertTemplateOwned(tailorId, data.templateId);
     const rows = await this.dbService.db
       .insert(measurementSets)
       .values({
@@ -78,6 +101,7 @@ export class MeasurementSetsService {
     data: MeasurementSetUpdateInput,
   ): Promise<MeasurementSetRow> {
     await this.getById(tailorId, id);
+    if (data.templateId) await this.assertTemplateOwned(tailorId, data.templateId);
 
     const patch: Partial<typeof measurementSets.$inferInsert> = {
       updatedAt: new Date(),

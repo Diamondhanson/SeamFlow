@@ -10,6 +10,7 @@ import { SearchField } from '../../../components/SearchField';
 import { OrderCard } from '../../../components/OrderCard';
 import { OptionSheet, type SheetOption } from '../../../components/OptionSheet';
 import { SkeletonList } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { useOrders } from '../../../lib/queries';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
 import { STATUS_TONE, STATUS_ORDER } from '../../../lib/order-status';
@@ -90,7 +91,7 @@ export default function OrdersList() {
     [status, debouncedQ, dueAfter, dueBefore],
   );
 
-  const { data, isLoading } = useOrders(filter);
+  const { data, isLoading, isError, refetch } = useOrders(filter);
   const items = data?.items ?? [];
 
   // Two-up card grid on wider screens; single column on phones. Cell width is
@@ -157,6 +158,12 @@ export default function OrdersList() {
         <View style={styles.skeletonWrap}>
           <SkeletonList leading="circle" chip />
         </View>
+      ) : isError && items.length === 0 ? (
+        // Before this branch existed, a failed request fell through to the
+        // empty state below and told a tailor with fifty orders that none
+        // matched. Only when there is nothing cached to show — a refetch that
+        // fails behind existing rows must leave them alone.
+        <LoadFailed onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
           {t('orders.emptyNoMatch')}

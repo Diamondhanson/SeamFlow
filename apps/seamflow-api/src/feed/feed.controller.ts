@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   Param,
   ParseUUIDPipe,
@@ -11,6 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator';
+import { PUBLIC_CACHE } from '../common/cache';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
@@ -19,6 +21,7 @@ import { WorksService } from '../works/works.service';
 import {
   FeedQueryDto,
   PublishOrderPhotoDto,
+  SavedAmongDto,
   UpdateFeedPostDto,
   UpdateTailorProfileDto,
 } from './feed.dto';
@@ -44,6 +47,7 @@ export class FeedController {
   // ── Public ────────────────────────────────────────────────────────────────
 
   @Public()
+  @Header('Cache-Control', PUBLIC_CACHE)
   @Get('feed')
   list(@Query() query: FeedQueryDto) {
     return this.feed.listPublic(query);
@@ -63,7 +67,7 @@ export class FeedController {
 
   /** Which of a batch of designs the caller has saved — fills the hearts. */
   @Post('me/saved/among')
-  savedAmong(@CurrentUser() user: AuthedUser, @Body() body: { ids?: string[] }) {
+  savedAmong(@CurrentUser() user: AuthedUser, @Body() body: SavedAmongDto) {
     return this.feed.savedAmong(user.id, (body.ids ?? []).slice(0, 100));
   }
 
@@ -90,6 +94,7 @@ export class FeedController {
   }
 
   @Public()
+  @Header('Cache-Control', PUBLIC_CACHE)
   @Get('feed/:id')
   get(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.feed.getPublic(id);
@@ -104,12 +109,14 @@ export class FeedController {
    * different prefixes and neither should own the other's URL.
    */
   @Public()
+  @Header('Cache-Control', PUBLIC_CACHE)
   @Get('tailors/by-slug/:slug/storefront')
   storefrontBySlug(@Param('slug') slug: string, @Query() query: FeedQueryDto) {
     return this.feed.storefrontBySlug(slug, query);
   }
 
   @Public()
+  @Header('Cache-Control', PUBLIC_CACHE)
   @Get('tailors/:id/storefront')
   storefront(
     @Param('id', new ParseUUIDPipe()) id: string,

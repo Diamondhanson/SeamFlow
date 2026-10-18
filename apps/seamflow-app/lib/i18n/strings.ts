@@ -48,6 +48,7 @@ import { guides } from './locales/guides';
 import { misc } from './locales/misc';
 import { report } from './locales/report';
 import { saved } from './locales/saved';
+import { welcome } from './locales/welcome';
 import { assistant } from './locales/assistant';
 import { feed } from './locales/feed';
 import { chat } from './locales/chat';
@@ -137,6 +138,7 @@ const NAMESPACES = {
   misc,
   report,
   saved,
+  welcome,
   assistant,
   feed,
   chat,

@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { AllowSuspended } from '../auth/decorators/allow-suspended.decorator';
 import type { AuthedUser } from '../auth/auth.types';
@@ -20,6 +21,10 @@ export class SupportController {
     return this.support.list(user.id);
   }
 
+  // A new ticket lands in a staff inbox. Five a minute is a generous
+  // allowance for someone with several real problems, and a low ceiling
+  // for anyone filling the queue.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post()
   create(@CurrentUser() user: AuthedUser, @Body() body: CreateTicketDto) {
     return this.support.create(user.id, body);

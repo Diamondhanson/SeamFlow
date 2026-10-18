@@ -21,6 +21,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { eq, sql } from 'drizzle-orm';
 import type { MessageAttachment } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
@@ -41,7 +42,7 @@ export class ChatMediaRetentionService {
     private readonly supabase: SupabaseService,
   ) {}
 
-  @Cron('50 3 * * *')
+  @Cron('50 3 * * *', { timeZone: CRON_TZ })
   async nightly(): Promise<void> {
     if (!this.dbService.isConfigured()) return;
     try {

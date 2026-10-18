@@ -26,6 +26,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { and, count, desc, eq, gte, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import {
@@ -420,7 +421,7 @@ export class RequestsService {
    * effort on a brief the client forgot about, and a client should not receive
    * an offer on something they had made elsewhere a fortnight ago.
    */
-  @Cron('30 * * * *')
+  @Cron('30 * * * *', { timeZone: CRON_TZ })
   async expireOverdue(): Promise<number> {
     const rows = await this.dbService.db
       .update(requests)

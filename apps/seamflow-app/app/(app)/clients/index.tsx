@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonList } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { HelpCard } from '../../../components/HelpCard';
 import { SearchField } from '../../../components/SearchField';
@@ -29,7 +30,7 @@ export default function ClientsList() {
   const { colors } = useAtelierTheme();
   const scroll = useFloatingScroll();
 
-  const { data, isLoading, error } = useClients(debouncedQ);
+  const { data, isLoading, isError, error, refetch } = useClients(debouncedQ);
   const { favorites } = useFavorites();
 
   useEffect(() => {
@@ -92,6 +93,10 @@ export default function ClientsList() {
         <View style={styles.skeletonWrap}>
           <SkeletonList leading="circle" />
         </View>
+      ) : isError && items.length === 0 ? (
+        // A failed request used to fall through to the empty state below, so a
+        // tailor was told they had nothing rather than that it did not load.
+        <LoadFailed onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
         <Text variant="bodySm" tone="textMuted" style={styles.muted}>
           {t('clients.emptyList')}

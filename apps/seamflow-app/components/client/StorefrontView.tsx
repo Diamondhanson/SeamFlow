@@ -56,6 +56,7 @@ import {
 import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
 import { SkeletonGrid } from '../Skeleton';
+import { LoadFailed } from '../LoadFailed';
 import { ImageCaption } from './ImageCaption';
 import { Button } from '../Button';
 import { useGridColumns, useContentWidth } from '../../lib/use-breakpoint';
@@ -70,6 +71,14 @@ export interface StorefrontViewProps {
   tailor: TailorPublicProfile | undefined;
   posts: FeedPostPublic[];
   isLoading: boolean;
+  /**
+   * The fetch failed and there is nothing cached. Without this the component
+   * fell from "loading" straight to "this shop has published nothing", which
+   * is a claim about the tailor rather than about the request — and it is the
+   * first thing a prospective client sees of them.
+   */
+  isError?: boolean;
+  onRetry?: () => void;
   onInquire: () => void;
   /** Rendered under the CTA — the deep-link route uses it for "not found". */
   notFound?: boolean;
@@ -84,6 +93,8 @@ export function StorefrontView({
   tailor,
   posts,
   isLoading,
+  isError,
+  onRetry,
   onInquire,
   notFound,
   notFoundLabel,
@@ -156,6 +167,11 @@ export function StorefrontView({
           <View style={styles.padded}>
             <SkeletonGrid columns={columns} />
           </View>
+        ) : isError && !notFound && posts.length === 0 ? (
+          // `notFound` wins where it is given: the slug route already says "no
+          // such catalogue", which is more useful than "could not load" when
+          // the cause is a mistyped link.
+          <LoadFailed onRetry={onRetry} />
         ) : posts.length === 0 ? (
           <View style={styles.empty}>
             <Text variant="bodySm" tone="textMuted">

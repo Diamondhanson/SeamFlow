@@ -6,6 +6,7 @@ import type { OrderStatus } from '@seamflow/schemas';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
+import { LoadFailed } from '../../../../components/LoadFailed';
 import { BOTTOM_CHROME_SPACE } from '../../../../components/BottomNav';
 import { useConsumerOrders } from '../../../../lib/consumer-queries';
 import { spacing, radii } from '../../../../lib/theme';
@@ -22,7 +23,7 @@ const STATUS_TONE: Record<OrderStatus, keyof SemanticColors> = {
 export default function OrdersInbox() {
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
-  const { data, isLoading } = useConsumerOrders();
+  const { data, isLoading, isError, refetch } = useConsumerOrders();
   const items = data?.items ?? [];
 
   const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : null);
@@ -49,6 +50,10 @@ export default function OrdersInbox() {
         <View style={styles.padded}>
           <SkeletonList leading="square" chip />
         </View>
+      ) : isError && items.length === 0 ? (
+        // Not the empty state: a client whose orders failed to load must
+        // not be told they have none and pointed at "claim an order".
+        <LoadFailed onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="shirt-outline" size={40} color={colors.textMuted} />

@@ -28,6 +28,7 @@ import type { FeedPostPublic, WorkAudience, WorkOccasion } from '@seamflow/schem
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
 import { SkeletonGrid } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { SearchField } from '../../../components/SearchField';
 import { ShopResults } from '../../../components/ShopResults';
 import { Button } from '../../../components/Button';
@@ -270,6 +271,8 @@ export default function Discover() {
         <View style={styles.padded}>
           <SkeletonGrid columns={columns} />
         </View>
+      ) : feedQ.isError && items.length === 0 ? (
+        <LoadFailed onRetry={() => void feedQ.refetch()} />
       ) : items.length === 0 && q ? (
         // A search that found nothing is still a request: nobody has posted it,
         // so offer to have it made. The query becomes the request's description.

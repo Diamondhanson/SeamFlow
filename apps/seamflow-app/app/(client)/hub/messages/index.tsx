@@ -18,6 +18,7 @@ import { activeFontFamilies, Avatar, Text } from '@seamflow/ui';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonList } from '../../../../components/Skeleton';
+import { LoadFailed } from '../../../../components/LoadFailed';
 import { BOTTOM_CHROME_SPACE } from '../../../../components/BottomNav';
 import { Button } from '../../../../components/Button';
 import { useConversations } from '../../../../lib/queries';
@@ -72,6 +73,8 @@ export default function Messages() {
         <View style={styles.padded}>
           <SkeletonList leading="circle" chip />
         </View>
+      ) : q.isError && items.length === 0 ? (
+        <LoadFailed onRetry={() => void q.refetch()} />
       ) : items.length === 0 ? (
         <View style={styles.empty}>
           <Ionicons name="chatbubbles-outline" size={44} color={colors.textMuted} />

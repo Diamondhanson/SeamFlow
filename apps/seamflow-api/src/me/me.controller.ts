@@ -8,6 +8,7 @@ import { DbService } from '../db/db.service';
 import { users } from '../db/schema';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AccountService } from '../account/account.service';
+import { EmailConsentDto } from './me.dto';
 
 @Controller('me')
 export class MeController {
@@ -28,7 +29,7 @@ export class MeController {
   @Patch('emails')
   async setEmailConsent(
     @CurrentUser() user: AuthedUser,
-    @Body() body: { subscriptionEmails: boolean },
+    @Body() body: EmailConsentDto,
   ): Promise<{ subscriptionEmails: boolean }> {
     const value = body.subscriptionEmails === true;
     await this.dbService.db

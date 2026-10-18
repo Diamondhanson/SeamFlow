@@ -231,26 +231,55 @@ export class WorksService {
    * naive single-pass rewrite — shifting 2→1 while 1 still exists collides.
    */
   private async compactPositions(workId: string): Promise<void> {
-    const db = this.dbService.db;
-    const rows = await db
+    const rows = await this.dbService.db
       .select({ id: tailorWorkImages.id })
       .from(tailorWorkImages)
       .where(eq(tailorWorkImages.workId, workId))
       .orderBy(asc(tailorWorkImages.position));
 
-    for (let i = 0; i < rows.length; i++) {
-      await db
-        .update(tailorWorkImages)
-        .set({ position: -(i + 1) })
-        .where(eq(tailorWorkImages.id, rows[i]!.id));
-    }
-    for (let i = 0; i < rows.length; i++) {
-      await db
-        .update(tailorWorkImages)
-        .set({ position: i })
-        .where(eq(tailorWorkImages.id, rows[i]!.id));
-    }
+    await this.renumberImages(rows.map((r) => r.id));
   }
+
+  /**
+   * Renumber a design's photos to 0..n-1 in the order given.
+   *
+   * Still two passes through a temporary NEGATIVE range, for the reason the
+   * old code gave: the unique index on (work_id, position) rejects the
+   * intermediate states of a naive rewrite — shifting 2→1 while 1 still exists
+   * collides. Negative and non-negative ranges cannot overlap, so neither pass
+   * can collide with what it is replacing.
+   *
+   * What changed is that each pass is now ONE statement instead of one per
+   * photo. It used to be 2N sequential round trips, and with the database in
+   * eu-west-1 and the API in Oregon that is ~150 ms each — reordering six
+   * photos cost about 1.8 seconds of spinner for work that is two statements.
+   *
+   * And both passes now run in a transaction. They did not before, so a failure
+   * between them left every position negative: the carousel would read them in
+   * reverse and nothing would ever put them back.
+   */
+  private async renumberImages(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    const db = this.dbService.db;
+
+    // CASE over the id list, so the order is explicit rather than implied by
+    // whatever the planner returns.
+    const negCases = ids.map((id, i) => sql`when ${id}::uuid then ${-(i + 1)}`);
+    const posCases = ids.map((id, i) => sql`when ${id}::uuid then ${i}`);
+    const idList = sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `);
+
+    await db.transaction(async (tx) => {
+      await tx.execute(
+        sql`update ${tailorWorkImages} set position = case id ${sql.join(negCases, sql` `)} end
+            where id in (${idList})`,
+      );
+      await tx.execute(
+        sql`update ${tailorWorkImages} set position = case id ${sql.join(posCases, sql` `)} end
+            where id in (${idList})`,
+      );
+    });
+  }
+
 
   // ── Cursor ────────────────────────────────────────────────────────────────
 
@@ -355,6 +384,18 @@ export class WorksService {
     };
   }
 
+  /** The order a design cites must be one of this tailor's own. */
+  private async assertOrderOwned(tailorId: string, orderId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: orders.id })
+      .from(orders)
+      .where(and(eq(orders.tailorId, tailorId), eq(orders.id, orderId)))
+      .limit(1);
+    if (!rows[0]) {
+      throw new BadRequestException(`Order ${orderId} does not belong to this tailor`);
+    }
+  }
+
   private async requireOwned(tailorId: string, id: string): Promise<WorkRow> {
     const rows = await this.dbService.db
       .select()
@@ -401,6 +442,11 @@ export class WorksService {
         throw new NotFoundException('Image does not belong to this tailor');
       }
     }
+
+    // The images were guarded; the order backlink was not. A work could cite
+    // another tailor's order id — which is returned on the work and so would
+    // have put a foreign id on a public storefront row.
+    if (input.orderId) await this.assertOrderOwned(tailorId, input.orderId);
 
     const cover = input.images[0]!;
     const db = this.dbService.db;
@@ -522,7 +568,6 @@ export class WorksService {
   /** Promote one angle to the cover — what the grid and the feed show. */
   async setCoverImage(tailorId: string, id: string, imageId: string): Promise<Work> {
     await this.requireOwned(tailorId, id);
-    const db = this.dbService.db;
 
     const images = (await this.imagesFor([id])).get(id) ?? [];
     if (!images.some((i) => i.id === imageId)) {
@@ -535,18 +580,7 @@ export class WorksService {
       images.find((i) => i.id === imageId)!,
       ...images.filter((i) => i.id !== imageId),
     ];
-    for (let i = 0; i < reordered.length; i++) {
-      await db
-        .update(tailorWorkImages)
-        .set({ position: -(i + 1) })
-        .where(eq(tailorWorkImages.id, reordered[i]!.id));
-    }
-    for (let i = 0; i < reordered.length; i++) {
-      await db
-        .update(tailorWorkImages)
-        .set({ position: i })
-        .where(eq(tailorWorkImages.id, reordered[i]!.id));
-    }
+    await this.renumberImages(reordered.map((i) => i.id));
 
     await this.syncCover(id);
     await this.republishIfLive(tailorId, id);
@@ -825,7 +859,27 @@ export class WorksService {
     const existing = await this.postFor(id);
     if (existing) {
       // Already has a post — refresh its images and fields, and flip it live.
-      const cover = await this.syncPublicImages(existing.id, tailorId, id);
+      //
+      // syncPublicImages tears the OLD public copies down before making the new
+      // ones, so a failure halfway leaves this post with no images at all. The
+      // new-post path below handles that by deleting the row it just made; here
+      // there is no row to delete, and the old copies are already gone, so the
+      // honest recovery is to take the post out of the feed rather than leave a
+      // live design showing nothing. The tailor gets the real error and can
+      // publish again; what they must not get is a silently empty storefront.
+      let cover;
+      try {
+        cover = await this.syncPublicImages(existing.id, tailorId, id);
+      } catch (err) {
+        await db
+          .update(feedPosts)
+          .set({ status: 'hidden', updatedAt: new Date() })
+          .where(eq(feedPosts.id, existing.id));
+        this.logger.error(
+          `Re-publish of work ${id} failed; post ${existing.id} hidden rather than left empty: ${(err as Error).message}`,
+        );
+        throw err;
+      }
       await db
         .update(feedPosts)
         .set({

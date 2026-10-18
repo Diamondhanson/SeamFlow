@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, View, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -34,6 +35,7 @@ import {
 } from '@expo-google-fonts/figtree';
 import { AtelierThemeProvider, semanticForMode } from '@seamflow/ui';
 import { api } from '../lib/api';
+import { initCrashReporting } from '../lib/crash-reporting';
 import { installWebStyles } from '../lib/web-styles';
 import { installPwa } from '../lib/pwa';
 import { installOutboxFlusher } from '../lib/chat-outbox';
@@ -44,10 +46,12 @@ import {
   queryPersister,
 } from '../lib/query-client';
 import { OfflineBanner } from '../components/OfflineBanner';
+import { AppErrorBoundary } from '../components/AppErrorBoundary';
 import { ThemeModeProvider, useThemeMode } from '../lib/theme-mode';
 import { DialogProvider } from '../lib/dialog';
 import { FavoritesProvider } from '../lib/favorites';
 import { GuidesProvider } from '../lib/guides';
+import { FirstRunProvider } from '../lib/first-run';
 import { ModeProvider } from '../lib/mode';
 import { LanguageProvider } from '../lib/i18n';
 
@@ -64,6 +68,24 @@ const PUSH_ANIMATION = Platform.OS === 'ios' ? ('default' as const) : ('slide_fr
 
 
 const PERSIST_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// Before anything renders, so a failure during the first mount is reportable
+// too. A no-op until a DSN is configured — see lib/crash-reporting.ts.
+initCrashReporting();
+
+// Keep the native splash up until the fonts are in.
+//
+// expo-splash-screen was a dependency and configured in app.json, and nothing
+// ever called it — so the splash auto-hid the moment the bundle loaded, and the
+// tailor then watched a themed blank screen with a spinner while fifteen font
+// faces came off disk. Splash → spinner → app, on every cold start.
+//
+// Holding it collapses that to splash → app. The alternative — rendering
+// immediately with system fonts — would swap every piece of type on screen a
+// moment later, which looks worse than a splash that simply stays a beat
+// longer. Errors are swallowed: a splash that fails to hide is an app nobody
+// can use, and that must never be possible.
+void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   return (
@@ -101,7 +123,7 @@ function ThemedRoot() {
   // fonts are available — Fraunces / Inter / JetBrainsMono are core to
   // the brand and showing a system-font flash before they swap in would
   // be jarring on a dark-mode launch screen.
-  const [fontsReady] = useFraunces({
+  const [fontsReady, fontsError] = useFraunces({
     Fraunces_600SemiBold,
     Fraunces_700Bold,
     Inter_300Light,
@@ -120,20 +142,16 @@ function ThemedRoot() {
     Figtree_500Medium,
   });
 
-  if (!fontsReady) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: colors.bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ActivityIndicator color={colors.primary} />
-      </View>
-    );
-  }
+  // Hide the splash once the fonts are ready — or once they have failed, since
+  // a missing font must degrade to system type, never to a splash that stays up
+  // forever.
+  useEffect(() => {
+    if (fontsReady || fontsError) void SplashScreen.hideAsync().catch(() => {});
+  }, [fontsReady, fontsError]);
+
+  // Render nothing while the splash is still covering the screen. Returning
+  // null rather than a spinner is the point: the splash IS the loading state.
+  if (!fontsReady && !fontsError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -185,10 +203,15 @@ function ThemedRoot() {
             <DialogProvider>
             <FavoritesProvider>
             <GuidesProvider>
+            <FirstRunProvider>
             <AuthProvider>
             <ModeProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
               <OfflineBanner />
+              {/* Around the router, inside the providers: it catches every
+                  screen and has the theme and translations to say so in the
+                  tailor's own language. */}
+              <AppErrorBoundary>
               <Stack
                 screenOptions={{
                   headerShown: false,
@@ -201,6 +224,8 @@ function ThemedRoot() {
               >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+                {/* First run. No gesture: there is nothing behind it. */}
+                <Stack.Screen name="welcome" options={{ headerShown: false, gestureEnabled: false }} />
                 {/* Browser OAuth return leg — see app/auth/callback.tsx. */}
                 <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
                 <Stack.Screen name="verify-otp" options={{ headerShown: false }} />
@@ -208,8 +233,10 @@ function ThemedRoot() {
                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
                 <Stack.Screen name="(client)" options={{ headerShown: false }} />
               </Stack>
+              </AppErrorBoundary>
             </ModeProvider>
             </AuthProvider>
+            </FirstRunProvider>
             </GuidesProvider>
             </FavoritesProvider>
             </DialogProvider>

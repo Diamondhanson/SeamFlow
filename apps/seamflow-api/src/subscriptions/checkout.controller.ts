@@ -17,7 +17,7 @@ import { Public } from '../auth/decorators/public.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
 import { CheckoutService } from './checkout.service';
-import { SkipThrottle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 class CheckoutDto extends createZodDto(CheckoutSchema) {}
 
@@ -36,6 +36,9 @@ export class CheckoutController {
    * for features unlocked inside an app. The app already hides the flow there;
    * this is the backstop if a future change forgets to.
    */
+  // Starting a payment asks a provider to contact a phone. Ten a minute is
+  // far above any real use and far below a way to pester someone.
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('checkout')
   async start(
     @CurrentUser() user: AuthedUser,
@@ -71,8 +74,20 @@ export class CheckoutController {
    * signature IS the authentication, checked inside the provider adapter
    * against the RAW body (see main.ts `rawBody: true`).
    *
-   * Always answers 200: a provider that receives an error retries for hours,
-   * and a body we could not verify is not something a retry will fix.
+   * Answers 200 for anything it has reached a DECISION about, including a
+   * refusal: an unverified signature, a mismatched reference, an underpayment,
+   * a payment it has never heard of. None of those is something a retry fixes,
+   * and a provider that receives an error retries for hours.
+   *
+   * An unexpected failure is different and deliberately NOT caught here. Since
+   * settle() now claims the payment and grants the days in one transaction,
+   * such a failure rolls both back and leaves the row 'pending' — exactly the
+   * state the provider's retry, and the reconcile cron, know how to finish. A
+   * 500 here is the request asking to be sent again, which is the right answer.
+   *
+   * (The docstring used to say "always answers 200". It never did, and once the
+   * transaction went in, it should not: swallowing the error would have turned
+   * a recoverable payment into a silent one.)
    */
   // The provider sends from a handful of IPs and does not retry a 429 well:
   // throttling it would drop real payments. The secret check is the gate.

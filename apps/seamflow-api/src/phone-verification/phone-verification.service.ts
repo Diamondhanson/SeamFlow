@@ -22,6 +22,7 @@ import {
   type OtpSignals,
 } from './otp-provider';
 import { resolveOtpProvider } from './resolve-otp-provider';
+import { maskPhone } from '../common/redact';
 
 /**
  * Sends allowed to one number per window — each one costs money.
@@ -150,14 +151,14 @@ export class PhoneVerificationService {
       // 'config' adapters have already logged the detail loudly; 'provider' is
       // worth a line either way, since a run of them is an outage.
       this.logger.error(
-        `OTP send failed for ${phone} (${err.blame}): ${err.message}` +
+        `OTP send failed for ${maskPhone(phone)} (${err.blame}): ${err.message}` +
           (err.cause ? ` — ${String(err.cause)}` : ''),
       );
       throw new ServiceUnavailableException(
         'Could not send the code right now. Please try again shortly.',
       );
     }
-    this.logger.error(`OTP send failed for ${phone}`, err as Error);
+    this.logger.error(`OTP send failed for ${maskPhone(phone)}`, err as Error);
     throw new ServiceUnavailableException(
       'Could not send the code right now. Please try again shortly.',
     );

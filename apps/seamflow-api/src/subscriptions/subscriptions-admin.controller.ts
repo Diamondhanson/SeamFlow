@@ -13,6 +13,7 @@ import {
 } from './platform-settings.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
+import { SetEnforcementDto, SetVisibilityDto } from './subscriptions-admin.dto';
 
 class GrantDaysDto extends createZodDto(GrantDaysSchema) {}
 class PricesDto extends createZodDto(PriceTableSchema) {}
@@ -50,7 +51,7 @@ export class SubscriptionsAdminController {
   }
 
   @Post('enforcement')
-  async setEnforcement(@CurrentUser() user: AuthedUser, @Body() body: { enforced: boolean }) {
+  async setEnforcement(@CurrentUser() user: AuthedUser, @Body() body: SetEnforcementDto) {
     await this.settings.set(ENFORCEMENT_KEY, body.enforced === true, user.id);
     await this.audit.record(user.id, 'platform.enforcement', { type: 'platform' }, {
       enforced: body.enforced === true,
@@ -75,7 +76,7 @@ export class SubscriptionsAdminController {
   @Post('verification-visible')
   async setVerificationVisible(
     @CurrentUser() user: AuthedUser,
-    @Body() body: { visible: boolean },
+    @Body() body: SetVisibilityDto,
   ) {
     await this.settings.set(VERIFICATION_KEY, body.visible === true, user.id);
     await this.audit.record(user.id, 'platform.verification_visible', { type: 'platform' }, {

@@ -11,7 +11,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build:web": "pnpm --filter \"seamflow-app^...\" build && expo export --platform web",
-    "test": "jest --watchAll",
+    "test": "jest --ci --passWithNoTests",
+    "test:watch": "jest --watchAll",
     "i18n:check": "node scripts/verify-i18n.mjs",
     "lint": "expo lint && node scripts/verify-i18n.mjs",
     "eas-build-post-install": "pnpm --filter \"seamflow-app^...\" build"
@@ -73,6 +74,7 @@
     "expo-status-bar": "~55.0.6",
     "expo-symbols": "~55.0.8",
     "expo-system-ui": "~55.0.18",
+    "expo-updates": "~55.0.22",
     "expo-web-browser": "~55.0.16",
     "libphonenumber-js": "^1.11.0",
     "react": "19.2.0",

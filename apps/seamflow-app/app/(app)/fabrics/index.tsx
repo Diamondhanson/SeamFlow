@@ -10,6 +10,7 @@ import { ScreenHeader } from '../../../components/ScreenHeader';
 import { HelpCard } from '../../../components/HelpCard';
 import { Input } from '../../../components/Input';
 import { SkeletonList } from '../../../components/Skeleton';
+import { LoadFailed } from '../../../components/LoadFailed';
 import { useFabrics, useMe } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
@@ -18,7 +19,7 @@ import { useDebouncedValue } from '../../../lib/use-debounced-value';
 import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
 
 export default function FabricsList() {
-  const { data, isLoading, refetch } = useFabrics();
+  const { data, isLoading, isError, refetch } = useFabrics();
   // Refresh when returning from create / edit / delete so the list is current.
   useFocusEffect(useCallback(() => { void refetch(); }, [refetch]));
   const { data: me } = useMe();
@@ -94,6 +95,11 @@ export default function FabricsList() {
         <View style={styles.skeletonWrap}>
           <SkeletonList leading="square" />
         </View>
+      ) : isError && !data ? (
+        // This screen has no empty state of its own — the list simply renders
+        // nothing — so a failed load was indistinguishable from an empty
+        // fabric library.
+        <LoadFailed onRetry={() => void refetch()} />
       ) : (
         <FlatList
           {...scroll}

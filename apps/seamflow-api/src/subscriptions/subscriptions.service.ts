@@ -22,6 +22,8 @@
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
+import { reportJobFailure } from '../common/sentry';
 import { and, count, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import {
   billingFor,
@@ -37,7 +39,7 @@ import {
   type SubscriptionStatus,
 } from '@seamflow/schemas';
 import { ConfigService } from '@nestjs/config';
-import { DbService } from '../db/db.service';
+import { DbService, type Executor } from '../db/db.service';
 import { EmailService } from '../notifications/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { reminderEmail } from './subscription-emails';
@@ -191,19 +193,22 @@ export class SubscriptionsService {
    * Created here rather than by a trigger so the trial length is one constant
    * in code, visible beside the rules it governs.
    */
-  async ensureFor(tailorId: string): Promise<SubscriptionRow> {
-    const existing = await this.rowFor(tailorId);
+  async ensureFor(tailorId: string, exec: Executor = this.db): Promise<SubscriptionRow> {
+    const existing = await this.rowFor(tailorId, exec);
     if (existing) return existing;
-    const [row] = await this.db
+    const [row] = await exec
       .insert(subscriptions)
       .values({ tailorId, status: 'trialing', trialEndsAt: addDays(new Date(), TRIAL_DAYS) })
       .onConflictDoNothing()
       .returning();
-    return row ?? (await this.rowFor(tailorId))!;
+    return row ?? (await this.rowFor(tailorId, exec))!;
   }
 
-  private async rowFor(tailorId: string): Promise<SubscriptionRow | null> {
-    const rows = await this.db
+  private async rowFor(
+    tailorId: string,
+    exec: Executor = this.db,
+  ): Promise<SubscriptionRow | null> {
+    const rows = await exec
       .select()
       .from(subscriptions)
       .where(eq(subscriptions.tailorId, tailorId))
@@ -329,9 +334,16 @@ export class SubscriptionsService {
   async extendPremium(
     tailorId: string,
     days: number,
-    opts: { plan?: SubscriptionPlan; method?: SubscriptionPaymentMethod; reason?: string } = {},
+    opts: {
+      plan?: SubscriptionPlan;
+      method?: SubscriptionPaymentMethod;
+      reason?: string;
+      /** Run inside a caller's transaction — see checkout.service.settle. */
+      exec?: Executor;
+    } = {},
   ): Promise<SubscriptionRow> {
-    const row = await this.ensureFor(tailorId);
+    const exec = opts.exec ?? this.db;
+    const row = await this.ensureFor(tailorId, exec);
     const now = new Date();
     const candidates = [now, row.premiumUntil, row.trialEndsAt].filter(
       (d): d is Date => !!d && d > now,
@@ -340,7 +352,7 @@ export class SubscriptionsService {
       ? new Date(Math.max(...candidates.map((d) => d.getTime())))
       : now;
     const premiumUntil = addDays(base, days);
-    const [updated] = await this.db
+    const [updated] = await exec
       .update(subscriptions)
       .set({
         premiumUntil,
@@ -354,10 +366,16 @@ export class SubscriptionsService {
       })
       .where(eq(subscriptions.tailorId, tailorId))
       .returning();
+    // No non-null assertion: the row is guaranteed by ensureFor above, but if
+    // that ever stops being true this has to fail loudly inside the caller's
+    // transaction rather than return undefined and be dereferenced later.
+    if (!updated) {
+      throw new Error(`Subscription for tailor ${tailorId} vanished mid-update`);
+    }
     this.logger.log(
       `Tailor ${tailorId}: +${days} day(s)${opts.reason ? ` (${opts.reason})` : ''} → ${premiumUntil.toISOString()}`,
     );
-    return updated!;
+    return updated;
   }
 
   /** Move a trial's end date. The safety net if payments are delayed. */
@@ -453,6 +471,26 @@ export class SubscriptionsService {
     return pref?.language ?? 'en';
   }
 
+  /**
+   * Languages for many tailors in one query.
+   *
+   * `languageFor` is still the right call for a single tailor on a request
+   * path; this exists so a job over N tailors is one round trip rather than N.
+   */
+  async languagesFor(tailorIds: string[]): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    if (tailorIds.length === 0) return out;
+    const rows = await this.db
+      .select({
+        tailorId: notificationPreferences.tailorId,
+        language: notificationPreferences.language,
+      })
+      .from(notificationPreferences)
+      .where(inArray(notificationPreferences.tailorId, [...new Set(tailorIds)]));
+    for (const r of rows) if (r.language) out.set(r.tailorId, r.language);
+    return out;
+  }
+
   /** Card dunning (appendix I.6): keep access while retries run. */
   async startGrace(tailorId: string): Promise<void> {
     await this.db
@@ -496,11 +534,24 @@ export class SubscriptionsService {
    * Runs once a day at a fixed hour and matches on whole days remaining, so a
    * given tailor gets each of the four at most once.
    */
-  @Cron('0 9 * * *')
+  @Cron('0 9 * * *', { timeZone: CRON_TZ })
   async renewalReminders(): Promise<{ sent: number; emailed: number }> {
     if (!this.dbService.isConfigured()) return { sent: 0, emailed: 0 };
     let emailed = 0;
     try {
+      // Only the rows that can possibly be due.
+      //
+      // This used to select EVERY subscription and filter in JavaScript, then
+      // do three sequential awaits per surviving row — a language lookup, an
+      // email and a push. With the database in eu-west-1 and the API in Oregon
+      // that is ~150 ms a hop, so a thousand tailors meant thousands of
+      // sequential transatlantic round trips inside one cron tick, almost all
+      // of them to discard a row that was not due.
+      //
+      // The window is bounded by the furthest reminder day, so the database can
+      // do the filtering. `daysUntil` still decides below — this only narrows
+      // what has to be read, it does not re-implement the rule.
+      const horizon = addDays(new Date(), REMINDER_DAYS[0]! + 1);
       const rows = await this.db
         .select({
           tailorId: subscriptions.tailorId,
@@ -510,19 +561,35 @@ export class SubscriptionsService {
           premiumUntil: subscriptions.premiumUntil,
         })
         .from(subscriptions)
-        .innerJoin(tailors, eq(tailors.id, subscriptions.tailorId));
+        .innerJoin(tailors, eq(tailors.id, subscriptions.tailorId))
+        .where(
+          or(
+            lte(subscriptions.trialEndsAt, horizon),
+            lte(subscriptions.premiumUntil, horizon),
+          ),
+        );
 
-      let sent = 0;
-      for (const row of rows) {
+      // Decide who is actually due before touching the network for any of them.
+      const due = rows.filter((row) => {
         const endsAt =
           row.premiumUntil && row.premiumUntil > new Date() ? row.premiumUntil : row.trialEndsAt;
         const days = daysUntil(endsAt);
-        if (!REMINDER_DAYS.includes(days)) continue;
+        if (!REMINDER_DAYS.includes(days)) return false;
         // Never nag someone who is already paid up well beyond this window.
-        if (row.premiumUntil && daysUntil(row.premiumUntil) > REMINDER_DAYS[0]!) continue;
+        if (row.premiumUntil && daysUntil(row.premiumUntil) > REMINDER_DAYS[0]!) return false;
+        return true;
+      });
 
+      // One query for every language instead of one per tailor.
+      const languages = await this.languagesFor(due.map((r) => r.tailorId));
+
+      let sent = 0;
+      for (const row of due) {
+        const endsAt =
+          row.premiumUntil && row.premiumUntil > new Date() ? row.premiumUntil : row.trialEndsAt;
+        const days = daysUntil(endsAt);
         const paid = !!row.premiumUntil && row.premiumUntil > new Date();
-        const language = await this.languageFor(row.tailorId);
+        const language = languages.get(row.tailorId) ?? 'en';
         const copy = EXPIRY_PUSH[language] ?? EXPIRY_PUSH.en!;
         if (await this.emailReminder(row.userId, row.countryCode, language, days, paid)) emailed++;
         await this.notifications.emit(row.userId, {
@@ -539,6 +606,7 @@ export class SubscriptionsService {
       return { sent, emailed };
     } catch (err) {
       this.logger.error(`Renewal reminders failed: ${(err as Error).message}`);
+      reportJobFailure('renewalReminders', err);
       return { sent: 0, emailed };
     }
   }
@@ -578,7 +646,7 @@ export class SubscriptionsService {
    * missing a subscription row. Neither affects entitlement — that is computed
    * from dates on every request — so a missed run costs nothing.
    */
-  @Cron('10 4 * * *')
+  @Cron('10 4 * * *', { timeZone: CRON_TZ })
   async nightly(): Promise<void> {
     if (!this.dbService.isConfigured()) return;
     try {
@@ -589,6 +657,7 @@ export class SubscriptionsService {
       }
     } catch (err) {
       this.logger.error(`Subscription housekeeping failed: ${(err as Error).message}`);
+      reportJobFailure('subscriptionNightly', err);
     }
   }
 

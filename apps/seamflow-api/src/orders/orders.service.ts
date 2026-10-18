@@ -10,6 +10,8 @@ import { DbService } from '../db/db.service';
 import {
   clients,
   fabrics,
+  groupOrderMembers,
+  groupOrders,
   orderClaims,
   orderEvents,
   orderItems,
@@ -86,6 +88,46 @@ export class OrdersService {
       .where(and(eq(fabrics.tailorId, tailorId), eq(fabrics.id, fabricId)))
       .limit(1);
     if (!rows[0]) throw new NotFoundException(`Fabric ${fabricId} not found`);
+  }
+
+  /**
+   * The group an order is filed under, and the member within it.
+   *
+   * `clientId` and `fabricId` were checked here from the start; these two were
+   * not, so an order could be attached to another tailor's group order. No read
+   * leaked (every list and get in this service is filtered by tailorId as
+   * well), but it wrote a row across a tenant boundary — and `groupOrderId` is
+   * a filter callers can pass to `list`, so the two halves were one query apart
+   * from being a real one.
+   */
+  private async assertGroupOwned(tailorId: string, groupOrderId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: groupOrders.id })
+      .from(groupOrders)
+      .where(and(eq(groupOrders.tailorId, tailorId), eq(groupOrders.id, groupOrderId)))
+      .limit(1);
+    if (!rows[0]) throw new NotFoundException(`Group order ${groupOrderId} not found`);
+  }
+
+  private async assertGroupMemberOwned(tailorId: string, memberId: string): Promise<void> {
+    const rows = await this.dbService.db
+      .select({ id: groupOrderMembers.id })
+      .from(groupOrderMembers)
+      .innerJoin(groupOrders, eq(groupOrders.id, groupOrderMembers.groupOrderId))
+      .where(and(eq(groupOrders.tailorId, tailorId), eq(groupOrderMembers.id, memberId)))
+      .limit(1);
+    if (!rows[0]) throw new NotFoundException(`Group order member ${memberId} not found`);
+  }
+
+  /** Both group pointers on a create or update body. */
+  private async assertGroupRefsOwned(
+    tailorId: string,
+    data: { groupOrderId?: string | null; groupOrderMemberId?: string | null },
+  ): Promise<void> {
+    if (data.groupOrderId) await this.assertGroupOwned(tailorId, data.groupOrderId);
+    if (data.groupOrderMemberId) {
+      await this.assertGroupMemberOwned(tailorId, data.groupOrderMemberId);
+    }
   }
 
   /**
@@ -197,53 +239,63 @@ export class OrdersService {
   ): Promise<OrderRow> {
     const clientId = await this.resolveClientId(tailorId, data);
     if (data.fabricId) await this.assertFabricOwned(tailorId, data.fabricId);
+    await this.assertGroupRefsOwned(tailorId, data);
 
-    const [created] = await this.dbService.db
-      .insert(orders)
-      .values({
-        tailorId,
-        clientId,
-        groupOrderId: data.groupOrderId ?? null,
-        groupOrderMemberId: data.groupOrderMemberId ?? null,
-        fabricId: data.fabricId ?? null,
-        fabricYardageUsed:
-          data.fabricYardageUsed != null ? String(data.fabricYardageUsed) : null,
-        orderName: data.orderName,
-        dateOrdered: data.dateOrdered ? new Date(data.dateOrdered) : new Date(),
-        dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
-        status: 'registered',
-        notes: data.notes ?? null,
-        totalAmount: data.totalAmount != null ? String(data.totalAmount) : null,
-        currency: data.currency ?? null,
-      })
-      .returning();
-    if (!created) throw new NotFoundException('Order insert returned no row');
+    // One transaction for the order, its line items and its creation event.
+    //
+    // These were three separate statements. A failure after the first left an
+    // order with no items and no 'created' entry — and order_events is
+    // append-only, so nothing reconstructs the missing one. The tailor would
+    // see an order with nothing in it and no way to tell whether that was the
+    // app's fault or their own.
+    return this.dbService.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(orders)
+        .values({
+          tailorId,
+          clientId,
+          groupOrderId: data.groupOrderId ?? null,
+          groupOrderMemberId: data.groupOrderMemberId ?? null,
+          fabricId: data.fabricId ?? null,
+          fabricYardageUsed:
+            data.fabricYardageUsed != null ? String(data.fabricYardageUsed) : null,
+          orderName: data.orderName,
+          dateOrdered: data.dateOrdered ? new Date(data.dateOrdered) : new Date(),
+          dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
+          status: 'registered',
+          notes: data.notes ?? null,
+          totalAmount: data.totalAmount != null ? String(data.totalAmount) : null,
+          currency: data.currency ?? null,
+        })
+        .returning();
+      if (!created) throw new NotFoundException('Order insert returned no row');
 
-    // Inline items (optional)
-    if (data.items && data.items.length > 0) {
-      await this.dbService.db.insert(orderItems).values(
-        data.items.map((it) => ({
-          orderId: created.id,
-          garmentType: it.garmentType,
-          measurements: it.measurements ?? null,
-          notes: it.notes ?? null,
-          quantity: it.quantity ?? 1,
-          unitPrice: it.unitPrice != null ? String(it.unitPrice) : null,
-        })),
-      );
-    }
+      // Inline items (optional)
+      if (data.items && data.items.length > 0) {
+        await tx.insert(orderItems).values(
+          data.items.map((it) => ({
+            orderId: created.id,
+            garmentType: it.garmentType,
+            measurements: it.measurements ?? null,
+            notes: it.notes ?? null,
+            quantity: it.quantity ?? 1,
+            unitPrice: it.unitPrice != null ? String(it.unitPrice) : null,
+          })),
+        );
+      }
 
-    // Audit event: order created
-    await this.dbService.db.insert(orderEvents).values({
-      orderId: created.id,
-      actorUserId,
-      eventType: 'created',
-      fromStatus: null,
-      toStatus: 'registered',
-      payload: { orderName: created.orderName },
+      // Audit event: order created
+      await tx.insert(orderEvents).values({
+        orderId: created.id,
+        actorUserId,
+        eventType: 'created',
+        fromStatus: null,
+        toStatus: 'registered',
+        payload: { orderName: created.orderName },
+      });
+
+      return created;
     });
-
-    return created;
   }
 
   async update(
@@ -252,6 +304,7 @@ export class OrdersService {
     data: OrderUpdateInput,
   ): Promise<OrderRow> {
     await this.getById(tailorId, id);
+    await this.assertGroupRefsOwned(tailorId, data);
 
     const patch: Partial<typeof orders.$inferInsert> = { updatedAt: new Date() };
     if (data.groupOrderId !== undefined) patch.groupOrderId = data.groupOrderId;

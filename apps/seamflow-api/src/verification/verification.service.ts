@@ -315,51 +315,66 @@ export class VerificationService {
     }
 
     const now = new Date();
-    const [updated] = await db
-      .update(verificationRequests)
-      .set({
-        status: approve ? 'approved' : 'rejected',
-        decidedAt: now,
-        decidedBy: staffUserId,
-        decisionNote: trimmed,
-        updatedAt: now,
-      })
-      .where(eq(verificationRequests.id, requestId))
-      .returning();
 
-    // The badge and its provenance move together. `verifiedAt` is what tells a
-    // later reader this one was granted on evidence rather than by the old
-    // criteria-free button.
-    if (approve) {
-      await db
-        .update(tailors)
-        .set({ isVerified: true, verifiedAt: now, verifiedNote: trimmed, updatedAt: now })
-        .where(eq(tailors.id, existing.tailorId));
-    }
+    // All three writes in one transaction.
+    //
+    // "The badge and its provenance move together" was the intent and nothing
+    // enforced it. The decision was recorded first and the badge applied
+    // second, so a failure in between left the request reading 'approved' with
+    // no badge on the shop — and `decide` refuses any request that is not
+    // pending, so staff could not re-approve it. It took a hand edit of the
+    // database to unstick, and nothing surfaced that it needed one.
+    const updated = await db.transaction(async (tx) => {
+      const [req] = await tx
+        .update(verificationRequests)
+        .set({
+          status: approve ? 'approved' : 'rejected',
+          decidedAt: now,
+          decidedBy: staffUserId,
+          decisionNote: trimmed,
+          updatedAt: now,
+        })
+        .where(eq(verificationRequests.id, requestId))
+        .returning();
+      if (!req) throw new NotFoundException('No such request.');
 
-    // The social handle is published on its own evidence, not on the decision.
-    // A staff member who found the code confirms it whether or not they
-    // approved the rest — and one who did not find it publishes nothing, so a
-    // handle on a storefront always means somebody looked.
-    if (confirmSocial) {
-      const social = ((existing.evidence ?? []) as VerificationEvidence[]).find(
-        (e): e is Extract<VerificationEvidence, { kind: 'social' }> => e.kind === 'social',
-      );
-      if (social) {
-        await db
+      // `verifiedAt` is what tells a later reader this one was granted on
+      // evidence rather than by the old criteria-free button.
+      if (approve) {
+        await tx
           .update(tailors)
-          .set({
-            socialPlatform: social.platform,
-            socialHandle: social.handle,
-            socialConfirmedAt: now,
-            updatedAt: now,
-          })
+          .set({ isVerified: true, verifiedAt: now, verifiedNote: trimmed, updatedAt: now })
           .where(eq(tailors.id, existing.tailorId));
       }
-    }
 
+      // The social handle is published on its own evidence, not on the
+      // decision. A staff member who found the code confirms it whether or not
+      // they approved the rest — and one who did not find it publishes
+      // nothing, so a handle on a storefront always means somebody looked.
+      if (confirmSocial) {
+        const social = ((existing.evidence ?? []) as VerificationEvidence[]).find(
+          (e): e is Extract<VerificationEvidence, { kind: 'social' }> => e.kind === 'social',
+        );
+        if (social) {
+          await tx
+            .update(tailors)
+            .set({
+              socialPlatform: social.platform,
+              socialHandle: social.handle,
+              socialConfirmedAt: now,
+              updatedAt: now,
+            })
+            .where(eq(tailors.id, existing.tailorId));
+        }
+      }
+
+      return req;
+    });
+
+    // Outside the transaction: a push that fails must not undo a decision a
+    // staff member already made.
     await this.notifyDecision(existing.tailorId, requestId, approve, trimmed);
-    return this.toRequest(updated!);
+    return this.toRequest(updated);
   }
 
   /**

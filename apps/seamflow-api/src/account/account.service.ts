@@ -16,11 +16,12 @@
 
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull } from 'drizzle-orm';
 import {
   DELETION_GRACE_DAYS,
   REAUTH_MAX_AGE_SECONDS,
@@ -148,17 +149,60 @@ export class AccountService {
     return this.getState(userId);
   }
 
-  /** Change of mind. Only possible while the row is still pending. */
+  /**
+   * Change of mind. Only possible while the grace period is still running.
+   *
+   * The deadline test is the important half, and it used to be missing: the
+   * only condition was `deleted_at is null`.
+   *
+   * The purge is a sequence, not an instant. It deletes the `tailors` row —
+   * and with it, by cascade, every client, order, invoice and design — at step
+   * 2, and only writes the `deleted_at` tombstone at step 4. Credentials
+   * survive until step 5, so the account can still be signed into throughout.
+   * That leaves a window in which the data is already gone and `deleted_at` is
+   * still null, and a cancel landing inside it used to SUCCEED: it cleared both
+   * timestamps and handed back a live, ordinary-looking account with nothing in
+   * it and no record that a deletion had ever run. Tomorrow's purge would not
+   * pick them up either, because the schedule it reads had just been erased.
+   *
+   * No failure was needed for that — a cancel racing a purge that was midway
+   * through was enough.
+   *
+   * So once `deletion_scheduled_for` has passed, the answer is no. The window
+   * closes before the purge can open it, and the refusal is explicit rather
+   * than a silent no-op, because someone who tapped Cancel has to be told
+   * whether it worked.
+   */
   async cancelDeletion(userId: string): Promise<DeletionState> {
     const db = this.db.db;
-    await db
+    const cancelled = await db
       .update(users)
       .set({
         deletionRequestedAt: null,
         deletionScheduledFor: null,
         updatedAt: new Date(),
       })
-      .where(and(eq(users.id, userId), isNull(users.deletedAt)));
+      .where(
+        and(
+          eq(users.id, userId),
+          isNull(users.deletedAt),
+          gt(users.deletionScheduledFor, new Date()),
+        ),
+      )
+      .returning({ id: users.id });
+
+    if (!cancelled.length) {
+      // Either nothing was pending, or the deadline has gone. Distinguish the
+      // two: a cancel with nothing to cancel is a harmless double-tap, while a
+      // cancel after the deadline must not report success.
+      const state = await this.getState(userId);
+      if (!state.requestedAt) return state;
+      throw new ConflictException({
+        error: 'deletion_already_due',
+        message:
+          'The 30 days have passed and this account is being deleted. It can no longer be cancelled.',
+      });
+    }
 
     // No un-hiding to do: clearing the timestamp above already makes every
     // public query see them again, exactly as they left it.

@@ -21,6 +21,7 @@ import {
   type ReactNode,
 } from 'react';
 import { I18nManager } from 'react-native';
+import * as Updates from 'expo-updates';
 import { IS_RTL, LANGUAGE_STORAGE_KEY } from '@seamflow/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES, translations, type LanguageCode } from './strings';
@@ -82,6 +83,8 @@ interface I18nState {
   intl: string;
   /** Returns `{ requiresRestart }` — true when the direction changed. */
   setLanguage: (l: LanguageCode) => { requiresRestart: boolean };
+  /** Reopen the app to apply a direction change. False when it could not. */
+  reloadNow: () => Promise<boolean>;
   t: (key: string, vars?: Record<string, string | number>) => string;
   ready: boolean;
 }
@@ -127,10 +130,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
    * nothing needs to be read synchronously at boot — the next cold start is
    * already correct before React mounts.
    *
-   * The reload is not automated because neither app bundles expo-updates, and
-   * adding a native module for this is not a change worth making blind. To
-   * upgrade: install expo-updates, then call Updates.reloadAsync() where the
-   * caller currently shows its dialog. Nothing else here changes.
+   * `reloadNow()` below does the reopening for us where it can. It is kept
+   * SEPARATE from this function on purpose: applying the direction must not
+   * depend on a reload succeeding, so the two are ordered — store and apply
+   * first, offer to reload second. A caller that ignores the reload still
+   * leaves the app correct on next launch.
    */
   const setLanguage = useCallback((l: LanguageCode): { requiresRestart: boolean } => {
     setLang(l);
@@ -155,6 +159,29 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return { requiresRestart: true };
   }, []);
 
+  /**
+   * Reopen the app so a direction change takes effect now.
+   *
+   * `I18nManager.forceRTL` only lands when the native view hierarchy is
+   * recreated, so Arabic (and any future RTL language) needs the app to come
+   * back up. Without this the only honest thing to show was "please close and
+   * reopen", which is a poor thing to say to someone who has just chosen their
+   * language on the very first screen they have ever seen.
+   *
+   * Returns false when it could not — `reloadAsync` rejects in Expo Go, in a
+   * development build, and whenever updates are disabled — and the caller then
+   * falls back to asking. It never throws: a failed reload must leave the app
+   * running and correct-on-next-launch, not broken.
+   */
+  const reloadNow = useCallback(async (): Promise<boolean> => {
+    try {
+      await Updates.reloadAsync();
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) =>
       interpolate(lookup(language, key), vars),
@@ -167,13 +194,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       return {
         language,
         setLanguage,
+        reloadNow,
         t,
         ready,
         dir: def?.dir ?? 'ltr',
         intl: def?.intl ?? 'en-US',
       };
     },
-    [language, setLanguage, t, ready],
+    [language, setLanguage, reloadNow, t, ready],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

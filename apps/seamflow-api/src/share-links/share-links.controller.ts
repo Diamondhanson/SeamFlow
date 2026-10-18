@@ -1,4 +1,5 @@
 import { Controller, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthedUser } from '../auth/auth.types';
 import { TailorsService } from '../tailors/tailors.service';
@@ -16,6 +17,9 @@ export class ShareLinksController {
    * every call rather than caching — keeps the surface small and means a
    * tailor reshare always issues a token bound to a current timestamp.
    */
+  // Every call mints a row and a publicly reachable URL, so this is the one
+  // write here that accumulates something outside the account.
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('orders/:orderId/share-link')
   async issue(
     @CurrentUser() user: AuthedUser,

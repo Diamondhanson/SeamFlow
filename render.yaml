@@ -14,7 +14,16 @@ services:
     runtime: docker
     repo: https://github.com/Diamondhanson/SeamFlow
     plan: free
-    region: oregon            # pick the region nearest your Supabase project
+    # MUST match the database's region. DATABASE_URL points at
+    # aws-0-eu-west-1 (Ireland), and Render has no Ireland region, so Frankfurt
+    # is the nearest (~1,100 km vs ~7,700 km from Oregon) — about 20 ms a round
+    # trip instead of 150 ms, paid on every single query.
+    #
+    # This field only applies when a service is FIRST CREATED. Changing it here
+    # does not move the running service; see docs/render-region-move.md for the
+    # sequence, which has to put a custom domain in front first so the installed
+    # app builds do not break.
+    region: frankfurt
     dockerfilePath: ./apps/seamflow-api/Dockerfile
     dockerContext: .          # build context = repo root (resolves @seamflow/*)
     healthCheckPath: /health

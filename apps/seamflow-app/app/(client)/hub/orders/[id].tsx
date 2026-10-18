@@ -6,6 +6,7 @@ import type { OrderStatus } from '@seamflow/schemas';
 import { Screen } from '../../../../components/Screen';
 import { ScreenHeader } from '../../../../components/ScreenHeader';
 import { SkeletonDetail } from '../../../../components/Skeleton';
+import { LoadFailed } from '../../../../components/LoadFailed';
 import { useConsumerOrder } from '../../../../lib/consumer-queries';
 import { spacing, radii } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
@@ -22,7 +23,20 @@ export default function ConsumerOrderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
-  const { data, isLoading } = useConsumerOrder(id);
+  const { data, isLoading, isError, refetch } = useConsumerOrder(id);
+
+  // `isLoading || !data` showed the skeleton FOREVER on a failed request:
+  // isLoading goes false, data stays undefined, and the condition stays true.
+  // A client tapping their order got a loading state that never resolved and
+  // no way to tell whether it was slow or broken.
+  if (isError && !data) {
+    return (
+      <Screen>
+        <ScreenHeader title={t('corders.detailTitle')} />
+        <LoadFailed onRetry={() => void refetch()} />
+      </Screen>
+    );
+  }
 
   if (isLoading || !data) {
     return (

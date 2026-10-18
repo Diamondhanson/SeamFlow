@@ -17,6 +17,11 @@
  *
  *   ANDROID_CERT_FINGERPRINTS="AA:BB:...,11:22:..."
  *
+ * For this app that means the SHA-256 of GOOGLE'S signing key, read from Play
+ * Console → Setup → App signing — NOT the upload key. Play App Signing re-signs
+ * every build, so the upload key's fingerprint never appears on a device and
+ * verification would fail with a document that looks correct.
+ *
  * Until it is set this returns an empty target list, which is a valid document
  * that simply verifies nothing. Links keep opening in the browser — the
  * behaviour we already have — and no cached failure has to be undone later.
@@ -27,8 +32,21 @@
  * (www.seamflowtech.com — see catalogueUrl in @seamflow/utils).
  */
 
-/** Must match `android.package` in apps/seamflow-client/app.json. */
-const CLIENT_PACKAGE = 'com.bambothanson.seamflowclient';
+/**
+ * Must match `android.package` in the app that is actually INSTALLED.
+ *
+ * This said `com.bambothanson.seamflowclient` — apps/seamflow-client, which
+ * has a placeholder EAS project id and has never been built. The app on
+ * people's phones is apps/seamflow-app, whose package is below and which is
+ * locked (it is the Play Store listing). Pointing this at the unbuilt app meant
+ * Android verified a claim about software that does not exist, so catalogue
+ * links opened the browser — with the web page as a working fallback, so
+ * nothing looked broken.
+ *
+ * If seamflow-client is ever built and shipped, add a SECOND target object for
+ * it rather than changing this one: the document takes a list.
+ */
+const APP_PACKAGE = 'com.bambothanson.FashionApp';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +62,7 @@ export function GET() {
           relation: ['delegate_permission/common.handle_all_urls'],
           target: {
             namespace: 'android_app',
-            package_name: CLIENT_PACKAGE,
+            package_name: APP_PACKAGE,
             sha256_cert_fingerprints: fingerprints,
           },
         },

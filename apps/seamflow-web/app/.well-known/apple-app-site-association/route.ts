@@ -4,8 +4,9 @@
  * INERT UNTIL THE APPLE DEVELOPER PROGRAM IS PAID. The document needs a Team
  * ID, which only exists once the $99/yr membership does (tracked in
  * docs/ROADMAP.md). Written now so switching iOS on later is configuration
- * rather than code: set APPLE_TEAM_ID, add the `associatedDomains` entitlement
- * to the client app, ship a build.
+ * rather than code: set APPLE_TEAM_ID and ship a build. The `associatedDomains`
+ * entitlement is now on apps/seamflow-app (it used to be on seamflow-client,
+ * which never shipped — see docs/qa-audit-plan.md finding A-1).
  *
  * Two details this file gets right that are easy to get wrong:
  *
@@ -20,8 +21,16 @@
  * audience for the client app and should not be pushed toward an install.
  */
 
-/** Must match `ios.bundleIdentifier` in apps/seamflow-client/app.json. */
-const CLIENT_BUNDLE_ID = 'com.bambothanson.seamflowclient';
+/**
+ * Must match `ios.bundleIdentifier` in the app that is actually SHIPPED.
+ *
+ * This said `com.bambothanson.seamflowclient` — apps/seamflow-client, which has
+ * never been built. The shipping app is apps/seamflow-app, bundle id below.
+ *
+ * If seamflow-client is ever shipped, add a second entry to `details` rather
+ * than changing this one.
+ */
+const APP_BUNDLE_ID = 'com.seamflowtech.app';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +41,7 @@ export function GET() {
   // treats that as "this domain claims nothing", which is exactly true today,
   // and is safer than publishing an appID built around a guessed Team ID.
   const details = teamId
-    ? [{ appID: `${teamId}.${CLIENT_BUNDLE_ID}`, paths: ['/t/*', '/fr/t/*'] }]
+    ? [{ appID: `${teamId}.${APP_BUNDLE_ID}`, paths: ['/t/*', '/fr/t/*'] }]
     : [];
 
   const body = {

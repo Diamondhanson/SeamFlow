@@ -68,3 +68,4 @@ phone screenshots. /
 # local EAS build log also contains the signing keystore.
 *.apk
 *.aab
+backups/

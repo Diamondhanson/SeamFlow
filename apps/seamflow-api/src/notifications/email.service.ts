@@ -15,6 +15,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { maskEmail } from '../common/redact';
 
 const RESEND_URL = 'https://api.resend.com/emails';
 
@@ -52,7 +53,7 @@ export class EmailService {
     const from = this.config.get<string>('EMAIL_FROM');
     const replyTo = this.config.get<string>('EMAIL_REPLY_TO');
     if (!key || !from) {
-      this.logger.warn(`Email not configured; would have sent "${email.subject}" to ${email.to}`);
+      this.logger.warn(`Email not configured; would have sent "${email.subject}" to ${maskEmail(email.to)}`);
       return false;
     }
     try {
@@ -69,7 +70,7 @@ export class EmailService {
         }),
       });
       if (!res.ok) {
-        this.logger.error(`Resend refused "${email.subject}" to ${email.to}: ${res.status} ${await res.text()}`);
+        this.logger.error(`Resend refused "${email.subject}" to ${maskEmail(email.to)}: ${res.status} ${await res.text()}`);
         return false;
       }
       return true;
