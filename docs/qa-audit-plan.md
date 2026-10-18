@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–3 complete and fixed. Phase 4 static audit done; runtime sweep outstanding.**
+Started: 2026-10-17. Status: **Phases 0–4 complete; all code findings fixed. Phase 4 runtime sweep and the Apple-gated items outstanding.**
 
 ---
 
@@ -477,6 +477,54 @@ fresh dev client built and driven, which is a task in its own right.
   than failing unrecoverably, retry that skips 4xx, and a comment recording the
   exact web NetInfo bug that once made screens render their empty states over
   real data.
+
+## Phase 4 fixes — applied 2026-10-18
+
+`turbo run lint test` 23/23 green, i18n guard clean in both apps.
+
+**Four of my own findings were wrong, and verifying each one before fixing it is
+how that surfaced.** Recorded here rather than quietly corrected, because an
+audit that over-reports is as expensive to act on as one that under-reports.
+
+| # | What changed |
+|---|---|
+| A-1 | The entitlement and the App Links filter moved to `seamflow-app`, and both well-known routes now name its bundle id and package. Two notes left for whoever switches it on: the share plan's "no code change needed" was true of the app that does not ship, and `ANDROID_CERT_FINGERPRINTS` must be the SHA-256 of **Google's** signing key from Play Console, not the upload key — Play App Signing re-signs every build, so the upload key's fingerprint never reaches a device and verification fails against a document that looks correct. |
+| A-5 | New `<LoadFailed>`, wired into 14 screens. Every branch is gated on having nothing cached, so a background refetch that fails behind existing rows leaves them alone. One new string (`common.loadFailed`) in all six locales; the retry button reuses `common.retry`. |
+| A-6 | One screen, not seven — see the corrections. `designs/[id]` now has `SkeletonDetail` plus an error branch. |
+| A-7 | Three buttons labelled, not four. |
+| A-8 | The notification preferences screen now says when the OS is dropping notifications and offers a Settings route, via a new `getPushPermissionState()` that reads the permission **without** prompting. |
+
+### Where the audit was wrong
+
+- **A-6 counted seven screens; one was real.** `discover/tailor/[tailorId]` and
+  `(client)/t/[slug]` get their skeleton from `StorefrontView` one component
+  down. `hub/claim` is a pure form — exempt by `CLAUDE.md` — and its error
+  handling was already correct. And `share-receive`, `works/describe` and
+  `assistant` spin on an in-flight action rather than a first-paint fetch, where
+  a spinner is the right control and a skeleton would be wrong.
+- **A-5 listed `hub/claim`**, which has no query at all.
+- **`(client)/t/[slug]` already handled its error** through a `notFound` prop
+  with a "no such catalogue" message — better than the generic one, so it now
+  takes precedence over the new branch.
+- **A-7 counted four unlabelled buttons; three were real.** The fourth,
+  in `share-receive`, is a `Pressable` containing a `<Text>`, so it already
+  reads out correctly.
+
+### Two found while fixing, worse than what was reported
+
+- **`hub/orders/[id]` showed the skeleton forever.** Its guard was
+  `isLoading || !data`, which stays true once a fetch fails — `isLoading` goes
+  false and `data` never arrives. A client tapping their order got a loading
+  state that never resolved.
+- **`designs/[id]` used one bare "Loading…"** for three different situations:
+  still fetching, failed, and genuinely missing.
+
+### Still needs the Apple Developer Program
+
+A-2 (Apple Sign-In), A-3 (the first iOS build, and APNs credentials) and A-4
+(the iOS share extension) are all blocked on the $99 membership and a native
+rebuild. A-2 is the submission blocker: Google sign-in is offered, so guideline
+4.8 requires an equivalent, and the button currently shows a coming-soon dialog.
 
 ## Findings log
 
