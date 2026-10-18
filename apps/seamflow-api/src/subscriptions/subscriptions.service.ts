@@ -470,6 +470,26 @@ export class SubscriptionsService {
     return pref?.language ?? 'en';
   }
 
+  /**
+   * Languages for many tailors in one query.
+   *
+   * `languageFor` is still the right call for a single tailor on a request
+   * path; this exists so a job over N tailors is one round trip rather than N.
+   */
+  async languagesFor(tailorIds: string[]): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    if (tailorIds.length === 0) return out;
+    const rows = await this.db
+      .select({
+        tailorId: notificationPreferences.tailorId,
+        language: notificationPreferences.language,
+      })
+      .from(notificationPreferences)
+      .where(inArray(notificationPreferences.tailorId, [...new Set(tailorIds)]));
+    for (const r of rows) if (r.language) out.set(r.tailorId, r.language);
+    return out;
+  }
+
   /** Card dunning (appendix I.6): keep access while retries run. */
   async startGrace(tailorId: string): Promise<void> {
     await this.db
@@ -518,6 +538,19 @@ export class SubscriptionsService {
     if (!this.dbService.isConfigured()) return { sent: 0, emailed: 0 };
     let emailed = 0;
     try {
+      // Only the rows that can possibly be due.
+      //
+      // This used to select EVERY subscription and filter in JavaScript, then
+      // do three sequential awaits per surviving row — a language lookup, an
+      // email and a push. With the database in eu-west-1 and the API in Oregon
+      // that is ~150 ms a hop, so a thousand tailors meant thousands of
+      // sequential transatlantic round trips inside one cron tick, almost all
+      // of them to discard a row that was not due.
+      //
+      // The window is bounded by the furthest reminder day, so the database can
+      // do the filtering. `daysUntil` still decides below — this only narrows
+      // what has to be read, it does not re-implement the rule.
+      const horizon = addDays(new Date(), REMINDER_DAYS[0]! + 1);
       const rows = await this.db
         .select({
           tailorId: subscriptions.tailorId,
@@ -527,19 +560,35 @@ export class SubscriptionsService {
           premiumUntil: subscriptions.premiumUntil,
         })
         .from(subscriptions)
-        .innerJoin(tailors, eq(tailors.id, subscriptions.tailorId));
+        .innerJoin(tailors, eq(tailors.id, subscriptions.tailorId))
+        .where(
+          or(
+            lte(subscriptions.trialEndsAt, horizon),
+            lte(subscriptions.premiumUntil, horizon),
+          ),
+        );
 
-      let sent = 0;
-      for (const row of rows) {
+      // Decide who is actually due before touching the network for any of them.
+      const due = rows.filter((row) => {
         const endsAt =
           row.premiumUntil && row.premiumUntil > new Date() ? row.premiumUntil : row.trialEndsAt;
         const days = daysUntil(endsAt);
-        if (!REMINDER_DAYS.includes(days)) continue;
+        if (!REMINDER_DAYS.includes(days)) return false;
         // Never nag someone who is already paid up well beyond this window.
-        if (row.premiumUntil && daysUntil(row.premiumUntil) > REMINDER_DAYS[0]!) continue;
+        if (row.premiumUntil && daysUntil(row.premiumUntil) > REMINDER_DAYS[0]!) return false;
+        return true;
+      });
 
+      // One query for every language instead of one per tailor.
+      const languages = await this.languagesFor(due.map((r) => r.tailorId));
+
+      let sent = 0;
+      for (const row of due) {
+        const endsAt =
+          row.premiumUntil && row.premiumUntil > new Date() ? row.premiumUntil : row.trialEndsAt;
+        const days = daysUntil(endsAt);
         const paid = !!row.premiumUntil && row.premiumUntil > new Date();
-        const language = await this.languageFor(row.tailorId);
+        const language = languages.get(row.tailorId) ?? 'en';
         const copy = EXPIRY_PUSH[language] ?? EXPIRY_PUSH.en!;
         if (await this.emailReminder(row.userId, row.countryCode, language, days, paid)) emailed++;
         await this.notifications.emit(row.userId, {

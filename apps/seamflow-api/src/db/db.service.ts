@@ -35,7 +35,26 @@ export class DbService implements OnModuleDestroy {
       this.logger.warn('DATABASE_URL not set — DB queries will throw if used');
       return;
     }
-    this.client = postgres(url, { prepare: false });
+    this.client = postgres(url, {
+      // Required by transaction-mode pooling: pgBouncer hands a different
+      // server connection to each transaction, so a prepared statement made on
+      // one is not there on the next.
+      prepare: false,
+      // Bound the pool explicitly rather than inheriting a default. Supabase's
+      // pooler has a ceiling of its own, and this number is PER INSTANCE — if
+      // the API is ever scaled out, divide it rather than multiplying the load
+      // on the pooler.
+      max: 10,
+      // Let an idle connection go. With a pooler in front there is nothing to
+      // gain from holding one open, and on the free tier the process is
+      // suspended between requests anyway.
+      idle_timeout: 30,
+      // Fail fast instead of hanging. Without this a stalled pooler turns every
+      // request into a request that never answers — the worst failure mode,
+      // because nothing upstream can tell it from slowness. 10 seconds is long
+      // for a transatlantic connect and short enough to surface as an error.
+      connect_timeout: 10,
+    });
     this._db = drizzle(this.client, { schema });
     this.logger.log('Drizzle client connected (postgres-js, transaction pool)');
   }
