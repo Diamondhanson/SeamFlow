@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–2 complete and their findings fixed. Phase 3 in progress.**
+Started: 2026-10-17. Status: **Phases 0–3 complete; 0–2 findings fixed, Phase 3 findings reported. Phase 4 not started.**
 
 ---
 
@@ -214,7 +214,31 @@ state that gets marked first is the thing that blocks the retry.
 - 2.6 Fire-and-forget paths: the `void this.notify…` calls that swallow errors —
   where silence is right and where it hides a broken feature.
 
-## Phase 3 — API scalability
+## Phase 3 — API scalability — **DONE** (2026-10-18)
+
+**Profiling was not possible and that is worth saying plainly.** The production
+database holds 22 orders, 36 feed posts, 63 clients and 38 users. `EXPLAIN` on
+it returns sequential scans for almost everything, which is *correct* at that
+size — every table fits in a page or two. So this phase checked index coverage
+against the query shapes, read the code for per-row round trips, and measured
+what could honestly be measured against the live API, rather than pretending a
+profile of 22 rows means anything.
+
+Doing that turned up something bigger than any query.
+
+### Verified sound
+
+- **`prepare: false` is right**, and the Phase 2 transactions are safe through
+  it. pgBouncer in *transaction* mode pins a server connection for the length of
+  a transaction, so `BEGIN … COMMIT` works. What it breaks is session state —
+  prepared statements (hence the flag), session-level advisory locks, LISTEN/
+  NOTIFY — which is exactly why the Q-5 cron lease cannot be an advisory lock.
+- **Index coverage is thoughtful where it exists**: partial indexes keyed on
+  `status`, composite cursor indexes ending `(created_at DESC, id DESC)`, GIN on
+  `tags`/`colors`/`attributes`, and trigram indexes on client name and phone.
+- **Pagination is capped** in the schemas — feed 48, notifications 50, works 60
+  — and chat clamps in the service.
+
 
 - 3.1 **The auth hot path** — every authed request currently costs one Supabase
   `auth.getUser` HTTP round-trip plus one `users` row read. This is the ceiling
@@ -436,3 +460,10 @@ Filled in as each phase runs. Pre-audit observations from the initial scan:
 | Q-7 | Low | Product/correctness | **An order cannot be cancelled.** The state machine's only ending is `delivered`, so a client who walks away leaves an order that can either sit in `on_pause` forever or be marked delivered, which is false. It compounds: the free-tier `active_orders` cap counts orders that are not delivered, so an abandoned order permanently consumes one of the slots and the only ways to free it are recording a lie or deleting the history. | `packages/schemas/src/order.ts:19`, `subscriptions/subscriptions.service.ts:315` |
 | Q-8 | Low | Correctness | The payment webhook's docstring says it "always answers 200", because a provider that receives an error retries for hours. There is no `try/catch`, so an unexpected throw returns 500 — and those retries are then no-ops, because the row was already claimed (Q-2). The stated contract and the code disagree. | `subscriptions/checkout.controller.ts:84-93` |
 | Q-9 | Low | Correctness | Two different error shapes reach the app. There is no global exception filter, so most failures use Nest's `{ message, statusCode }`, while some throw an object body instead — `{ error: 'account_suspended', reason, since }`, `{ error: 'mfa_required', message }`. The app copes in `lib/errors.ts`, but any new client has to know both. | `auth/supabase-auth.guard.ts:116`, `common/staff.guard.ts:34` |
+| R-1 | High | Scalability | **The API and the database are on different continents.** `render.yaml` sets `region: oregon`; `DATABASE_URL` points at `aws-0-eu-west-1.pooler.supabase.com` — Ireland. The comment on that very line reads "pick the region nearest your Supabase project". Oregon to Ireland is ~7,700 km, so every single query pays ~130–160 ms of round trip. This is larger than every other item in this phase combined, and the fix is a region move rather than any code. | `render.yaml:17` |
+| R-2 | High | Scalability | **The auth guard costs two of those crossings before a handler starts.** P-4 called it "one HTTP call plus one row read"; in context that is a Supabase `getUser` over HTTPS *and* a `users` lookup, both transatlantic, on every authenticated request. A plain orders list is therefore three crossings — roughly 450 ms — before any work happens. In payoff order: co-locate (R-1), then verify the JWT locally against the project JWKS instead of calling `getUser`, then cache the profile row for a few seconds. The guard's own comment already names local verification as the intended next step. | `auth/supabase-auth.guard.ts:62` |
+| R-3 | Medium | Scalability | **`orders` is the least optimised list endpoint and the most used one.** It sorts by `created_at DESC` with no `(tailor_id, created_at DESC)` index, so every page is an index scan plus a sort — while `tailor_works` has exactly that index. It `ILIKE`s `order_name` with no trigram index, while `clients` has two. And it pages with `limit/offset`, which degrades linearly, while feed, works, chat and notifications all use cursor pagination with matching composite indexes. Harmless at 22 orders; this is the table that grows for the life of the account. | `orders/orders.service.ts:141`, and the `orders` indexes |
+| R-4 | Medium | Scalability | **`renewalReminders` is an unbounded sequential loop.** It selects *every* subscription with no limit, then for each row awaits `languageFor`, `emailReminder` and `emit` one after another. At a thousand tailors that is thousands of sequential round trips, each transatlantic, inside one cron tick. Needs paging and batching before the tailor count grows — and it is the same job that lacks dedupe (Q-5). | `subscriptions/subscriptions.service.ts:505` |
+| R-5 | Medium | Scalability | **Nothing on the public surface is cacheable.** The Discover feed, the storefronts and the public catalogue are byte-identical for every visitor and carry no `Cache-Control`; a live check returns `cf-cache-status: DYNAMIC`, so Cloudflare passes every request through to a sleeping free-tier instance, which then crosses the Atlantic. A short `max-age` would absorb nearly all of it. This is also the surface most exposed to a traffic spike if the marketing works. | `feed/feed.controller.ts`, `public/public-catalogue.controller.ts` |
+| R-6 | Low | Scalability | Reordering a design's photos issues 2N sequential updates — a negate pass then a set pass, to dodge the unique index. Bounded by the photo limit, but at ~150 ms a crossing, reordering six photos is about 1.8 s of spinner. One `UPDATE … FROM (VALUES …)` per pass would do it in two statements. Neither pass is in a transaction either, so a failure between them leaves every position negative. | `works/works.service.ts:241`, `:555` |
+| R-7 | Low | Scalability | The pool is created as `postgres(url, { prepare: false })` with no `max`, `idle_timeout` or `connect_timeout`. The defaults survive one instance, but nothing bounds connections if it ever scales out, and with no connect timeout a pooler stall becomes a hung request instead of a fast, visible failure. | `db/db.service.ts:38` |
