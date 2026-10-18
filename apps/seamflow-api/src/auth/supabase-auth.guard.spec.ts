@@ -7,7 +7,7 @@ import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { SupabaseAuthGuard } from './supabase-auth.guard';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 import { ALLOW_SUSPENDED_KEY } from './decorators/allow-suspended.decorator';
-import { fakeContext, fakeDb, fakeReflector, fakeSupabase } from '../../test/fakes';
+import { fakeContext, fakeDb, fakeDbQueue, fakeReflector, fakeSupabase, jwtWithClaims } from '../../test/fakes';
 
 const USER = { id: 'user-1', email: 'tailor@example.com', phone: null };
 
@@ -185,6 +185,81 @@ describe('SupabaseAuthGuard', () => {
           guard.canActivate(fakeContext(request({ method }))),
         ).resolves.toBe(true);
       }
+    });
+  });
+
+  describe('the parallel prefetch', () => {
+    // The users row is fetched at the same time as Supabase's verdict, using
+    // the `sub` read out of the token WITHOUT verifying it. That is untrusted
+    // input, so the only thing holding this safe is the comparison against the
+    // id Supabase actually returns.
+
+    function prefetchGuard(rows: unknown[][]) {
+      const db = fakeDbQueue(rows);
+      return {
+        guard: new SupabaseAuthGuard(
+          fakeReflector({}) as never,
+          fakeSupabase({ user: USER }) as never,
+          db.service as never,
+        ),
+        db,
+      };
+    }
+
+    function requestWithSub(sub: string) {
+      return {
+        headers: { authorization: `Bearer ${jwtWithClaims({ sub })}` },
+        method: 'GET',
+      } as Record<string, unknown>;
+    }
+
+    it('uses the prefetched row when it is the verified user', async () => {
+      // One query only: the head start paid off.
+      const { guard, db } = prefetchGuard([[profileRow()]]);
+      const req = requestWithSub('user-1');
+      await guard.canActivate(fakeContext(req));
+      expect((req.user as { profile: { id: string } }).profile.id).toBe('user-1');
+      expect(db.left).toBe(0);
+    });
+
+    it('throws the prefetch away when the token claimed a different user', async () => {
+      // A tampered `sub`. The token still fails nothing here — Supabase says
+      // user-1 — but the row that came back is somebody else's and must not be
+      // used. The guard re-reads, and the profile is user-1's.
+      const victim = profileRow({ id: 'victim-9', fullName: 'Victim', role: 'admin' });
+      const { guard } = prefetchGuard([[victim], [profileRow()]]);
+      const req = requestWithSub('victim-9');
+      await guard.canActivate(fakeContext(req));
+      const user = req.user as { id: string; profile: { id: string }; role: string };
+      expect(user.id).toBe('user-1');
+      expect(user.profile.id).toBe('user-1');
+      // The decisive one: no claim from the other row leaked through.
+      expect(user.role).toBe('tailor');
+    });
+
+    it('still works when the token payload cannot be read at all', async () => {
+      // No prefetch to be had; it falls back to a plain lookup.
+      const { guard } = prefetchGuard([[profileRow()]]);
+      const req = { headers: { authorization: 'Bearer not-a-jwt' }, method: 'GET' } as Record<
+        string,
+        unknown
+      >;
+      await expect(guard.canActivate(fakeContext(req))).resolves.toBe(true);
+      expect((req.user as { profile: { id: string } }).profile.id).toBe('user-1');
+    });
+
+    it('does not let a tampered sub decide suspension', async () => {
+      // The nastiest version: point the prefetch at an unsuspended account to
+      // try to shake off your own suspension. The discard has to happen before
+      // the suspension check reads anything.
+      const clean = profileRow({ id: 'someone-else', suspendedAt: null });
+      const suspended = profileRow({ suspendedAt: new Date('2026-09-01'), suspensionReason: 'spam' });
+      const { guard } = prefetchGuard([[clean], [suspended]]);
+      const req = {
+        headers: { authorization: `Bearer ${jwtWithClaims({ sub: 'someone-else' })}` },
+        method: 'POST',
+      } as Record<string, unknown>;
+      await expect(guard.canActivate(fakeContext(req))).rejects.toThrow(ForbiddenException);
     });
   });
 
