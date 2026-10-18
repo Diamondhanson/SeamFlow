@@ -20,6 +20,33 @@ staging Supabase project with its own throwaway data, these stay manual.
 They are still the most valuable tests in the repo for "did I break the wiring",
 so run them before anything that ships.
 
+## Five of these need the destructive hooks
+
+`test-account-deletion`, `test-media-retention`, `test-subscriptions`,
+`test-verification-retention` and `test-trust-signals` drive the dev-only hooks
+on `/health/*` — purging an account, granting subscription days, running the
+retention sweeps.
+
+Those hooks now **refuse to act on a remote Supabase project**. Against a local
+one they work as before and need nothing. Against a remote project — including
+production, which is what `.env` currently points at — they answer 403 and name
+the project.
+
+That is deliberate. On 2026-10-18 `POST /health/run-purge` was called against
+production during a routine check that the endpoints responded. It deleted
+nothing, because no account happened to be past its grace period that day; two
+were twelve days away. See `src/health/local-target.guard.ts`.
+
+To run those five against a remote project anyway, say so in words:
+
+```bash
+DEV_DESTRUCTIVE_HOOKS=i-know-this-is-not-production pnpm dev
+```
+
+Think about it before you type it. `test-account-deletion` permanently deletes
+accounts that are past their grace period in whatever project the server is
+pointed at.
+
 ## Running them
 
 Each needs `apps/seamflow-api/.env` filled in (`SUPABASE_URL`,

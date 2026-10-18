@@ -27,6 +27,12 @@ export const envSchema = z.object({
   // so the API still boots without a key during development.
   ANTHROPIC_API_KEY: z.string().optional().or(z.literal('')).transform((v) => (v ? v : undefined)),
 
+  // Set to the exact phrase in health/local-target.guard.ts to let the
+  // development-only hooks act on a REMOTE Supabase project. Unset, they refuse
+  // anything that is not a local project — see that file for the incident this
+  // exists because of.
+  DEV_DESTRUCTIVE_HOOKS: z.string().optional(),
+
   // Share-link signing — separate from Supabase JWT so rotating it doesn't
   // invalidate user sessions. 32+ random bytes recommended.
   SHARE_LINK_JWT_SECRET: z.string().min(32),

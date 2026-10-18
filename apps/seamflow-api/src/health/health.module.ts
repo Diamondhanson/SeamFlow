@@ -6,6 +6,7 @@ import { VerificationModule } from '../verification/verification.module';
 import { FeedModule } from '../feed/feed.module';
 import { HealthController } from './health.controller';
 import { DevHooksController } from './dev-hooks.controller';
+import { LocalTargetGuard } from './local-target.guard';
 
 /**
  * The dev-only test hooks are registered CONDITIONALLY. In production the
@@ -20,5 +21,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 @Module({
   imports: [AccountModule, ChatModule, SubscriptionsModule, VerificationModule, FeedModule],
   controllers: isProduction ? [HealthController] : [HealthController, DevHooksController],
+  providers: isProduction ? [] : [LocalTargetGuard],
 })
 export class HealthModule {}

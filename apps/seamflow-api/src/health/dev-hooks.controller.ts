@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import { AccountPurgeService } from '../account/account-purge.service';
 import { ChatMediaRetentionService } from '../chat/chat-media-retention.service';
@@ -7,6 +7,7 @@ import { TrustSignalsService } from '../verification/trust-signals.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { CheckoutService } from '../subscriptions/checkout.service';
 import { Public } from '../auth/decorators/public.decorator';
+import { LocalTargetGuard } from './local-target.guard';
 
 /**
  * Unauthenticated test hooks: drive months of calendar in seconds, run a cron
@@ -30,6 +31,9 @@ import { Public } from '../auth/decorators/public.decorator';
  */
 @SkipThrottle()
 @Public()
+// Every route here destroys, grants or sends something real. The guard refuses
+// to act on a remote Supabase project unless told to in words — see the file.
+@UseGuards(LocalTargetGuard)
 @Controller('health')
 export class DevHooksController {
   constructor(

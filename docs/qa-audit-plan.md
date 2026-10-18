@@ -627,6 +627,35 @@ Deleting an app is not a refactor to slip into a fix pass.
   gitignored, so not a repository problem — just local clutter that turns up in
   greps. `rm -rf` when convenient.
 
+## C-6 fixed — 2026-10-18
+
+**The database split would not have worked, and finding that out was the useful
+part.** `purgeUser` does not only touch Postgres: it deletes storage objects and
+the auth user through `supabase.admin()`. So pointing `DATABASE_URL` at a local
+database while keeping production Supabase credentials would have deleted a
+tailor's photos and their login while leaving their rows on a laptop — a
+half-purge across two systems, worse than either mistake alone. The thing that
+has to be checked is the **project**, not the database.
+
+So the fix is a guard, `health/local-target.guard.ts`, on the whole dev-hooks
+controller:
+
+- Supabase running locally (the CLI serves `127.0.0.1:54321`) → allowed, so the
+  normal development loop stays frictionless and nobody works around it.
+- Any remote project → **403**, naming the project it refused to act on.
+- Unless `DEV_DESTRUCTIVE_HOOKS` is set to `i-know-this-is-not-production` — a
+  phrase rather than `=true`, because it has to be read to be typed, and `=true`
+  is the kind of thing that ends up in a shell profile by accident.
+
+Proven against the real `.env`: `POST /health/run-purge` — the exact call that
+reached production — now answers 403 and names
+`aqsppiyiegzatnjvjgyp.supabase.co`, while `/health` and `/health/ready` are
+untouched. 9 tests, and `scripts/README.md` records which five integration
+scripts need the opt-in and why.
+
+Docker's daemon is down on this machine and the Supabase CLI is not installed,
+so a local stack was not stood up; the guard does not depend on one existing.
+
 ## Findings log
 
 Filled in as each phase runs. Pre-audit observations from the initial scan:
