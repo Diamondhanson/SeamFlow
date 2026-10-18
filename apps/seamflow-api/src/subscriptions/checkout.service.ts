@@ -13,6 +13,7 @@
 import { Inject, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { and, desc, eq, gte, isNotNull, ne } from 'drizzle-orm';
 import {
   billingFor,
@@ -267,20 +268,47 @@ export class CheckoutService {
       return { handled: false };
     }
 
-    // Claim the row atomically. Two deliveries racing (webhook + reconcile cron,
-    // or a provider retry) would otherwise both see 'pending' and both extend.
-    const claimed = await this.db
-      .update(subscriptionPayments)
-      .set({ status: 'succeeded', providerRef: event.providerRef, updatedAt: new Date() })
-      .where(and(eq(subscriptionPayments.id, row.id), ne(subscriptionPayments.status, 'succeeded')))
-      .returning({ id: subscriptionPayments.id });
-    if (claimed.length === 0) return { handled: true };
-    const updated = await this.subscriptions.extendPremium(row.tailorId, row.daysAdded, {
-      plan: row.plan ?? undefined,
-      method: row.method ?? undefined,
-      reason: `${row.provider ?? 'provider'} payment`,
+    // Claim the row and grant the days in ONE transaction.
+    //
+    // The claim is what stops a double grant: two deliveries racing (a webhook
+    // and the reconcile cron, or a provider retry) would otherwise both see
+    // 'pending' and both extend. That part was always right.
+    //
+    // What was wrong was doing it first and granting second. If extendPremium
+    // threw — it reads, maybe inserts, then updates — the payment was left
+    // reading 'succeeded' with no subscription behind it, and every road back
+    // was closed: a redelivered webhook returns early on 'succeeded' above,
+    // reconcilePending only looks at 'pending', and the staff recheck comes
+    // through this same function. Nothing in the system could ever grant that
+    // payment again. Someone had paid, the record said so, and they had nothing.
+    //
+    // Inside a transaction the failure rolls the claim back instead, the row
+    // stays 'pending', and the retry that already exists does the job.
+    const granted = await this.dbService.db.transaction(async (tx) => {
+      const claimed = await tx
+        .update(subscriptionPayments)
+        .set({ status: 'succeeded', providerRef: event.providerRef, updatedAt: new Date() })
+        .where(
+          and(eq(subscriptionPayments.id, row.id), ne(subscriptionPayments.status, 'succeeded')),
+        )
+        .returning({ id: subscriptionPayments.id });
+      if (claimed.length === 0) return null;
+
+      return this.subscriptions.extendPremium(row.tailorId, row.daysAdded, {
+        plan: row.plan ?? undefined,
+        method: row.method ?? undefined,
+        reason: `${row.provider ?? 'provider'} payment`,
+        exec: tx,
+      });
     });
-    await this.notifyPaid(row.tailorId, updated.premiumUntil);
+
+    // Lost the race to another delivery; it granted the days.
+    if (!granted) return { handled: true };
+
+    // Outside the transaction on purpose: a push is not rollback-able, and
+    // telling someone twice that they are paid is far better than a failed
+    // send undoing a payment that went through.
+    await this.notifyPaid(row.tailorId, granted.premiumUntil);
     this.logger.log(`Subscription paid: tailor ${row.tailorId}, +${row.daysAdded} days`);
     return { handled: true };
   }
@@ -295,7 +323,7 @@ export class CheckoutService {
    * it finds. Only looks at the last day: older than that, a pending payment
    * was abandoned, and Fapshi expires its own links after 24 hours anyway.
    */
-  @Cron('*/10 * * * *')
+  @Cron('*/10 * * * *', { timeZone: CRON_TZ })
   async reconcilePending(): Promise<{ checked: number; settled: number }> {
     if (!this.dbService.isConfigured()) return { checked: 0, settled: 0 };
     if (!this.provider.isConfigured() || !this.provider.fetchStatus) return { checked: 0, settled: 0 };

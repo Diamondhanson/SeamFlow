@@ -145,3 +145,77 @@ export function fakeDbQueue(queue: unknown[][]) {
     },
   };
 }
+
+/**
+ * A db whose `transaction()` behaves like one: the callback's writes are
+ * recorded, and if it throws they are reported as rolled back rather than
+ * applied.
+ *
+ * Needed because the interesting cases in the money and verification paths are
+ * "the second write failed, so the first must not have stuck". A fake that just
+ * runs the callback cannot tell those apart — it would pass whether or not the
+ * code opened a transaction at all, which is the one thing being tested.
+ */
+export function fakeTxDb(opts: {
+  /** Results handed to successive queries, as fakeDbQueue. */
+  queue?: unknown[][];
+  /** Throw on the Nth write inside the transaction (1-based). */
+  failOnWrite?: number;
+} = {}) {
+  const remaining = [...(opts.queue ?? [])];
+  const committed: string[] = [];
+  let pending: string[] = [];
+  let inTx = false;
+  let writes = 0;
+  let rolledBack = false;
+
+  const record = (kind: string) => {
+    writes++;
+    (inTx ? pending : committed).push(kind);
+    if (opts.failOnWrite && writes === opts.failOnWrite) {
+      throw new Error(`fakeTxDb: write #${writes} (${kind}) failed`);
+    }
+  };
+
+  const chain: Record<string, unknown> = {};
+  for (const m of ['select', 'from', 'where', 'limit', 'orderBy', 'offset', 'innerJoin', 'values', 'returning', 'set', 'onConflictDoNothing', 'onConflictDoUpdate']) {
+    chain[m] = () => chain;
+  }
+  chain.insert = () => { record('insert'); return chain; };
+  chain.update = () => { record('update'); return chain; };
+  chain.delete = () => { record('delete'); return chain; };
+  chain.then = (resolve: (v: unknown[]) => unknown, reject?: (e: Error) => unknown) => {
+    if (!remaining.length) {
+      const err = new Error('fakeTxDb ran out of queued results');
+      return reject ? reject(err) : Promise.reject(err);
+    }
+    return Promise.resolve(remaining.shift()!).then(resolve);
+  };
+  chain.transaction = async (fn: (tx: unknown) => unknown) => {
+    inTx = true;
+    pending = [];
+    try {
+      const out = await fn(chain);
+      committed.push(...pending);
+      return out;
+    } catch (err) {
+      // What a real transaction does: the writes inside it never happened.
+      rolledBack = true;
+      pending = [];
+      throw err;
+    } finally {
+      inTx = false;
+    }
+  };
+
+  return {
+    service: { db: chain, isConfigured: () => true },
+    /** Writes that actually stuck. */
+    get committed() {
+      return committed;
+    },
+    get rolledBack() {
+      return rolledBack;
+    },
+  };
+}

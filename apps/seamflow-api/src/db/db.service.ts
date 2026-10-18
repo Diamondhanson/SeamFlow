@@ -7,6 +7,16 @@ import * as schema from './schema';
 export type Db = PostgresJsDatabase<typeof schema>;
 
 /**
+ * Anything that can run a query — the pooled handle, or a transaction handle
+ * from `db.transaction()`.
+ *
+ * Structural on purpose: both satisfy it, so a service method can take one and
+ * be called either standalone or inside a caller's transaction. That is what
+ * lets "mark the payment paid" and "grant the subscription" commit together.
+ */
+export type Executor = Pick<Db, 'select' | 'insert' | 'update' | 'delete'>;
+
+/**
  * Drizzle wrapper over postgres-js connected to Supabase's pgBouncer (transaction
  * mode, port 6543). `prepare: false` is required for transaction-mode pooling.
  *

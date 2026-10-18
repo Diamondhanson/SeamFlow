@@ -22,6 +22,7 @@
 
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { CRON_TZ } from '../common/cron';
 import { and, count, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import {
   billingFor,
@@ -37,7 +38,7 @@ import {
   type SubscriptionStatus,
 } from '@seamflow/schemas';
 import { ConfigService } from '@nestjs/config';
-import { DbService } from '../db/db.service';
+import { DbService, type Executor } from '../db/db.service';
 import { EmailService } from '../notifications/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { reminderEmail } from './subscription-emails';
@@ -191,19 +192,22 @@ export class SubscriptionsService {
    * Created here rather than by a trigger so the trial length is one constant
    * in code, visible beside the rules it governs.
    */
-  async ensureFor(tailorId: string): Promise<SubscriptionRow> {
-    const existing = await this.rowFor(tailorId);
+  async ensureFor(tailorId: string, exec: Executor = this.db): Promise<SubscriptionRow> {
+    const existing = await this.rowFor(tailorId, exec);
     if (existing) return existing;
-    const [row] = await this.db
+    const [row] = await exec
       .insert(subscriptions)
       .values({ tailorId, status: 'trialing', trialEndsAt: addDays(new Date(), TRIAL_DAYS) })
       .onConflictDoNothing()
       .returning();
-    return row ?? (await this.rowFor(tailorId))!;
+    return row ?? (await this.rowFor(tailorId, exec))!;
   }
 
-  private async rowFor(tailorId: string): Promise<SubscriptionRow | null> {
-    const rows = await this.db
+  private async rowFor(
+    tailorId: string,
+    exec: Executor = this.db,
+  ): Promise<SubscriptionRow | null> {
+    const rows = await exec
       .select()
       .from(subscriptions)
       .where(eq(subscriptions.tailorId, tailorId))
@@ -329,9 +333,16 @@ export class SubscriptionsService {
   async extendPremium(
     tailorId: string,
     days: number,
-    opts: { plan?: SubscriptionPlan; method?: SubscriptionPaymentMethod; reason?: string } = {},
+    opts: {
+      plan?: SubscriptionPlan;
+      method?: SubscriptionPaymentMethod;
+      reason?: string;
+      /** Run inside a caller's transaction — see checkout.service.settle. */
+      exec?: Executor;
+    } = {},
   ): Promise<SubscriptionRow> {
-    const row = await this.ensureFor(tailorId);
+    const exec = opts.exec ?? this.db;
+    const row = await this.ensureFor(tailorId, exec);
     const now = new Date();
     const candidates = [now, row.premiumUntil, row.trialEndsAt].filter(
       (d): d is Date => !!d && d > now,
@@ -340,7 +351,7 @@ export class SubscriptionsService {
       ? new Date(Math.max(...candidates.map((d) => d.getTime())))
       : now;
     const premiumUntil = addDays(base, days);
-    const [updated] = await this.db
+    const [updated] = await exec
       .update(subscriptions)
       .set({
         premiumUntil,
@@ -354,10 +365,16 @@ export class SubscriptionsService {
       })
       .where(eq(subscriptions.tailorId, tailorId))
       .returning();
+    // No non-null assertion: the row is guaranteed by ensureFor above, but if
+    // that ever stops being true this has to fail loudly inside the caller's
+    // transaction rather than return undefined and be dereferenced later.
+    if (!updated) {
+      throw new Error(`Subscription for tailor ${tailorId} vanished mid-update`);
+    }
     this.logger.log(
       `Tailor ${tailorId}: +${days} day(s)${opts.reason ? ` (${opts.reason})` : ''} → ${premiumUntil.toISOString()}`,
     );
-    return updated!;
+    return updated;
   }
 
   /** Move a trial's end date. The safety net if payments are delayed. */
@@ -496,7 +513,7 @@ export class SubscriptionsService {
    * Runs once a day at a fixed hour and matches on whole days remaining, so a
    * given tailor gets each of the four at most once.
    */
-  @Cron('0 9 * * *')
+  @Cron('0 9 * * *', { timeZone: CRON_TZ })
   async renewalReminders(): Promise<{ sent: number; emailed: number }> {
     if (!this.dbService.isConfigured()) return { sent: 0, emailed: 0 };
     let emailed = 0;
@@ -578,7 +595,7 @@ export class SubscriptionsService {
    * missing a subscription row. Neither affects entitlement — that is computed
    * from dates on every request — so a missed run costs nothing.
    */
-  @Cron('10 4 * * *')
+  @Cron('10 4 * * *', { timeZone: CRON_TZ })
   async nightly(): Promise<void> {
     if (!this.dbService.isConfigured()) return;
     try {
