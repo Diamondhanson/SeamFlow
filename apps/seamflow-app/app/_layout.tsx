@@ -51,6 +51,7 @@ import { ThemeModeProvider, useThemeMode } from '../lib/theme-mode';
 import { DialogProvider } from '../lib/dialog';
 import { FavoritesProvider } from '../lib/favorites';
 import { GuidesProvider } from '../lib/guides';
+import { FirstRunProvider } from '../lib/first-run';
 import { ModeProvider } from '../lib/mode';
 import { LanguageProvider } from '../lib/i18n';
 
@@ -202,6 +203,7 @@ function ThemedRoot() {
             <DialogProvider>
             <FavoritesProvider>
             <GuidesProvider>
+            <FirstRunProvider>
             <AuthProvider>
             <ModeProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
@@ -222,6 +224,8 @@ function ThemedRoot() {
               >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+                {/* First run. No gesture: there is nothing behind it. */}
+                <Stack.Screen name="welcome" options={{ headerShown: false, gestureEnabled: false }} />
                 {/* Browser OAuth return leg — see app/auth/callback.tsx. */}
                 <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
                 <Stack.Screen name="verify-otp" options={{ headerShown: false }} />
@@ -232,6 +236,7 @@ function ThemedRoot() {
               </AppErrorBoundary>
             </ModeProvider>
             </AuthProvider>
+            </FirstRunProvider>
             </GuidesProvider>
             </FavoritesProvider>
             </DialogProvider>
