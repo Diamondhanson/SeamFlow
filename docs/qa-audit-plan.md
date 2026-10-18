@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–3 complete and their findings fixed. Phase 4 not started.**
+Started: 2026-10-17. Status: **Phases 0–3 complete and fixed. Phase 4 static audit done; runtime sweep outstanding.**
 
 ---
 
@@ -445,6 +445,39 @@ change was meant to buy.
 The same reasoning ruled out caching the `users` row: it would have removed the
 second round trip at the cost of suspension taking effect late.
 
+## Phase 4 — the app — **STATIC AUDIT DONE** (2026-10-18)
+
+80 route screens, 204 touchables, every permission flow, and the deep-link and
+sign-in configuration of both Expo apps.
+
+**The runtime half is not done, and iOS cannot be done on this machine.** It has
+Command Line Tools only — no Xcode, and `xcrun simctl` lists no simulators — so
+the iOS app cannot be built or launched here at all. Android is feasible (SDK
+present, three AVDs: Pixel_4_XL, Pixel_9_Pro_XL, SeamFlow_Tablet) but needs a
+fresh dev client built and driven, which is a task in its own right.
+
+### Verified sound — much of the platform work is already careful
+
+- **Permission denial is handled properly, including the iOS divergence.**
+  `lib/permissions.ts` exists for exactly this: iOS never re-prompts once a user
+  denies, so `canAskAgain` is carried out of the native flow and turned into an
+  "Open Settings" route. Camera, photos, contacts, microphone *and* location all
+  throw a typed error carrying that flag.
+- **iOS-only modules are guarded.** `expo-glass-effect` goes through
+  `isLiquidGlassAvailable()`, and its `GlassView` degrades to a plain view.
+- **Apple Sign-In is written correctly** — anti-replay nonce, and a lazy
+  `require` so a dev client built before the entitlement existed cannot crash at
+  import. It is only switched off.
+- **Accessibility is in better shape than a file count suggests**: of 204
+  touchables, only 9 are icon-only and only **4** of those lack a label. No
+  `allowFontScaling={false}` anywhere, so text honours the OS size setting, and
+  `hitSlop` appears in 44 files.
+- **The offline wiring is the best-documented code in the repo.** Persisted
+  cache, `networkMode: 'online'` for mutations so an offline edit pauses rather
+  than failing unrecoverably, retry that skips 4xx, and a comment recording the
+  exact web NetInfo bug that once made screens render their empty states over
+  real data.
+
 ## Findings log
 
 Filled in as each phase runs. Pre-audit observations from the initial scan:
@@ -498,3 +531,11 @@ Filled in as each phase runs. Pre-audit observations from the initial scan:
 | R-5 | Medium | Scalability | **Nothing on the public surface is cacheable.** The Discover feed, the storefronts and the public catalogue are byte-identical for every visitor and carry no `Cache-Control`; a live check returns `cf-cache-status: DYNAMIC`, so Cloudflare passes every request through to a sleeping free-tier instance, which then crosses the Atlantic. A short `max-age` would absorb nearly all of it. This is also the surface most exposed to a traffic spike if the marketing works. | `feed/feed.controller.ts`, `public/public-catalogue.controller.ts` |
 | R-6 | Low | Scalability | Reordering a design's photos issues 2N sequential updates — a negate pass then a set pass, to dodge the unique index. Bounded by the photo limit, but at ~150 ms a crossing, reordering six photos is about 1.8 s of spinner. One `UPDATE … FROM (VALUES …)` per pass would do it in two statements. Neither pass is in a transaction either, so a failure between them leaves every position negative. | `works/works.service.ts:241`, `:555` |
 | R-7 | Low | Scalability | The pool is created as `postgres(url, { prepare: false })` with no `max`, `idle_timeout` or `connect_timeout`. The defaults survive one instance, but nothing bounds connections if it ever scales out, and with no connect timeout a pooler stall becomes a hung request instead of a fast, visible failure. | `db/db.service.ts:38` |
+| A-1 | High | iOS/Android | **The deep-link configuration is on the app that never shipped.** `seamflow-client` has `associatedDomains: ['applinks:www.seamflowtech.com']` and an Android App Links filter with `autoVerify` for `/t` — and an EAS project id of literally `REPLACE_WITH_EAS_PROJECT_ID`, so it has never been built. `seamflow-app`, which has the real EAS project and the locked Play Store package, has **neither**: no `associatedDomains`, and its only Android intent filters are the two `SEND` ones for share-intent. So `https://www.seamflowtech.com/t/<slug>` — the shareable catalogue link the whole of `docs/tailor-catalogue-share-plan.md` is about, and which `/public/tailors/:slug/catalogue` exists to serve — opens a browser rather than the app, on both platforms. The web page is a working fallback, so the feature half-works and nothing looks broken. Worse, that plan says iOS is merely blocked on the $99 program and that the entries are written and inert with no code change needed — true of `seamflow-client`, false of the app that ships. Buy the Apple account, set `APPLE_TEAM_ID`, ship a build, and deep links still will not work. The web side is done (`apple-app-site-association` and `assetlinks.json` routes both exist); only the app config needs porting across. | `apps/seamflow-app/app.json`, `apps/seamflow-client/app.json:20`, `docs/tailor-catalogue-share-plan.md:196` |
+| A-2 | High | iOS | **Apple Sign-In is switched off, and the button is live.** `APPLE_SIGN_IN_ENABLED = false`, so tapping it shows a coming-soon dialog. The App Store requires an equivalent privacy-preserving option wherever a third-party sign-in is offered, and Google sign-in is offered — so this is guideline 4.8, and a button that does nothing invites 2.1 as well. The code and `docs/apple-sign-in.md` are ready; it needs the $99 program, an App ID plus Services ID plus .p8 key, the Supabase provider enabled, and a native rebuild. This is on the critical path to submission. | `lib/auth-context.tsx:66` |
+| A-3 | Medium | iOS | **The iOS app has never been built, and cannot be built here.** No `ios/` directory, Command Line Tools only, no simulators. The first EAS iOS build will be the first time 30 Expo modules — share-intent, glass-effect, speech-recognition, image-picker, secure-store — are compiled together for the platform, and it will happen under submission pressure. Worth doing a throwaway EAS iOS build now, while a failure costs nothing. Separately, no APNs credentials are in EAS, so iOS push is unproven. | `apps/seamflow-app` |
+| A-4 | Medium | iOS | **Sharing a photo into SeamFlow is Android-only.** The `expo-share-intent` plugin is configured with `androidIntentFilters` and `androidMultiIntentFilters` and nothing for iOS, where the feature needs an app extension. `app/(app)/share-receive.tsx` exists to handle the hand-off, and on iOS nothing will ever reach it. Either configure the iOS side or say in the UI that it is Android-only. | `app.json` plugins |
+| A-5 | Medium | Correctness/UX | **Fifteen list screens cannot tell a failed request from having nothing.** They destructure `{ data, isLoading }` and never `isError`, then branch on `items.length === 0` to an empty state. On a failed fetch `isLoading` is false and `items` is `[]`, so a tailor with fifty orders is shown "no orders match". The persisted cache softens it — a returning tailor sees cached rows — so the real exposure is a first load, a fresh sign-in, or a cleared cache, which is also exactly when a free-tier cold start takes ~50 s. The author has already been bitten by this symptom once (the NetInfo comment in `query-client.ts` describes it precisely) and fixed that cause; the screens still cannot distinguish the two. | `app/(app)/orders/index.tsx:93`, and 14 more |
+| A-6 | Medium | UX | Seven data-backed screens have no skeleton, against the mandate in `CLAUDE.md`, and three of them show a bare spinner instead: `designs/[id]`, `share-receive`, `works/describe`, `discover/tailor/[tailorId]`, `(client)/t/[slug]`, `hub/claim`, `assistant`. Pure forms and the home dashboard are exempt by that same document and are excluded here. | as listed |
+| A-7 | Low | Accessibility | Four icon-only buttons carry no `accessibilityLabel`, so a screen reader announces nothing: `share-receive.tsx`, `LibraryPickerSheet.tsx`, `OptionSheet.tsx`, `chat/ChatThread.tsx`. `accessibilityHint` is unused app-wide, which is defensible. | as listed |
+| A-8 | Low | UX | Declining push leaves no way back. The code says so — they can flip it in OS settings or via a future in-app re-ask UI — but nothing tells the tailor why they get no notifications, and unlike the camera and photo flows there is no Settings route offered. | `lib/notifications.ts:111` |
