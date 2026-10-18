@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–5 complete and fixed, bar what needs a native rebuild (see docs/ios-submission-checklist.md). Phase 6 not started.**
+Started: 2026-10-17. Status: **All six phases complete.** Phases 0–5 findings fixed bar what needs a native rebuild (see docs/ios-submission-checklist.md). Phase 6 findings reported. Outstanding: the Android runtime sweep, iOS runtime (impossible on this machine), and the Apple-gated build.
 
 ---
 
@@ -576,6 +576,25 @@ dripped in one at a time. A native dependency added during a bug-fix pass is a
 dependency nobody decided on, and there is exactly one build coming that can
 carry all five.
 
+## Phase 6 — cross-cutting — **DONE** (2026-10-18)
+
+Shared-package drift, observability and alerting, the data lifecycle, and dead
+code.
+
+### Verified sound
+
+- **`dist` staleness is no longer a hazard.** The built packages are gitignored
+  and built by CI, and the Phase 0 turbo fix (`lint` now depends on `^build`)
+  means a stale local build can no longer produce a passing lint that would
+  fail in CI. The local timestamps *are* stale right now; it no longer matters.
+- **The deletion path is real and tested.** Account purge, chat-media retention
+  and verification-evidence retention each have a cron, a dev hook to drive
+  them, and an integration script. The 30-day grace period, the tombstone and
+  the storage sweep are all implemented, and Phase 2 established that
+  `purgeUser` is a correct retry-safe saga across storage, the database and
+  Supabase auth. What is missing is not the deletion path. It is the recovery
+  path — see C-1.
+
 ## Findings log
 
 Filled in as each phase runs. Pre-audit observations from the initial scan:
@@ -643,3 +662,8 @@ Filled in as each phase runs. Pre-audit observations from the initial scan:
 | B-4 | Medium | Performance | **Fifteen font faces across six families gate the first paint.** `_layout.tsx` holds a spinner behind `if (!fontsReady)` until every one has loaded. The two Arabic families are loaded unconditionally and the comment explains why — a tailor with Arabic client names needs those glyphs on an English UI — which is right. What is worth revisiting is gating the *whole app* on them: React Native can paint with a system fallback and re-render when the faces land. This is paid on every cold start, on the cheap Android phones named as the target market. | `app/_layout.tsx:104-136` |
 | B-5 | Low | iOS | **The iOS privacy manifest is unverified.** There is no `ios.privacyManifests` in `app.json`. Expo's prebuild generates a baseline `PrivacyInfo.xcprivacy` covering its own modules, so this may well be fine — but it cannot be checked without generating the iOS project, which this machine cannot do, and a missing or incomplete manifest is a routine rejection. Check it on the first EAS iOS build (see A-3) rather than at submission. | `app.json` |
 | B-6 | Low | iOS | **App Store data-use disclosures, listed from the code so the form is not filled from memory.** The app requests contacts, coarse and fine location, camera, photo library, microphone and speech recognition, and it collects body measurements, phone numbers and postal addresses. Every one of those has to be declared in App Store Connect's privacy questionnaire, and measurements in particular are health-adjacent data that reviewers read carefully. A questionnaire that disagrees with the `Info.plist` is a rejection. | `app.json` plugins and permissions |
+| C-1 | High | Data | **There are no backups, and so no tested way to recover the database.** No `pg_dump`, no script, no CI job, no documented policy — the only mention of "backup" anywhere in `docs/` is this audit file. Supabase's Free tier includes no automated backups (daily backups begin at Pro), and nothing in the repo compensates. The database holds real tailors' client books, measurements, orders and invoices. It compounds with P-22: the migration history has drifted, so rebuilding from `supabase/migrations` would not reproduce production either. So there is currently no path at all — tested or otherwise — back from a bad migration, a mistaken delete, or a lost project. This is arguably the highest-stakes finding in the whole audit, because unlike a security hole it is not a risk: it is a certainty the moment anything goes wrong. | repo-wide |
+| C-2 | High | Observability | **Nothing tells anyone when something breaks.** There is no uptime monitor and no alerting configuration anywhere in the repo. `healthCheckPath: /health` makes Render restart a failed instance and notifies nobody. Sentry is on the API, but it only ever sees errors a live process throws — a dead process, or a free-tier instance timing out on a cold start, throws nothing at all. And the ten cron jobs log their failures to Render's logs, which on the free tier are short-lived and unread: a payment reconcile that quietly stopped working would be invisible, which is precisely the blind spot finding Q-2 lived in. One external check on `/health` and one Sentry alert rule is most of the fix. | `render.yaml:29` |
+| C-3 | Medium | Contract | **The API contract is enforced in one direction only.** The global `ZodValidationPipe` validates every request body against the published schema; **nothing validates a response.** The app's typed client declares what it expects and the API declares what it returns, written independently against the same schema, with nothing checking at runtime that the two agree. The comment in `group-order-members.service.ts` proves the gap is live and known: Drizzle returns `Date` where the schema declares an ISO string, and the two "agree at the boundary" only because Nest happens to serialise Dates — the TypeScript types are knowingly wrong in between. A refactor that changes a response shape compiles cleanly on both sides and first appears as `undefined` on a tailor's screen. `nestjs-zod`'s `ZodSerializerInterceptor`, or a test that parses sample responses against their schemas, closes it. | `app.module.ts:88`, `group-order-members.service.ts:30` |
+| C-4 | Medium | Dead code | **`seamflow-client` is dead, and it has already caused a bug.** 110 tracked files, an EAS project id of literally `REPLACE_WITH_EAS_PROJECT_ID`, never built, and referenced only by `.claude/launch.json` and a few doc comments. It is not merely unused: it was the only place holding correct deep-link configuration, and *both* web verification routes were written against its bundle id and package name — which is finding A-1, a shipped feature that silently did not work. Now that the config has been ported across, its remaining value is zero and its cost is 110 files drifting away from the app that actually ships. Deleting it is the recommendation; it is also a call for the owner rather than a refactor to slip in. | `apps/seamflow-client` |
+| C-5 | Low | Hygiene | `app-legacy/` and `src-legacy/` have **zero tracked files** — already gitignored, so not a repository problem. They are still sitting in the working tree, and they do turn up in local greps, which is how a stale file ends up being edited by mistake. | `apps/seamflow-app` |
