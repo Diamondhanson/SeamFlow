@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **All six phases complete.** Phases 0–5 findings fixed bar what needs a native rebuild (see docs/ios-submission-checklist.md). Phase 6 findings reported. Outstanding: the Android runtime sweep, iOS runtime (impossible on this machine), and the Apple-gated build.
+Started: 2026-10-17. Status: **All six phases complete.** Phases 0–5 findings fixed bar what needs a native rebuild (see docs/ios-submission-checklist.md). Phase 6 findings fixed bar two deletions left to the owner. Outstanding: the Android runtime sweep, iOS runtime (impossible on this machine), and the Apple-gated build.
 
 ---
 
@@ -594,6 +594,38 @@ code.
   `purgeUser` is a correct retry-safe saga across storage, the database and
   Supabase auth. What is missing is not the deletion path. It is the recovery
   path — see C-1.
+
+## Phase 6 fixes — applied 2026-10-18
+
+API tests 107 → 122. `turbo run lint test` 23/23 green.
+
+| # | What changed |
+|---|---|
+| C-1 | `scripts/backup-db.sh` and a nightly `backup-database.yml` at 02:20 UTC — one hour before the account purge, so there is always a pre-purge snapshot. Custom-format dump of `public` + `auth`, AES256-encrypted because it holds names, phone numbers, addresses and body measurements and a GitHub artifact is readable by anyone with repository access. **Off until two secrets exist**, and it says so and succeeds rather than failing nightly for something nobody set up. `docs/database-recovery.md` is the restore procedure, and it ends on "Last tested restore: **never**", which is the only line that will make it real. |
+| C-2 | `reportJobFailure()` sends a **caught** failure to Sentry, tagged by job. Wired into the account purge, both subscription jobs and the per-payment reconcile. And liveness/readiness are split: `/health` keeps its always-200 contract for Render, while the new `/health/ready` answers 503 when the database is unreachable — something a pager can point at. 6 tests. |
+| C-3 | `schema-drift.spec.ts` compares Drizzle's columns against the Zod shape for the eight core entities, in the direction that matters: every field the schema promises must be a real column. 9 cases. |
+| C-4, C-5 | Recommendations, not changes — see below. |
+
+### What the backup work turned up
+
+**A backup could not have been taken by hand either.** The client tools on the
+owner's machine are `pg_dump` 14.17 against a 17.6 server, which pg_dump refuses
+outright with a message that reads like a connection error. So the script checks
+the versions first and names the fix, and the workflow installs the matching
+client rather than trusting the runner's default.
+
+### C-4 and C-5 — left as recommendations
+
+Deleting an app is not a refactor to slip into a fix pass.
+
+- **C-4, `seamflow-client`.** Now that A-1 ported its deep-link config across,
+  its remaining value is zero: 110 tracked files, a placeholder EAS id, never
+  built, referenced only by `.claude/launch.json` and doc comments. It has
+  already cost one shipped-but-broken feature. The recommendation is to delete
+  it; the decision is the owner's.
+- **C-5, `app-legacy/` and `src-legacy/`.** Zero tracked files, already
+  gitignored, so not a repository problem — just local clutter that turns up in
+  greps. `rm -rf` when convenient.
 
 ## Findings log
 
