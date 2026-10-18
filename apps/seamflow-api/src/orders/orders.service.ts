@@ -241,52 +241,61 @@ export class OrdersService {
     if (data.fabricId) await this.assertFabricOwned(tailorId, data.fabricId);
     await this.assertGroupRefsOwned(tailorId, data);
 
-    const [created] = await this.dbService.db
-      .insert(orders)
-      .values({
-        tailorId,
-        clientId,
-        groupOrderId: data.groupOrderId ?? null,
-        groupOrderMemberId: data.groupOrderMemberId ?? null,
-        fabricId: data.fabricId ?? null,
-        fabricYardageUsed:
-          data.fabricYardageUsed != null ? String(data.fabricYardageUsed) : null,
-        orderName: data.orderName,
-        dateOrdered: data.dateOrdered ? new Date(data.dateOrdered) : new Date(),
-        dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
-        status: 'registered',
-        notes: data.notes ?? null,
-        totalAmount: data.totalAmount != null ? String(data.totalAmount) : null,
-        currency: data.currency ?? null,
-      })
-      .returning();
-    if (!created) throw new NotFoundException('Order insert returned no row');
+    // One transaction for the order, its line items and its creation event.
+    //
+    // These were three separate statements. A failure after the first left an
+    // order with no items and no 'created' entry — and order_events is
+    // append-only, so nothing reconstructs the missing one. The tailor would
+    // see an order with nothing in it and no way to tell whether that was the
+    // app's fault or their own.
+    return this.dbService.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(orders)
+        .values({
+          tailorId,
+          clientId,
+          groupOrderId: data.groupOrderId ?? null,
+          groupOrderMemberId: data.groupOrderMemberId ?? null,
+          fabricId: data.fabricId ?? null,
+          fabricYardageUsed:
+            data.fabricYardageUsed != null ? String(data.fabricYardageUsed) : null,
+          orderName: data.orderName,
+          dateOrdered: data.dateOrdered ? new Date(data.dateOrdered) : new Date(),
+          dateDelivery: data.dateDelivery ? new Date(data.dateDelivery) : null,
+          status: 'registered',
+          notes: data.notes ?? null,
+          totalAmount: data.totalAmount != null ? String(data.totalAmount) : null,
+          currency: data.currency ?? null,
+        })
+        .returning();
+      if (!created) throw new NotFoundException('Order insert returned no row');
 
-    // Inline items (optional)
-    if (data.items && data.items.length > 0) {
-      await this.dbService.db.insert(orderItems).values(
-        data.items.map((it) => ({
-          orderId: created.id,
-          garmentType: it.garmentType,
-          measurements: it.measurements ?? null,
-          notes: it.notes ?? null,
-          quantity: it.quantity ?? 1,
-          unitPrice: it.unitPrice != null ? String(it.unitPrice) : null,
-        })),
-      );
-    }
+      // Inline items (optional)
+      if (data.items && data.items.length > 0) {
+        await tx.insert(orderItems).values(
+          data.items.map((it) => ({
+            orderId: created.id,
+            garmentType: it.garmentType,
+            measurements: it.measurements ?? null,
+            notes: it.notes ?? null,
+            quantity: it.quantity ?? 1,
+            unitPrice: it.unitPrice != null ? String(it.unitPrice) : null,
+          })),
+        );
+      }
 
-    // Audit event: order created
-    await this.dbService.db.insert(orderEvents).values({
-      orderId: created.id,
-      actorUserId,
-      eventType: 'created',
-      fromStatus: null,
-      toStatus: 'registered',
-      payload: { orderName: created.orderName },
+      // Audit event: order created
+      await tx.insert(orderEvents).values({
+        orderId: created.id,
+        actorUserId,
+        eventType: 'created',
+        fromStatus: null,
+        toStatus: 'registered',
+        payload: { orderName: created.orderName },
+      });
+
+      return created;
     });
-
-    return created;
   }
 
   async update(
