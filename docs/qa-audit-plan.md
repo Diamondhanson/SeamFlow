@@ -5,7 +5,7 @@ Scope of this pass: **`apps/seamflow-app` (tailor + client mobile app)** and
 (`packages/schemas`, `packages/api-client`, `packages/utils`, `packages/ui`).
 `seamflow-web`, `seamflow-admin` and `seamflow-client` come in a later pass.
 
-Started: 2026-10-17. Status: **Phases 0–3 complete; 0–2 findings fixed, Phase 3 findings reported. Phase 4 not started.**
+Started: 2026-10-17. Status: **Phases 0–3 complete and their findings fixed. Phase 4 not started.**
 
 ---
 
@@ -413,6 +413,37 @@ question.
   which changes the body of every error the app already parses. Not a trade
   worth making days before a store submission for a cosmetic inconsistency the
   app handles.
+
+## Phase 3 fixes — applied 2026-10-18
+
+API tests 92 → 107. `turbo run lint test` 23/23 green.
+
+| # | What changed | Test |
+|---|---|---|
+| R-1 | `render.yaml` now says `frankfurt`, which only applies to a newly created service — Render cannot move a running one. The sequence is in **[docs/render-region-move.md](render-region-move.md)**, and it needs a runbook rather than a config change because of two traps: a new service gets a new hostname (and `seamflow-api.onrender.com` is baked into six app files plus the Fapshi webhook, with Play Store closed-testing builds already pointing at it), and while both services run **all ten crons run twice** — which with Q-5 unfixed means duplicate subscription emails to every tailor. **Yours to carry out.** | — |
+| R-2 | The token check and the profile read now issue together instead of one after the other. The row needs a user id and the id is not trustworthy until Supabase answers, so the id is read from the token's payload **unverified**, purely to start the query, and the result is discarded unless it matches the verified id. Roughly 150 ms off every authenticated request. | `supabase-auth.guard.spec.ts`, 4 added — including that a tampered `sub` pointed at an unsuspended account still gets refused |
+| R-3 | Migration adding `orders (tailor_id, created_at DESC, id DESC)` and a trigram GIN on `order_name` — the two indexes `tailor_works` and `clients` have had all along. A dry run against production confirms the planner uses the sort index with **no Sort node**. `id DESC` tiebreaks so paging is stable. **Not applied** — queued behind the migration-history repair. | dry-run against the production schema, rolled back |
+| R-4 | `renewalReminders` no longer selects every subscription. The reminder window is bounded by the furthest reminder day, so the database filters; `daysUntil` still decides who is due. Languages come back in one query (`languagesFor`) instead of one per tailor. | — |
+| R-5 | `Cache-Control: public, max-age=60, stale-while-revalidate=300` on the four public feed reads and the catalogue. Deliberately **not** on `/public/orders/:token` or `/public/invoices/:token`, where a shared cache would hand one client's order to the next caller. | `cache.spec.ts`, 11 tests — asserting the token routes' *absence* of the header, not just the others' presence |
+| R-6 | Photo reordering is two statements instead of 2N, via a `CASE` over the id list, and both passes are in a transaction. They were not before, so a failure between them left every position negative and the carousel reading backwards. ~1.8 s → ~0.3 s for six photos. | — |
+| R-7 | The pool declares `max: 10`, `idle_timeout: 30`, `connect_timeout: 10`. The last matters most: without it a stalled pooler turned every request into one that never answers, which is worse than failing because nothing upstream can tell it from slowness. | — |
+
+### What was deliberately not done
+
+**Local JWT verification.** The project publishes an **ES256 JWKS**, so verifying
+the signature in-process would need no secret and would remove the Supabase
+HTTPS call altogether — the largest remaining win on the auth path, and what the
+guard's own comment proposed.
+
+It was not done because nothing would consult the *session* any more, so a
+signed-out token would keep working until it expired — and
+`AccountService.dropSessions` revokes sessions on purpose when an account asks to
+be deleted. Giving that up is a decision to take knowingly, not a side effect of
+a latency fix. Worth revisiting after R-1, which removes most of the latency the
+change was meant to buy.
+
+The same reasoning ruled out caching the `users` row: it would have removed the
+second round trip at the cost of suspension taking effect late.
 
 ## Findings log
 
