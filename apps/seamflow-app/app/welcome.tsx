@@ -34,6 +34,7 @@ import { Button, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { Infographic } from '../components/welcome/Infographic';
 import { useDialog } from '../lib/dialog';
 import { useFirstRun } from '../lib/first-run';
+import { useMe } from '../lib/queries';
 import { haptics } from '../lib/haptics';
 import { LANGUAGES, useTranslation, type LanguageCode } from '../lib/i18n';
 import { radii, spacing, useThemeColors } from '../lib/theme';
@@ -46,15 +47,26 @@ export default function Welcome() {
   const { colors: atelier } = useAtelierTheme();
   const dialog = useDialog();
   const { markSeen } = useFirstRun();
+  // Signed out this is simply undefined, which is the new-install case.
+  const { data: me } = useMe();
 
   // `null` while the language question is still open.
   const [slide, setSlide] = useState<number | null>(null);
   const [picking, setPicking] = useState(false);
 
+  /**
+   * Hand off to wherever this person actually belongs.
+   *
+   * Discover for a brand-new install, which is the case this flow was written
+   * for. But the intro flag is new, so EVERY existing user meets it once on
+   * upgrade — and sending a tailor of six months to the customer feed after a
+   * welcome sequence would be a worse first impression than the one this is
+   * meant to fix. Same rule as the cold-start router: a shop decides.
+   */
   const finish = () => {
     haptics.success();
     markSeen();
-    router.replace('/(client)/discover');
+    router.replace((me?.tailor ? '/(app)' : '/(client)/discover') as never);
   };
 
   const choose = async (code: LanguageCode) => {
@@ -80,7 +92,7 @@ export default function Welcome() {
       // already stored and applies on the next launch, so this is the honest
       // thing left to say.
       await dialog.alert({ title: t('welcome.rtlTitle'), message: t('welcome.rtlManual'), tone: 'warning' });
-      router.replace('/(client)/discover');
+      router.replace((me?.tailor ? '/(app)' : '/(client)/discover') as never);
     }
   };
 

@@ -40,12 +40,14 @@ import { useThemeMode } from '../../lib/theme-mode';
 import { useSubscription } from '../../lib/subscription';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../lib/i18n';
 import { goToClientSide } from '../../lib/switch-side';
+import { useFirstRun } from '../../lib/first-run';
 import { formatMonthYear } from '../../lib/month-year';
 import { openLegal } from '../../lib/legal-links';
 
 export default function Me() {
   const { signOut } = useAuth();
   const { previewWelcome } = useGuides();
+  const { replay: replayIntro } = useFirstRun();
   const { data: me, isLoading } = useMe();
   // Cheap, cached, and decides whether the verification section exists at all.
   const { data: phone } = usePhoneStatus();
@@ -490,6 +492,20 @@ export default function Me() {
               onPress={() => {
                 previewWelcome();
                 router.back();
+              }}
+            />
+            <View style={{ height: spacing.md }} />
+            {/* The FIRST-RUN intro, which is a different thing from the slides
+                above: those are cards over the tailor's home, this is the
+                language question and the three full-screen slides a new
+                install opens on. */}
+            <Button
+              label={t('settings.replayIntro')}
+              variant="secondary"
+              iconStart={<Ionicons name="refresh-outline" size={18} color={colors.text} />}
+              onPress={() => {
+                replayIntro();
+                router.replace('/welcome');
               }}
             />
             <View style={{ height: spacing.md }} />

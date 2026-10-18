@@ -32,6 +32,8 @@ interface FirstRunState {
   seen: boolean;
   /** Mark it done. Writes through immediately so a kill mid-flow still counts. */
   markSeen: () => void;
+  /** Forget it, so the intro plays again. Dev affordance — see replayIntro. */
+  replay: () => void;
 }
 
 const FirstRunContext = createContext<FirstRunState | null>(null);
@@ -63,7 +65,22 @@ export function FirstRunProvider({ children }: { children: ReactNode }) {
     void AsyncStorage.setItem(STORAGE_KEY, '1');
   }, []);
 
-  const value = useMemo<FirstRunState>(() => ({ ready, seen, markSeen }), [ready, seen, markSeen]);
+  /**
+   * Put the device back to never-having-seen-it.
+   *
+   * Only reachable from the __DEV__ block in Settings. There is no production
+   * affordance on purpose: an intro you can replay from a menu is a menu item
+   * nobody wants, and anyone who really needs it can clear the app's storage.
+   */
+  const replay = useCallback(() => {
+    setSeen(false);
+    void AsyncStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  const value = useMemo<FirstRunState>(
+    () => ({ ready, seen, markSeen, replay }),
+    [ready, seen, markSeen, replay],
+  );
   return <FirstRunContext.Provider value={value}>{children}</FirstRunContext.Provider>;
 }
 
