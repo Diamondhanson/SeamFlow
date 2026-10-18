@@ -23,6 +23,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { CRON_TZ } from '../common/cron';
+import { reportJobFailure } from '../common/sentry';
 import { and, count, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import {
   billingFor,
@@ -605,6 +606,7 @@ export class SubscriptionsService {
       return { sent, emailed };
     } catch (err) {
       this.logger.error(`Renewal reminders failed: ${(err as Error).message}`);
+      reportJobFailure('renewalReminders', err);
       return { sent: 0, emailed };
     }
   }
@@ -655,6 +657,7 @@ export class SubscriptionsService {
       }
     } catch (err) {
       this.logger.error(`Subscription housekeeping failed: ${(err as Error).message}`);
+      reportJobFailure('subscriptionNightly', err);
     }
   }
 

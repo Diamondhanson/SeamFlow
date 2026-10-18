@@ -14,6 +14,7 @@ import { Inject, Injectable, Logger, NotFoundException, ServiceUnavailableExcept
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { CRON_TZ } from '../common/cron';
+import { reportJobFailure } from '../common/sentry';
 import { and, desc, eq, gte, isNotNull, ne } from 'drizzle-orm';
 import {
   billingFor,
@@ -351,6 +352,9 @@ export class CheckoutService {
         if (event.status === 'succeeded') settled++;
       } catch (err) {
         this.logger.warn(`Reconcile failed for ${row.providerRef}: ${(err as Error).message}`);
+        // Money: a payment that cannot be reconciled is a tailor who paid and
+        // may be waiting. This is the one that must never be only a log line.
+        reportJobFailure('reconcilePending', err, { providerRef: row.providerRef });
       }
     }
     if (settled) this.logger.log(`Reconciled ${settled} payment(s) whose webhook never arrived`);

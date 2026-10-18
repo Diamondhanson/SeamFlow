@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 import { QueueService } from '../queue/queue.service';
 import { sentryEnabled } from '../common/sentry';
@@ -34,6 +34,33 @@ export class HealthController {
     private readonly db: DbService,
     private readonly queue: QueueService,
   ) {}
+
+  /**
+   * Readiness — the one a monitor can act on.
+   *
+   * `/health` deliberately always answers 200: Render polls it, and a restart
+   * loop is not the right response to a Supabase outage ("it must never be the
+   * thing that fails a health check"). The cost was that NOTHING returned a
+   * failing status code, ever — so an uptime check watching this service saw a
+   * healthy 200 with `"db":"down"` in the body, and the one external signal
+   * anybody could wire up was blind to the failure that matters most.
+   *
+   * So liveness and readiness are split. This one answers 503 when the database
+   * is unreachable, which is a thing a pager can be pointed at. Render keeps
+   * polling `/health` and keeps its behaviour.
+   */
+  @Get('ready')
+  async ready(): Promise<{ ready: boolean; db: HealthStatus }> {
+    const configured = this.db.isConfigured();
+    const up = configured ? await this.db.ping() : false;
+    const db: HealthStatus = !configured ? 'not_configured' : up ? 'up' : 'down';
+    if (!up) {
+      // Thrown rather than returned so the status code is the signal, which is
+      // all most uptime checks look at.
+      throw new ServiceUnavailableException({ ready: false, db });
+    }
+    return { ready: true, db };
+  }
 
   @Get()
   async check(): Promise<HealthResponse> {
