@@ -15,6 +15,8 @@ export const errors = {
     uploadFailed: "We couldn't upload that photo. Please try again.",
     permission: 'Permission needed. Enable access in your device settings and try again.',
     unknown: 'Something went wrong. Please try again.',
+    crashTitle: 'Something went wrong on this screen.',
+    crashBody: 'Nothing you have saved is affected. Try again, or go back and open it fresh.',
   },
   fr: {
     suspended: 'Votre compte est en pause, cette modification n’a pas été enregistrée. Tout ce que vous avez est toujours là.',
@@ -29,6 +31,8 @@ export const errors = {
     uploadFailed: "Nous n'avons pas pu téléverser cette photo. Veuillez réessayer.",
     permission: "Autorisation requise. Activez l'accès dans les réglages de votre appareil et réessayez.",
     unknown: 'Un problème est survenu. Veuillez réessayer.',
+    crashTitle: 'Un problème est survenu sur cet écran.',
+    crashBody: "Rien de ce que vous avez enregistré n'est touché. Réessayez, ou revenez en arrière et rouvrez-le.",
   },
   pt: {
     suspended: 'A sua conta está suspensa, por isso esta alteração não foi guardada. Tudo o que tem continua aqui.',
@@ -43,6 +47,8 @@ export const errors = {
     uploadFailed: 'Não foi possível carregar essa foto. Tente novamente.',
     permission: 'É necessária permissão. Ative o acesso nas definições do dispositivo e tente novamente.',
     unknown: 'Algo correu mal. Tente novamente.',
+    crashTitle: 'Algo correu mal neste ecrã.',
+    crashBody: 'Nada do que guardou foi afetado. Tente novamente, ou volte atrás e abra-o de novo.',
   },
   es: {
     suspended: 'Tu cuenta está en pausa, así que este cambio no se guardó. Todo lo que tienes sigue aquí.',
@@ -57,6 +63,8 @@ export const errors = {
     uploadFailed: 'No pudimos subir esa foto. Inténtalo de nuevo.',
     permission: 'Se necesita permiso. Activa el acceso en los ajustes de tu dispositivo e inténtalo de nuevo.',
     unknown: 'Algo salió mal. Inténtalo de nuevo.',
+    crashTitle: 'Algo salió mal en esta pantalla.',
+    crashBody: 'Nada de lo que has guardado se ha visto afectado. Inténtalo de nuevo, o vuelve atrás y ábrelo otra vez.',
   },
   sw: {
     suspended: 'Akaunti yako imesimamishwa, kwa hivyo mabadiliko haya hayakuhifadhiwa. Kila ulicho nacho bado kipo.',
@@ -71,6 +79,8 @@ export const errors = {
     uploadFailed: 'Hatukuweza kupakia picha hiyo. Tafadhali jaribu tena.',
     permission: 'Ruhusa inahitajika. Washa ufikiaji katika mipangilio ya kifaa chako kisha ujaribu tena.',
     unknown: 'Hitilafu imetokea. Tafadhali jaribu tena.',
+    crashTitle: 'Kitu kimeharibika kwenye skrini hii.',
+    crashBody: 'Hakuna kilichohifadhiwa kilichoathirika. Jaribu tena, au rudi nyuma na uifungue upya.',
   },
   ar: {
     suspended: 'حسابك موقوف مؤقتًا، لذلك لم يُحفظ هذا التغيير. كل ما لديك ما زال موجودًا.',
@@ -85,5 +95,7 @@ export const errors = {
     uploadFailed: 'تعذّر رفع تلك الصورة. يرجى المحاولة مرة أخرى.',
     permission: 'الإذن مطلوب. فعّل الوصول من إعدادات جهازك وحاول مرة أخرى.',
     unknown: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
+    crashTitle: 'حدث خطأ في هذه الشاشة.',
+    crashBody: 'لم يتأثّر أي شيء حفظته. حاول مرة أخرى، أو ارجع وافتحها من جديد.',
   },
 } as const;
