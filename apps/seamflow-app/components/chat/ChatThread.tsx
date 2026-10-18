@@ -1156,7 +1156,12 @@ export function ChatThread({
             <Text variant="caption" tone="textMuted" numberOfLines={1} style={{ flex: 1 }}>
               {tk('replyingBanner')} · {snippetOf(replyingTo)}
             </Text>
-            <Pressable onPress={() => setReplyingTo(null)} hitSlop={8}>
+            <Pressable
+              onPress={() => setReplyingTo(null)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.cancel')}
+            >
               <Ionicons name="close" size={18} color={colors.textMuted} />
             </Pressable>
           </View>

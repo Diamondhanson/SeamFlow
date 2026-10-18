@@ -145,6 +145,38 @@ export async function ensurePushRegistered(): Promise<string | null> {
  * that may end up belonging to a different user (rare but possible if two
  * tailors share a device).
  */
+/**
+ * The OS notification permission, read WITHOUT prompting.
+ *
+ * `ensurePushRegistered` asks, which is right at the moment someone opts in and
+ * wrong on a settings screen — opening a screen must not raise a system dialog.
+ * This only reads, so the preferences screen can explain itself when every
+ * switch on it is moot because the OS is dropping the notifications.
+ *
+ * 'unavailable' covers a build whose native module is missing, which is a real
+ * state on a stale dev client and must not be reported as a denial.
+ */
+export async function getPushPermissionState(): Promise<
+  'granted' | 'denied' | 'undetermined' | 'unavailable'
+> {
+  if (!canUsePushNotifications) return 'unavailable';
+  try {
+    // Resolved the same lazy way ensurePushRegistered does: a stale dev client
+    // without the native module must read as 'unavailable', not 'denied'.
+    const Notifications = getNotifications();
+    if (!Notifications) return 'unavailable';
+
+    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    if (status === 'granted') return 'granted';
+    // iOS reports `undetermined` before the first ask and `denied` after a
+    // refusal; Android before 13 grants implicitly. `canAskAgain` is what
+    // separates "not asked yet" from "asked and refused".
+    return canAskAgain ? 'undetermined' : 'denied';
+  } catch {
+    return 'unavailable';
+  }
+}
+
 export async function unregisterPushOnSignOut(): Promise<void> {
   const token = lastRegisteredToken;
   if (!token) return;

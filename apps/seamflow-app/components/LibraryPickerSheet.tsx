@@ -96,7 +96,12 @@ export function LibraryPickerSheet({
         <View style={[styles.sheet, { backgroundColor: colors.overlay }]}>
           <View style={styles.header}>
             <Text variant="h3">{t('orders.attachFromLibraryTitle')}</Text>
-            <Pressable onPress={close} hitSlop={12} accessibilityRole="button">
+            <Pressable
+              onPress={close}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
+            >
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>

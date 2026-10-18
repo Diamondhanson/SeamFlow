@@ -11,6 +11,7 @@
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassLayer, glassOr } from './Glass';
+import { useTranslation } from '../lib/i18n';
 import { Ionicons } from '@expo/vector-icons';
 import { activeFontFamilies,
   Text,
@@ -51,6 +52,7 @@ export function OptionSheet({
   emptyText?: string;
 }) {
   const { colors } = useAtelierTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   return (
@@ -71,7 +73,12 @@ export function OptionSheet({
           <GlassLayer radius={24} />
           <View style={styles.head}>
             <Text variant="h3">{title}</Text>
-            <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button">
+            <Pressable
+              onPress={onClose}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close')}
+            >
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
