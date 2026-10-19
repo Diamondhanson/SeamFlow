@@ -108,6 +108,15 @@ export const ContentReportSchema = z.object({
       label: z.string(),
       detail: z.string().nullable(),
       imagePath: z.string().nullable(),
+      /**
+       * A reported voice note, as a short-lived signed URL so a reviewer can
+       * actually listen to it.
+       *
+       * Without this the queue would show a blank card for the one kind of
+       * message whose content is not text — which would make "we review what
+       * is reported" true of everything except the thing hardest to judge.
+       */
+      audioUrl: z.string().nullable().default(null),
       /** The shop behind the content, so one click reaches the usual levers. */
       tailorId: z.string().uuid().nullable(),
       ownerUserId: z.string().uuid().nullable(),

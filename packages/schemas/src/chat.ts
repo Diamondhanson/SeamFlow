@@ -52,6 +52,58 @@ export const MessageImageAttachmentSchema = z.object({
   thumbnailUrl: z.string().url().optional(),
 });
 
+/**
+ * How long a single voice note may run.
+ *
+ * Two minutes, not ten. A voice note is a remark — "the sleeves, can we make
+ * them like the photo I sent" — and the moment it becomes a monologue the
+ * person at the other end stops listening to all of it. The cap is also what
+ * keeps the file predictable: at the bitrate we record, two minutes is under
+ * half a megabyte, which is less than one of the photos already in the thread.
+ */
+export const MAX_VOICE_NOTE_MS = 120_000;
+
+/**
+ * How many bars a waveform is reduced to before it is stored.
+ *
+ * The recorder reports a level roughly ten times a second; a two-minute note
+ * would be 1,200 numbers. Nobody can read 1,200 bars on a phone, so it is
+ * resampled to a fixed count: the row is the same width whatever the length,
+ * which is also what makes a long note and a short one look like siblings
+ * rather than two different controls.
+ */
+export const VOICE_WAVEFORM_BARS = 44;
+
+/**
+ * A voice note in the private `chat-media` bucket; served via signed URL.
+ *
+ * Recorded as mono AAC in an .m4a container — the one encoding both phones
+ * record natively AND every browser plays, so a note left on an iPhone is
+ * audible on an Android and on the web app without anything transcoding it.
+ *
+ * `waveform` is stored rather than computed on read: the peaks are a by-product
+ * of recording, and the alternative is every reader decoding the whole file
+ * just to draw forty bars.
+ */
+export const MessageVoiceAttachmentSchema = z.object({
+  kind: z.literal('voice'),
+  storagePath: z.string(),
+  /** Measured at the recorder, not inferred from the file on read. */
+  durationMs: z.number().int().positive().max(MAX_VOICE_NOTE_MS + 5_000),
+  /**
+   * Loudness peaks, 0–100, already resampled to at most VOICE_WAVEFORM_BARS.
+   *
+   * Empty is legitimate: some devices report no levels while recording, and a
+   * note with no waveform still plays. The player falls back to a plain
+   * progress track rather than drawing a waveform it had to invent.
+   */
+  waveform: z.array(z.number().int().min(0).max(100)).max(VOICE_WAVEFORM_BARS).default([]),
+  /** e.g. `audio/mp4`. Stored because the web recorder may produce webm. */
+  contentType: z.string().max(100).optional(),
+  /** Short-lived signed URL, added by API responses — never stored. */
+  url: z.string().url().optional(),
+});
+
 /** A reference to a feed post — how "I'd like this one" is expressed. */
 export const MessageDesignAttachmentSchema = z.object({
   kind: z.literal('design'),
@@ -148,6 +200,7 @@ export const MessageDesignChangeAttachmentSchema = z.object({
 
 export const MessageAttachmentSchema = z.discriminatedUnion('kind', [
   MessageImageAttachmentSchema,
+  MessageVoiceAttachmentSchema,
   MessageDesignAttachmentSchema,
   MessageLinkAttachmentSchema,
   MessageOrderAttachmentSchema,

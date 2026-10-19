@@ -142,9 +142,17 @@
         }
       ],
       [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so you can record voice messages in your chats and talk to the assistant instead of typing.",
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so you can talk to the assistant instead of typing.",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone so you can record voice messages in your chats and talk to the assistant instead of typing.",
           "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition so your voice can be turned into text for the assistant."
         }
       ],

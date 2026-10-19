@@ -167,6 +167,7 @@ export class ChatService {
   /** Resolve every attachment URL for a page of messages in ONE storage call. */
   private async hydrateAttachments(rows: MessageRow[]): Promise<Map<string, MessageAttachment[]>> {
     const db = this.dbService.db;
+    /** Every path in the private chat bucket on this page — photos and voice. */
     const imagePaths: string[] = [];
     const designIds = new Set<string>();
     const orderIds = new Set<string>();
@@ -175,6 +176,10 @@ export class ChatService {
         if (a.kind === 'image') {
           imagePaths.push(a.storagePath);
           if (a.thumbnailPath) imagePaths.push(a.thumbnailPath);
+        } else if (a.kind === 'voice') {
+          // Same private bucket, same signing batch — a voice note is an
+          // attachment the two participants own, exactly like a photo.
+          imagePaths.push(a.storagePath);
         } else if (a.kind === 'design') {
           designIds.add(a.designPostId);
         } else if (a.kind === 'order') {
@@ -228,6 +233,9 @@ export class ChatService {
             thumbnailUrl: a.thumbnailPath ? signed.get(a.thumbnailPath) : undefined,
           };
         }
+        if (a.kind === 'voice') {
+          return { ...a, url: signed.get(a.storagePath) };
+        }
         if (a.kind === 'design') {
           const url = designThumb.get(a.designPostId);
           return { ...a, imageUrl: a.imageUrl ?? url, thumbnailUrl: a.thumbnailUrl ?? url };
@@ -265,6 +273,7 @@ export class ChatService {
     if (row.body?.trim()) return row.body.trim().slice(0, 120);
     const atts = (row.attachments as MessageAttachment[]) ?? [];
     if (atts.some((a) => a.kind === 'image')) return '📷';
+    if (atts.some((a) => a.kind === 'voice')) return '🎤';
     if (atts.some((a) => a.kind === 'order')) return '📦';
     if (atts.some((a) => a.kind === 'measurement' || a.kind === 'measurement_request')) return '📏';
     if (atts.some((a) => a.kind === 'design')) return '🖼️';
@@ -718,9 +727,11 @@ export class ChatService {
       input.body?.trim() ||
       (attachments.some((a) => a.kind === 'image')
         ? '📷'
-        : attachments.length > 0
-          ? '🧵'
-          : '');
+        : attachments.some((a) => a.kind === 'voice')
+          ? '🎤'
+          : attachments.length > 0
+            ? '🧵'
+            : '');
 
     await db
       .update(conversations)

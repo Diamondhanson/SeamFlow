@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Keyboard,
   Linking,
   Modal,
   Pressable,
@@ -41,7 +42,14 @@ import type {
   SaveChatMeasurementResult,
 } from '@seamflow/schemas';
 import { formatCurrency } from '@seamflow/utils';
-import { Text, useAtelierTheme, useFieldFocus, useKeyboardAppearance, keyboardDismissOnDrag } from '@seamflow/ui';
+import {
+  Text,
+  useAtelierTheme,
+  useFieldFocus,
+  useKeyboardAppearance,
+  keyboardDismissOnDrag,
+  withAlpha,
+} from '@seamflow/ui';
 import { Screen } from '../Screen';
 import { ScreenHeader } from '../ScreenHeader';
 import {
@@ -65,6 +73,10 @@ import {
   type PendingMessage,
 } from '../../lib/chat-outbox';
 import { pickPhotos, uploadChatImage } from '../../lib/photo-upload';
+import { canRecordVoice } from '../../lib/voice-note';
+import { stopAllAudio } from '../../lib/audio-focus';
+import { VoiceBubble } from './VoiceBubble';
+import { VoiceComposer } from './VoiceComposer';
 import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
 import { useDialog } from '../../lib/dialog';
 import { useOnline } from '../../lib/use-online';
@@ -81,6 +93,14 @@ import {
 } from '../../lib/use-composer-keyboard';
 
 const REACTION_CHOICES = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+/**
+ * Whether this device can record a note the other side will be able to play.
+ *
+ * Asked once at module load rather than per render: it is a property of the
+ * platform, and on native it is unconditionally true.
+ */
+const micAvailable = canRecordVoice();
 
 /** Six lines of text, then the field scrolls instead of eating the thread. */
 const COMPOSER_MAX_H = COMPOSER_LINE_H * 6;
@@ -133,6 +153,8 @@ export function ChatThread({
   const [draft, setDraft] = useState('');
   const [pending, setPending] = useState<PendingMessage[]>([]);
   const [attaching, setAttaching] = useState(false);
+  /** The composer is swapped for the recording bar while this is true. */
+  const [recording, setRecording] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   /** The message whose WhatsApp-style action overlay is open. */
   const [menu, setMenu] = useState<Message | null>(null);
@@ -149,6 +171,9 @@ export function ChatThread({
     void pendingFor(id).then(setPending);
     return subscribeOutbox((all) => setPending(all.filter((m) => m.conversationId === id)));
   }, [id]);
+
+  // Audio must not follow you out of the screen that started it.
+  useEffect(() => () => stopAllAudio(), []);
 
   // ── Realtime ──────────────────────────────────────────────────────────────
   const { counterpartyTyping, counterpartyOnline, notifyTyping } = useChatRealtime(id, role, {
@@ -509,18 +534,18 @@ export function ChatThread({
   }, [messages, pending, t]);
 
   // ── Send ──────────────────────────────────────────────────────────────────
-  const snippetOf = (m: Message): string =>
-    m.body?.trim()
-      ? m.body.trim().slice(0, 120)
-      : m.attachments.some((a) => a.kind === 'image')
-        ? '📷'
-        : m.attachments.some((a) => a.kind === 'order')
-          ? '📦'
-          : m.attachments.some((a) => a.kind === 'measurement' || a.kind === 'measurement_request')
-            ? '📏'
-            : m.attachments.some((a) => a.kind === 'design')
-              ? '🖼️'
-              : '🔗';
+  const snippetOf = (m: Message): string => {
+    if (m.body?.trim()) return m.body.trim().slice(0, 120);
+    // Markers, not words: the quote is rendered by whichever side opens the
+    // thread, in whichever language they read. An emoji needs no translation.
+    const has = (k: MessageAttachment['kind']) => m.attachments.some((a) => a.kind === k);
+    if (has('image')) return '📷';
+    if (has('voice')) return '🎤';
+    if (has('order')) return '📦';
+    if (has('measurement') || has('measurement_request')) return '📏';
+    if (has('design')) return '🖼️';
+    return '🔗';
+  };
 
   const send = async () => {
     const body = draft.trim();
@@ -566,6 +591,40 @@ export function ChatThread({
     } finally {
       setAttaching(false);
     }
+  };
+
+  /**
+   * A finished recording, on its way.
+   *
+   * Same path as a photo: the file is already in the bucket by the time this
+   * runs, so what is queued is an ordinary attachment and the outbox's
+   * retry-and-deduplicate rules apply to it unchanged.
+   */
+  const sendVoice = async (attachment: MessageAttachment) => {
+    const reply = replyingTo;
+    setRecording(false);
+    setReplyingTo(null);
+    await enqueue({
+      conversationId: id,
+      attachments: [attachment],
+      replyToId: reply?.id ?? null,
+      replyPreview: reply
+        ? { messageId: reply.id, side: reply.senderType, snippet: snippetOf(reply) }
+        : null,
+    });
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    void flush(() => {
+      void qc.invalidateQueries({ queryKey: qk.conversationMessages(id) });
+      void qc.invalidateQueries({ queryKey: qk.conversations() });
+    });
+  };
+
+  const startRecording = () => {
+    // The keyboard and the recording bar want the same strip of screen, and
+    // nobody types into a voice note.
+    Keyboard.dismiss();
+    haptics.selection();
+    setRecording(true);
   };
 
   const promptAttach = async () => {
@@ -747,7 +806,7 @@ export function ChatThread({
               </Pressable>
             ) : null}
 
-            {attachments.map((a, i) => renderAttachment(a, i, msg?.id))}
+            {attachments.map((a, i) => renderAttachment(a, i, msg?.id, mine))}
 
             {body ? (
               <Text variant="body" style={{ color: mine ? atelier.textOnPrimary : colors.text }}>
@@ -805,7 +864,26 @@ export function ChatThread({
 
   /** `messageId` is null for a queued message and inside the action overlay:
    *  both are previews, and neither can be filed. */
-  const renderAttachment = (a: MessageAttachment, i: number, messageId?: string | null) => {
+  const renderAttachment = (
+    a: MessageAttachment,
+    i: number,
+    messageId?: string | null,
+    mine = false,
+  ) => {
+    if (a.kind === 'voice') {
+      return (
+        <VoiceBubble
+          key={i}
+          attachment={a}
+          mine={mine}
+          // On my own bubble the accent IS the background, so the waveform is
+          // drawn in the colour that sits on it; on theirs the accent is free.
+          tint={mine ? atelier.textOnPrimary : atelier.primary}
+          track={mine ? withAlpha(atelier.textOnPrimary, 0.32) : colors.border}
+          textColor={mine ? atelier.textOnPrimary : colors.text}
+        />
+      );
+    }
     if (a.kind === 'image') {
       return (
         <Image
@@ -1167,63 +1245,95 @@ export function ChatThread({
           </View>
         ) : null}
 
-        <View
-          style={[
-            styles.composer,
-            {
-              backgroundColor: colors.card,
-              borderColor: composerFocus.focused ? atelier.primary : colors.hairline,
-            },
-          ]}
-        >
-          <Pressable onPress={promptAttach} disabled={attaching} style={styles.attachBtn}>
-            {attaching ? (
-              <ActivityIndicator size="small" color={colors.textMuted} />
-            ) : (
-              <Ionicons name="add" size={24} color={colors.textMuted} />
-            )}
-          </Pressable>
-          {/* The field is centred by its WRAPPER, not by textAlignVertical:
-              that prop is Android-only, so relying on it would leave the
-              placeholder sitting on the top edge on iOS. A box of the same
-              height as the buttons, with the text centred inside it, is the
-              one arrangement that reads level on both. */}
-          <View style={styles.inputWrap}>
-            <TextInput
-              keyboardAppearance={keyboardAppearance}
-              value={draft}
-              onChangeText={(v) => {
-                setDraft(v);
-                notifyTyping();
-              }}
-              placeholder={tk('composerPlaceholder')}
-              placeholderTextColor={colors.textMuted}
-              multiline
-              onContentSizeChange={(e) => setDraftH(e.nativeEvent.contentSize.height)}
-              // Only scroll once it has stopped growing, or the field fights
-              // the caret on the very first line.
-              scrollEnabled={draftH > COMPOSER_MAX_H}
-              {...composerFocus.focusProps}
-              style={[
-                styles.input,
-                { color: colors.text },
-                { height: Math.min(Math.max(draftH, COMPOSER_LINE_H), COMPOSER_MAX_H) },
-                composerFocus.webReset,
-              ]}
-            />
-          </View>
-          <Pressable
-            onPress={send}
-            disabled={!draft.trim()}
-            accessibilityLabel={tk('send')}
+        {recording ? (
+          <VoiceComposer
+            conversationId={id}
+            onSend={sendVoice}
+            onCancel={() => setRecording(false)}
+            onError={(err) => {
+              void (async () => {
+                if (!(await alertIfPermissionDenied(err, dialog, t))) await dialog.error(err);
+              })();
+            }}
+          />
+        ) : (
+          <View
             style={[
-              styles.sendBtn,
-              { backgroundColor: draft.trim() ? atelier.primary : colors.border, borderRadius: radii.lg },
+              styles.composer,
+              {
+                backgroundColor: colors.card,
+                borderColor: composerFocus.focused ? atelier.primary : colors.hairline,
+              },
             ]}
           >
-            <Ionicons name="send" size={18} color={atelier.textOnPrimary} />
-          </Pressable>
-        </View>
+            <Pressable onPress={promptAttach} disabled={attaching} style={styles.attachBtn}>
+              {attaching ? (
+                <ActivityIndicator size="small" color={colors.textMuted} />
+              ) : (
+                <Ionicons name="add" size={24} color={colors.textMuted} />
+              )}
+            </Pressable>
+            {/* The field is centred by its WRAPPER, not by textAlignVertical:
+                that prop is Android-only, so relying on it would leave the
+                placeholder sitting on the top edge on iOS. A box of the same
+                height as the buttons, with the text centred inside it, is the
+                one arrangement that reads level on both. */}
+            <View style={styles.inputWrap}>
+              <TextInput
+                keyboardAppearance={keyboardAppearance}
+                value={draft}
+                onChangeText={(v) => {
+                  setDraft(v);
+                  notifyTyping();
+                }}
+                placeholder={tk('composerPlaceholder')}
+                placeholderTextColor={colors.textMuted}
+                multiline
+                onContentSizeChange={(e) => setDraftH(e.nativeEvent.contentSize.height)}
+                // Only scroll once it has stopped growing, or the field fights
+                // the caret on the very first line.
+                scrollEnabled={draftH > COMPOSER_MAX_H}
+                {...composerFocus.focusProps}
+                style={[
+                  styles.input,
+                  { color: colors.text },
+                  { height: Math.min(Math.max(draftH, COMPOSER_LINE_H), COMPOSER_MAX_H) },
+                  composerFocus.webReset,
+                ]}
+              />
+            </View>
+            {/* One button, two jobs — the WhatsApp arrangement, and the reason
+                it is worth copying: the mic costs no width, and it is only ever
+                offered when there is nothing written to send. Where the browser
+                cannot record something the other side could play, it stays a
+                send button and the feature is simply absent rather than broken
+                (see lib/voice-note). */}
+            {draft.trim() || !micAvailable ? (
+              <Pressable
+                onPress={send}
+                disabled={!draft.trim()}
+                accessibilityLabel={tk('send')}
+                style={[
+                  styles.sendBtn,
+                  { backgroundColor: draft.trim() ? atelier.primary : colors.border, borderRadius: radii.lg },
+                ]}
+              >
+                <Ionicons name="send" size={18} color={atelier.textOnPrimary} />
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={startRecording}
+                accessibilityLabel={tk('recordVoice')}
+                style={[
+                  styles.sendBtn,
+                  { backgroundColor: atelier.primary, borderRadius: radii.lg },
+                ]}
+              >
+                <Ionicons name="mic" size={19} color={atelier.textOnPrimary} />
+              </Pressable>
+            )}
+          </View>
+        )}
       </KeyboardStickyView>
 
       {/* WhatsApp-style long-press overlay: dim the thread, float the bubble in
@@ -1257,7 +1367,7 @@ export function ChatThread({
                         { backgroundColor: mine ? atelier.primary : colors.card, borderRadius: radii.lg },
                       ]}
                     >
-                      {m.attachments.map((a, i) => renderAttachment(a, i))}
+                      {m.attachments.map((a, i) => renderAttachment(a, i, null, mine))}
                       {m.body ? (
                         <Text variant="body" style={{ color: mine ? atelier.textOnPrimary : colors.text }}>
                           {m.body}

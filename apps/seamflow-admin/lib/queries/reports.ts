@@ -54,6 +54,8 @@ export interface ReportRow {
     label: string;
     detail: string | null;
     imagePath: string | null;
+    /** A reported voice note, signed so a reviewer can play it in place. */
+    audioUrl: string | null;
     tailorId: string | null;
     ownerUserId: string | null;
   } | null;

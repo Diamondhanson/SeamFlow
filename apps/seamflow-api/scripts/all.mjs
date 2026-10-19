@@ -24,6 +24,7 @@ const SUITES = [
   'requests',
   'chat-measurements',
   'chat-sync',
+  'voice-notes',
   'support',
   // Discovery and search.
   'search-filters',

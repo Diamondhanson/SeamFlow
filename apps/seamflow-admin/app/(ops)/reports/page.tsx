@@ -103,6 +103,13 @@ export default async function ReportsQueue({
                   {r.subject?.detail ? (
                     <p className="mt-1 line-clamp-3 text-sm text-muted">{r.subject.detail}</p>
                   ) : null}
+                  {/* A reported voice note is the one subject that cannot be
+                      read. Judging it means listening to it, so the player is
+                      here rather than behind a link. */}
+                  {r.subject?.audioUrl ? (
+                    // eslint-disable-next-line jsx-a11y/media-has-caption -- a reported recording has no transcript to caption
+                    <audio src={r.subject.audioUrl} controls preload="none" className="mt-2 w-full max-w-sm" />
+                  ) : null}
                   {r.subject?.tailorId ? (
                     <Link
                       href={`/tailors/${r.subject.tailorId}`}

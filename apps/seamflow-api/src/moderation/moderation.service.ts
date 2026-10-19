@@ -31,9 +31,11 @@ import type {
   ContentReport,
   CreateReportInput,
   DecideReportInput,
+  MessageAttachment,
   ReportTarget,
 } from '@seamflow/schemas';
 import { DbService } from '../db/db.service';
+import { SupabaseService } from '../supabase/supabase.service';
 import {
   contentReports,
   conversations,
@@ -44,11 +46,23 @@ import {
   users,
 } from '../db/schema';
 
+/** Long enough for a reviewer to listen, short enough not to be a handout. */
+const REVIEW_URL_TTL_S = 60 * 30;
+
+/** `83_000` → `1:23`. Only ever used for the queue's one-line description. */
+function formatDuration(ms: number): string {
+  const total = Math.round(ms / 1000);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
 @Injectable()
 export class ModerationService {
   private readonly logger = new Logger(ModerationService.name);
 
-  constructor(private readonly dbService: DbService) {}
+  constructor(
+    private readonly dbService: DbService,
+    private readonly supabase: SupabaseService,
+  ) {}
 
   // -------------------------------------------------------------------------
   // Reporting
@@ -212,6 +226,27 @@ export class ModerationService {
     return row?.n ?? 0;
   }
 
+  /**
+   * Sign paths in the private chat bucket for a reviewer.
+   *
+   * Short-lived and read-only: staff get long enough to listen to what was
+   * reported and nothing more durable than that.
+   */
+  private async signChatPaths(paths: string[]): Promise<Map<string, string>> {
+    const out = new Map<string, string>();
+    if (paths.length === 0) return out;
+    const { data, error } = await this.supabase
+      .admin()
+      .storage.from('chat-media')
+      .createSignedUrls([...new Set(paths)], REVIEW_URL_TTL_S);
+    if (error || !data) {
+      this.logger.warn(`Could not sign reported audio: ${error?.message}`);
+      return out;
+    }
+    for (const e of data) if (e.signedUrl && e.path) out.set(e.path, e.signedUrl);
+    return out;
+  }
+
   /** Batch-resolve the reported things into something readable. */
   private async subjectsFor(
     targets: { target: ReportTarget; id: string }[],
@@ -241,6 +276,7 @@ export class ModerationService {
           label: r.title || r.shop || 'Design',
           detail: r.caption,
           imagePath: r.thumb || r.path,
+          audioUrl: null,
           tailorId: r.tailorId,
           ownerUserId: r.ownerUserId ?? null,
         });
@@ -264,6 +300,7 @@ export class ModerationService {
           label: r.name,
           detail: r.city,
           imagePath: r.avatar,
+          audioUrl: null,
           tailorId: r.id,
           ownerUserId: r.userId,
         });
@@ -276,6 +313,7 @@ export class ModerationService {
         .select({
           id: messages.id,
           body: messages.body,
+          attachments: messages.attachments,
           senderUserId: messages.senderUserId,
           senderName: users.fullName,
           tailorId: conversations.tailorId,
@@ -284,11 +322,25 @@ export class ModerationService {
         .leftJoin(users, eq(users.id, messages.senderUserId))
         .leftJoin(conversations, eq(conversations.id, messages.conversationId))
         .where(inArray(messages.id, messageIds));
+
+      // A reported voice note has no body to read, so the queue gets a playable
+      // URL instead. Signed in one batch for the whole page, like chat does.
+      const voiceBy = new Map<string, { path: string; durationMs: number }>();
       for (const r of rows) {
+        const att = ((r.attachments as MessageAttachment[]) ?? []).find(
+          (a): a is Extract<MessageAttachment, { kind: 'voice' }> => a.kind === 'voice',
+        );
+        if (att) voiceBy.set(r.id, { path: att.storagePath, durationMs: att.durationMs });
+      }
+      const signedVoice = await this.signChatPaths([...voiceBy.values()].map((v) => v.path));
+
+      for (const r of rows) {
+        const voice = voiceBy.get(r.id);
         out.set(`message:${r.id}`, {
           label: r.senderName || 'Message',
-          detail: r.body,
+          detail: r.body ?? (voice ? `Voice note · ${formatDuration(voice.durationMs)}` : null),
           imagePath: null,
+          audioUrl: (voice && signedVoice.get(voice.path)) ?? null,
           tailorId: r.tailorId ?? null,
           ownerUserId: r.senderUserId,
         });
