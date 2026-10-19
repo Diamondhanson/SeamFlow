@@ -10,14 +10,24 @@
 // Instead the row is drawn TWICE — once in the muted colour, once in the
 // accent — and the accent copy sits in a clipping box whose width is a
 // Reanimated shared value. Nothing re-renders while a note plays; a single
-// value changes on the UI thread and the fill slides. The second copy is given
-// the measured width explicitly so clipping REVEALS it rather than squashing
-// it, which is the part that is easy to get wrong.
+// value changes on the UI thread and the fill slides.
+//
+// WHY THE BAR WIDTH IS AN INTEGER
+//
+// The two copies must land on exactly the same pixels. They used to be laid
+// out independently — the base row with `flex: 1` bars, the clipped copy
+// inside a box of its own width — and 44 fractional widths rounded differently
+// between them, so every bar carried a half-pixel ghost of itself. It read as
+// a drop shadow nobody asked for.
+//
+// So the width is computed once, floored to a whole pixel, and handed to both
+// copies. Identical by construction rather than by coincidence. It is also
+// capped: a note whose waveform is only a few samples long would otherwise
+// stretch into fat lozenges that look nothing like sound.
 //
 // WHEN THERE IS NO WAVEFORM
 //
-// Some devices report no recording levels at all. Rather than invent a shape —
-// a decorative squiggle that implies information it does not have — the
+// Some devices report no recording levels. Rather than invent a shape, the
 // component falls back to a plain progress track. It is honest, it still
 // scrubs, and most people will never notice which one they are looking at.
 // ============================================================================
@@ -32,6 +42,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const BAR_GAP = 2;
+const BAR_MAX_W = 4;
+const BAR_MIN_W = 2;
 const MIN_BAR_RATIO = 0.16;
 
 export interface VoiceWaveformProps {
@@ -64,6 +76,16 @@ export function VoiceWaveform({
   onScrubbingChange,
 }: VoiceWaveformProps) {
   const [width, setWidth] = useState(0);
+
+  const count = waveform.length;
+  // Whole pixels, so both copies of the row land identically.
+  const barW = count
+    ? Math.max(
+        BAR_MIN_W,
+        Math.min(BAR_MAX_W, Math.floor((width - BAR_GAP * (count - 1)) / count)),
+      )
+    : BAR_MIN_W;
+  const rowW = count ? barW * count + BAR_GAP * (count - 1) : width;
 
   const fillStyle = useAnimatedStyle(() => ({
     width: Math.max(0, Math.min(1, progress.value)) * width,
@@ -111,44 +133,29 @@ export function VoiceWaveform({
 
   const gesture = Gesture.Exclusive(pan, tap);
 
-  const bars = (color: string, explicitWidth?: number) => (
-    <View
-      style={[
-        styles.row,
-        { height },
-        explicitWidth != null ? { width: explicitWidth } : styles.flex,
-      ]}
-    >
-      {waveform.map((level, i) => (
-        <View
-          key={i}
-          style={[
-            styles.bar,
-            {
+  /** One copy of the row. Both get the same numbers, never a flex guess. */
+  const row = (color: string) =>
+    count > 0 ? (
+      <View style={[styles.row, { height, width: rowW }]}>
+        {waveform.map((level, i) => (
+          <View
+            key={i}
+            style={{
+              width: barW,
               backgroundColor: color,
+              borderRadius: barW / 2,
               // Never zero: a silent moment should read as a quiet bar, not a
               // gap in the row.
               height: Math.max(height * MIN_BAR_RATIO, (level / 100) * height),
-            },
-          ]}
-        />
-      ))}
-    </View>
-  );
-
-  const plain = (color: string, explicitWidth?: number) => (
-    <View
-      style={[
-        styles.row,
-        { height },
-        explicitWidth != null ? { width: explicitWidth } : styles.flex,
-      ]}
-    >
-      <View style={[styles.track, { backgroundColor: color }]} />
-    </View>
-  );
-
-  const draw = waveform.length > 0 ? bars : plain;
+            }}
+          />
+        ))}
+      </View>
+    ) : (
+      <View style={[styles.row, { height, width: width || undefined }]}>
+        <View style={[styles.track, { backgroundColor: color }]} />
+      </View>
+    );
 
   return (
     <GestureDetector gesture={gesture}>
@@ -160,10 +167,10 @@ export function VoiceWaveform({
         accessible={!!onSeek}
         accessibilityRole={onSeek ? 'adjustable' : 'none'}
       >
-        {draw(track)}
+        {width > 0 ? row(track) : null}
         {width > 0 ? (
           <Animated.View style={[styles.fill, fillStyle]} pointerEvents="none">
-            {draw(tint, width)}
+            {row(tint)}
           </Animated.View>
         ) : null}
       </View>
@@ -173,12 +180,7 @@ export function VoiceWaveform({
 
 const styles = StyleSheet.create({
   stage: { flex: 1, justifyContent: 'center' },
-  flex: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: BAR_GAP },
-  // flex:1 rather than a fixed bar width: the row then fills whatever the
-  // bubble gives it, so the same forty-four bars look right on a small phone
-  // and on a tablet without a second layout.
-  bar: { flex: 1, borderRadius: 999, minWidth: 1 },
   track: { flex: 1, height: 4, borderRadius: 999 },
   fill: { position: 'absolute', left: 0, top: 0, bottom: 0, overflow: 'hidden' },
 });

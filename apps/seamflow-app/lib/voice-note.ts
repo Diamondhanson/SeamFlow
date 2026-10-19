@@ -137,6 +137,49 @@ export async function setAudioSession(mode: 'record' | 'play'): Promise<void> {
   }
 }
 
+// ── Waiting for the encoder to finish ───────────────────────────────────────
+
+/**
+ * Block until the recording on disk is actually complete.
+ *
+ * `recorder.stop()` resolving does not mean the file is finished. On Android
+ * the muxer still has to write the moov atom that tells a player where
+ * everything is, and for a short window the file on disk is either empty or
+ * truncated — which produced the two symptoms that looked unrelated: the
+ * preview refused to play (no moov, nothing to decode) and sending failed
+ * (zero bytes read, so the upload refused the empty file).
+ *
+ * So: poll the size until it stops changing. Two identical non-zero readings
+ * in a row means the writer has let go. A couple of hundred milliseconds in
+ * practice, and the preview screen is appearing in that time anyway.
+ *
+ * Web needs none of this — MediaRecorder hands over a Blob that is complete by
+ * definition — so it returns immediately.
+ */
+export async function waitForRecording(uri: string, timeoutMs = 3_000): Promise<number> {
+  if (Platform.OS === 'web') return 0;
+  const deadline = Date.now() + timeoutMs;
+  let previous = -1;
+  let stable = 0;
+  while (Date.now() < deadline) {
+    let size = 0;
+    try {
+      size = new File(uri).size;
+    } catch {
+      size = 0;
+    }
+    if (size > 0 && size === previous) {
+      stable += 1;
+      if (stable >= 2) return size;
+    } else {
+      stable = 0;
+    }
+    previous = size;
+    await new Promise((resolve) => setTimeout(resolve, 70));
+  }
+  throw new UploadError('The recording did not finish writing');
+}
+
 // ── The local copy ──────────────────────────────────────────────────────────
 
 /**

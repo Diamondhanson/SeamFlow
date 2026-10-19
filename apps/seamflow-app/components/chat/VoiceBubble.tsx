@@ -49,6 +49,7 @@ export function VoiceBubble({
   tint,
   track,
   textColor,
+  glyph,
 }: {
   attachment: Voice;
   /** Mine sits on the accent bubble, theirs on the card — different contrast. */
@@ -56,6 +57,15 @@ export function VoiceBubble({
   tint: string;
   track: string;
   textColor: string;
+  /**
+   * The play triangle itself.
+   *
+   * Passed in rather than derived, because the obvious derivation is wrong in
+   * dark mode: there, `textOnPrimary` and the page background are the SAME
+   * near-black, so a disc of one carrying a glyph of the other is a black
+   * circle with nothing in it. Which is exactly what shipped.
+   */
+  glyph: string;
 }) {
   const { t } = useTranslation();
   const colors = useThemeColors();
@@ -191,7 +201,7 @@ export function VoiceBubble({
         ]}
       >
         {loading ? (
-          <ActivityIndicator size="small" color={mine ? colors.bg : tint} />
+          <ActivityIndicator size="small" color={glyph} />
         ) : (
           <Ionicons
             name={status.playing ? 'pause' : 'play'}
@@ -199,7 +209,7 @@ export function VoiceBubble({
             // The glyph is drawn off-centre by its own bearing; nudging the
             // play triangle a pixel right is what makes it look centred.
             style={status.playing ? undefined : styles.playGlyph}
-            color={mine ? colors.bg : tint}
+            color={glyph}
           />
         )}
       </Pressable>

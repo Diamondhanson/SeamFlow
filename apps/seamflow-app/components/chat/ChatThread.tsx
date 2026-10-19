@@ -59,7 +59,13 @@ import {
 } from '@seamflow/schemas';
 import { VerifiedBadge } from '../VerifiedBadge';
 import { SkeletonList } from '../Skeleton';
-import { useConversation, useMarkConversationRead, useMessages, useOrders } from '../../lib/queries';
+import {
+  useConversation,
+  useMarkConversationRead,
+  useMe,
+  useMessages,
+  useOrders,
+} from '../../lib/queries';
 import { useConsumerMeasurements } from '../../lib/consumer-queries';
 import { useChatRealtime } from '../../lib/chat-realtime';
 import {
@@ -144,6 +150,9 @@ export function ChatThread({
   const dialog = useDialog();
   const online = useOnline();
   const qc = useQueryClient();
+
+  const { data: me } = useMe();
+  const myUserId = me?.id ?? null;
 
   const convoQ = useConversation(id);
   const msgsQ = useMessages(id);
@@ -750,6 +759,22 @@ export function ChatThread({
 
   const anyFailed = pending.some((p) => p.status === 'failed');
 
+  /**
+   * Did I write this?
+   *
+   * By user id, not by side. `senderType` is the side the SERVER resolved,
+   * and for a tailor messaging their own shop it resolves to 'tailor' even
+   * when the message was sent from the customer screen — so the customer
+   * screen rendered their own words on the left, in the colour of somebody
+   * else's. The optimistic bubble appeared on the right and then jumped.
+   *
+   * A user id has no such ambiguity: the person who sent it either is me or
+   * is not. Falls back to the side while `me` is still loading, which is the
+   * old behaviour and correct for every conversation between two people.
+   */
+  const isMine = (m: Message): boolean =>
+    myUserId ? m.senderUserId === myUserId : m.senderType === role;
+
   // ── Render one bubble ─────────────────────────────────────────────────────
   const renderRow = ({ item }: { item: Row }) => {
     if (item.kind === 'day') {
@@ -764,7 +789,7 @@ export function ChatThread({
 
     const isPending = item.kind === 'pending';
     const msg = item.kind === 'sent' ? item.msg : null;
-    const mine = isPending ? true : msg!.senderType === role;
+    const mine = isPending ? true : isMine(msg!);
     const body = isPending ? item.pending.body : msg!.body;
     const attachments = isPending ? item.pending.attachments : msg!.attachments;
     const reactions: MessageReaction[] = msg?.reactions ?? [];
@@ -881,6 +906,11 @@ export function ChatThread({
           tint={mine ? atelier.textOnPrimary : atelier.primary}
           track={mine ? withAlpha(atelier.textOnPrimary, 0.32) : colors.border}
           textColor={mine ? atelier.textOnPrimary : colors.text}
+          // The play triangle is the accent in BOTH cases: on their card it
+          // sits on the page colour, on my bubble it sits on a disc of
+          // `textOnPrimary`. In dark mode those two are the same near-black,
+          // so anything but the accent disappears into the disc.
+          glyph={atelier.primary}
         />
       );
     }
@@ -1342,7 +1372,7 @@ export function ChatThread({
         {menu
           ? (() => {
               const m = menu;
-              const mine = m.senderType === role;
+              const mine = isMine(m);
               const myEmoji = m.reactions.find((r) => r.side === role)?.emoji ?? null;
               return (
                 <Pressable style={styles.overlayBackdrop} onPress={() => setMenu(null)}>

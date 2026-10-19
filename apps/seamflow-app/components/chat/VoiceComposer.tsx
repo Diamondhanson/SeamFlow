@@ -57,13 +57,24 @@ import {
   resampleWaveform,
   setAudioSession,
   uploadVoiceNote,
+  waitForRecording,
 } from '../../lib/voice-note';
 import { COMPOSER_CONTROL } from '../../lib/use-composer-keyboard';
 import { VoiceWaveform } from './VoiceWaveform';
 
-/** How often we read the level while recording. Ten a second draws a waveform
- *  that looks like speech; much slower and it looks like a bar chart. */
-const METER_MS = 100;
+/**
+ * How often we read the level while recording.
+ *
+ * Twenty a second. The first version sampled whenever the recorder's reported
+ * DURATION changed, which on Android moves in whole seconds — so a ten-second
+ * note arrived with ten bars, each stretched into a fat lozenge, and the live
+ * row lurched once a second instead of moving. The duration is the wrong
+ * clock; this is our own.
+ */
+const METER_MS = 50;
+
+/** The clock, which only ever needs to be right to the second. */
+const CLOCK_MS = 250;
 
 /** Start counting down out loud with this much left. */
 const WARN_MS = 15_000;
@@ -88,11 +99,22 @@ export function VoiceComposer({
   const [phase, setPhase] = useState<'starting' | 'recording' | 'preview' | 'sending'>('starting');
 
   const recorder = useAudioRecorder(VOICE_RECORDING_OPTIONS);
-  // Polled ten times a second only while it matters. Once the note is
-  // recorded there is nothing left to meter, and a recorder still reporting in
-  // would re-render the preview underneath the person listening to it.
-  const recState = useAudioRecorderState(recorder, phase === 'recording' ? METER_MS : 1000);
-  const [levels, setLevels] = useState<number[]>([]);
+  // This drives the CLOCK only. The waveform has its own sampler below, for
+  // the reason given on METER_MS. Polling stops mattering once the note is
+  // recorded, so it slows right down rather than re-rendering the preview
+  // underneath the person listening to it.
+  const recState = useAudioRecorderState(recorder, phase === 'recording' ? CLOCK_MS : 1000);
+  /**
+   * Every level captured, which at twenty a second is 2,400 of them across a
+   * full-length note. Kept in a ref: copying a growing array into state on
+   * every sample would be quadratic, and nothing on screen needs more than the
+   * tail of it.
+   */
+  const allLevels = useRef<number[]>([]);
+  /** Just what the live row draws — the last VOICE_WAVEFORM_BARS samples. */
+  const [liveTail, setLiveTail] = useState<number[]>([]);
+  /** Resampled once when recording stops, for the preview and the upload. */
+  const [previewWave, setPreviewWave] = useState<number[]>([]);
   const [uri, setUri] = useState<string | null>(null);
   const [recordedMs, setRecordedMs] = useState(0);
   const [scrubbing, setScrubbing] = useState(false);
@@ -133,7 +155,9 @@ export function VoiceComposer({
   const stop = useCallback(async () => {
     if (stopping.current) return;
     stopping.current = true;
-    const ms = recState.durationMillis;
+    // Read the duration from the recorder itself, not from the polled state,
+    // which can be a quarter of a second behind by the time Stop is pressed.
+    const ms = recorder.getStatus().durationMillis;
     try {
       await recorder.stop();
       await setAudioSession('play');
@@ -146,8 +170,12 @@ export function VoiceComposer({
         onCancel();
         return;
       }
+      // The encoder is still finishing the file — see waitForRecording.
+      await waitForRecording(recordedUri);
+      if (abandoned.current) return;
       setUri(recordedUri);
       setRecordedMs(ms);
+      setPreviewWave(resampleWaveform(allLevels.current));
       setPhase('preview');
       haptics.selection();
     } catch (err) {
@@ -156,16 +184,20 @@ export function VoiceComposer({
     } finally {
       stopping.current = false;
     }
-  }, [recorder, recState.durationMillis, onCancel, onError]);
+  }, [recorder, onCancel, onError]);
 
-  // ── Collect levels, and stop at the cap ───────────────────────────────────
+  // ── Collect levels, on our own clock ──────────────────────────────────────
   useEffect(() => {
-    if (phase !== 'recording' || !recState.isRecording) return;
-    setLevels((prev) => [...prev, meterToLevel(recState.metering)]);
-    if (recState.durationMillis >= MAX_VOICE_NOTE_MS) void stop();
-    // durationMillis ticks on every poll, which is what drives this.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recState.durationMillis, phase]);
+    if (phase !== 'recording') return;
+    const int = setInterval(() => {
+      const st = recorder.getStatus();
+      if (!st.isRecording) return;
+      allLevels.current.push(meterToLevel(st.metering));
+      setLiveTail(allLevels.current.slice(-VOICE_WAVEFORM_BARS));
+      if (st.durationMillis >= MAX_VOICE_NOTE_MS) void stop();
+    }, METER_MS);
+    return () => clearInterval(int);
+  }, [phase, recorder, stop]);
 
   const elapsedMs = phase === 'recording' ? recState.durationMillis : recordedMs;
   const remainingMs = MAX_VOICE_NOTE_MS - elapsedMs;
@@ -195,25 +227,6 @@ export function VoiceComposer({
     [recorder],
   );
 
-  // ── Send ──────────────────────────────────────────────────────────────────
-  const sendIt = async () => {
-    if (!uri) return;
-    setPhase('sending');
-    try {
-      const attachment = await uploadVoiceNote({
-        conversationId,
-        uri,
-        durationMs: recordedMs,
-        waveform: resampleWaveform(levels),
-      });
-      haptics.sent();
-      await onSend(attachment);
-    } catch (err) {
-      onError(err);
-      setPhase('preview');
-    }
-  };
-
   // ── Preview playback ──────────────────────────────────────────────────────
   const player = useAudioPlayer(uri, { updateInterval: PLAY_UPDATE_MS });
   const playStatus = useAudioPlayerStatus(player);
@@ -234,6 +247,30 @@ export function VoiceComposer({
     progress.value = 0;
     void player.seekTo(0);
   }, [playStatus.didJustFinish, player, progress]);
+
+  // ── Send ──────────────────────────────────────────────────────────────────
+  const sendIt = async () => {
+    if (!uri) return;
+    setPhase('sending');
+    try {
+      // The player has decoded the file and knows exactly how long it is.
+      // Prefer that over the recorder's count, which on Android advances in
+      // whole seconds and would describe a 7.8s note as 7s.
+      const durationMs =
+        playStatus.duration > 0 ? Math.round(playStatus.duration * 1000) : recordedMs;
+      const attachment = await uploadVoiceNote({
+        conversationId,
+        uri,
+        durationMs,
+        waveform: previewWave,
+      });
+      haptics.sent();
+      await onSend(attachment);
+    } catch (err) {
+      onError(err);
+      setPhase('preview');
+    }
+  };
 
   // ── The pulsing record dot ────────────────────────────────────────────────
   /** The live row has nothing to seek through, so it is drawn entirely in the
@@ -257,13 +294,10 @@ export function VoiceComposer({
   // The live row grows left to right, then scrolls once it is full — the
   // familiar tape. Padding keeps the row the same width throughout, so the
   // controls either side never shift.
-  const liveWaveform = (() => {
-    const tail = levels.slice(-VOICE_WAVEFORM_BARS);
-    if (tail.length >= VOICE_WAVEFORM_BARS) return tail;
-    return [...tail, ...new Array(VOICE_WAVEFORM_BARS - tail.length).fill(0)];
-  })();
-
-  const previewWaveform = resampleWaveform(levels);
+  const liveWaveform =
+    liveTail.length >= VOICE_WAVEFORM_BARS
+      ? liveTail
+      : [...liveTail, ...new Array(VOICE_WAVEFORM_BARS - liveTail.length).fill(0)];
   const busy = phase === 'sending';
 
   return (
@@ -306,7 +340,7 @@ export function VoiceComposer({
           </Pressable>
           <View style={styles.middle}>
             <VoiceWaveform
-              waveform={previewWaveform}
+              waveform={previewWave}
               progress={progress}
               tint={atelier.primary}
               track={colors.border}
