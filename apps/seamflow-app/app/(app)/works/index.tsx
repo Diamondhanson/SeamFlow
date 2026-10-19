@@ -358,6 +358,7 @@ export default function MyDesigns() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={styles.filterBarOuter}
           contentContainerStyle={styles.filterBar}
         >
           <FilterChip
@@ -521,11 +522,19 @@ const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   addBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  // A horizontal ScrollView is flexGrow: 1 by default, so this row competed
+  // with the grid below it for the leftover column height — and with few
+  // designs there is a lot of it. The row swallowed its share, and because a
+  // row stretches its children on the cross axis by default, every chip grew
+  // to match. Hence both halves: the row hugs its content, and a chip is only
+  // ever as tall as its own label. Same on iOS, Android and web.
+  filterBarOuter: { flexGrow: 0, flexShrink: 0 },
   filterBar: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     gap: spacing.sm,
     flexDirection: 'row',
+    alignItems: 'center',
   },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   grid: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl },

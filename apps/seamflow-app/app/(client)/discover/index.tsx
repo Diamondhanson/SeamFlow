@@ -418,8 +418,9 @@ const styles = StyleSheet.create({
   emptyCta: { marginTop: spacing.lg },
   // alignItems keeps each chip its own height instead of stretching to the
   // row; flexGrow stops the row itself claiming the leftover column height.
-  // Native hugs the content either way — on web the ScrollView takes flex:1
-  // and the chips became full-height columns.
+  // Both are needed on every platform: a horizontal ScrollView is flexGrow: 1
+  // by default, so whenever the grid below does not fill the screen this row
+  // takes a share of what is left and every chip grows with it.
   filterBarOuter: { flexGrow: 0, flexShrink: 0 },
   filterBar: {
     paddingHorizontal: spacing.lg,
