@@ -1,0 +1,103 @@
+# ============================================================================
+# What does NOT need to be sent to EAS to build the app.
+#
+# WHY THIS FILE EXISTS
+#
+# The project tarball had grown to 108 MB, and uploading it over the
+# connection these builds are started from failed repeatedly — once at
+# 97.6 MB of 108, with an EPIPE, after six minutes. Most of that payload was
+# marketing artwork and screenshots: material that has nothing to do with
+# compiling an Android binary and that is re-uploaded in full on every build.
+#
+# READ THIS BEFORE EDITING
+#
+# EAS uses this file INSTEAD OF .gitignore, not in addition to it. Every rule
+# that protects the upload has to be restated here — and the one that matters
+# most is `android/`, which holds a local prebuild with Gradle output and is
+# over three gigabytes. Leaving it out of this file would not make the upload
+# slightly larger; it would make it impossible.
+#
+# The rule of thumb: if the Gradle build cannot read it, it does not belong in
+# the tarball.
+# ============================================================================
+
+# ---- Dependencies and build output (restated from .gitignore) --------------
+node_modules/
+.pnp.*
+.yarn/*
+dist/
+build/
+out/
+.next/
+.turbo/
+.expo/
+.expo-shared/
+web-build/
+*.tsbuildinfo
+coverage/
+*.lcov
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# ---- Native projects: EAS runs its own prebuild ----------------------------
+# android/ alone is >3 GB of local Gradle output on a working checkout.
+apps/seamflow-app/android/
+apps/seamflow-app/ios/
+apps/seamflow-client/android/
+apps/seamflow-client/ios/
+
+# ---- Secrets and signing material ------------------------------------------
+.env
+.env.local
+.env.*.local
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+
+# ---- Version control, logs, editors, OS ------------------------------------
+.git/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Previously-built binaries ---------------------------------------------
+*.apk
+*.aab
+backups/
+
+# ---- Everything below is the actual saving ---------------------------------
+# Artwork, store listings, screenshots and written documentation. None of it
+# is read by the build, and together it was most of the upload.
+docs/
+play-ready-screenshots/
+play-ready-tablet/
+phone screenshots. /
+logos-png/
+logos-svg/
+new logo/
+Claude outputs/
+README.txt
+
+# Code kept only for reference — the app does not import it.
+apps/seamflow-app/app-legacy/
+apps/seamflow-app/src-legacy/
+apps/seamflow-app/app-example/
+
+# Supabase CLI scratch space.
+supabase/.temp/
+supabase/.branches/
+
+# Tooling state for this repo's assistants — transcripts, caches and settings.
+# Seventeen megabytes of it, and not one byte is read by Gradle.
+.claude/
