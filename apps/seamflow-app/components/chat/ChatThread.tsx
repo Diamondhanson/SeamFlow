@@ -13,7 +13,7 @@
 // newest message stays above it. The header is outside both, so it stays put.
 // ============================================================================
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -627,6 +627,19 @@ export function ChatThread({
       void qc.invalidateQueries({ queryKey: qk.conversations() });
     });
   };
+
+  // Stable identities. The composer samples the microphone on an interval
+  // whose lifetime depends on these: a new arrow function every render
+  // restarted that interval every render, and it never got to fire.
+  const stopRecording = useCallback(() => setRecording(false), []);
+  const recordingFailed = useCallback(
+    (err: unknown) => {
+      void (async () => {
+        if (!(await alertIfPermissionDenied(err, dialog, t))) await dialog.error(err);
+      })();
+    },
+    [dialog, t],
+  );
 
   const startRecording = () => {
     // The keyboard and the recording bar want the same strip of screen, and
@@ -1279,12 +1292,8 @@ export function ChatThread({
           <VoiceComposer
             conversationId={id}
             onSend={sendVoice}
-            onCancel={() => setRecording(false)}
-            onError={(err) => {
-              void (async () => {
-                if (!(await alertIfPermissionDenied(err, dialog, t))) await dialog.error(err);
-              })();
-            }}
+            onCancel={stopRecording}
+            onError={recordingFailed}
           />
         ) : (
           <View

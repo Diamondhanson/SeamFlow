@@ -187,6 +187,19 @@ export function VoiceComposer({
   }, [recorder, onCancel, onError]);
 
   // ── Collect levels, on our own clock ──────────────────────────────────────
+  //
+  // `stop` is held in a ref rather than listed as a dependency, and that is
+  // the whole reason this works. It is a useCallback over `onCancel` and
+  // `onError`, which the thread passes as inline arrows — so it changes
+  // identity on every render of the screen. Listed as a dependency it tore
+  // this interval down and started a new one each time, and a thread that
+  // re-renders faster than the sampling period (one syncing in the background
+  // does) never let fifty milliseconds elapse. The timer was restarted
+  // forever and almost no levels were ever read, which is why the live row sat
+  // flat while the clock counted up beside it.
+  const stopRef = useRef(stop);
+  stopRef.current = stop;
+
   useEffect(() => {
     if (phase !== 'recording') return;
     const int = setInterval(() => {
@@ -194,10 +207,10 @@ export function VoiceComposer({
       if (!st.isRecording) return;
       allLevels.current.push(meterToLevel(st.metering));
       setLiveTail(allLevels.current.slice(-VOICE_WAVEFORM_BARS));
-      if (st.durationMillis >= MAX_VOICE_NOTE_MS) void stop();
+      if (st.durationMillis >= MAX_VOICE_NOTE_MS) void stopRef.current();
     }, METER_MS);
     return () => clearInterval(int);
-  }, [phase, recorder, stop]);
+  }, [phase, recorder]);
 
   const elapsedMs = phase === 'recording' ? recState.durationMillis : recordedMs;
   const remainingMs = MAX_VOICE_NOTE_MS - elapsedMs;
@@ -273,10 +286,6 @@ export function VoiceComposer({
   };
 
   // ── The pulsing record dot ────────────────────────────────────────────────
-  /** The live row has nothing to seek through, so it is drawn entirely in the
-   *  accent — a progress fill of zero would render it as a dead grey bar. */
-  const live = useSharedValue(1);
-
   const pulse = useSharedValue(1);
   useEffect(() => {
     if (phase !== 'recording') return;
@@ -360,7 +369,6 @@ export function VoiceComposer({
           <View style={styles.middle}>
             <VoiceWaveform
               waveform={liveWaveform}
-              progress={live}
               tint={atelier.primary}
               track={colors.border}
               height={24}
