@@ -77,9 +77,6 @@ const METER_MS = 50;
 /** The clock, which only ever needs to be right to the second. */
 const CLOCK_MS = 250;
 
-/** Samples of dead silence before we assume the meter, not the room, is quiet. */
-const SILENCE_RESCUE_AFTER = 20;
-
 /** Start counting down out loud with this much left. */
 const WARN_MS = 15_000;
 
@@ -210,26 +207,27 @@ export function VoiceComposer({
 
   useEffect(() => {
     if (phase !== 'recording') return;
-    /** One retry, if the meter is still asleep a second into recording. */
-    let rescued = false;
+    // NOTHING in here may touch the audio graph.
+    //
+    // There used to be a "rescue" at this point: if the first second of
+    // levels came back as perfect silence, it assumed the meter had never
+    // woken and resumed the AudioContext again. Two things were wrong with
+    // that. The trigger fired constantly — a quiet room sits near -65 dBFS,
+    // below the floor the level scale flattens to zero, and nobody is talking
+    // in the first second anyway, so "all zeros" was the normal start to
+    // every recording rather than a fault. And the action was unsafe:
+    // resuming the context mid-capture disturbs the stream MediaRecorder is
+    // reading on Safari, which ended the recording there and then. The file
+    // was unplayable and arrived at the upload with nothing in it.
+    //
+    // Waking the clock belongs before the microphone is opened, in the tap,
+    // where it already happens. Once recording has started this loop only
+    // reads.
     const int = setInterval(() => {
       const st = recorder.getStatus();
       if (!st.isRecording) return;
       allLevels.current.push(meterToLevel(st.metering));
       setLiveTail(allLevels.current.slice(-VOICE_WAVEFORM_BARS));
-
-      // Perfect silence for a full second of a live microphone is not
-      // silence, it is a meter that never woke up — a real room always has a
-      // floor. Worth one more attempt before giving up on the picture.
-      if (
-        !rescued &&
-        allLevels.current.length === SILENCE_RESCUE_AFTER &&
-        allLevels.current.every((l) => l === 0)
-      ) {
-        rescued = true;
-        void warmUpAudioMetering();
-      }
-
       if (st.durationMillis >= MAX_VOICE_NOTE_MS) void stopRef.current();
     }, METER_MS);
     return () => clearInterval(int);

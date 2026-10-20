@@ -11,13 +11,19 @@
 // ============================================================================
 
 /**
- * Thrown by the photo-upload layer when an image can't be encoded or stored.
+ * Thrown by the upload layer when something can't be encoded or stored.
+ *
  * The `message` holds technical detail (storage path, Supabase error) for logs
- * only — the mapper turns any `UploadError` into `errors.uploadFailed`, so the
- * detail is never surfaced to the user.
+ * only; the mapper turns this into a friendly line and the detail is never
+ * surfaced. `kind` picks WHICH line: a voice note that fails to send used to
+ * apologise for not uploading a photo, which is confusing at exactly the
+ * moment someone is already confused.
  */
 export class UploadError extends Error {
-  constructor(detail: string) {
+  constructor(
+    detail: string,
+    public readonly kind: 'photo' | 'voice' = 'photo',
+  ) {
     super(detail);
     this.name = 'UploadError';
   }

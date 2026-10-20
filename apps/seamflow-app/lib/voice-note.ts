@@ -177,7 +177,7 @@ export async function waitForRecording(uri: string, timeoutMs = 3_000): Promise<
     previous = size;
     await new Promise((resolve) => setTimeout(resolve, 70));
   }
-  throw new UploadError('The recording did not finish writing');
+  throw new UploadError('The recording did not finish writing', 'voice');
 }
 
 // ── The local copy ──────────────────────────────────────────────────────────
@@ -251,7 +251,7 @@ export async function uploadVoiceNote(args: {
       // what stops us uploading a WebM under an .m4a name and leaving every
       // iPhone recipient with a note that will not play.
       if (!blob.type.startsWith('audio/mp4') && !blob.type.startsWith('audio/aac')) {
-        throw new UploadError(`This browser recorded ${blob.type || 'an unknown format'}`);
+        throw new UploadError(`This browser recorded ${blob.type || 'an unknown format'}`, 'voice');
       }
       contentType = WEB_CONTENT_TYPE;
       bytes = new Uint8Array(await blob.arrayBuffer());
@@ -260,17 +260,17 @@ export async function uploadVoiceNote(args: {
     }
   } catch (err) {
     if (err instanceof UploadError) throw err;
-    throw new UploadError(`Could not read the recording: ${(err as Error).message}`);
+    throw new UploadError(`Could not read the recording: ${(err as Error).message}`, 'voice');
   }
   if (bytes.byteLength === 0) {
-    throw new UploadError('The recording is empty');
+    throw new UploadError('The recording is empty', 'voice');
   }
 
   const storagePath = `${conversationId}/${cryptoRandom()}.m4a`;
   const { error } = await supabase.storage
     .from(CHAT_BUCKET)
     .upload(storagePath, bytes, { contentType, upsert: false });
-  if (error) throw new UploadError(`Upload failed (${storagePath}): ${error.message}`);
+  if (error) throw new UploadError(`Upload failed (${storagePath}): ${error.message}`, 'voice');
 
   rememberLocalUri(storagePath, uri);
 
