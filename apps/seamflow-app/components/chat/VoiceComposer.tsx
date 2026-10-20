@@ -45,6 +45,7 @@ import Animated, {
 import { MAX_VOICE_NOTE_MS, VOICE_WAVEFORM_BARS, type MessageAttachment } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { stopAllAudio } from '../../lib/audio-focus';
+import { warmUpAudioMetering } from '../../lib/audio-unlock';
 import { haptics } from '../../lib/haptics';
 import { useTranslation } from '../../lib/i18n';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
@@ -75,6 +76,9 @@ const METER_MS = 50;
 
 /** The clock, which only ever needs to be right to the second. */
 const CLOCK_MS = 250;
+
+/** Samples of dead silence before we assume the meter, not the room, is quiet. */
+const SILENCE_RESCUE_AFTER = 20;
 
 /** Start counting down out loud with this much left. */
 const WARN_MS = 15_000;
@@ -130,6 +134,10 @@ export function VoiceComposer({
       try {
         // Anything else playing in the thread would end up in the recording.
         stopAllAudio();
+        // Before anything touches the microphone: on the web the level meter
+        // hangs off an AudioContext that starts suspended, and the recorder
+        // connects to it without waiting for it to wake. See lib/audio-unlock.
+        await warmUpAudioMetering();
         await ensureMicPermission();
         await setAudioSession('record');
         await recorder.prepareToRecordAsync();
@@ -202,11 +210,26 @@ export function VoiceComposer({
 
   useEffect(() => {
     if (phase !== 'recording') return;
+    /** One retry, if the meter is still asleep a second into recording. */
+    let rescued = false;
     const int = setInterval(() => {
       const st = recorder.getStatus();
       if (!st.isRecording) return;
       allLevels.current.push(meterToLevel(st.metering));
       setLiveTail(allLevels.current.slice(-VOICE_WAVEFORM_BARS));
+
+      // Perfect silence for a full second of a live microphone is not
+      // silence, it is a meter that never woke up — a real room always has a
+      // floor. Worth one more attempt before giving up on the picture.
+      if (
+        !rescued &&
+        allLevels.current.length === SILENCE_RESCUE_AFTER &&
+        allLevels.current.every((l) => l === 0)
+      ) {
+        rescued = true;
+        void warmUpAudioMetering();
+      }
+
       if (st.durationMillis >= MAX_VOICE_NOTE_MS) void stopRef.current();
     }, METER_MS);
     return () => clearInterval(int);
