@@ -271,8 +271,8 @@ export const copy = {
       soon: 'Coming soon',
       appStore: 'Download on the App Store',
       googlePlay: 'Get it on Google Play',
-      androidEyebrow: 'Android APK',
-      androidCta: 'Download for Android',
+      androidEyebrow: 'Get it on',
+      androidCta: 'Google Play',
     },
     problem: {
       eyebrow: 'The problem',
@@ -780,8 +780,8 @@ export const copy = {
       soon: 'Bientôt disponible',
       appStore: 'Télécharger sur l’App Store',
       googlePlay: 'Disponible sur Google Play',
-      androidEyebrow: 'APK Android',
-      androidCta: 'Télécharger pour Android',
+      androidEyebrow: 'Disponible sur',
+      androidCta: 'Google Play',
     },
     problem: {
       eyebrow: 'Le problème',
@@ -1289,8 +1289,8 @@ export const copy = {
       soon: 'Em breve',
       appStore: 'Descarregar na App Store',
       googlePlay: 'Disponível no Google Play',
-      androidEyebrow: 'APK Android',
-      androidCta: 'Descarregar para Android',
+      androidEyebrow: 'Disponível no',
+      androidCta: 'Google Play',
     },
     problem: {
       eyebrow: 'O problema',
@@ -1799,8 +1799,8 @@ export const copy = {
       soon: 'Próximamente',
       appStore: 'Descargar en el App Store',
       googlePlay: 'Disponible en Google Play',
-      androidEyebrow: 'APK de Android',
-      androidCta: 'Descargar para Android',
+      androidEyebrow: 'Disponible en',
+      androidCta: 'Google Play',
     },
     problem: {
       eyebrow: 'El problema',
@@ -2299,8 +2299,8 @@ export const copy = {
       soon: 'Inakuja hivi karibuni',
       appStore: 'Pakua kwenye App Store',
       googlePlay: 'Ipate kwenye Google Play',
-      androidEyebrow: 'APK ya Android',
-      androidCta: 'Pakua kwa Android',
+      androidEyebrow: 'Ipate kwenye',
+      androidCta: 'Google Play',
     },
     problem: {
       eyebrow: 'Tatizo',
@@ -2797,8 +2797,8 @@ export const copy = {
       soon: 'قريبًا',
       appStore: 'حمّله من App Store',
       googlePlay: 'احصل عليه من Google Play',
-      androidEyebrow: 'ملف APK لأندرويد',
-      androidCta: 'تحميل لأندرويد',
+      androidEyebrow: 'احصل عليه من',
+      androidCta: 'Google Play',
     },
     problem: {
       eyebrow: 'المشكلة',
@@ -3212,31 +3212,20 @@ export const SITE = {
   phoneHref: 'tel:+237670151973',
 };
 
-// Direct Android APK download. Empty string → not yet available (the Android
-// badge falls back to a "coming soon" state). Set to the built .apk URL to turn
-// on the real "Download for Android" button.
+// Google Play listing for the tailor app. Empty string → not yet published
+// (the Android badge falls back to a "coming soon" state). Set to the store
+// URL to turn on the real "Get it on Google Play" button.
 //
-// Points at a GitHub Release asset, and the URL is deliberately shaped so it
-// never has to change again:
+// This replaced a direct APK download, first an EAS artifact link and then a
+// GitHub Release asset. EAS free-tier artifacts are deleted after about 30
+// days, so that button silently 404'd for a while: the page still rendered,
+// the badge still looked real, and the visitor's download just failed. A store
+// listing cannot rot that way, and Google handles updates and install trust.
 //
-//   /releases/latest/download/SeamFlow-android.apk
-//
-// `latest` resolves to the newest non-prerelease, and the asset FILENAME is
-// stable across builds — the version lives in the release tag and title, not in
-// the file. Publishing a new build is therefore: create a release, attach the
-// APK under exactly this name. Nothing here needs editing, and the download
-// button cannot rot again.
-//
-// This replaced an EAS artifact link, which is the mistake worth not repeating.
-// EAS free-tier artifacts are deleted after about 30 days, so the button had
-// been silently 404ing — the page still rendered, the badge still looked real,
-// and a visitor's download just failed. Never point this at an EAS URL.
-//
-// It is NOT served from public/. A 102 MB binary in git bloats every clone
-// forever and counts against the Vercel deployment. A release asset on a public
-// repo is free, permanent, uncapped for bandwidth, and carries no repo weight.
-export const ANDROID_APK_URL =
-  'https://github.com/Diamondhanson/SeamFlow/releases/latest/download/SeamFlow-android.apk';
+// Keep this free of tracking parameters. The ?pcampaignid=... that Play's
+// share sheet appends belongs to that share, not to our own site.
+export const GOOGLE_PLAY_URL =
+  'https://play.google.com/store/apps/details?id=com.bambothanson.FashionApp';
 
 // The installable browser build of the tailor app (seamflow-app's web target,
 // `expo export --platform web`). Empty string → not deployed yet: the badge

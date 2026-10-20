@@ -1,9 +1,9 @@
 import type { Dict } from '../lib/i18n';
-import { ANDROID_APK_URL } from '../lib/i18n';
+import { GOOGLE_PLAY_URL } from '../lib/i18n';
 
 // Install badges — the two options that involve actually installing something.
-// iOS is still a "coming soon" placeholder; Android becomes a real "Download
-// for Android" button once ANDROID_APK_URL is set.
+// iOS is still a "coming soon" placeholder; Android becomes a real "Get it on
+// Google Play" link once GOOGLE_PLAY_URL is set.
 //
 // There is deliberately no browser badge here: the primary CTA in the nav and
 // the hero already links to the web app, so a third badge saying the same
@@ -47,8 +47,8 @@ function ComingSoonBadge({
   );
 }
 
-/** Real download link for the built Android APK. */
-function AndroidDownload({
+/** Real link out to the Google Play listing. */
+function StoreLink({
   href,
   eyebrow,
   title,
@@ -62,7 +62,8 @@ function AndroidDownload({
   return (
     <a
       href={href}
-      download
+      target="_blank"
+      rel="noopener noreferrer"
       className="group inline-flex select-none items-center gap-3 rounded-2xl bg-brand-ink px-4 py-2.5 text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-brand-primaryDeep hover:shadow-glow"
     >
       <span className="h-7 w-7 shrink-0 text-white">{glyph}</span>
@@ -80,10 +81,10 @@ export function StoreBadges({ d }: { d: Dict }) {
       {/* iOS — not built yet */}
       <ComingSoonBadge soon={d.store.soon} eyebrow="Download on the" title="App Store" glyph={AppleGlyph} />
 
-      {/* Android — real APK download when available, else coming soon */}
-      {ANDROID_APK_URL ? (
-        <AndroidDownload
-          href={ANDROID_APK_URL}
+      {/* Android — real Play Store link when published, else coming soon */}
+      {GOOGLE_PLAY_URL ? (
+        <StoreLink
+          href={GOOGLE_PLAY_URL}
           eyebrow={d.store.androidEyebrow}
           title={d.store.androidCta}
           glyph={AndroidGlyph}
