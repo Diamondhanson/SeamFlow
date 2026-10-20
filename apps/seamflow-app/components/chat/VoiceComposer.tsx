@@ -45,7 +45,7 @@ import Animated, {
 import { MAX_VOICE_NOTE_MS, VOICE_WAVEFORM_BARS, type MessageAttachment } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { stopAllAudio } from '../../lib/audio-focus';
-import { warmUpAudioMetering } from '../../lib/audio-unlock';
+import { waveformFromRecording } from '../../lib/waveform-from-audio';
 import { haptics } from '../../lib/haptics';
 import { useTranslation } from '../../lib/i18n';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
@@ -131,10 +131,6 @@ export function VoiceComposer({
       try {
         // Anything else playing in the thread would end up in the recording.
         stopAllAudio();
-        // Before anything touches the microphone: on the web the level meter
-        // hangs off an AudioContext that starts suspended, and the recorder
-        // connects to it without waiting for it to wake. See lib/audio-unlock.
-        await warmUpAudioMetering();
         await ensureMicPermission();
         await setAudioSession('record');
         await recorder.prepareToRecordAsync();
@@ -178,9 +174,17 @@ export function VoiceComposer({
       // The encoder is still finishing the file — see waitForRecording.
       await waitForRecording(recordedUri);
       if (abandoned.current) return;
+
+      // On the web there are no live levels to resample, because metering
+      // there would have broken the capture; the shape is read back out of
+      // the finished file instead. Native returns null and keeps what it
+      // measured while recording.
+      const measured = await waveformFromRecording(recordedUri);
+      if (abandoned.current) return;
+
       setUri(recordedUri);
       setRecordedMs(ms);
-      setPreviewWave(resampleWaveform(allLevels.current));
+      setPreviewWave(measured ?? resampleWaveform(allLevels.current));
       setPhase('preview');
       haptics.selection();
     } catch (err) {

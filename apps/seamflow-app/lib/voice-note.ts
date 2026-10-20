@@ -58,9 +58,14 @@ export const VOICE_RECORDING_OPTIONS = {
   sampleRate: 32000,
   numberOfChannels: 1,
   bitRate: 32000,
-  // The whole reason a waveform is possible. Without this the recorder reports
-  // no levels and the bubble falls back to a plain progress track.
-  isMeteringEnabled: true,
+  // Native only, and that is not a limitation being worked around — it is the
+  // fix. expo-audio's web meter hangs an AnalyserNode off the stream
+  // MediaRecorder is capturing, and once its AudioContext is awake that graph
+  // starves the recorder on Safari: the file comes back empty, so nothing
+  // plays and nothing sends. Suspended it is inert but reads zero. One or the
+  // other, and the recording wins. The web measures the waveform after the
+  // fact instead — see lib/waveform-from-audio.web.
+  isMeteringEnabled: Platform.OS !== 'web',
   android: { outputFormat: 'mpeg4', audioEncoder: 'aac' },
   ios: {
     // 'aac ' — the trailing space is part of the four-character code.

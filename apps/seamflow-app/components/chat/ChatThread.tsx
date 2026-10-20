@@ -81,7 +81,6 @@ import {
 import { pickPhotos, uploadChatImage } from '../../lib/photo-upload';
 import { canRecordVoice } from '../../lib/voice-note';
 import { stopAllAudio } from '../../lib/audio-focus';
-import { warmUpAudioMetering } from '../../lib/audio-unlock';
 import { VoiceBubble } from './VoiceBubble';
 import { VoiceComposer } from './VoiceComposer';
 import { alertIfOffline, alertIfPermissionDenied } from '../../lib/permissions';
@@ -647,10 +646,6 @@ export function ChatThread({
     // nobody types into a voice note.
     Keyboard.dismiss();
     haptics.selection();
-    // Inside the tap, which on the web is the only moment a browser will let
-    // us wake the audio clock the level meter runs on. The composer awaits it
-    // again on mount; this call is the one that happens early enough to count.
-    void warmUpAudioMetering();
     setRecording(true);
   };
 
