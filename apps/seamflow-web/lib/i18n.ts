@@ -477,6 +477,7 @@ export const copy = {
       phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. All rights reserved.',
       madeWith: 'Made for tailors, everywhere.',
+      productHunt: 'SeamFlow on Product Hunt',
     },
     legal: {
       lastUpdated: 'Last updated',
@@ -985,6 +986,7 @@ export const copy = {
       phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. Tous droits réservés.',
       madeWith: 'Conçu pour les tailleurs, partout.',
+      productHunt: 'SeamFlow sur Product Hunt',
     },
     legal: {
       lastUpdated: 'Dernière mise à jour',
@@ -1496,6 +1498,7 @@ export const copy = {
       phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. Todos os direitos reservados.',
       madeWith: 'Feito para alfaiates, em todo o lado.',
+      productHunt: 'SeamFlow no Product Hunt',
     },
     legal: {
       lastUpdated: 'Última atualização',
@@ -2004,6 +2007,7 @@ export const copy = {
       phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. Todos los derechos reservados.',
       madeWith: 'Hecho para sastres, en todas partes.',
+      productHunt: 'SeamFlow en Product Hunt',
     },
     legal: {
       lastUpdated: 'Última actualización',
@@ -2504,6 +2508,7 @@ export const copy = {
       phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. Haki zote zimehifadhiwa.',
       madeWith: 'Imetengenezwa kwa washonaji, kila mahali.',
+      productHunt: 'SeamFlow kwenye Product Hunt',
     },
     legal: {
       lastUpdated: 'Ilisasishwa mwisho',
@@ -2999,6 +3004,7 @@ export const copy = {
       phone: '+237 670 15 19 73',
       rights: '© {year} SeamFlow. جميع الحقوق محفوظة.',
       madeWith: 'صُنع للخياطين، في كل مكان.',
+      productHunt: 'SeamFlow على Product Hunt',
     },
     legal: {
       lastUpdated: 'آخر تحديث',
