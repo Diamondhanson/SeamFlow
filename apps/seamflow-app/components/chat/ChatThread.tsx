@@ -79,6 +79,7 @@ import {
   type PendingMessage,
 } from '../../lib/chat-outbox';
 import { pickPhotos, uploadChatImage } from '../../lib/photo-upload';
+import { unlockAudio } from '../../lib/audio-unlock';
 import { canRecordVoice } from '../../lib/voice-note';
 import { stopAllAudio } from '../../lib/audio-focus';
 import { VoiceBubble } from './VoiceBubble';
@@ -642,6 +643,16 @@ export function ChatThread({
   );
 
   const startRecording = () => {
+    // FIRST, and synchronously, before anything is awaited.
+    //
+    // Browsers only let a USER GESTURE start an audio clock, and the
+    // permission is spent the moment the handler yields. The composer's own
+    // start-up awaits the microphone permission prompt, so by the time it
+    // builds its level meter the gesture is long gone — which is why the
+    // waveform animated on some Safari sessions and not others: it worked
+    // only when something earlier on the page had already woken the clock.
+    // This is that something, made deliberate. A no-op on native.
+    unlockAudio();
     // The keyboard and the recording bar want the same strip of screen, and
     // nobody types into a voice note.
     Keyboard.dismiss();

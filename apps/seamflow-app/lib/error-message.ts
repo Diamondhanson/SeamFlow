@@ -16,7 +16,7 @@
 
 import { ApiError } from '@seamflow/api-client';
 import { PermissionDeniedError, PhotoOfflineError } from './permissions';
-import { UploadError } from './errors';
+import { PlaybackError, UploadError } from './errors';
 
 // Matches the app's `t()` — kept local so this module doesn't depend on the
 // i18n provider types.
@@ -43,6 +43,7 @@ export function toUserMessage(err: unknown, t: Translate): UserFacingError {
   // classifying them here keeps any bypassing call site friendly too.
   if (err instanceof PhotoOfflineError) return at('errors.network');
   if (err instanceof PermissionDeniedError) return at('errors.permission');
+  if (err instanceof PlaybackError) return at('errors.voicePlayFailed');
   if (err instanceof UploadError)
     return at(err.kind === 'voice' ? 'errors.voiceFailed' : 'errors.uploadFailed');
 

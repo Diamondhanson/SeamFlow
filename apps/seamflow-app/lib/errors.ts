@@ -28,3 +28,18 @@ export class UploadError extends Error {
     this.name = 'UploadError';
   }
 }
+
+/**
+ * Thrown when a recording will not play.
+ *
+ * Separate from `UploadError` because the apology is different: a note that
+ * cannot be PLAYED has not failed to send, and telling someone we could not
+ * send their message when the file is sitting there ready is both wrong and
+ * alarming. The `message` carries the reason the browser gave, for the console.
+ */
+export class PlaybackError extends Error {
+  constructor(detail: string) {
+    super(detail);
+    this.name = 'PlaybackError';
+  }
+}

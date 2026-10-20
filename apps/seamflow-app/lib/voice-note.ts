@@ -25,6 +25,12 @@
 // only when the browser can produce MP4; otherwise the mic is hidden and the
 // composer is text and photos, exactly as before. PLAYBACK is unaffected:
 // every browser plays the AAC that phones produce.
+//
+// The web does not use expo-audio to record or to play. It drives
+// MediaRecorder and Web Audio directly — lib/use-voice-recorder.web,
+// lib/use-voice-playback.web and lib/web-audio.web, where the three bugs in
+// expo-audio's web layer that forced it are quoted from its source. The
+// options below are read on native only.
 // ============================================================================
 
 import { Platform } from 'react-native';
@@ -58,14 +64,11 @@ export const VOICE_RECORDING_OPTIONS = {
   sampleRate: 32000,
   numberOfChannels: 1,
   bitRate: 32000,
-  // Native only, and that is not a limitation being worked around — it is the
-  // fix. expo-audio's web meter hangs an AnalyserNode off the stream
-  // MediaRecorder is capturing, and once its AudioContext is awake that graph
-  // starves the recorder on Safari: the file comes back empty, so nothing
-  // plays and nothing sends. Suspended it is inert but reads zero. One or the
-  // other, and the recording wins. The web measures the waveform after the
-  // fact instead — see lib/waveform-from-audio.web.
-  isMeteringEnabled: Platform.OS !== 'web',
+  // These options are read on native only. The web never reaches expo-audio's
+  // recorder at all — lib/use-voice-recorder.web drives MediaRecorder itself,
+  // because expo-audio's web meter is wired to a graph with no destination and
+  // reads silence in Safari. See lib/web-audio.web for the whole account.
+  isMeteringEnabled: true,
   android: { outputFormat: 'mpeg4', audioEncoder: 'aac' },
   ios: {
     // 'aac ' — the trailing space is part of the four-character code.
@@ -88,6 +91,46 @@ export const VOICE_RECORDING_OPTIONS = {
   mimeType: WEB_CONTENT_TYPE,
 } as RecordingOptions;
 
+// ── What a recording is, once it is finished ────────────────────────────────
+
+/**
+ * A finished take, from either platform.
+ *
+ * `blob` is the web's doing and the reason the upload needs no second read:
+ * MediaRecorder hands over the bytes, so they go straight to storage. Native
+ * has a file on disk instead and leaves this null.
+ */
+export interface VoiceTake {
+  /** Playable here and now: a `file://` path, or a `blob:` URL on the web. */
+  uri: string;
+  blob: Blob | null;
+  durationMs: number;
+  /** Already resampled to VOICE_WAVEFORM_BARS. */
+  waveform: number[];
+}
+
+/**
+ * The recorder, as both platforms present it.
+ *
+ * Deliberately imperative and deliberately stable for the life of the
+ * component. The composer samples on its own 50 ms interval, and an interval
+ * whose dependencies change on every render is an interval that is torn down
+ * before it ever fires — which is exactly how a release shipped with a live
+ * waveform that sat flat while the clock counted up beside it.
+ */
+export interface VoiceRecorder {
+  /** Permission, audio session, microphone, and start. */
+  start(): Promise<void>;
+  isRecording(): boolean;
+  durationMs(): number;
+  /** Read the level now, remember it, and return it as a 0–100 bar height. */
+  sample(): number;
+  /** Stop, and hand back something playable and sendable. Null if nothing. */
+  stop(): Promise<VoiceTake | null>;
+  /** Throw it away and hang up the microphone. */
+  cancel(): void;
+}
+
 /**
  * Can this device record something the other side will be able to play?
  *
@@ -97,9 +140,23 @@ export const VOICE_RECORDING_OPTIONS = {
  */
 export function canRecordVoice(): boolean {
   if (Platform.OS !== 'web') return true;
-  const MR = (globalThis as { MediaRecorder?: { isTypeSupported?: (t: string) => boolean } })
-    .MediaRecorder;
-  return !!MR?.isTypeSupported?.(WEB_CONTENT_TYPE);
+  const w = globalThis as {
+    MediaRecorder?: { isTypeSupported?: (t: string) => boolean };
+    AudioContext?: unknown;
+    webkitAudioContext?: unknown;
+  };
+  // Web Audio as well as MediaRecorder: the level meter and playback both run
+  // on it, so a browser without it would record a note it could not draw or
+  // play back. Nothing currently ships MediaRecorder without it; the check
+  // costs nothing and keeps the mic button honest.
+  if (!w.AudioContext && !w.webkitAudioContext) return false;
+  const MR = w.MediaRecorder;
+  if (!MR?.isTypeSupported) return false;
+  // Must match MIME_CANDIDATES in lib/use-voice-recorder.web — this question
+  // and that list are the same question asked in two places.
+  return ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/aac'].some((t) =>
+    MR.isTypeSupported!(t),
+  );
 }
 
 /**
@@ -241,25 +298,28 @@ function cryptoRandom(): string {
 export async function uploadVoiceNote(args: {
   conversationId: string;
   uri: string;
+  blob?: Blob | null;
   durationMs: number;
   waveform: number[];
 }): Promise<MessageAttachment> {
-  const { conversationId, uri, durationMs, waveform } = args;
+  const { conversationId, uri, blob, durationMs, waveform } = args;
 
   let bytes: Uint8Array;
   let contentType = NATIVE_CONTENT_TYPE;
   try {
     if (Platform.OS === 'web') {
-      const blob = await (await fetch(uri)).blob();
-      // What the browser ACTUALLY produced, not what we asked for. If a
-      // future version of expo-audio stops honouring the mime type, this is
-      // what stops us uploading a WebM under an .m4a name and leaving every
-      // iPhone recipient with a note that will not play.
-      if (!blob.type.startsWith('audio/mp4') && !blob.type.startsWith('audio/aac')) {
-        throw new UploadError(`This browser recorded ${blob.type || 'an unknown format'}`, 'voice');
-      }
-      contentType = WEB_CONTENT_TYPE;
-      bytes = new Uint8Array(await blob.arrayBuffer());
+      // The recorder hands the Blob over directly, so normally nothing is
+      // read back at all. `fetch` is the fallback for a blob: URL that
+      // arrived from somewhere else — it is the only thing that can open one,
+      // expo-file-system being a no-op on the web.
+      const data = blob ?? (await (await fetch(uri)).blob());
+      // Whatever the browser produced, labelled as what it actually is. The
+      // mic button is only offered where MediaRecorder can make MP4
+      // (canRecordVoice, and MIME_CANDIDATES in use-voice-recorder.web), so
+      // this is a record of the format rather than a gate on it — a gate here
+      // could only ever refuse a recording that had already been made.
+      contentType = data.type?.startsWith('audio/') ? data.type.split(';')[0]! : WEB_CONTENT_TYPE;
+      bytes = new Uint8Array(await data.arrayBuffer());
     } else {
       bytes = await new File(uri).bytes();
     }

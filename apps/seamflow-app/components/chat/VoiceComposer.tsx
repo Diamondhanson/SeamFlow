@@ -21,17 +21,17 @@
 // sends the first take the instant you stop talking makes that impossible.
 // It is the same two controls in both states, in the same two places: the one
 // on the left throws it away, the one on the right moves it forward.
+//
+// THE MICROPHONE AND THE SPEAKER ARE BEHIND ONE INTERFACE EACH
+//
+// `useVoiceRecorder` and `useVoicePlayback` are platform-split. Everything
+// about how the two platforms differ — expo-audio on native, MediaRecorder and
+// Web Audio in the browser — lives there, so this file is only about the bar.
 // ============================================================================
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  useAudioPlayer,
-  useAudioPlayerStatus,
-  useAudioRecorder,
-  useAudioRecorderState,
-} from 'expo-audio';
 import Animated, {
   Easing,
   FadeIn,
@@ -45,21 +45,14 @@ import Animated, {
 import { MAX_VOICE_NOTE_MS, VOICE_WAVEFORM_BARS, type MessageAttachment } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { stopAllAudio } from '../../lib/audio-focus';
-import { waveformFromRecording } from '../../lib/waveform-from-audio';
 import { haptics } from '../../lib/haptics';
 import { useTranslation } from '../../lib/i18n';
 import { radii, spacing, useThemeColors } from '../../lib/theme';
 import { usePlaybackProgress } from '../../lib/use-playback-progress';
-import {
-  VOICE_RECORDING_OPTIONS,
-  ensureMicPermission,
-  formatClock,
-  meterToLevel,
-  resampleWaveform,
-  setAudioSession,
-  uploadVoiceNote,
-  waitForRecording,
-} from '../../lib/voice-note';
+import { useVoicePlayback } from '../../lib/use-voice-playback';
+import { useVoiceRecorder } from '../../lib/use-voice-recorder';
+import { PlaybackError } from '../../lib/errors';
+import { formatClock, uploadVoiceNote } from '../../lib/voice-note';
 import { COMPOSER_CONTROL } from '../../lib/use-composer-keyboard';
 import { VoiceWaveform } from './VoiceWaveform';
 
@@ -70,17 +63,17 @@ import { VoiceWaveform } from './VoiceWaveform';
  * DURATION changed, which on Android moves in whole seconds — so a ten-second
  * note arrived with ten bars, each stretched into a fat lozenge, and the live
  * row lurched once a second instead of moving. The duration is the wrong
- * clock; this is our own.
+ * clock; this is our own, and it drives the clock label too.
  */
 const METER_MS = 50;
-
-/** The clock, which only ever needs to be right to the second. */
-const CLOCK_MS = 250;
 
 /** Start counting down out loud with this much left. */
 const WARN_MS = 15_000;
 
 const PLAY_UPDATE_MS = 200;
+
+/** Under this, a tap was over before it began and there is nothing to preview. */
+const MIN_TAKE_MS = 400;
 
 export function VoiceComposer({
   conversationId,
@@ -99,25 +92,16 @@ export function VoiceComposer({
 
   const [phase, setPhase] = useState<'starting' | 'recording' | 'preview' | 'sending'>('starting');
 
-  const recorder = useAudioRecorder(VOICE_RECORDING_OPTIONS);
-  // This drives the CLOCK only. The waveform has its own sampler below, for
-  // the reason given on METER_MS. Polling stops mattering once the note is
-  // recorded, so it slows right down rather than re-rendering the preview
-  // underneath the person listening to it.
-  const recState = useAudioRecorderState(recorder, phase === 'recording' ? CLOCK_MS : 1000);
-  /**
-   * Every level captured, which at twenty a second is 2,400 of them across a
-   * full-length note. Kept in a ref: copying a growing array into state on
-   * every sample would be quadratic, and nothing on screen needs more than the
-   * tail of it.
-   */
-  const allLevels = useRef<number[]>([]);
+  const recorder = useVoiceRecorder();
+
   /** Just what the live row draws — the last VOICE_WAVEFORM_BARS samples. */
   const [liveTail, setLiveTail] = useState<number[]>([]);
-  /** Resampled once when recording stops, for the preview and the upload. */
+  /** Measured once when recording stops, for the preview and the upload. */
   const [previewWave, setPreviewWave] = useState<number[]>([]);
   const [uri, setUri] = useState<string | null>(null);
+  const [blob, setBlob] = useState<Blob | null>(null);
   const [recordedMs, setRecordedMs] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const [scrubbing, setScrubbing] = useState(false);
   /** Guards the two paths into stop(): the button and the two-minute cap. */
   const stopping = useRef(false);
@@ -131,11 +115,11 @@ export function VoiceComposer({
       try {
         // Anything else playing in the thread would end up in the recording.
         stopAllAudio();
-        await ensureMicPermission();
-        await setAudioSession('record');
-        await recorder.prepareToRecordAsync();
-        if (cancelled) return;
-        recorder.record();
+        await recorder.start();
+        if (cancelled) {
+          recorder.cancel();
+          return;
+        }
         haptics.commit();
         setPhase('recording');
       } catch (err) {
@@ -148,7 +132,7 @@ export function VoiceComposer({
     return () => {
       cancelled = true;
     };
-    // Once, on mount. The recorder instance is stable for this component's life.
+    // Once, on mount. The handle is stable for this component's life.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -156,35 +140,27 @@ export function VoiceComposer({
   const stop = useCallback(async () => {
     if (stopping.current) return;
     stopping.current = true;
-    // Read the duration from the recorder itself, not from the polled state,
-    // which can be a quarter of a second behind by the time Stop is pressed.
-    const ms = recorder.getStatus().durationMillis;
+    const ms = recorder.durationMs();
     try {
-      await recorder.stop();
-      await setAudioSession('play');
-      if (abandoned.current) return;
-      const recordedUri = recorder.uri;
-      if (!recordedUri || ms < 400) {
-        // A tap that was over before it began. Nothing worth previewing, and
-        // an empty note in the thread would be a mistake nobody could undo.
+      if (ms < MIN_TAKE_MS) {
+        // Nothing worth previewing, and an empty note in the thread would be
+        // a mistake nobody could undo.
+        recorder.cancel();
         haptics.warning();
         onCancel();
         return;
       }
-      // The encoder is still finishing the file — see waitForRecording.
-      await waitForRecording(recordedUri);
+      const take = await recorder.stop();
       if (abandoned.current) return;
-
-      // On the web there are no live levels to resample, because metering
-      // there would have broken the capture; the shape is read back out of
-      // the finished file instead. Native returns null and keeps what it
-      // measured while recording.
-      const measured = await waveformFromRecording(recordedUri);
-      if (abandoned.current) return;
-
-      setUri(recordedUri);
-      setRecordedMs(ms);
-      setPreviewWave(measured ?? resampleWaveform(allLevels.current));
+      if (!take) {
+        haptics.warning();
+        onCancel();
+        return;
+      }
+      setUri(take.uri);
+      setBlob(take.blob);
+      setRecordedMs(take.durationMs);
+      setPreviewWave(take.waveform);
       setPhase('preview');
       haptics.selection();
     } catch (err) {
@@ -195,7 +171,7 @@ export function VoiceComposer({
     }
   }, [recorder, onCancel, onError]);
 
-  // ── Collect levels, on our own clock ──────────────────────────────────────
+  // ── The clock and the levels, on one interval ─────────────────────────────
   //
   // `stop` is held in a ref rather than listed as a dependency, and that is
   // the whole reason this works. It is a useCallback over `onCancel` and
@@ -211,94 +187,74 @@ export function VoiceComposer({
 
   useEffect(() => {
     if (phase !== 'recording') return;
-    // NOTHING in here may touch the audio graph.
-    //
-    // There used to be a "rescue" at this point: if the first second of
-    // levels came back as perfect silence, it assumed the meter had never
-    // woken and resumed the AudioContext again. Two things were wrong with
-    // that. The trigger fired constantly — a quiet room sits near -65 dBFS,
-    // below the floor the level scale flattens to zero, and nobody is talking
-    // in the first second anyway, so "all zeros" was the normal start to
-    // every recording rather than a fault. And the action was unsafe:
-    // resuming the context mid-capture disturbs the stream MediaRecorder is
-    // reading on Safari, which ended the recording there and then. The file
-    // was unplayable and arrived at the upload with nothing in it.
-    //
-    // Waking the clock belongs before the microphone is opened, in the tap,
-    // where it already happens. Once recording has started this loop only
-    // reads.
-    const int = setInterval(() => {
-      const st = recorder.getStatus();
-      if (!st.isRecording) return;
-      allLevels.current.push(meterToLevel(st.metering));
-      setLiveTail(allLevels.current.slice(-VOICE_WAVEFORM_BARS));
-      if (st.durationMillis >= MAX_VOICE_NOTE_MS) void stopRef.current();
+    const tick = setInterval(() => {
+      if (!recorder.isRecording()) return;
+      const level = recorder.sample();
+      setLiveTail((previous) => [...previous, level].slice(-VOICE_WAVEFORM_BARS));
+      const ms = recorder.durationMs();
+      setElapsedMs(ms);
+      if (ms >= MAX_VOICE_NOTE_MS) void stopRef.current();
     }, METER_MS);
-    return () => clearInterval(int);
+    return () => clearInterval(tick);
   }, [phase, recorder]);
 
-  const elapsedMs = phase === 'recording' ? recState.durationMillis : recordedMs;
-  const remainingMs = MAX_VOICE_NOTE_MS - elapsedMs;
+  const shownMs = phase === 'recording' ? elapsedMs : recordedMs;
+  const remainingMs = MAX_VOICE_NOTE_MS - shownMs;
 
   // ── Throw it away ─────────────────────────────────────────────────────────
-  const discard = useCallback(async () => {
+  const discard = useCallback(() => {
     abandoned.current = true;
     haptics.warning();
-    try {
-      if (recState.isRecording) await recorder.stop();
-    } catch {
-      // Already stopped, or never started. Either way it is going.
-    }
+    recorder.cancel();
     onCancel();
-  }, [recorder, recState.isRecording, onCancel]);
-
-  // Leaving the screen mid-recording must not leave the mic open.
-  useEffect(
-    () => () => {
-      abandoned.current = true;
-      try {
-        if (recorder.isRecording) void recorder.stop();
-      } catch {
-        // Nothing to unwind.
-      }
-    },
-    [recorder],
-  );
+  }, [recorder, onCancel]);
 
   // ── Preview playback ──────────────────────────────────────────────────────
-  const player = useAudioPlayer(uri, { updateInterval: PLAY_UPDATE_MS });
-  const playStatus = useAudioPlayerStatus(player);
+  //
+  // Eager: there is one note and the file is already here, so the length and
+  // the first press are both instant. (On the web the recorder has already
+  // decoded it to measure the waveform — see lib/web-audio.web.)
+  const playback = useVoicePlayback({
+    source: uri,
+    fallbackDuration: recordedMs / 1000,
+    updateMs: PLAY_UPDATE_MS,
+    focusId: 'voice-preview',
+    eager: !!uri,
+  });
   const progress = useSharedValue(0);
-  const totalS = recordedMs / 1000;
 
   usePlaybackProgress({
     progress,
-    currentTime: playStatus.currentTime,
-    total: playStatus.duration > 0 ? playStatus.duration : totalS,
-    playing: playStatus.playing,
+    currentTime: playback.currentTime,
+    total: playback.duration,
+    playing: playback.playing,
     scrubbing,
     updateMs: PLAY_UPDATE_MS,
   });
 
+  // A browser that refuses to play is the one failure that used to be silent:
+  // the bar said it was playing and nothing came out. Now it says why.
+  const reported = useRef<string | null>(null);
   useEffect(() => {
-    if (!playStatus.didJustFinish) return;
-    progress.value = 0;
-    void player.seekTo(0);
-  }, [playStatus.didJustFinish, player, progress]);
+    if (!playback.error || reported.current === playback.error) return;
+    reported.current = playback.error;
+    onError(new PlaybackError(playback.error));
+  }, [playback.error, onError]);
 
   // ── Send ──────────────────────────────────────────────────────────────────
   const sendIt = async () => {
     if (!uri) return;
     setPhase('sending');
     try {
-      // The player has decoded the file and knows exactly how long it is.
-      // Prefer that over the recorder's count, which on Android advances in
-      // whole seconds and would describe a 7.8s note as 7s.
+      // The decoded clip knows exactly how long it is. Prefer that over the
+      // recorder's count, which on Android advances in whole seconds and
+      // would describe a 7.8s note as 7s.
       const durationMs =
-        playStatus.duration > 0 ? Math.round(playStatus.duration * 1000) : recordedMs;
+        playback.duration > 0 ? Math.round(playback.duration * 1000) : recordedMs;
       const attachment = await uploadVoiceNote({
         conversationId,
         uri,
+        blob,
         durationMs,
         waveform: previewWave,
       });
@@ -341,7 +297,7 @@ export function VoiceComposer({
       style={[styles.bar, { backgroundColor: colors.card, borderColor: colors.hairline }]}
     >
       <Pressable
-        onPress={() => void discard()}
+        onPress={discard}
         disabled={busy}
         hitSlop={6}
         accessibilityRole="button"
@@ -356,21 +312,24 @@ export function VoiceComposer({
           <Pressable
             onPress={() => {
               haptics.selection();
-              if (playStatus.playing) player.pause();
-              else player.play();
+              playback.toggle();
             }}
             disabled={busy}
             hitSlop={6}
             accessibilityRole="button"
-            accessibilityLabel={playStatus.playing ? t('common.pause') : t('common.play')}
+            accessibilityLabel={playback.playing ? t('common.pause') : t('common.play')}
             style={[styles.playBtn, { backgroundColor: atelier.primary }]}
           >
-            <Ionicons
-              name={playStatus.playing ? 'pause' : 'play'}
-              size={15}
-              style={playStatus.playing ? undefined : styles.playGlyph}
-              color={atelier.textOnPrimary}
-            />
+            {playback.loading ? (
+              <ActivityIndicator size="small" color={atelier.textOnPrimary} />
+            ) : (
+              <Ionicons
+                name={playback.playing ? 'pause' : 'play'}
+                size={15}
+                style={playback.playing ? undefined : styles.playGlyph}
+                color={atelier.textOnPrimary}
+              />
+            )}
           </Pressable>
           <View style={styles.middle}>
             <VoiceWaveform
@@ -378,19 +337,21 @@ export function VoiceComposer({
               progress={progress}
               tint={atelier.primary}
               track={colors.border}
-              onSeek={(ratio) => void player.seekTo(ratio * totalS)}
+              onSeek={(ratio) => playback.seek(ratio * playback.duration)}
               onScrubbingChange={setScrubbing}
             />
           </View>
           <Text variant="caption" tone="textMuted" style={styles.clock}>
-            {formatClock(playStatus.playing ? playStatus.currentTime * 1000 : recordedMs)}
+            {formatClock(
+              playback.playing || playback.currentTime > 0
+                ? playback.currentTime * 1000
+                : recordedMs,
+            )}
           </Text>
         </>
       ) : (
         <>
-          <Animated.View
-            style={[styles.dot, { backgroundColor: colors.danger }, dotStyle]}
-          />
+          <Animated.View style={[styles.dot, { backgroundColor: colors.danger }, dotStyle]} />
           <View style={styles.middle}>
             <VoiceWaveform
               waveform={liveWaveform}
@@ -411,7 +372,7 @@ export function VoiceComposer({
           >
             {remainingMs <= WARN_MS
               ? `−${formatClock(Math.max(0, remainingMs))}`
-              : formatClock(elapsedMs)}
+              : formatClock(shownMs)}
           </Text>
         </>
       )}
