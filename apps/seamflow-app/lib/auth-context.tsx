@@ -11,6 +11,8 @@ import {
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { isWeb } from './platform-capabilities';
+import { config } from './config';
+import { nativeGoogleIdToken, GoogleCancelled } from './google-native';
 import { supabase } from './supabase';
 import { ensurePushRegistered, unregisterPushOnSignOut } from './notifications';
 import { reconcilePinOwner } from './pin-lock';
@@ -233,6 +235,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signInWithGoogle = useCallback(async () => {
+    // ── Native account picker ─────────────────────────────────────────────
+    // On a native build with EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID set (and the
+    // @react-native-google-signin module installed), use Google's in-app
+    // account sheet: it returns an ID token we exchange with Supabase the same
+    // way as Apple — no browser, no redirect. Until that's configured, this is
+    // skipped and the browser OAuth flow below runs exactly as before.
+    if (!isWeb && config.googleWebClientId) {
+      try {
+        const idToken = await nativeGoogleIdToken(config.googleWebClientId);
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: idToken,
+        });
+        if (error) throw error;
+        // The auth-state listener picks up SIGNED_IN and updates `session`.
+        return;
+      } catch (e) {
+        if (e instanceof GoogleCancelled) throw new GoogleCancelledError();
+        throw e;
+      }
+    }
+
     // ── Browser ───────────────────────────────────────────────────────────
     // The native flow below is wrong on web in two ways: `Linking.createURL`
     // produces an http URL Supabase has never been told about (so it falls

@@ -46,4 +46,11 @@ export const config = {
     'EXPO_PUBLIC_SUPABASE_ANON_KEY',
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
   ),
+  // Google "Web" OAuth client ID (from Google Cloud Console). When set on a
+  // native build with @react-native-google-signin installed, Google sign-in
+  // uses the native in-app account picker (no browser). Empty → the app keeps
+  // using the web/browser OAuth flow. Also the audience Supabase validates the
+  // returned ID token against, so it must match the Supabase Google provider's
+  // "Authorized Client IDs".
+  googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '',
 };
