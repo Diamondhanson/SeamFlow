@@ -69,7 +69,7 @@ Create three OAuth 2.0 client IDs under the same project:
 | **Android** | Package name `com.bambothanson.FashionApp` + SHA-1 (see step 5). |
 | **iOS** (later) | Bundle id `com.seamflowtech.app`; gives you the reversed client ID for `iosUrlScheme`. |
 
-## 4. Set the env var
+## 4. Set the env var — DONE
 
 The slot already exists at the bottom of `apps/seamflow-app/.env`, empty. Paste
 the value there **and** into the `production` and `preview` env blocks in
@@ -149,3 +149,31 @@ redirects through Supabase's callback, so that domain is what is left to fall
 back on. Setting App name (and a logo) fixes it for the browser flow, which is
 the only flow web users ever see. The native picker sidesteps it entirely:
 there is no redirect through Supabase at all.
+
+
+---
+
+## The client IDs in use (project 879451838140)
+
+| Type | Client ID | Where it lives |
+|---|---|---|
+| **Web** | `879451838140-eistmr1hlcsbvbd7j4to09tcn1a6dsuq` | `.env` and the `production`/`preview` env blocks in `eas.json`. This is the one the code uses — `configure({ webClientId })` — and the audience Supabase validates the ID token against. |
+| **Android** | `879451838140-t5j9lcshrk5tnta0n0sku5icvrve3fjh` | Nowhere in the repo, and that is correct. Android is matched by package name + SHA-1 registered in Google Cloud, not by a string we ship. Recorded here so nobody goes looking for it. |
+| **iOS** | — | Not created. Needed for `iosUrlScheme` when the Apple Developer Program is sorted. |
+
+Client IDs are public by design — they ship inside the installed app — so
+committing the web one to `eas.json` is no more exposed than the Supabase anon
+key already sitting beside it.
+
+Verified inlined into the Android bundle at build time:
+
+```
+$ grep -oa "879451838140[-a-z0-9]*" entry-*.hbc
+879451838140-eistmr1hlcsbvbd7j4to09tcn1a6dsuq
+```
+
+One caveat worth repeating from step 5: if the first build signs in locally but
+fails with `DEVELOPER_ERROR (10)` for people who installed from Play, the
+**Play app-signing SHA-1** is missing from the Android client. Local builds use
+the upload key; Play re-signs with a different one, and both have to be
+registered.
