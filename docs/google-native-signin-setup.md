@@ -1,5 +1,9 @@
 # Native Google Sign-In — finishing setup (your part)
 
+**Steps 1 and 2 are done** (module installed, config plugin added, branch merged
+to `main`). What is left is the Google Cloud / Supabase configuration and the
+one env var.
+
 The **code is done and dormant.** Until the steps below are complete, Google
 sign-in keeps using the current browser/OAuth flow. Once the web client ID is
 set **and a native build ships**, it switches to Google's in-app account picker
@@ -13,7 +17,7 @@ always uses the browser flow (`lib/google-native.web.ts` stub).
 
 ---
 
-## 1. Install the native module
+## 1. Install the native module — DONE
 
 ```bash
 cd apps/seamflow-app
@@ -24,9 +28,20 @@ This adds the dependency **and updates `pnpm-lock.yaml`** — commit both, or th
 EAS build will fail on the frozen lockfile. (Run this on a machine with
 Node ≥ 22.13 so pnpm works.)
 
-## 2. Add the config plugin
+## 2. Add the config plugin — DONE
 
-In `apps/seamflow-app/app.json`, add to the `plugins` array:
+Added to `apps/seamflow-app/app.json` as the bare string, next to
+`expo-secure-store`:
+
+```json
+"@react-native-google-signin/google-signin"
+```
+
+Bare on purpose: on Android the plugin's only job is autolinking, which takes no
+options. iOS needs `iosUrlScheme` (the reversed **iOS** client ID), and that
+client does not exist yet — adding the object form now would be a placeholder
+that fails the first iOS build rather than a configuration. When the Apple
+Developer Program is sorted, swap the string for:
 
 ```json
 [
@@ -56,12 +71,18 @@ Create three OAuth 2.0 client IDs under the same project:
 
 ## 4. Set the env var
 
-Add to `apps/seamflow-app/.env` (local) **and** the EAS `production`/`preview`
-build profiles (`eas.json` env, or EAS project env vars):
+The slot already exists at the bottom of `apps/seamflow-app/.env`, empty. Paste
+the value there **and** into the `production` and `preview` env blocks in
+`apps/seamflow-app/eas.json` (EAS reads those at build time; `.env` is not
+uploaded):
 
 ```
 EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<the WEB client ID>.apps.googleusercontent.com
 ```
+
+Empty is safe: `config.googleWebClientId` falls back to `''`, the gate in
+`signInWithGoogle` is skipped, and the browser flow runs exactly as it does
+today.
 
 ## 5. Android SHA-1 fingerprints — the gotcha
 
@@ -99,3 +120,32 @@ opens the native account sheet.
 - **Before** the env var / build: Google sign-in still opens the browser (unchanged).
 - **After**: native sheet on Android; no browser. If you see `DEVELOPER_ERROR`,
   re-check step 5 (almost always the missing Play app-signing SHA-1).
+
+
+---
+
+## Verified at merge time
+
+With the module installed and the plugin added, `expo export` puts each half
+where it belongs — checked rather than assumed:
+
+| symbol | android bundle | web bundle |
+|---|---|---|
+| `GoogleSignin` | present | absent |
+| `hasPlayServices` | present | absent |
+| `signInWithIdToken` | present | absent |
+| web stub's "not available on web" | absent | present |
+
+So the web app at `app.seamflowtech.com` never pulls the native module in, and
+keeps the browser flow — which it has to, since there is no native picker in a
+browser.
+
+## The name Google shows on the consent screen
+
+Separate from all of the above. The "to continue to …" string comes from the
+**OAuth consent screen → App name** in Google Cloud, not from our code. If it
+shows the `<ref>.supabase.co` domain, that field is unset — the browser flow
+redirects through Supabase's callback, so that domain is what is left to fall
+back on. Setting App name (and a logo) fixes it for the browser flow, which is
+the only flow web users ever see. The native picker sidesteps it entirely:
+there is no redirect through Supabase at all.
