@@ -1,0 +1,199 @@
+# iOS — from an empty Developer account to TestFlight
+
+Written against the repo as it stands. Everything below was checked, not
+assumed; where something is already done it says so, and where something is
+wrong it says that too.
+
+**Your role is Admin**, which covers everything here except agreements. If a
+page is greyed out, it needs the Account Holder (Deon Achuo, sird655@gmail.com).
+
+Facts you will need repeatedly:
+
+| | |
+|---|---|
+| iOS bundle id | `com.seamflowtech.app` |
+| Android package | `com.bambothanson.FashionApp` — **different**, see §1 |
+| EAS project | `diamondhans1998/FashionApp` (`da3ea415-e753-4047-b8cb-a1601ebfad64`) |
+| Supabase ref | `aqsppiyiegzatnjvjgyp` |
+| Google Cloud project | `879451838140` |
+
+---
+
+## 0. What is already done
+
+No action needed on any of these — listed so nobody redoes them.
+
+- `ios.bundleIdentifier` = `com.seamflowtech.app`
+- `ios.usesAppleSignIn: true` — adds the Sign in with Apple entitlement
+- `ios.config.usesNonExemptEncryption: false` — skips the export-compliance
+  question on every single build, which otherwise blocks each TestFlight upload
+- `ios.associatedDomains: applinks:www.seamflowtech.com`
+- Every permission string is already written, in the plugin config: photos,
+  camera, microphone, location, contacts, speech recognition. App Review
+  rejects generic ones; these are specific.
+- **In-app account deletion exists** (`app/(app)/me.tsx`, `app/(client)/hub`).
+  This is guideline 5.1.1(v) and a hard rejection if missing.
+- **The API refuses checkout from a store build** —
+  `checkout.controller.ts:48` throws for `platform === 'ios'`. That is
+  guideline 3.1.1 handled by design: the app never sells anything, so no IAP is
+  required.
+
+## 1. Repo problems to fix first
+
+**a. `docs/apple-sign-in.md` has the wrong bundle id.** It says
+`com.bambothanson.FashionApp` throughout. That is the *Android* package. On iOS
+everything must use `com.seamflowtech.app`. The doc predates the split.
+
+**b. `APPLE_SIGN_IN_ENABLED = false`** (`lib/auth-context.tsx:68`). Guideline
+4.8 requires Sign in with Apple wherever a third-party sign-in like Google is
+offered. This must be `true` before review, and the button gated to
+`Platform.OS === 'ios'`.
+
+**c. The Google plugin has no `iosUrlScheme`.** Currently the bare string in
+`app.json`. iOS needs the reversed iOS client ID — §3.
+
+**d. Universal links are declared but dead.** `www.seamflowtech.com` serves
+`/.well-known/apple-app-site-association` with `"details": []`, so nothing
+routes into the app. It needs the Team ID — §2.6.
+
+**e. `expo-share-intent` will want an App Group** on iOS, defaulting to
+`group.com.seamflowtech.app`. Create it (§2.2) or the share extension fails to
+build.
+
+## 2. Apple Developer portal — developer.apple.com
+
+**2.1 — App ID.** Certificates, Identifiers & Profiles → Identifiers → + → App
+IDs → App. Bundle ID `com.seamflowtech.app` (explicit, not wildcard). Enable:
+
+- Sign in with Apple
+- Push Notifications
+- Associated Domains
+- App Groups
+
+**2.2 — App Group.** Identifiers → + → App Groups → `group.com.seamflowtech.app`.
+Then go back into the App ID, edit App Groups, and tick it.
+
+**2.3 — Services ID** (for Supabase's Apple web flow, which the native flow
+still needs configured). Identifiers → + → Services IDs →
+`com.seamflowtech.app.web`. Enable Sign in with Apple → Configure:
+
+- Primary App ID: `com.seamflowtech.app`
+- Return URL: `https://aqsppiyiegzatnjvjgyp.supabase.co/auth/v1/callback`
+
+**2.4 — Sign in with Apple key.** Keys → + → tick *Sign in with Apple* →
+configure to the App ID → download the `.p8`. **It downloads once.** Record the
+**Key ID**.
+
+**2.5 — APNs key.** Keys → + → tick *Apple Push Notifications service (APNs)* →
+download the `.p8`, record the **Key ID**. One APNs key covers every app on the
+team, so if the account already has one, reuse it rather than making a second.
+
+**2.6 — Team ID.** Top right of the portal, or Membership details. Ten
+characters. Needed for the Supabase JWT *and* for the universal-links file.
+
+**2.7 — App Store Connect API key.** App Store Connect → Users and Access →
+Integrations → App Store Connect API → + . Role: **App Manager** is enough.
+Download the `.p8` and record the **Key ID** and **Issuer ID**. This is what
+lets `eas submit` upload without an interactive login. If the tab is greyed
+out, it needs the Account Holder.
+
+## 3. Google Cloud — the iOS OAuth client
+
+Same project as Android (`879451838140`). Credentials → + Create credentials →
+OAuth client ID → **iOS**. Bundle ID `com.seamflowtech.app`.
+
+It gives you a client ID like `879451838140-xxxx.apps.googleusercontent.com`.
+The **reversed** form — `com.googleusercontent.apps.879451838140-xxxx` — is what
+goes into `app.json` as `iosUrlScheme`.
+
+Then: Supabase → Authentication → Providers → Google → **Authorized Client IDs**
+→ append the iOS client ID to the web one, comma-separated. Both must be listed
+or `signInWithIdToken` rejects the iOS token's audience.
+
+## 4. Supabase — the Apple provider
+
+Authentication → Providers → Apple → enable.
+
+- **Client IDs**: `com.seamflowtech.app` **and** `com.seamflowtech.app.web`,
+  comma-separated — the native bundle id and the Services ID.
+- **Secret Key (JWT)**: generated from Team ID + Key ID + the Sign in with
+  Apple `.p8`. Supabase has a generator in that panel.
+
+> ⚠️ That JWT **expires about every six months** and Apple sign-in breaks
+> silently when it does. Put a calendar reminder the day you create it.
+
+## 5. EAS credentials
+
+Run from `apps/seamflow-app`. This is interactive and signs in to Apple, so it
+has to be you, not CI:
+
+```bash
+eas credentials --platform ios
+```
+
+Let EAS create the distribution certificate and provisioning profile. When it
+offers to set up push, give it the APNs key from §2.5 — or let it create one
+itself, which is simpler if the team has no key yet.
+
+Then store the App Store Connect API key so submits are non-interactive:
+
+```bash
+eas credentials --platform ios   # → App Store Connect API Key → set up
+```
+
+## 6. App Store Connect — the app record
+
+Apps → + → New App.
+
+- Platform iOS, bundle id `com.seamflowtech.app`
+- Name, primary language, SKU (any unique string, e.g. `seamflow-ios`)
+
+Then, before a build can go to **external** TestFlight or review:
+
+- **App Privacy** labels. Be honest and thorough — the app touches contacts,
+  photos, camera, microphone, location, and audio recordings.
+- **Age rating**
+- **A demo account** for App Review with real data in it. Reviewers reject
+  accounts that land on an empty state.
+
+Internal TestFlight (your own team, up to 100 testers) needs none of this and
+no review — which is why it is the right first target.
+
+## 7. The build
+
+```bash
+cd apps/seamflow-app
+eas build --platform ios --profile production
+eas submit --platform ios --latest
+```
+
+`appVersionSource: "remote"` and `autoIncrement: true` are already set, so the
+build number increments server-side exactly as it does on Android.
+
+Processing in App Store Connect takes 10–30 minutes after upload. Then
+TestFlight → Internal Testing → add testers.
+
+## What is mine and what is yours
+
+**Yours** (needs an Apple login I do not have): everything in §2, §3, §4, §5,
+§6, and running the build in §7.
+
+**Mine**, once you send the values below:
+
+- fix the stale bundle id in `docs/apple-sign-in.md`
+- flip `APPLE_SIGN_IN_ENABLED` and gate the button to iOS
+- add `iosUrlScheme` to the Google plugin in `app.json`
+- fill in the universal-links file with the Team ID
+- add the App Group to `app.json` if the default needs overriding
+
+**Send me four things:**
+
+| | example |
+|---|---|
+| Team ID | `A1B2C3D4E5` |
+| iOS OAuth client ID | `879451838140-xxxx.apps.googleusercontent.com` |
+| Services ID | `com.seamflowtech.app.web` |
+| App Group | `group.com.seamflowtech.app` |
+
+Never send me the `.p8` files. They are secrets, they belong in EAS and
+Supabase, and nothing in this repo should ever hold one.
