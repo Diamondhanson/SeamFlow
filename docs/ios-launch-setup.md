@@ -11,6 +11,7 @@ Facts you will need repeatedly:
 
 | | |
 |---|---|
+| Apple Team ID | `J449TN6SZG` (Deon Achuo's team) |
 | iOS bundle id | `com.seamflowtech.app` |
 | Android package | `com.bambothanson.FashionApp` — **different**, see §1 |
 | EAS project | `diamondhans1998/FashionApp` (`da3ea415-e753-4047-b8cb-a1601ebfad64`) |
@@ -88,8 +89,8 @@ configure to the App ID → download the `.p8`. **It downloads once.** Record th
 download the `.p8`, record the **Key ID**. One APNs key covers every app on the
 team, so if the account already has one, reuse it rather than making a second.
 
-**2.6 — Team ID.** Top right of the portal, or Membership details. Ten
-characters. Needed for the Supabase JWT *and* for the universal-links file.
+**2.6 — Team ID — DONE.** `J449TN6SZG`. Needed for the Supabase JWT (§4) and
+for the universal-links file (§8).
 
 **2.7 — App Store Connect API key.** App Store Connect → Users and Access →
 Integrations → App Store Connect API → + . Role: **App Manager** is enough.
@@ -197,3 +198,52 @@ TestFlight → Internal Testing → add testers.
 
 Never send me the `.p8` files. They are secrets, they belong in EAS and
 Supabase, and nothing in this repo should ever hold one.
+
+
+---
+
+## 8. Universal links — one environment variable
+
+`apps/seamflow-web/app/.well-known/apple-app-site-association/route.ts` was
+written to take the Team ID from the environment, so this is configuration and
+not a deploy of new code:
+
+**Vercel → the `seamflow-web` project → Settings → Environment Variables**
+
+```
+APPLE_TEAM_ID = J449TN6SZG
+```
+
+Add it to **Production** and **Preview**, then redeploy — Vercel only picks up a
+new variable on a fresh build, so the currently deployed one will keep serving
+the empty document until it is rebuilt.
+
+Verify afterwards:
+
+```bash
+curl -s https://www.seamflowtech.com/.well-known/apple-app-site-association
+```
+
+`details` should hold `J449TN6SZG.com.seamflowtech.app` with paths `/t/*` and
+`/fr/t/*`. While it stays `[]`, the `associatedDomains` entitlement in
+`app.json` claims a domain that claims nothing back, and catalogue links keep
+opening the browser.
+
+Two things that route already gets right and that are easy to break: it is
+served with **no file extension** as `application/json`, and it must never
+redirect — Apple fetches that exact path and follows nothing.
+
+## 9. Developer Program membership vs App Store Connect
+
+These are two different lists, and being on one does not put you on the other:
+
+| | Grants | Invited from |
+|---|---|---|
+| App Store Connect **Users and Access** | apps, TestFlight, app records | appstoreconnect.apple.com |
+| Developer Program **People** | certificates, identifiers, profiles, **keys** | developer.apple.com → Account → People |
+
+An invite to the first gives "Access Unavailable" on Certificates, Identifiers
+& Profiles — the resource "is only for … members of an organization's team in a
+developer program." The Account Holder has to invite separately from
+developer.apple.com → People, and the invitee's Apple ID needs two-factor
+authentication before the invitation can be accepted.

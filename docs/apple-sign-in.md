@@ -22,12 +22,18 @@ provider, and the `handle_new_auth_user` DB trigger provisions the
 **Apple Developer Program membership — $99/year.** Nothing below can be created
 without it.
 
+> **The identifiers below are the iOS ones.** `com.bambothanson.FashionApp` is
+> the ANDROID package and must not appear anywhere in Apple's portal, Supabase's
+> Apple provider, or a Services ID. This document used it throughout until the
+> iOS bundle id was settled; if you see it in a screenshot or an older note,
+> that note is wrong.
+
 ## 1. Apple Developer portal (developer.apple.com)
 
-1. **App ID** — identifier `com.bambothanson.FashionApp` (must match
+1. **App ID** — identifier `com.seamflowtech.app` (must match
    `ios.bundleIdentifier` in `apps/seamflow-app/app.json`). Enable the
    **Sign in with Apple** capability on it.
-2. **Services ID** — a *separate* identifier (e.g. `com.bambothanson.FashionApp.web`).
+2. **Services ID** — a *separate* identifier (e.g. `com.seamflowtech.app.web`).
    This is the OAuth `client_id` Supabase uses for the web/token flow.
    - Configure its **Return URL**:
      `https://aqsppiyiegzatnjvjgyp.supabase.co/auth/v1/callback`
@@ -39,7 +45,7 @@ without it.
 
 Authentication → Providers → **Apple** → enable, then:
 
-- **Client IDs**: your **bundle id** `com.bambothanson.FashionApp` (native iOS)
+- **Client IDs**: your **bundle id** `com.seamflowtech.app` (native iOS)
   **and** the **Services ID** (web) — comma-separated.
 - **Secret Key (JWT)**: generate from Team ID + Key ID + the `.p8`. Supabase has
   a generator in the provider panel.
