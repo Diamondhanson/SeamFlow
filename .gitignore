@@ -69,3 +69,6 @@ phone screenshots. /
 *.apk
 *.aab
 backups/
+
+# iOS signing: local credentials map (holds the .p12 password).
+credentials.json

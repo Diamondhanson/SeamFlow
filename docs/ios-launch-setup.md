@@ -247,3 +247,133 @@ An invite to the first gives "Access Unavailable" on Certificates, Identifiers
 developer program." The Account Holder has to invite separately from
 developer.apple.com → People, and the invitee's Apple ID needs two-factor
 authentication before the invitation can be accepted.
+
+## 10. What signing actually ended up being — 2026-10-23
+
+Deon is the Account Holder; we only ever had App Store Connect access. All of
+this was done instead through the **App Store Connect API key**, which is a
+team key with Admin access, so it can manage identifiers, certificates and
+profiles without an Apple ID login and without Deon at the keyboard.
+
+### The wall, and the way round it
+
+Apple caps **iOS Distribution** certificates at two per team, and the team had
+already spent both on Deon's other apps:
+
+```
+723GH973C2  iOS Distribution: Deon Achuo   expires 2027-04-30
+96KF39RBRH  iOS Distribution: Deon Achuo   expires 2027-10-23
+```
+
+Asking for a third returns, flatly:
+
+```
+409 ENTITY_ERROR
+You already have a current iOS Distribution certificate or a pending
+certificate request.
+```
+
+`IOS_DISTRIBUTION` is the legacy type, though. **Apple Distribution**
+(`DISTRIBUTION`) is a separate quota and is equally valid for App Store
+signing, so that is what we hold:
+
+| | |
+|---|---|
+| Certificate | `U6SMVHP76F` — Apple Distribution, expires **2027-10-23** |
+| Profile | `4MW3CQ98CN` — `SeamFlow App Store (eas)`, App Store, ACTIVE |
+| Profile UUID | `31e51bfe-6d00-452c-9427-d12c8e263be1` |
+| App ID | `com.seamflowtech.app` → `VS9WGPC49X`, seed `J449TN6SZG` |
+| ASC app record | `6826401334`, SKU `seamflow-ios` |
+
+The private key was generated locally, so the `.p12` is ours and does not have
+to be prised out of anyone's Keychain. It is exported with 3DES rather than
+OpenSSL 3's default AES-256, because EAS parses it with node-forge and
+node-forge cannot read AES-256 PBES2 bags.
+
+Nothing secret lives in this repo. The key, the `.p12` and its password sit in
+`~/.apple-keys/`, `credentials.json` is gitignored **and** easignored, and
+`.easignore` already drops `*.p8`, `*.p12` and `*.mobileprovision`.
+
+Renewal: the certificate dies **2027-10-23**. Both certificates in the team
+expire within six months of each other, so by then the legacy slots free up.
+
+### Why the iOS share extension is off
+
+`expo-share-intent` does more on iOS than add an intent filter. It injects
+`com.apple.security.application-groups` into the **main app's** entitlements
+and adds a second Xcode target, `com.seamflowtech.app.share-extension` — which
+would need its own App ID, its own provisioning profile, and an App Group named
+`group.com.seamflowtech.app`.
+
+That App Group cannot be created with the key we have. The App Store Connect
+API has no App Groups resource at all — `/v1/appGroups` is a 404 for both GET
+and POST — so it is portal-only, which means Deon.
+
+The one that does exist in the portal is `group.group.com.seamflowtech.app`:
+double-prefixed, because `group.` was typed into a field that already prepends
+it. An entitlement the profile does not grant fails code signing, so as it
+stood the build could not be signed.
+
+So the plugin now carries `disableIOS: true`. Verified by prebuild:
+
+```
+[expo-share-intent] IOS module disabled
+```
+
+and the generated `SeamFlow.entitlements` contains exactly `aps-environment`,
+`com.apple.developer.applesignin` and `com.apple.developer.associated-domains`
+— no `application-groups`, no extension target. Android is untouched; its
+intent filters still apply.
+
+**To turn it back on later:** Deon creates App Group
+`group.com.seamflowtech.app` and ticks it on `com.seamflowtech.app`; register
+App ID `com.seamflowtech.app.share-extension` with App Groups; then drop
+`disableIOS`, declare the extension under
+`extra.eas.build.experimental.ios.appExtensions`, and move to EAS-managed
+credentials — `credentials.json` carries one profile and cannot describe an
+extension's.
+
+### Still missing, and neither blocks a build
+
+- **Google sign-in on iOS.** The plugin is a bare string, which takes the
+  Firebase branch; with no `ios.googleServicesFile` both `setGoogleConfig` and
+  `setGoogleServicesFile` return early, so it is a silent no-op rather than a
+  prebuild error. Native Google sign-in stays dark on iOS until there is an iOS
+  OAuth client and an `iosUrlScheme`.
+- **Apple sign-in.** The entitlement ships and the capability is primary, but
+  `APPLE_SIGN_IN_ENABLED` is still `false` and Supabase's Apple provider is not
+  configured. The Sign in with Apple key exists; its `.p8` goes to Supabase,
+  never here.
+
+### APNs environment — the quiet one
+
+`expo-notifications` writes `aps-environment` into the entitlements and its
+`mode` **defaults to `development`**:
+
+```js
+const withNotificationsIOS = (config, { mode = 'development', ... }) => {
+  if (!config.modResults['aps-environment']) {
+    config.modResults['aps-environment'] = mode;
+  }
+```
+
+eas-cli never rewrites that value — it only reads `aps-environment` to map the
+entitlement onto a capability for capability sync. And **TestFlight uses
+production APNs**, so a build shipped with `development` registers against the
+sandbox and every push fails with `BadDeviceToken`.
+
+So the plugin now carries `"mode": "production"`, which makes the entitlements
+an exact match for the App Store profile:
+
+```
+aps-environment                         production
+com.apple.developer.applesignin         Default
+com.apple.developer.associated-domains  applinks:www.seamflowtech.com
+```
+
+The cost: this is static in `app.json`, and a **development** provisioning
+profile grants `aps-environment: development`. So
+`eas build --profile development --platform ios` would now fail to sign. There
+has never been an iOS dev client, so nothing is broken today — but if one is
+ever needed, move the value into an `app.config.js` that branches on
+`process.env.EAS_BUILD_PROFILE` rather than flipping this back.

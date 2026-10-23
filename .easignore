@@ -101,3 +101,6 @@ supabase/.branches/
 # Tooling state for this repo's assistants — transcripts, caches and settings.
 # Seventeen megabytes of it, and not one byte is read by Gradle.
 .claude/
+
+# iOS signing: never upload the local credentials map.
+credentials.json
