@@ -15,7 +15,7 @@
 # `--remote-only` builds on Fly's builders (no local Docker/disk needed).
 
 # ---------- builder ----------
-FROM node:22-slim AS builder
+FROM node:22.23.4-slim AS builder
 RUN corepack enable
 WORKDIR /repo
 
@@ -29,7 +29,7 @@ RUN pnpm --filter "@seamflow/schemas" --filter "@seamflow/types" --filter "@seam
  && pnpm --filter "seamflow-api" build
 
 # ---------- runner ----------
-FROM node:22-slim AS runner
+FROM node:22.23.4-slim AS runner
 ENV NODE_ENV=production
 ENV PORT=8080
 WORKDIR /repo

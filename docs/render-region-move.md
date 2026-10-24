@@ -59,8 +59,11 @@ changes. Slower, because it needs an app release in the middle.
 1. Render dashboard → the **seamflow-api** service → **Settings** → find the
    **Custom Domains** section → add `api.seamflowtech.com`.
 2. Render shows a DNS target. Add it at your DNS provider as a **CNAME** for
-   `api` pointing at that target. (`seamflowtech.com` is on Vercel, so add the
-   record there; do **not** point it at Vercel.)
+   `api` pointing at that target. The site is *hosted* on Vercel, but the DNS
+   is **Namecheap's** (nameservers `dns1/dns2.registrar-servers.com`), so the
+   record goes in Namecheap → Domain List → Manage → **Advanced DNS** — a
+   record added in Vercel's dashboard is never consulted. Do **not** point it
+   at Vercel.
 3. Wait for Render to show the domain as verified with a certificate issued.
 4. Check it: `curl -s https://api.seamflowtech.com/health` should return the
    same JSON as the onrender.com URL.
