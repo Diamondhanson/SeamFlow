@@ -1,7 +1,7 @@
 import { QueryClient, onlineManager, focusManager } from '@tanstack/react-query';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from '@react-native-community/netinfo';
+import { subscribeOnline } from './connectivity';
 import { AppState, type AppStateStatus } from 'react-native';
 import { registerMutationDefaults } from './mutation-defaults';
 import { isWeb } from './platform-capabilities';
@@ -125,17 +125,13 @@ export function installOfflineListeners(): void {
       };
     }
 
-    // ---- Native: NetInfo, which is accurate here. ----
-    const sub = NetInfo.addEventListener((state) => {
-      // `isInternetReachable` is more accurate but can be null on first event;
-      // fall back to `isConnected`.
-      const online =
-        state.isInternetReachable === null
-          ? !!state.isConnected
-          : !!state.isInternetReachable;
-      setOnline(online);
-    });
-    return () => sub();
+    // ---- Native: NetInfo for the link, our own API as the tie-break. ----
+    //
+    // NetInfo's own reachability probe pings Google. A network that drops Google
+    // while our API is fine would otherwise flip us offline here — pausing
+    // requests that would have succeeded. lib/online-monitor asks our API before
+    // believing a failed probe, and is the same signal the banner uses.
+    return subscribeOnline(setOnline);
   });
 
   focusManager.setEventListener((handleFocus) => {

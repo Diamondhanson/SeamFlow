@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, ListRow, useAtelierTheme } from '@seamflow/ui';
@@ -61,7 +62,7 @@ export default function InvoicingHome() {
   const failed = ordersQ.isError || invoicesQ.isError;
 
   return (
-    <Screen padded={false} width="wide">
+    <Screen bleed padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader title={t('invoices.listTitle')} subtitle={t('invoices.listSubtitle')} />
         <HelpCard

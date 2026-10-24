@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
@@ -62,7 +63,7 @@ export default function ClientsList() {
   }, [data?.items, favorites]);
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       <View style={styles.padded}>
         <ScreenHeader
           title={t('clients.title')}

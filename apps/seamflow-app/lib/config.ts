@@ -6,8 +6,15 @@ function required(name: string, value: string | undefined): string {
   return value;
 }
 
-/** Deployed API — the fallback when the configured host can't work here. */
-const HOSTED_API = 'https://seamflow-api.onrender.com';
+/**
+ * Deployed API — the fallback when the configured host can't work here.
+ *
+ * The custom domain, not the onrender.com hostname: some routers and DNS
+ * filters refuse *.onrender.com outright, and a hostname we own can't be
+ * blocked wholesale the way a shared-hosting one can. The onrender.com name
+ * stays alive as the backup (see EXPO_PUBLIC_API_BACKUP_URL).
+ */
+const HOSTED_API = 'https://api.seamflowtech.com';
 
 /**
  * Resolve the API base URL for the platform we're actually running on.
@@ -38,6 +45,10 @@ function resolveApiUrl(): string {
 
 export const config = {
   apiUrl: resolveApiUrl(),
+  // A second hostname for the SAME API, used only when apiUrl can't be reached
+  // at all (lib/api-failover.ts). Empty = no failover, which is what local dev
+  // wants. Never a different backend: both names must serve one service.
+  apiBackupUrl: process.env.EXPO_PUBLIC_API_BACKUP_URL ?? '',
   // Marketing + legal site (roadmap 3.12). Optional — defaults to the public
   // domain so the in-app Privacy/Terms links work without extra setup.
   webUrl: process.env.EXPO_PUBLIC_WEB_URL || 'https://www.seamflowtech.com',
@@ -53,4 +64,8 @@ export const config = {
   // returned ID token against, so it must match the Supabase Google provider's
   // "Authorized Client IDs".
   googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? '',
+  // Google "iOS" OAuth client ID. iOS will not open the native sheet with
+  // only the web client: the module rejects inside configure() unless this
+  // (or a GoogleService-Info.plist) is present. Android needs no equivalent.
+  googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? '',
 };

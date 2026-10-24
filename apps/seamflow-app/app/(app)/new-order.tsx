@@ -710,7 +710,7 @@ export default function NewOrderWizard() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('orders.newTitle')} />
       <View style={styles.stepRow}>
         <StepDot label={t('orders.stepClient')} active={step === 'client'} done={step !== 'client'} />

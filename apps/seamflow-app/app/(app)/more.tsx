@@ -6,7 +6,8 @@
 // familiar tiles. Reachable from the "More" tab and the home "Shortcuts → More".
 // ============================================================================
 
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { type SemanticColors } from '@seamflow/ui';
@@ -125,7 +126,7 @@ export default function More() {
   const tileWidth = Math.floor((contentWidth - GAP * (columns - 1)) / columns);
 
   return (
-    <Screen padded={false} width="wide">
+    <Screen bleed padded={false} width="wide">
       {/* The grid below scrolls edge-to-edge and carries its own padding,
           which is why this screen opts out of <Screen>'s. The header has to
           get that padding back explicitly or the back button sits hard

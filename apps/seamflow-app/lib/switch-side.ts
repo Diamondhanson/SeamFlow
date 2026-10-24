@@ -47,7 +47,15 @@ export function goToClientSide(): void {
  *
  * `hasShop` false means they have never set a shop up, so the home screen
  * would be a dashboard of nothing; send them to make one instead.
+ *
+ * `then` opens a screen ON TOP of the designer home — used to land someone on
+ * the next unfinished step of their shop. Pushed rather than made the root so
+ * that closing it has somewhere to go back to.
  */
-export function goToDesignerSide(hasShop: boolean): void {
-  resetTo(hasShop ? '/(app)' : '/(app)/profile-edit?onboarding=1');
+export function goToDesignerSide(hasShop: boolean, opts: { then?: string } = {}): void {
+  // `from=client` tells the setup screen where "Skip for now" should return to:
+  // someone who crossed over from the customer side and changed their mind
+  // should be put back there, not left on a designer dashboard of nothing.
+  resetTo(hasShop ? '/(app)' : '/(app)/profile-edit?onboarding=1&from=client');
+  if (hasShop && opts.then) router.push(opts.then as never);
 }

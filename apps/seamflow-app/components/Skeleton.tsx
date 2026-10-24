@@ -7,7 +7,8 @@
 //
 // `<Skeleton>` is the base block — a theme-aware, reduced-motion-aware pulsing
 // rectangle. The composed helpers (`SkeletonList`, `SkeletonDetail`,
-// `SkeletonForm`, `SkeletonTiles`) cover the app's common layouts; compose them
+// `SkeletonForm`, `SkeletonTiles`, `SkeletonGrid`, `SkeletonMasonry`) cover the
+// app's common layouts; compose them
 // or drop raw `<Skeleton>` / `<SkeletonLine>` / `<SkeletonCircle>` blocks for
 // bespoke screens.
 // ============================================================================
@@ -207,6 +208,52 @@ export function SkeletonGrid({ count = 9, columns = 3 }: { count?: number; colum
   );
 }
 
+// -- Composed: masonry feed ---------------------------------------------------
+
+/**
+ * Aspect ratios (width / height — the convention the real feeds use, so a
+ * SMALLER number is a TALLER card), one list per column.
+ *
+ * Fixed rather than random: a skeleton that reshuffles on every render flickers.
+ * The lists are offset against each other so neighbouring cards never line up —
+ * the staggered edge is what makes it read as a masonry feed rather than a grid.
+ * Mostly portrait, like the photos that replace them.
+ */
+const MASONRY_RATIOS = [
+  [1, 0.66, 0.78, 0.7, 0.9, 0.62],
+  [0.58, 0.8, 0.66, 0.95, 0.7, 0.75],
+  [0.82, 0.6, 0.92, 0.7, 0.66, 0.85],
+  [0.7, 0.9, 0.6, 0.8, 0.74, 0.64],
+] as const;
+
+/**
+ * Placeholder for a masonry photo feed (Discover, a storefront, the works
+ * list): uneven-height cards in side-by-side columns, not a grid of squares.
+ * Spacing and corner radius match the real cards — `spacing.md` down a column,
+ * half that between columns, `radii.md` — so nothing shifts when data lands.
+ *
+ * Give it the same `columns` the real feed uses (`useGridColumns()`); the
+ * horizontal padding comes from the caller, same as the loaded layout.
+ */
+export function SkeletonMasonry({ columns = 2, cards = 6 }: { columns?: number; cards?: number }) {
+  return (
+    <View style={styles.masonry}>
+      {Array.from({ length: columns }).map((_, c) => {
+        const ratios = MASONRY_RATIOS[c % MASONRY_RATIOS.length]!;
+        return (
+          <View key={c} style={styles.masonryCol}>
+            {Array.from({ length: cards }).map((__, i) => (
+              <View key={i} style={{ width: '100%', aspectRatio: ratios[i % ratios.length]! }}>
+                <Skeleton fill radius={radii.md} />
+              </View>
+            ))}
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 // -- Composed: form -----------------------------------------------------------
 
 /** A form body: N input-field placeholders + a button. For form/detail screens. */
@@ -244,4 +291,7 @@ const styles = StyleSheet.create({
   form: { gap: spacing.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   gridCell: { aspectRatio: 1, padding: spacing.xs / 2 },
+  // Mirrors the real feeds: columns spacing.md / 2 apart, cards spacing.md apart.
+  masonry: { flexDirection: 'row', gap: spacing.md / 2 },
+  masonryCol: { flex: 1, gap: spacing.md },
 });

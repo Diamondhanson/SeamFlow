@@ -22,6 +22,7 @@ import { useCreateConversation, useFeedPost } from '../../../lib/consumer-querie
 import { DesignChangePicker } from '../../../components/DesignChangePicker';
 import type { DesignChange } from '@seamflow/schemas';
 import { useAuth } from '../../../lib/auth-context';
+import { signInHref } from '../../../lib/auth-return';
 import { useMode } from '../../../lib/mode';
 import { useDialog } from '../../../lib/dialog';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
@@ -104,10 +105,17 @@ export default function Inquire() {
   // — which is exactly what a shared design link or a notification does. The
   // hub layout and the root route already got this right; this screen did not.
   if (loading) return <Screen><ScreenHeader title={t('discover.inquireTitle')} /></Screen>;
-  if (!session) return <Redirect href="/sign-in" />;
+  if (!session) {
+    // Come back to THIS enquiry, with the same tailor and design, once signed in.
+    // Every param is a plain string, so the whole thing round-trips through the URL.
+    const back = new URLSearchParams(
+      Object.entries(params).filter(([, v]) => typeof v === 'string' && v) as [string, string][],
+    ).toString();
+    return <Redirect href={signInHref(`/discover/inquire?${back}`) as never} />;
+  }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('discover.inquireTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: spacing.xl }}>
         <View style={[styles.intro, { backgroundColor: colors.card, borderRadius: radii.lg }]}>

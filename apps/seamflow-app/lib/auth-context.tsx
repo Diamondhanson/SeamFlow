@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { isWeb } from './platform-capabilities';
@@ -61,11 +62,16 @@ export class AppleCancelledError extends Error {
  *   2. Supabase — the Apple provider enabled with those client IDs + secret.
  *   3. A native rebuild that includes `ios.usesAppleSignIn` (the entitlement).
  *
- * While `false`, the sign-in screen shows a "coming soon" dialog and never
- * invokes signInWithApple(), so the button is safe to ship on the current
- * dev client without a rebuild.
+ * All three are now done: the App ID carries the capability (and the build's
+ * entitlements grant it), and Supabase trusts `com.seamflowtech.app`. Because
+ * the app uses Apple's NATIVE sheet and hands Supabase the identity token
+ * directly, no Services ID or .p8 secret is involved — those belong to the web
+ * flow, which also means there is no six-month secret to rotate.
+ *
+ * Set this back to `false` only to hide the button; while `false` the sign-in
+ * screen shows a "coming soon" dialog and never invokes signInWithApple().
  */
-export const APPLE_SIGN_IN_ENABLED = false;
+export const APPLE_SIGN_IN_ENABLED = true;
 
 interface AuthState {
   session: Session | null;
@@ -241,9 +247,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // account sheet: it returns an ID token we exchange with Supabase the same
     // way as Apple — no browser, no redirect. Until that's configured, this is
     // skipped and the browser OAuth flow below runs exactly as before.
-    if (!isWeb && config.googleWebClientId) {
+    // iOS additionally needs its OWN client ID: the native module rejects
+    // inside configure() without it, and because signIn() awaits that rejection
+    // the button simply errors instead of falling through. So require it on iOS
+    // and otherwise drop to the browser flow, which works unaided.
+    const nativeGoogleReady =
+      !!config.googleWebClientId &&
+      (Platform.OS !== 'ios' || !!config.googleIosClientId);
+    if (!isWeb && nativeGoogleReady) {
       try {
-        const idToken = await nativeGoogleIdToken(config.googleWebClientId);
+        const idToken = await nativeGoogleIdToken(
+          config.googleWebClientId,
+          config.googleIosClientId || undefined,
+        );
         const { error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: idToken,

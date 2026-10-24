@@ -18,7 +18,8 @@
 // ============================================================================
 
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import type { SubscriptionPaymentMethod, SubscriptionPlan } from '@seamflow/schemas';
@@ -176,7 +177,7 @@ export default function Upgrade() {
 
   if (!sub) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={screenTitle} />
         <SkeletonForm fields={3} />
       </Screen>
@@ -200,7 +201,7 @@ export default function Upgrade() {
           : t('billing.freeTitle');
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={screenTitle} subtitle={statusLine} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
         <Text variant="bodySm" tone="textMuted">

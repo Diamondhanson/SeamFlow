@@ -17,6 +17,7 @@ import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { SkeletonLine } from './Skeleton';
 import { useGuides } from '../lib/guides';
 import { useMe, useClients, useOrders, useTemplates } from '../lib/queries';
+import { missingShopVitals } from '../lib/shop-setup';
 import { radii, spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
@@ -40,6 +41,9 @@ export function GettingStarted() {
   const { data: ordersData } = useOrders({});
   const { data: templatesData } = useTemplates();
 
+  // Specialties has its own step, so this one is only the rest of the vitals.
+  const profileGaps = missingShopVitals(me?.tailor).filter((v) => v !== 'specialties');
+
   const steps = [
     {
       // First on purpose. It is the cheapest step, it is the one that makes a
@@ -51,10 +55,13 @@ export function GettingStarted() {
       go: () => router.push('/(app)/specialties'),
     },
     {
+      // Done when the shop could be recognised: a city and a photo (specialties
+      // is the step above). "A shop row exists" is true after one tap and said
+      // nothing about whether anyone could tell who this is. lib/shop-setup.
       key: 'profile',
       label: t('guides.checklistProfile'),
-      done: !!me?.tailor,
-      go: () => router.push('/(app)/me'),
+      done: !!me?.tailor && profileGaps.length === 0,
+      go: () => router.push((profileGaps[0] === 'photo' ? '/(app)/me' : '/(app)/feed/storefront') as never),
     },
     {
       key: 'client',

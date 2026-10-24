@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Screen } from '../../../components/Screen';
 import { SkeletonForm } from '../../../components/Skeleton';
@@ -39,7 +40,7 @@ export default function FabricDetail() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={fabric?.name ?? t('fabrics.detailTitle')} />
       {isLoading && !fabric ? (
         <SkeletonForm fields={6} />

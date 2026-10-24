@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { activeFontFamilies,
@@ -147,7 +142,7 @@ export default function Home() {
   const calm = !coldLoading && overdue.length === 0 && dueSoon.length === 0;
 
   return (
-    <Screen padded={false} width="wide">
+    <Screen bleed padded={false} width="wide">
       <ScrollView
         {...scroll}
         contentContainerStyle={styles.body}

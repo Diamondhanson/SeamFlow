@@ -120,7 +120,7 @@ export default function EditMeasurements() {
   };
 
   return (
-    <Screen scroll={false} padded={false}>
+    <Screen bleed scroll={false} padded={false}>
       <View style={styles.padded}>
         <ScreenHeader title={existing ? t('cmeasurements.editTitle') : t('cmeasurements.newTitle')} />
       </View>

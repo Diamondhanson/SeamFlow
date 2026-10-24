@@ -8,7 +8,8 @@
 // ============================================================================
 
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { GarmentCategory, WorkAudience, WorkImage, WorkOccasion } from '@seamflow/schemas';
 import {
@@ -251,7 +252,7 @@ export default function EditWork() {
 
   if (workQ.isLoading && !work) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('feed.editDesign')} />
         <SkeletonForm fields={5} />
       </Screen>
@@ -259,7 +260,7 @@ export default function EditWork() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('feed.editDesign')} />
       <FormScroll contentContainerStyle={{ paddingBottom: spacing.xl }}>
         <WorkPhotoStrip

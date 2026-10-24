@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Pressable, View } from 'react-native';
+import { StyleSheet, Pressable, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -29,7 +30,7 @@ export default function AppearanceScreen() {
   const scroll = useFloatingScroll();
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('settings.appearance')} subtitle={t('settings.appearanceSubtitle')} />
       <ScrollView
         {...scroll}

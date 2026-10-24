@@ -11,7 +11,8 @@
 // ============================================================================
 
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../components/EdgeScroll';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Conversation } from '@seamflow/schemas';
@@ -63,7 +64,7 @@ export default function Messages() {
   );
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       <View style={styles.padded}>
         <ScreenHeader title={t('chat.listTitle')} />
         <Text variant="bodySm" tone="textMuted">

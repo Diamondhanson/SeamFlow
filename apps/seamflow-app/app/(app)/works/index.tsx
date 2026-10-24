@@ -11,14 +11,8 @@
 // ============================================================================
 
 import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Work, WorkAudience, WorkOccasion } from '@seamflow/schemas';
@@ -287,7 +281,7 @@ export default function MyDesigns() {
   };
 
   return (
-    <Screen padded={false} width="wide">
+    <Screen bleed padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader
           title={t('feed.worksTitle')}

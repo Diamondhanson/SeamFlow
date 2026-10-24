@@ -4,14 +4,8 @@ import type {
   MeasurementValues,
 } from '@seamflow/schemas';
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -215,7 +209,7 @@ export default function GroupDetail() {
 
   if (groupQ.isLoading || !group) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('groups.groupFallbackTitle')} />
         <SkeletonDetail />
       </Screen>
@@ -246,7 +240,7 @@ export default function GroupDetail() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={group.name} />
       <FormScroll
         showsVerticalScrollIndicator={false}

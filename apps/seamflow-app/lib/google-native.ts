@@ -23,7 +23,11 @@ export class GoogleCancelled extends Error {
 // Loose types on purpose — the real ones arrive with the installed package, and
 // this wrapper only touches these three methods.
 interface GoogleSigninModule {
-  configure(opts: { webClientId: string; offlineAccess?: boolean }): void;
+  configure(opts: {
+    webClientId: string;
+    iosClientId?: string;
+    offlineAccess?: boolean;
+  }): void;
   hasPlayServices(opts?: { showPlayServicesUpdateDialog?: boolean }): Promise<boolean>;
   signIn(): Promise<unknown>;
 }
@@ -47,10 +51,16 @@ let configured = false;
  * Open the native Google account picker and return a Google ID token.
  * Throws GoogleCancelled if the user dismisses it.
  */
-export async function nativeGoogleIdToken(webClientId: string): Promise<string> {
+export async function nativeGoogleIdToken(
+  webClientId: string,
+  iosClientId?: string,
+): Promise<string> {
   const { GoogleSignin, statusCodes } = load();
   if (!configured) {
-    GoogleSignin.configure({ webClientId });
+    // iOS refuses to configure without its own client ID — the native module
+    // rejects with "failed to determine clientID" and signIn() surfaces it,
+    // so the sheet never opens. Android ignores the extra key.
+    GoogleSignin.configure({ webClientId, ...(iosClientId ? { iosClientId } : {}) });
     configured = true;
   }
   await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });

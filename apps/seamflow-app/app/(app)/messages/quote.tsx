@@ -90,7 +90,7 @@ export default function CreateQuote() {
 
   if (convoQ.isLoading && !conversation) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('chat.createQuoteTitle')} />
         <SkeletonForm fields={5} />
       </Screen>
@@ -98,7 +98,7 @@ export default function CreateQuote() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('chat.createQuoteTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: spacing.xl }}>
         <View style={[styles.intro, { backgroundColor: colors.card, borderRadius: radii.lg }]}>

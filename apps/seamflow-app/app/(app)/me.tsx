@@ -1,13 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { TEXT_END } from '../../lib/rtl';
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Avatar, IconButton } from '@seamflow/ui';
@@ -222,7 +216,7 @@ export default function Me() {
 
   if (isLoading) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('settings.title')} />
         <SkeletonForm fields={5} />
       </Screen>
@@ -230,7 +224,7 @@ export default function Me() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('settings.title')} />
       <ScrollView
         {...scroll}

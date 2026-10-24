@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ARROW_BACK } from '../lib/rtl';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { activeFontFamilies, Text } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useAuth } from '../lib/auth-context';
+import { safeNext } from '../lib/auth-return';
 import { spacing } from '../lib/theme';
 import { useDialog } from '../lib/dialog';
 import { useTranslation } from '../lib/i18n';
@@ -15,7 +16,8 @@ const OTP_LEN = 6;
 const RESEND_COOLDOWN_MS = 30 * 1000;
 
 export default function VerifyOtp() {
-  const { email: emailParam } = useLocalSearchParams<{ email?: string }>();
+  const { email: emailParam, next: nextParam } = useLocalSearchParams<{ email?: string; next?: string }>();
+  const next = safeNext(nextParam);
   const email = (emailParam ?? '').trim();
 
   const { verifyOtpSignup, resendSignupOtp } = useAuth();
@@ -57,10 +59,12 @@ export default function VerifyOtp() {
     try {
       await verifyOtpSignup(email, code);
       // verifyOtp creates the session. The auth-context listener picks up the
-      // SIGNED_IN event. Ask the brand-new user which experience they want —
-      // that seeds their mode and routes them (tailor → shop setup, client →
-      // discovery). See app/choose-role.tsx.
-      router.replace('/choose-role');
+      // SIGNED_IN event.
+      //
+      // Signed up in order to DO something (send an enquiry, save a measurement):
+      // take them back to it, as a customer. Only a cold sign-up — nothing sent
+      // them here — is asked what brings them (app/choose-role.tsx).
+      router.replace((next ?? '/choose-role') as Href);
     } catch (err) {
       await dialog.error(err, { title: t('auth.verificationFailed') });
     } finally {

@@ -9,6 +9,7 @@
 // ============================================================================
 
 import { router, useLocalSearchParams } from 'expo-router';
+import { signInHref } from '../../../../lib/auth-return';
 import { StorefrontView } from '../../../../components/client/StorefrontView';
 import { useStorefront } from '../../../../lib/consumer-queries';
 import { useAuth } from '../../../../lib/auth-context';
@@ -32,7 +33,7 @@ export default function Storefront() {
         message: t('discover.inquireSignInBody'),
         confirmLabel: t('discover.inquireSignIn'),
       });
-      if (ok) router.push('/sign-in');
+      if (ok) router.push(signInHref(`/discover/tailor/${tailorId}`) as never);
       return;
     }
     router.push({

@@ -11,6 +11,9 @@ export class GoogleCancelled extends Error {
   }
 }
 
-export async function nativeGoogleIdToken(_webClientId: string): Promise<string> {
+export async function nativeGoogleIdToken(
+  _webClientId: string,
+  _iosClientId?: string,
+): Promise<string> {
   throw new Error('Native Google Sign-In is not available on web');
 }

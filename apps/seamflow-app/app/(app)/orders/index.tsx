@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../components/EdgeScroll';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { OrderStatus } from '@seamflow/schemas';
@@ -104,7 +105,7 @@ export default function OrdersList() {
       : undefined;
 
   return (
-    <Screen padded={false} width="wide">
+    <Screen bleed padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader
           title={t('orders.listTitle')}

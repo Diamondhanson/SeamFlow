@@ -12,7 +12,8 @@
 // ============================================================================
 
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { FlatList } from '../../components/EdgeScroll';
 import { Ionicons } from '@expo/vector-icons';
 import type { BlockedUser } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -74,7 +75,7 @@ export default function BlockedAccounts() {
 
   if (rows === null) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('report.blockedTitle')} />
         <SkeletonList leading="circle" />
       </Screen>
@@ -82,7 +83,7 @@ export default function BlockedAccounts() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('report.blockedTitle')} />
       {rows.length === 0 ? (
         <View style={styles.empty}>

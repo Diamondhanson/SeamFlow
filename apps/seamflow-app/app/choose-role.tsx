@@ -24,10 +24,13 @@ export default function ChooseRole() {
   const { colors } = useAtelierTheme();
 
   const choose = (mode: 'tailor' | 'client') => {
-    setMode(mode);
     if (mode === 'tailor') {
+      // Not setMode('tailor') yet: there is no shop to run until the profile is
+      // saved, and the editor flips the mode at that point (or on Skip). Flipping
+      // here left anyone who abandoned setup in a designer mode with nothing in it.
       router.replace('/(app)/profile-edit?onboarding=1' as Href);
     } else {
+      setMode('client');
       router.replace('/(client)/discover' as Href);
     }
   };

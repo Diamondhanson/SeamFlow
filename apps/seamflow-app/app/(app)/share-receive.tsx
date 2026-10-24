@@ -16,7 +16,8 @@
 // ============================================================================
 
 import { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -129,7 +130,7 @@ export default function ShareReceive() {
   const empty = images !== null && images.length === 0;
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('share.title')} />
       <ScrollView contentContainerStyle={styles.body}>
         {empty ? (

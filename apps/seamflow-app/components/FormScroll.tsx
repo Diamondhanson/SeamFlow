@@ -14,16 +14,23 @@
 import { type ComponentProps } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { spacing } from '../lib/theme';
+import { useScreenBleed } from '../lib/screen-bleed';
+import { withBottomBleed } from './EdgeScroll';
 
 type Props = ComponentProps<typeof KeyboardAwareScrollView>;
 
-export function FormScroll({ children, ...props }: Props) {
+export function FormScroll({ children, contentContainerStyle, ...props }: Props) {
+  // Inside a <Screen bleed> the scroll area runs to the physical bottom edge,
+  // so the safe-area inset it no longer gets from the screen is added back as
+  // trailing padding (lib/screen-bleed.ts). 0 everywhere else.
+  const bleed = useScreenBleed();
   return (
     <KeyboardAwareScrollView
       // Gap kept between the focused field and the keyboard's top edge.
       bottomOffset={spacing.xl}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={withBottomBleed(contentContainerStyle, bleed)}
       {...props}
     >
       {children}

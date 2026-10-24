@@ -157,7 +157,7 @@ export default function DescribeWork() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader
         title={t('feed.describeTitle')}
         onBack={() => {

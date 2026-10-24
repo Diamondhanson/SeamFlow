@@ -185,7 +185,7 @@ export default function TemplateDetail() {
 
   if (isLoading && !template) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('templates.detailTitle')} />
         <SkeletonForm fields={5} />
       </Screen>
@@ -204,7 +204,7 @@ export default function TemplateDetail() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={template.name} />
       <FormScroll
         keyboardShouldPersistTaps="handled"

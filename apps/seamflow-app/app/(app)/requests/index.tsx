@@ -48,7 +48,7 @@ export default function RequestsBoard() {
     : GARMENT_TYPES.slice(0, 6).map((g) => g.key);
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('requests.boardTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: 96 }}>
         <HelpCard

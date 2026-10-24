@@ -15,7 +15,8 @@
 // ============================================================================
 
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { SavedDesign } from '@seamflow/schemas';
@@ -76,7 +77,7 @@ export default function SavedDesigns() {
 
   if (rows === null) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('saved.title')} />
         <SkeletonGrid columns={columns} />
       </Screen>
@@ -102,7 +103,7 @@ export default function SavedDesigns() {
   }
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       <View style={styles.padded}>
         <ScreenHeader title={t('saved.title')} />
       </View>

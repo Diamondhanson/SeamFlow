@@ -23,7 +23,7 @@ export default function MyRequests() {
   const items = q.data?.items ?? [];
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('crequests.mineTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: BOTTOM_CHROME_SPACE }}>
         <Button

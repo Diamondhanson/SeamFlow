@@ -17,7 +17,8 @@
 // ============================================================================
 
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { File, Paths } from 'expo-file-system';
@@ -125,7 +126,7 @@ export default function DeleteAccount() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('caccount.deleteTitle')} />
       <ScrollView
         showsVerticalScrollIndicator={false}

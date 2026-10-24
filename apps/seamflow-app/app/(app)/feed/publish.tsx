@@ -328,7 +328,7 @@ export default function PublishToFeed() {
     .find((g) => g.key === garmentKey);
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('feed.publishTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: spacing.xl * 2 }}>
         {params.previewUrl || work?.signedUrl ? (

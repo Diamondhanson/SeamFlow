@@ -1,4 +1,6 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
+import { Skeleton } from '../../../components/Skeleton';
 import { router } from 'expo-router';
 import { PendingDeletionBanner } from '../../../components/PendingDeletionBanner';
 import { SuspensionBanner } from '../../../components/SuspensionBanner';
@@ -13,6 +15,7 @@ import { useMe, useUnreadNotificationCount } from '../../../lib/queries';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation, LANGUAGES, type LanguageCode } from '../../../lib/i18n';
 import { goToDesignerSide } from '../../../lib/switch-side';
+import { nextShopStepHref, shopSetup } from '../../../lib/shop-setup';
 
 function greetingKey(hour: number): 'goodMorning' | 'goodAfternoon' | 'goodEvening' {
   if (hour < 12) return 'goodMorning';
@@ -38,11 +41,34 @@ export default function ClientHome() {
   const { setMode } = useMode();
   const { data: me } = useMe();
 
-  // Switch to the tailor experience. If they don't have a shop yet, drop them
-  // into the (skippable) shop-setup flow; otherwise straight to the CRM.
-  const goTailor = () => {
+  // Where this person's shop stands decides both the button's words and what it
+  // does. See lib/shop-setup for what "complete" means and why it is that little.
+  const setup = shopSetup(me);
+
+  // Cross to the designer side.
+  //
+  //   no shop      → say so first. This is a different app: other colours, other
+  //                  tabs, a business instead of a feed. Nobody should arrive
+  //                  there by accident. Nothing flips until the shop is SAVED, so
+  //                  backing out of setup leaves them exactly where they were.
+  //   incomplete   → they have been here before and know what this is. Land on the
+  //                  next unfinished step, not on a dashboard they have to read.
+  //   complete     → straight to the shop.
+  const goTailor = async () => {
+    if (setup === 'unknown') return;
+    if (setup === 'none') {
+      const ok = await dialog.confirm({
+        title: t('role.switchDialogTitle'),
+        message: t('role.switchDialogBody'),
+        confirmLabel: t('role.switchDialogConfirm'),
+        cancelLabel: t('common.cancel'),
+      });
+      if (!ok) return;
+      goToDesignerSide(false);
+      return;
+    }
     setMode('tailor');
-    goToDesignerSide(Boolean(me?.tailor));
+    goToDesignerSide(true, setup === 'incomplete' ? { then: nextShopStepHref(me?.tailor) } : {});
   };
 
   const greeting = t(`chome.${greetingKey(new Date().getHours())}`);
@@ -93,7 +119,7 @@ export default function ClientHome() {
   ];
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       <ScrollView
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
@@ -139,7 +165,8 @@ export default function ClientHome() {
 
         {/* Soft switch to the tailor side — a client can open a shop anytime. */}
         <Pressable
-          onPress={goTailor}
+          onPress={() => void goTailor()}
+          disabled={setup === 'unknown'}
           style={({ pressed }) => [
             styles.switchRow,
             { backgroundColor: colors.surface, borderColor: colors.hairline },
@@ -149,9 +176,23 @@ export default function ClientHome() {
           <View style={[styles.switchIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
             <Ionicons name="cut-outline" size={18} color={colors.primary} />
           </View>
-          <Text variant="bodySm" style={{ flex: 1, fontFamily: activeFontFamilies.bodySemibold }}>
-            {t('role.switchToTailor')}
-          </Text>
+          {setup === 'unknown' ? (
+            // Profile still loading: hold the row's spot rather than flash a label
+            // ("Set up your shop") that is wrong for someone who already has one.
+            <View style={{ flex: 1 }}>
+              <Skeleton width={150} height={14} />
+            </View>
+          ) : (
+            <Text variant="bodySm" style={{ flex: 1, fontFamily: activeFontFamilies.bodySemibold }}>
+              {t(
+                setup === 'complete'
+                  ? 'role.checkShop'
+                  : setup === 'incomplete'
+                    ? 'role.continueSetup'
+                    : 'role.switchToTailor',
+              )}
+            </Text>
+          )}
           <Ionicons name="chevron-forward" size={18} color={themeColors.textMuted} />
         </Pressable>
 

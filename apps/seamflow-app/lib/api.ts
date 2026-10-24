@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { createApiClient } from '@seamflow/api-client';
+import { createFailoverFetch } from './api-failover';
 import { config } from './config';
 import { supabase } from './supabase';
 
@@ -10,6 +11,9 @@ import { supabase } from './supabase';
  */
 export const api = createApiClient({
   baseUrl: config.apiUrl,
+  // Falls back to config.apiBackupUrl when the primary host can't be reached at
+  // all (a router refusing the name). A no-op when no backup is configured.
+  fetch: createFailoverFetch({ primary: config.apiUrl, backup: config.apiBackupUrl }),
   // Lets the server refuse a subscription checkout from a store build, where
   // Apple and Google forbid selling. See lib/platform-capabilities.
   platform: Platform.OS,

@@ -1,12 +1,6 @@
 import { useEffect, useState } from 'react';
-import {
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../components/EdgeScroll';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -120,7 +114,7 @@ export default function DesignDetail() {
 
   if (!design) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('designs.designTitle')} />
         <SkeletonDetail />
       </Screen>
@@ -130,7 +124,7 @@ export default function DesignDetail() {
   const url = design.signedUrl ?? design.thumbnailUrl;
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('designs.inspirationTitle')} />
       <FormScroll showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
         {url ? (

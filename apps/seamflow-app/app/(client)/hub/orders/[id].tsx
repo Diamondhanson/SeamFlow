@@ -1,4 +1,5 @@
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../../components/EdgeScroll';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, withAlpha, type SemanticColors } from '@seamflow/ui';
@@ -40,7 +41,7 @@ export default function ConsumerOrderDetail() {
 
   if (isLoading || !data) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('corders.detailTitle')} />
         <SkeletonDetail />
       </Screen>
@@ -53,7 +54,7 @@ export default function ConsumerOrderDetail() {
   const statusChanges = events.filter((e) => !!e.toStatus);
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={order.orderName} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
         {/* Summary */}

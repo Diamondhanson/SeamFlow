@@ -1,4 +1,5 @@
-import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, useAtelierTheme, withAlpha, type SemanticColors } from '@seamflow/ui';
@@ -29,7 +30,7 @@ export default function OrdersInbox() {
   const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : null);
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       <View style={styles.padded}>
         <ScreenHeader
           title={t('corders.inboxTitle')}

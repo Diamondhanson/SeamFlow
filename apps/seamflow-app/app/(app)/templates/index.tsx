@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Image, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../components/EdgeScroll';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { MeasurementTemplate } from '@seamflow/schemas';
@@ -102,7 +103,7 @@ export default function TemplatesList() {
       : undefined;
 
   return (
-    <Screen padded={false} width="wide">
+    <Screen bleed padded={false} width="wide">
       <View style={styles.padded}>
         <ScreenHeader
           title={t('templates.listTitle')}

@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import type { CountryCode } from 'libphonenumber-js';
 import type { GroupOrderWithMembersCreateInput } from '@seamflow/schemas';
@@ -153,7 +149,7 @@ export default function NewGroup() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('groups.newGroupOrder')} />
       <FormScroll
         showsVerticalScrollIndicator={false}

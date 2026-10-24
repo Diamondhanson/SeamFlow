@@ -229,6 +229,8 @@ function ThemedRoot() {
                 {/* Browser OAuth return leg — see app/auth/callback.tsx. */}
                 <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
                 <Stack.Screen name="verify-otp" options={{ headerShown: false }} />
+                {/* Router, not a screen: decides where a fresh sign-in goes. */}
+                <Stack.Screen name="post-auth" options={{ headerShown: false, gestureEnabled: false }} />
                 <Stack.Screen name="reset-password" options={{ headerShown: false }} />
                 <Stack.Screen name="(app)" options={{ headerShown: false }} />
                 <Stack.Screen name="(client)" options={{ headerShown: false }} />

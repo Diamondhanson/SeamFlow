@@ -1,4 +1,4 @@
-import { ScrollView } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Screen } from '../../../components/Screen';
 import { ScreenHeader } from '../../../components/ScreenHeader';
@@ -16,7 +16,7 @@ export default function NewFabric() {
   const dialog = useDialog();
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('fabrics.newTitle')} />
       <ScrollView
         showsVerticalScrollIndicator={false}

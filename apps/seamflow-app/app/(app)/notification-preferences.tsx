@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, Toggle, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -95,7 +96,7 @@ export default function NotificationPreferences() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('settings.notifications')} />
       <ScrollView
         {...scroll}

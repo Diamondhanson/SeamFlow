@@ -16,6 +16,8 @@ import { spacing } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 import { useDialog } from '../../lib/dialog';
 import { useProfileGateControls } from '../../lib/profile-gate';
+import { useMode } from '../../lib/mode';
+import { goToClientSide } from '../../lib/switch-side';
 
 export default function ProfileEdit() {
   const { data: me } = useMe();
@@ -28,7 +30,8 @@ export default function ProfileEdit() {
   // now" escape and return them to the dashboard on save.
   // `?returnTo=1` — sent here by a gated action (share/publish): on save, return
   // and resume what they were doing (lib/profile-gate).
-  const params = useLocalSearchParams<{ onboarding?: string; returnTo?: string }>();
+  const params = useLocalSearchParams<{ onboarding?: string; returnTo?: string; from?: string }>();
+  const { setMode } = useMode();
   const isOnboarding = params.onboarding === '1';
   const isReturnTo = params.returnTo === '1';
 
@@ -82,7 +85,12 @@ export default function ProfileEdit() {
             return;
           }
           // First-run setup: straight to the dashboard.
+          //
+          // THIS is the moment they become a designer, not the moment they tapped
+          // "Set up your shop". Switching earlier meant someone who backed out was
+          // left in designer mode with no shop to run.
           if (isOnboarding) {
+            setMode('tailor');
             router.replace('/(app)');
             return;
           }
@@ -99,7 +107,7 @@ export default function ProfileEdit() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('settings.editProfile')} />
       <FormScroll
         contentContainerStyle={{ paddingBottom: 96 }}
@@ -147,7 +155,17 @@ export default function ProfileEdit() {
             <Button
               label={t('settings.skipForNow')}
               variant="ghost"
-              onPress={() => router.replace('/(app)')}
+              onPress={() => {
+                // Crossed over from the customer side and changed their mind: put
+                // them back. From the "I'm a tailor" chooser they meant to be
+                // here, so they get the (empty) designer home and its checklist.
+                if (params.from === 'client') {
+                  goToClientSide();
+                } else {
+                  setMode('tailor');
+                  router.replace('/(app)');
+                }
+              }}
             />
           </>
         ) : null}

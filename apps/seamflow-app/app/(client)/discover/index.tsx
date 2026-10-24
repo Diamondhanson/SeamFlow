@@ -15,19 +15,19 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { FeedPostPublic, WorkAudience, WorkOccasion } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../../components/Screen';
-import { SkeletonGrid } from '../../../components/Skeleton';
+import { SkeletonMasonry } from '../../../components/Skeleton';
 import { LoadFailed } from '../../../components/LoadFailed';
 import { SearchField } from '../../../components/SearchField';
 import { ShopResults } from '../../../components/ShopResults';
@@ -164,7 +164,7 @@ export default function Discover() {
   }
 
   return (
-    <Screen padded={false} width="wide">
+    <Screen bleed padded={false} width="wide">
       <Animated.View style={[styles.collapse, collapseStyle]}>
         <Animated.View
           style={[styles.padded, slideStyle]}
@@ -268,8 +268,8 @@ export default function Discover() {
       <ShopResults shops={shops} hrefFor={(id) => `/discover/tailor/${id}`} />
 
       {feedQ.isLoading && items.length === 0 ? (
-        <View style={styles.padded}>
-          <SkeletonGrid columns={columns} />
+        <View style={styles.skeleton}>
+          <SkeletonMasonry columns={columns} />
         </View>
       ) : feedQ.isError && items.length === 0 ? (
         <LoadFailed onRetry={() => void feedQ.refetch()} />
@@ -431,6 +431,9 @@ const styles = StyleSheet.create({
   },
   chip: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   grid: { paddingHorizontal: spacing.lg, paddingBottom: BOTTOM_CHROME_SPACE },
+  // The loading frame for `grid`: same side padding and no top gap, so the first
+  // skeleton card sits exactly where the first real card will.
+  skeleton: { paddingHorizontal: spacing.lg },
   masonry: { flexDirection: 'row', gap: spacing.md / 2 },
   empty: { alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.xl * 2 },
   emptyTitle: { marginTop: spacing.md, textAlign: 'center' },

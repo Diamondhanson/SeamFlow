@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ARROW_FORWARD } from '../../../lib/rtl';
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { OrderStatus } from '@seamflow/schemas';
@@ -348,7 +342,7 @@ export default function OrderDetailScreen() {
 
   if (loading || !order) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('orders.detailTitle')} />
         <SkeletonDetail />
       </Screen>
@@ -359,7 +353,7 @@ export default function OrderDetailScreen() {
   const s = theme.colors;
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={order.orderName} />
       <FormScroll
         contentContainerStyle={{ paddingBottom: 96 }}

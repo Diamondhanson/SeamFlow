@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Screen } from '../../../components/Screen';
 import { FormScroll } from '../../../components/FormScroll';
@@ -55,7 +55,7 @@ export default function NewClient() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('clients.newClientTitle')} />
       <FormScroll
         showsVerticalScrollIndicator={false}

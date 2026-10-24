@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import NetInfo from '@react-native-community/netinfo';
 import { isWeb } from './platform-capabilities';
+import { subscribeOnline } from './connectivity';
 
 /**
  * React hook returning the current online state. Defaults to `true` until
@@ -27,14 +27,9 @@ export function useOnline(): boolean {
       };
     }
 
-    const sub = NetInfo.addEventListener((state) => {
-      const isOnline =
-        state.isInternetReachable === null
-          ? !!state.isConnected
-          : !!state.isInternetReachable;
-      setOnline(isOnline);
-    });
-    return () => sub();
+    // Phones: a failed probe to Google is not believed on its own — our own API
+    // gets a say before the banner appears. See lib/online-monitor.
+    return subscribeOnline(setOnline);
   }, []);
 
   return online;

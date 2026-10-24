@@ -203,7 +203,7 @@ export default function NewTemplate() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('templates.newTitle')} />
       <FormScroll keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}

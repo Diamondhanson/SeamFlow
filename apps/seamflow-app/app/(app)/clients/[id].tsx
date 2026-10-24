@@ -136,7 +136,7 @@ export default function ClientDetail() {
 
   if (loading || !client) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('clients.clientTitle')} />
         <SkeletonDetail />
       </Screen>
@@ -144,7 +144,7 @@ export default function ClientDetail() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={client.fullName} />
       <FormScroll
         showsVerticalScrollIndicator={false}

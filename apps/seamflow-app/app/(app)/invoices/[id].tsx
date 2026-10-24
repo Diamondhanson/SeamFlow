@@ -286,7 +286,7 @@ export default function InvoiceEditor() {
 
   if (isLoading || !invoice) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('invoices.detailTitle')} />
         <SkeletonForm fields={4} />
       </Screen>
@@ -294,7 +294,7 @@ export default function InvoiceEditor() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader
         title={invoice.number}
         subtitle={`${t(`invoices.status_${invoice.status}`)} · ${invoice.clientName ?? ''}`}

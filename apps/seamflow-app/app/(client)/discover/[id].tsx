@@ -21,8 +21,10 @@
 // ============================================================================
 
 import { useEffect, useRef, useState } from 'react';
-import { Dimensions, Image, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { Dimensions, Image, Pressable, Share, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router, useLocalSearchParams } from 'expo-router';
+import { signInHref } from '../../../lib/auth-return';
 import { Ionicons } from '@expo/vector-icons';
 import { VerifiedBadge } from '../../../components/VerifiedBadge';
 import type { FeedImage, FeedPostPublic } from '@seamflow/schemas';
@@ -111,7 +113,8 @@ export default function DesignDetail() {
         message: t('discover.inquireSignInBody'),
         confirmLabel: t('discover.inquireSignIn'),
       });
-      if (ok) router.push('/sign-in');
+      // Back to this design afterwards, as a customer — not the designer home.
+      if (ok) router.push(signInHref(`/discover/${id}`) as never);
       return;
     }
     router.push({
@@ -144,7 +147,7 @@ export default function DesignDetail() {
 
   if (postQ.isLoading && !post) {
     return (
-      <Screen>
+      <Screen bleed>
         <SkeletonDetail />
       </Screen>
     );
@@ -165,7 +168,7 @@ export default function DesignDetail() {
   const tailor = post.tailor;
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View>
           <HeroCarousel

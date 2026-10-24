@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ARROW_BACK } from '../lib/rtl';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { activeFontFamilies, Text } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
@@ -85,8 +85,9 @@ export default function ResetPassword() {
         message: t('auth.passwordResetDoneMessage'),
         tone: 'success',
       });
-      // confirmPasswordReset left us with a session; land inside the app.
-      router.replace('/(app)');
+      // confirmPasswordReset left us with a session; post-auth picks the side
+      // (a shop owner to their shop, a customer to the customer feed).
+      router.replace('/post-auth' as Href);
     } catch (err) {
       await dialog.error(err, { title: t('auth.resetPasswordFailed') });
     } finally {

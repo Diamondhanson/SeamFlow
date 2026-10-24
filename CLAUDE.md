@@ -66,6 +66,28 @@ When you add or change UI:
 
 Full guide + component reference: `docs/skeletons.md`.
 
+## Scrolling screens run to the bottom edge
+
+**A screen that scrolls must not stop at the safe-area line.** `<Screen>` pads its
+whole body by the bottom inset (the home-indicator strip) by default, so a list or
+grid inside it is chopped off mid-screen with a blank strip underneath. Native apps
+let the content scroll under the indicator and come to rest clear of it.
+
+When you add or change a screen:
+
+1. If its body is (or ends in) a `FlatList` / `ScrollView` / `FormScroll`, pass
+   **`bleed`**: `<Screen bleed padded={false}>`. (`<Screen scroll>` already implies it.)
+2. Import `ScrollView` / `FlatList` from `components/EdgeScroll`, not `react-native`
+   (`FormScroll` already does the right thing). They add the inset as trailing
+   padding of their own content, and are inert outside a bleed screen and for
+   horizontal lists, so using them is always safe.
+3. **Do not** set `bleed` when something is pinned under the scroller (a Save bar,
+   a chat composer): that has to stay above the indicator, which is what the default
+   does. `assistant.tsx` and `specialties.tsx` are the examples.
+4. Give the skeleton branch the same `<Screen>` props as the loaded one.
+
+How it works: `lib/screen-bleed.ts`.
+
 ## Other notes
 
 - Shared types live in `packages/schemas`; the typed API client in

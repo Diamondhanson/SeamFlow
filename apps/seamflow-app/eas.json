@@ -14,21 +14,25 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://seamflow-api.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://api.seamflowtech.com",
+        "EXPO_PUBLIC_API_BACKUP_URL": "https://seamflow-api.onrender.com",
         "EXPO_PUBLIC_SUPABASE_URL": "https://aqsppiyiegzatnjvjgyp.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxc3BwaXlpZWd6YXRuanZqZ3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzA3NTcsImV4cCI6MjA5NDcwNjc1N30.3U6o66H5yxGqTliK0Fu_Sb1ml-d5oV9xIag9j6do78w",
         "EXPO_PUBLIC_WEB_URL": "https://www.seamflowtech.com",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "879451838140-eistmr1hlcsbvbd7j4to09tcn1a6dsuq.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "879451838140-eistmr1hlcsbvbd7j4to09tcn1a6dsuq.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "879451838140-29brp2d4t1pdlsnraogd1g17pdn3mdmh.apps.googleusercontent.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://seamflow-api.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://api.seamflowtech.com",
+        "EXPO_PUBLIC_API_BACKUP_URL": "https://seamflow-api.onrender.com",
         "EXPO_PUBLIC_SUPABASE_URL": "https://aqsppiyiegzatnjvjgyp.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxc3BwaXlpZWd6YXRuanZqZ3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzA3NTcsImV4cCI6MjA5NDcwNjc1N30.3U6o66H5yxGqTliK0Fu_Sb1ml-d5oV9xIag9j6do78w",
         "EXPO_PUBLIC_WEB_URL": "https://www.seamflowtech.com",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "879451838140-eistmr1hlcsbvbd7j4to09tcn1a6dsuq.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "879451838140-eistmr1hlcsbvbd7j4to09tcn1a6dsuq.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "879451838140-29brp2d4t1pdlsnraogd1g17pdn3mdmh.apps.googleusercontent.com"
       },
       "ios": {
         "credentialsSource": "local"

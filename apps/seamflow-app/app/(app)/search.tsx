@@ -7,7 +7,8 @@
 // ============================================================================
 
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { activeFontFamilies, Avatar, Text, useAtelierTheme } from '@seamflow/ui';
 import { Screen } from '../../components/Screen';
@@ -49,7 +50,7 @@ export default function Search() {
   const empty = active && !searching && clients.length === 0 && orders.length === 0;
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       {/* Padded explicitly — see the note in more.tsx. */}
       <View style={styles.padded}>
         <ScreenHeader title={t('home.searchA11y')} />

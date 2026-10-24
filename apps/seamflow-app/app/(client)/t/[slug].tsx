@@ -15,6 +15,7 @@
 // ============================================================================
 
 import { router, useLocalSearchParams } from 'expo-router';
+import { signInHref } from '../../../lib/auth-return';
 import { StorefrontView } from '../../../components/client/StorefrontView';
 import { useCatalogue } from '../../../lib/consumer-queries';
 import { useAuth } from '../../../lib/auth-context';
@@ -38,7 +39,7 @@ export default function Catalogue() {
         message: t('discover.inquireSignInBody'),
         confirmLabel: t('discover.inquireSignIn'),
       });
-      if (ok) router.push('/sign-in');
+      if (ok) router.push(signInHref(`/t/${slug}`) as never);
       return;
     }
     router.push({

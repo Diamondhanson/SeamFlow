@@ -21,7 +21,8 @@
 // ============================================================================
 
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from '../../../components/EdgeScroll';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { Notification } from '@seamflow/schemas';
@@ -119,7 +120,7 @@ export default function Notifications() {
 
   if (q.isLoading) {
     return (
-      <Screen>
+      <Screen bleed>
         {header}
         <SkeletonList leading="circle" />
       </Screen>
@@ -150,7 +151,7 @@ export default function Notifications() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       {header}
 
       {unread > 0 ? (

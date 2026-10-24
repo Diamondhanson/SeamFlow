@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList } from '../../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { activeFontFamilies, Text, useAtelierTheme } from '@seamflow/ui';
@@ -88,7 +89,7 @@ export default function MeasurementsLocker() {
   };
 
   return (
-    <Screen padded={false}>
+    <Screen bleed padded={false}>
       <View style={styles.padded}>
         <ScreenHeader
           title={t('cmeasurements.title')}

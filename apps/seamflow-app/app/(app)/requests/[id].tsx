@@ -82,7 +82,7 @@ export default function RequestDetail() {
 
   if (q.isLoading) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('requests.detailTitle')} />
         <SkeletonDetail />
       </Screen>
@@ -91,7 +91,7 @@ export default function RequestDetail() {
 
   if (!request) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('requests.detailTitle')} />
         <FormScroll>
           <Text variant="bodySm" tone="textMuted">{t('requests.gone')}</Text>
@@ -104,7 +104,7 @@ export default function RequestDetail() {
   const closed = !request.acceptingOffers;
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={request.title || garmentLabel(request.garmentType, language)} />
       <FormScroll contentContainerStyle={{ paddingBottom: 120 }}>
         {photo ? (

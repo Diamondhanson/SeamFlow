@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { Image, Pressable, StyleSheet, View, type TextInput } from 'react-native';
-import { router } from 'expo-router';
+import { Image, Platform, Pressable, StyleSheet, View, type TextInput } from 'react-native';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { Button, Input, Text, useAtelierTheme, useKeyboardAppearance } from '@seamflow/ui';
 import { Screen } from '../components/Screen';
 import { PasswordInput } from '../components/PasswordInput';
@@ -15,6 +15,7 @@ import { spacing } from '../lib/theme';
 import { useDialog } from '../lib/dialog';
 import { useTranslation } from '../lib/i18n';
 import { openLegal } from '../lib/legal-links';
+import { postAuthHref, safeNext } from '../lib/auth-return';
 
 type Mode = 'signIn' | 'signUp';
 
@@ -32,6 +33,14 @@ export default function SignIn() {
     useAuth();
   const theme = useAtelierTheme();
   const { t, language } = useTranslation();
+  // Where the person was headed when something asked them to sign in. Passed on
+  // through verification, and back to once they are in — see lib/auth-return.
+  const params = useLocalSearchParams<{ next?: string }>();
+  const next = safeNext(params.next);
+  const nextQuery = next ? `&next=${encodeURIComponent(next)}` : '';
+  // Never straight to the designer home: post-auth sends a shop owner to their
+  // shop and everyone else back to the customer side.
+  const finish = () => router.replace(postAuthHref(next) as Href);
   const dialog = useDialog();
   const [mode, setMode] = useState<Mode>('signIn');
   const [email, setEmail] = useState('');
@@ -83,7 +92,7 @@ export default function SignIn() {
     setGoogleBusy(true);
     try {
       await signInWithGoogle();
-      router.replace('/(app)');
+      finish();
     } catch (err) {
       if (err instanceof GoogleCancelledError) return;
       await dialog.error(err, { title: t('auth.googleSignInFailed') });
@@ -93,10 +102,9 @@ export default function SignIn() {
   };
 
   const onApple = async () => {
-    // Not wired to a real provider yet — show a "coming soon" dialog instead of
-    // invoking the native flow. Flip APPLE_SIGN_IN_ENABLED (see auth-context /
-    // docs/apple-sign-in.md) once Apple + Supabase are configured and the app is
-    // rebuilt; the branch below then runs the real sign-in.
+    // Kept as a kill switch: flipping APPLE_SIGN_IN_ENABLED off in auth-context
+    // hides the real flow behind a "coming soon" dialog without touching this
+    // screen. Normally false only while Apple or Supabase is mid-configuration.
     if (!APPLE_SIGN_IN_ENABLED) {
       await dialog.alert({
         title: t('auth.appleComingSoonTitle'),
@@ -108,7 +116,7 @@ export default function SignIn() {
     setAppleBusy(true);
     try {
       await signInWithApple();
-      router.replace('/(app)');
+      finish();
     } catch (err) {
       if (err instanceof AppleCancelledError) return;
       await dialog.error(err, { title: t('auth.appleSignInFailed') });
@@ -129,14 +137,14 @@ export default function SignIn() {
     try {
       if (mode === 'signIn') {
         await signInWithPassword(normalisedEmail, password);
-        router.replace('/(app)');
+        finish();
       } else {
         await signUpWithPassword(normalisedEmail, password);
-        router.replace(`/verify-otp?email=${encodeURIComponent(normalisedEmail)}`);
+        router.replace(`/verify-otp?email=${encodeURIComponent(normalisedEmail)}${nextQuery}` as Href);
       }
     } catch (err: unknown) {
       if (err instanceof EmailNotConfirmedError) {
-        router.replace(`/verify-otp?email=${encodeURIComponent(err.email)}`);
+        router.replace(`/verify-otp?email=${encodeURIComponent(err.email)}${nextQuery}` as Href);
         return;
       }
       const title = mode === 'signIn' ? t('auth.signInFailed') : t('auth.signUpFailed');
@@ -226,21 +234,21 @@ export default function SignIn() {
       />
 
       {/*
-        Apple Sign-In. Shown on every platform for now so it's visible while we
-        develop; tapping it shows a "coming soon" dialog (APPLE_SIGN_IN_ENABLED
-        is false). At activation, gate this to iOS only — Apple requires it on
-        iOS (App Store 4.8) but it's uncommon on Android:
-            {Platform.OS === 'ios' && ( <Button … /> )}
+        Apple Sign-In is iOS-only. App Store guideline 4.8 requires it there
+        once you offer another third-party sign-in (we offer Google), but it is
+        uncommon on Android and there is no native sheet for it.
       */}
-      <View style={styles.appleButton}>
-        <Button
-          label={appleBusy ? t('auth.openingApple') : t('auth.continueWithApple')}
-          variant="secondary"
-          onPress={onApple}
-          loading={appleBusy}
-          disabled={googleBusy || appleBusy || submitting}
-        />
-      </View>
+      {Platform.OS === 'ios' && (
+        <View style={styles.appleButton}>
+          <Button
+            label={appleBusy ? t('auth.openingApple') : t('auth.continueWithApple')}
+            variant="secondary"
+            onPress={onApple}
+            loading={appleBusy}
+            disabled={googleBusy || appleBusy || submitting}
+          />
+        </View>
+      )}
 
       <View style={styles.dividerRow}>
         <View style={[styles.dividerLine, { backgroundColor: theme.colors.hairline }]} />

@@ -109,7 +109,7 @@ export default function NewRequest() {
   const ready = photos.length > 0 && description.trim().length >= 10 && !!garmentType;
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('crequests.newTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: 120 }}>
         <Text variant="bodySm" tone="textMuted">{t('crequests.newIntro')}</Text>

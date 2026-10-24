@@ -42,7 +42,7 @@ export default function MyOffers() {
   };
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('requests.myOffersTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: 96 }}>
         {q.isLoading ? (

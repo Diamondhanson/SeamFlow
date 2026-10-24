@@ -119,7 +119,7 @@ export default function Storefront() {
 
   if (meQ.isLoading && !tailor) {
     return (
-      <Screen>
+      <Screen bleed>
         <ScreenHeader title={t('feed.storefrontTitle')} />
         <SkeletonForm fields={7} />
       </Screen>
@@ -127,7 +127,7 @@ export default function Storefront() {
   }
 
   return (
-    <Screen>
+    <Screen bleed>
       <ScreenHeader title={t('feed.storefrontTitle')} />
       <FormScroll contentContainerStyle={{ paddingBottom: spacing.xl }}>
         <Text variant="bodySm" tone="textMuted" style={styles.intro}>
