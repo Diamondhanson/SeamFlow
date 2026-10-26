@@ -1,13 +1,15 @@
 // ============================================================================
 // Native side of "share a photo INTO SeamFlow".
 //
-// Android only. The intent filters in app.json make us appear in the OS share
-// sheet; expo-share-intent's native module reads Intent.EXTRA_STREAM, which is
-// where the actual image lives and which expo-linking does not surface.
+// Android: the intent filters in app.json make us appear in the OS share sheet;
+// expo-share-intent's native module reads Intent.EXTRA_STREAM, which is where the
+// actual image lives and which expo-linking does not surface.
 //
-// iOS is deliberately not wired: a share extension is a separate sandboxed
-// binary that needs an App Group entitlement, which needs the Apple Developer
-// Program. See docs/ROADMAP.md.
+// iPhone: a share EXTENSION (a separate little app inside ours) makes us appear in
+// the share sheet. It copies the photos into the shared App Group
+// (group.com.seamflowtech.app) and opens the app with a handover link, which
+// app/+native-intent.tsx lets through. From here on both platforms look the same:
+// the library's hook yields files with a `path`.
 //
 // ---------------------------------------------------------------------------
 // WHY THIS IS BUILT ON THE LIBRARY'S OWN HOOK
@@ -59,15 +61,14 @@ const RETRY_MS = 500;
  */
 export function useShareListener(): void {
   const { shareIntent, resetShareIntent } = useShareIntent({
-    // Android only. iOS needs a share extension (Apple Developer Program), and
-    // the web PWA uses a completely different transport — the manifest's
-    // share_target POSTs to the service worker, which stashes the files and
-    // redirects. Both converge on the same receive screen.
+    // Phones only. The web PWA uses a completely different transport — the
+    // manifest's share_target POSTs to the service worker, which stashes the
+    // files and redirects. Both converge on the same receive screen.
     //
     // Passing an options object REPLACES the library's defaults rather than
     // merging with them, so `disabled` has to be stated explicitly here; the
     // default that switches web off does not apply once any option is passed.
-    disabled: Platform.OS !== 'android',
+    disabled: Platform.OS === 'web',
     // The intent must survive the app going to the background. Android may
     // background us while the OS asks for a storage permission, and the
     // default behaviour would throw the shared photos away mid-prompt.

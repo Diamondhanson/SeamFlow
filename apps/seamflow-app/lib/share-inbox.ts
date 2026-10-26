@@ -5,20 +5,21 @@
 // WhatsApp, a browser's long-press → share. This module normalises the two very
 // different delivery mechanisms into one shape the receive screen can render.
 //
-//   native (Android)  expo-share-intent reads Intent.EXTRA_STREAM. The intent
+//   native (Android) expo-share-intent reads Intent.EXTRA_STREAM. The intent
 //                     filter in app.json only makes us APPEAR in the sheet —
 //                     the payload lives in an extra that expo-linking does not
 //                     surface, so the native module is what actually delivers
 //                     it. Requires a native build; not Expo Go, not OTA.
+//
+//   native (iPhone)   a share extension copies the photos into the App Group and
+//                     opens us with a handover link; the same library hook reads
+//                     them. Also needs a native build.
 //
 //   web (PWA)         the manifest's `share_target` POSTs a multipart form to
 //                     /share-target. A static SPA can't receive a POST, so the
 //                     service worker intercepts it, stashes the files, and
 //                     redirects. See public/sw.js.
 //
-// NOT wired for iOS. A share extension is a separate sandboxed binary that
-// hands data over through an App Group entitlement, and that needs the Apple
-// Developer Program. See docs/ROADMAP.md.
 // ============================================================================
 
 import { Image, Platform } from 'react-native';

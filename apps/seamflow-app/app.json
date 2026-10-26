@@ -177,7 +177,9 @@
           "androidMultiIntentFilters": [
             "image/*"
           ],
-          "disableIOS": true
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsImageWithMaxCount": 10
+          }
         }
       ]
     ],
