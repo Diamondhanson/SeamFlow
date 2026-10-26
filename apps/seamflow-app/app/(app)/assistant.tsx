@@ -28,7 +28,7 @@ import {
 // The bar rides the keyboard; lib/use-composer-keyboard explains how and why
 // the chat thread, the support thread and this screen all share one answer.
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -85,6 +85,7 @@ import {
   useComposerKeyboard,
 } from '../../lib/use-composer-keyboard';
 import { useDialog } from '../../lib/dialog';
+import { useAiConsent } from '../../lib/ai-consent';
 
 const SPEAK_PREF_KEY = 'seamflow.assistant.speakReplies';
 
@@ -101,6 +102,7 @@ export default function AssistantScreen() {
   // drop the browser's inner ring on web (see useFieldFocus).
   const { focused, focusProps, webReset } = useFieldFocus();
   const dialog = useDialog();
+  const aiConsent = useAiConsent();
   const qc = useQueryClient();
   const { data: me } = useMe();
   const tailorId = me?.tailor?.id;
@@ -120,6 +122,18 @@ export default function AssistantScreen() {
   const listRef = useRef<FlatList<LocalChatMessage>>(null);
   const inputRef = useRef<TextInput>(null);
   const voice = useMemo(() => getVoiceSupport(), []);
+
+  // The assistant sends the question, and whatever it looks up to answer it, to
+  // the AI provider, so ask first. Saying no just closes the screen.
+  const askedConsent = useRef(false);
+  useEffect(() => {
+    if (askedConsent.current) return;
+    askedConsent.current = true;
+    void aiConsent.ensure().then((ok) => {
+      if (!ok) router.back();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Opened from the "Ask" pill (/(app)/assistant?focus=1): focus the composer
   // so the keyboard is already up and the tailor can start typing immediately.

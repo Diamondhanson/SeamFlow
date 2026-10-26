@@ -12,6 +12,7 @@ import { ScreenHeader } from '../../../components/ScreenHeader';
 import { Input } from '../../../components/Input';
 import { Button } from '../../../components/Button';
 import { AiDescribeSheet } from '../../../components/AiDescribeSheet';
+import { useAiConsent } from '../../../lib/ai-consent';
 import {
   useDesign,
   useUpdateDesign,
@@ -28,6 +29,7 @@ export default function DesignDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors, radii } = useAtelierTheme();
   const dialog = useDialog();
+  const aiConsent = useAiConsent();
 
   const designQ = useDesign(id);
   const updateM = useUpdateDesign(id);
@@ -142,7 +144,7 @@ export default function DesignDetail() {
             size="sm"
             fullWidth={false}
             iconStart={<Ionicons name="sparkles-outline" size={16} color={colors.text} />}
-            onPress={() => setDescribeOpen(true)}
+            onPress={() => void aiConsent.ensure().then((ok) => ok && setDescribeOpen(true))}
           />
           <Button
             label={t('designs.attachToOrder')}

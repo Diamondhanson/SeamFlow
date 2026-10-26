@@ -139,7 +139,9 @@ export default function ClientHome() {
 
         {/* Tiles */}
         <View style={styles.grid}>
-          {tiles.map((tile) => (
+          {/* Unfinished tiles stay in development builds only: a store build must
+              not show placeholder content (App Store guideline 2.1). */}
+          {tiles.filter((tile) => tile.live || __DEV__).map((tile) => (
             <Pressable
               key={tile.key}
               onPress={tile.go}

@@ -131,7 +131,12 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       [
         "@react-native-google-signin/google-signin",
         {

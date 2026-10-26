@@ -109,7 +109,7 @@ export function StorefrontView({
   const scroll = useFloatingScroll();
 
   const columns = useGridColumns();
-  const contentWidth = useContentWidth();
+  const contentWidth = useContentWidth('wide');
   const gap = spacing.md;
   const cellW = (contentWidth - spacing.lg * 2 - gap * (columns - 1)) / columns;
 

@@ -33,6 +33,7 @@ import { spacing } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { draftKey, useDraft } from '../../../lib/drafts';
 import { useDialog } from '../../../lib/dialog';
+import { useAiConsent } from '../../../lib/ai-consent';
 
 export default function NewTemplate() {
   const { t } = useTranslation();
@@ -57,10 +58,12 @@ export default function NewTemplate() {
   const { data: me } = useMe();
   const tailorId = me?.tailor?.id;
   const dialog = useDialog();
+  const aiConsent = useAiConsent();
   const { colors } = useAtelierTheme();
 
   const startScan = async () => {
     if (!tailorId) return;
+    if (!(await aiConsent.ensure())) return;
     const source = await dialog.choose<'camera' | 'library'>({
       title: t('templates.scanSourceTitle'),
       message: t('templates.scanSourceBody'),

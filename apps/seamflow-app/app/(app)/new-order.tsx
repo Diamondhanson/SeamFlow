@@ -35,6 +35,7 @@ import { useMe, useOrder, useClient } from '../../lib/queries';
 import type { DeviceContact } from '../../lib/contacts';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useDialog } from '../../lib/dialog';
+import { useAiConsent } from '../../lib/ai-consent';
 import { useGuides } from '../../lib/guides';
 import { useTranslation } from '../../lib/i18n';
 import { canPickContacts } from '../../lib/platform-capabilities';
@@ -142,6 +143,7 @@ export default function NewOrderWizard() {
   const { t } = useTranslation();
   const colors = useThemeColors();
   const dialog = useDialog();
+  const aiConsent = useAiConsent();
   const { isDismissed, dismiss } = useGuides();
   const [step, setStep] = useState<Step>('client');
 
@@ -481,6 +483,7 @@ export default function NewOrderWizard() {
   const scanIntoGarment = async (g: GarmentDraft) => {
     const tailorId = me?.tailor?.id;
     if (!tailorId) return;
+    if (!(await aiConsent.ensure())) return;
     try {
       setScanning(true);
       const res = await scanMeasurementPage({
@@ -961,7 +964,7 @@ export default function NewOrderWizard() {
             multiline
           />
           {orderNotes.trim().length > 0 ? (
-            <Pressable onPress={() => setTidyOpen(true)} hitSlop={8} style={styles.tidyBtn}>
+            <Pressable onPress={() => void aiConsent.ensure().then((ok) => ok && setTidyOpen(true))} hitSlop={8} style={styles.tidyBtn}>
               <Ionicons name="sparkles-outline" size={15} color={colors.accent} />
               <Text variant="caption" tone="primary">{t('orders.tidyUp')}</Text>
             </Pressable>

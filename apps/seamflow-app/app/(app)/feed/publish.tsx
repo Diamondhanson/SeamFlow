@@ -69,6 +69,7 @@ import { PhotoQualityNote } from '../../../components/PhotoQualityNote';
 import { api } from '../../../lib/api';
 import { usePublishOrderPhoto, usePublishWork, useUpdateWork, useWork } from '../../../lib/queries';
 import { useDialog } from '../../../lib/dialog';
+import { useAiConsent } from '../../../lib/ai-consent';
 import { spacing, radii } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 
@@ -114,6 +115,7 @@ export default function PublishToFeed() {
     : 'en';
   const { colors } = useAtelierTheme();
   const dialog = useDialog();
+  const aiConsent = useAiConsent();
 
   const params = useLocalSearchParams<{
     /** Order-photo route. */
@@ -195,14 +197,20 @@ export default function PublishToFeed() {
     let cancelled = false;
     setReading(true);
 
-    api.ai
-      .classifyDesign({
-        storagePath: classifyPath,
-        bucket: classifyBucket,
-        // What the tailor already told us beats what the pixels suggest —
-        // measurably so: without this a captioned "kaftan" came back as a
-        // wrapper set.
-        garmentType: params.garmentType ?? null,
+    // Reading the photo sends it to the AI provider, so it only happens once the
+    // tailor has agreed. Saying no leaves the form to be filled in by hand.
+    aiConsent
+      .ensure()
+      .then((ok) => {
+        if (!ok) throw new Error('declined');
+        return api.ai.classifyDesign({
+          storagePath: classifyPath,
+          bucket: classifyBucket,
+          // What the tailor already told us beats what the pixels suggest —
+          // measurably so: without this a captioned "kaftan" came back as a
+          // wrapper set.
+          garmentType: params.garmentType ?? null,
+        });
       })
       .then((c) => {
         if (cancelled) return;

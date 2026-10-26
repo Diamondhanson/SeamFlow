@@ -145,7 +145,7 @@ export default function Discover() {
 
   // ── Masonry ───────────────────────────────────────────────────────────────
   const columns = useGridColumns();
-  const contentWidth = useContentWidth();
+  const contentWidth = useContentWidth('wide');
   // Columns sit at half the vertical rhythm: tiles read as one wall of work
   // rather than separate strips. The gap above/below each tile is unchanged.
   const columnGap = spacing.md / 2;

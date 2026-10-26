@@ -39,6 +39,7 @@ import { MeasurementValueInput } from './MeasurementValueInput';
 import { spacing, radii } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import { useDialog } from '../lib/dialog';
+import { useAiConsent } from '../lib/ai-consent';
 
 interface ReviewRow {
   label: string;
@@ -65,6 +66,7 @@ export function MeasurementSheetScan({
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
   const dialog = useDialog();
+  const aiConsent = useAiConsent();
   const qc = useQueryClient();
   const createSet = useCreateMeasurementSet(clientId);
 
@@ -85,6 +87,7 @@ export function MeasurementSheetScan({
 
   const begin = async () => {
     if (!tailorId) return close();
+    if (!(await aiConsent.ensure())) return close();
     const source = await dialog.choose<'camera' | 'library'>({
       title: t('clients.scanSourceTitle'),
       message: t('clients.scanSourceBody'),

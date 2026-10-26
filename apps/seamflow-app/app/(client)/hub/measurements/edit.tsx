@@ -27,6 +27,7 @@ import {
 } from '../../../../lib/consumer-queries';
 import { useAuth } from '../../../../lib/auth-context';
 import { useDialog } from '../../../../lib/dialog';
+import { useAiConsent } from '../../../../lib/ai-consent';
 import { pickPhotos, uploadRequestPhoto } from '../../../../lib/photo-upload';
 import { matchMeasurementLabel } from '../../../../lib/measurements';
 import { api } from '../../../../lib/api';
@@ -62,11 +63,13 @@ export default function EditMeasurements() {
 
   // Scan a filled sheet (e.g. measured by a local tailor) → AI-extract → prefill.
   const { session } = useAuth();
+  const aiConsent = useAiConsent();
   const [scanning, setScanning] = useState(false);
   const [scanPreview, setScanPreview] = useState<string | null>(null);
   const scan = async () => {
     const uid = session?.user?.id;
     if (!uid) return;
+    if (!(await aiConsent.ensure())) return;
     const assets = await pickPhotos('library', 1);
     if (assets.length === 0) return;
     try {
