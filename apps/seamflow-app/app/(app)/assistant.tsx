@@ -126,11 +126,13 @@ export default function AssistantScreen() {
   // The assistant sends the question, and whatever it looks up to answer it, to
   // the AI provider, so ask first. Saying no just closes the screen.
   const askedConsent = useRef(false);
+  const [consented, setConsented] = useState(false);
   useEffect(() => {
     if (askedConsent.current) return;
     askedConsent.current = true;
     void aiConsent.ensure().then((ok) => {
-      if (!ok) router.back();
+      if (ok) setConsented(true);
+      else router.back();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -140,12 +142,12 @@ export default function AssistantScreen() {
   const params = useLocalSearchParams<{ focus?: string }>();
   const didAutofocus = useRef(false);
   useEffect(() => {
-    if (params.focus === '1' && !didAutofocus.current && tailorId) {
+    if (params.focus === '1' && !didAutofocus.current && tailorId && consented) {
       didAutofocus.current = true;
       const id = setTimeout(() => inputRef.current?.focus(), 350);
       return () => clearTimeout(id);
     }
-  }, [params.focus, tailorId]);
+  }, [params.focus, tailorId, consented]);
 
   const { listPad: listKbPad, stickyOffset } = useComposerKeyboard();
 
