@@ -83,8 +83,8 @@ export function Hero({ d }: { d: Dict }) {
           </div>
         </div>
 
-        {/* Two-device composition: a landscape tablet in front, with the phone
-            shifted right and peeking out behind it. The art is drawn at a fixed
+        {/* Two-device composition: a portrait iPad behind, with the iPhone in
+            front, overlapping its inline-end edge. The art is drawn at a fixed
             size and scaled responsively, so it never reflows or overflows.
 
             Positioned with logical `start-*`, so the whole composition mirrors
@@ -98,13 +98,22 @@ export function Hero({ d }: { d: Dict }) {
                   aria-hidden="true"
                   className="absolute -inset-2 transform-gpu rounded-[80px] bg-gradient-to-tr from-audience/50 via-audienceLight/40 to-audience/20 blur-3xl rtl:bg-gradient-to-tl"
                 />
-                {/* Phone — behind, shifted toward the inline end */}
-                <div className="absolute start-[380px] top-[6px] z-0 animate-floaty">
-                  <PhoneFrame alt={d.gallery.altPhone} />
+                {/* iPad (portrait) — behind */}
+                <div className="absolute start-[24px] top-[8px] z-0">
+                  <TabletFrame
+                    src="/screens/ipad-storefront.jpg"
+                    alt={d.gallery.altTablet}
+                    width={384}
+                  />
                 </div>
-                {/* Tablet (landscape) — in front */}
-                <div className="absolute start-[10px] top-[150px] z-10">
-                  <TabletFrame alt={d.gallery.altTablet} />
+                {/* iPhone — in front, toward the inline end */}
+                <div className="absolute start-[372px] top-[44px] z-10 animate-floaty">
+                  <PhoneFrame
+                    src="/screens/iphone-home.png"
+                    alt={d.gallery.altPhone}
+                    width={226}
+                    priority
+                  />
                 </div>
               </div>
             </div>

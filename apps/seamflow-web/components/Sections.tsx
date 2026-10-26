@@ -237,14 +237,22 @@ export function Gallery({ d }: { d: Dict }) {
             {d.gallery.subheading}
           </p>
         </div>
-        {/* The same home screen in both themes. Light/dark is a real shipped
-            feature, and it's the honest way to fill this row: every other
-            screenshot shows client names we won't publish. */}
-        <div className="mt-12 flex flex-wrap items-end justify-center gap-8">
-          <PhoneFrame alt={d.gallery.altPhone} className="z-10" />
+        {/* Three screens no client name appears on: the portfolio, a design
+            page as a customer sees it, and the calendar. The second iPhone and
+            the iPad drop out on narrow screens rather than stacking. */}
+        <div className="mt-12 flex items-center justify-center gap-10">
+          <PhoneFrame src="/screens/iphone-designs.jpg" alt={d.gallery.altDesigns} width={250} />
           <TabletFrame
-            alt={d.gallery.altTablet}
-            className="hidden translate-y-4 lg:block"
+            src="/screens/ipad-design.jpg"
+            alt={d.gallery.altDesign}
+            width={400}
+            className="hidden lg:block"
+          />
+          <PhoneFrame
+            src="/screens/iphone-calendar.png"
+            alt={d.gallery.altCalendar}
+            width={250}
+            className="hidden sm:block"
           />
         </div>
       </div>

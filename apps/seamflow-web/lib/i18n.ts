@@ -390,11 +390,17 @@ export const copy = {
     gallery: {
       heading: 'A look inside',
       subheading:
-        'The real app, on a real phone. Light or dark, it follows whatever your device is set to.',
+        'The real app, on a real iPhone and iPad. Your orders, your calendar, and a shop window clients can browse.',
       altPhone:
-        'SeamFlow home screen on an Android phone in dark mode, showing orders, clients, groups, calendar, templates, fabrics, Design Studio and the assistant.',
+        'SeamFlow home screen on an iPhone, showing orders due soon, the Start new order button and shortcuts.',
       altTablet:
-        'SeamFlow home screen on a tablet in light mode, with the same tiles laid out across a wider screen.',
+        'A tailor’s public shop window in SeamFlow on an iPad, with their specialties, a Message button and a grid of their designs.',
+      altDesigns:
+        'My Designs on an iPhone: a tailor’s portfolio of finished pieces, each marked as published to the feed.',
+      altDesign:
+        'A design page on an iPad, with the photo, description, price and an Ask about this button, above similar designs.',
+      altCalendar:
+        'The SeamFlow calendar on an iPhone, with delivery dates marked and the order due that day listed below.',
     },
     faq: {
       heading: 'Questions, answered',
@@ -899,11 +905,17 @@ export const copy = {
     gallery: {
       heading: 'Un aperçu de l’intérieur',
       subheading:
-        'La vraie application, sur un vrai téléphone. Clair ou sombre, elle suit le réglage de votre appareil.',
+        'La vraie application, sur un vrai iPhone et un vrai iPad. Vos commandes, votre calendrier, et une vitrine que les clients peuvent parcourir.',
       altPhone:
-        'Écran d’accueil de SeamFlow sur un téléphone Android en mode sombre, avec les commandes, clients, groupes, calendrier, modèles, tissus, le studio de création et l’assistant.',
+        'Écran d’accueil de SeamFlow sur un iPhone, avec les commandes à livrer bientôt, le bouton Nouvelle commande et les raccourcis.',
       altTablet:
-        'Écran d’accueil de SeamFlow sur une tablette en mode clair, avec les mêmes tuiles réparties sur un écran plus large.',
+        'La vitrine publique d’un tailleur dans SeamFlow sur un iPad, avec ses spécialités, un bouton Message et une grille de ses créations.',
+      altDesigns:
+        'Mes créations sur un iPhone : le portfolio des pièces terminées d’un tailleur, chacune marquée comme publiée dans le fil.',
+      altDesign:
+        'La page d’une création sur un iPad, avec la photo, la description, le prix et un bouton pour se renseigner, au-dessus de créations similaires.',
+      altCalendar:
+        'Le calendrier de SeamFlow sur un iPhone, avec les dates de livraison marquées et la commande du jour listée en dessous.',
     },
     faq: {
       heading: 'Vos questions, nos réponses',
@@ -1410,11 +1422,17 @@ export const copy = {
     gallery: {
       heading: 'Um olhar por dentro',
       subheading:
-        'A aplicação real, num telemóvel real. Claro ou escuro, acompanha aquilo que o seu dispositivo estiver a usar.',
+        'A aplicação real, num iPhone e num iPad reais. As suas encomendas, o seu calendário e uma montra que os clientes podem explorar.',
       altPhone:
-        'Ecrã principal do SeamFlow num telemóvel Android em modo escuro, com encomendas, clientes, grupos, calendário, modelos, tecidos, Estúdio de Design e o assistente.',
+        'Ecrã principal do SeamFlow num iPhone, com as encomendas a entregar em breve, o botão de nova encomenda e atalhos.',
       altTablet:
-        'Ecrã principal do SeamFlow num tablet em modo claro, com os mesmos mosaicos distribuídos por um ecrã mais largo.',
+        'A montra pública de um alfaiate no SeamFlow num iPad, com as suas especialidades, um botão de mensagem e uma grelha dos seus modelos.',
+      altDesigns:
+        'Os meus modelos num iPhone: o portefólio de peças terminadas de um alfaiate, cada uma marcada como publicada no feed.',
+      altDesign:
+        'A página de um modelo num iPad, com a foto, a descrição, o preço e um botão para perguntar, acima de modelos semelhantes.',
+      altCalendar:
+        'O calendário do SeamFlow num iPhone, com as datas de entrega marcadas e a encomenda desse dia listada abaixo.',
     },
     faq: {
       heading: 'Perguntas, respondidas',
@@ -1920,11 +1938,17 @@ export const copy = {
     gallery: {
       heading: 'Una mirada por dentro',
       subheading:
-        'La app real, en un teléfono real. Clara u oscura, sigue lo que tenga configurado su dispositivo.',
+        'La app real, en un iPhone y un iPad reales. Sus pedidos, su calendario y un escaparate que los clientes pueden recorrer.',
       altPhone:
-        'Pantalla de inicio de SeamFlow en un teléfono Android en modo oscuro, con pedidos, clientes, grupos, calendario, plantillas, telas, Estudio de Diseño y el asistente.',
+        'Pantalla de inicio de SeamFlow en un iPhone, con los pedidos que vencen pronto, el botón de nuevo pedido y accesos directos.',
       altTablet:
-        'Pantalla de inicio de SeamFlow en una tableta en modo claro, con los mismos mosaicos repartidos en una pantalla más ancha.',
+        'El escaparate público de un sastre en SeamFlow en un iPad, con sus especialidades, un botón de mensaje y una cuadrícula de sus diseños.',
+      altDesigns:
+        'Mis diseños en un iPhone: el portafolio de piezas terminadas de un sastre, cada una marcada como publicada en el feed.',
+      altDesign:
+        'La página de un diseño en un iPad, con la foto, la descripción, el precio y un botón para preguntar, sobre diseños similares.',
+      altCalendar:
+        'El calendario de SeamFlow en un iPhone, con las fechas de entrega marcadas y el pedido de ese día debajo.',
     },
     faq: {
       heading: 'Preguntas, respondidas',
@@ -2421,11 +2445,17 @@ export const copy = {
     gallery: {
       heading: 'Tazama ndani',
       subheading:
-        'Programu halisi, kwenye simu halisi. Nuru au giza, hufuata mpangilio wa kifaa chako.',
+        'Programu halisi, kwenye iPhone na iPad halisi. Maagizo yako, kalenda yako, na dirisha la duka ambalo wateja wanaweza kuvinjari.',
       altPhone:
-        'Skrini ya mwanzo ya SeamFlow kwenye simu ya Android katika hali ya giza, ikionyesha maagizo, wateja, vikundi, kalenda, violezo, vitambaa, Studio ya Ubunifu na msaidizi.',
+        'Skrini ya mwanzo ya SeamFlow kwenye iPhone, ikionyesha maagizo yanayokaribia, kitufe cha kuanza agizo jipya na njia za mkato.',
       altTablet:
-        'Skrini ya mwanzo ya SeamFlow kwenye kompyuta kibao katika hali ya nuru, ikiwa na vigae vile vile kwenye skrini pana zaidi.',
+        'Dirisha la duka la fundi cherehani ndani ya SeamFlow kwenye iPad, likiwa na utaalamu wake, kitufe cha Ujumbe na gridi ya miundo yake.',
+      altDesigns:
+        'Miundo Yangu kwenye iPhone: kazi zilizokamilika za fundi, kila moja ikiwa imewekwa alama ya kuchapishwa.',
+      altDesign:
+        'Ukurasa wa muundo kwenye iPad, wenye picha, maelezo, bei na kitufe cha kuuliza, juu ya miundo inayofanana.',
+      altCalendar:
+        'Kalenda ya SeamFlow kwenye iPhone, ikiwa na tarehe za kukabidhi zimewekwa alama na agizo la siku hiyo chini yake.',
     },
     faq: {
       heading: 'Maswali, yakijibiwa',
@@ -2917,11 +2947,18 @@ export const copy = {
     },
     gallery: {
       heading: 'نظرة من الداخل',
-      subheading: 'التطبيق الحقيقي، على هاتف حقيقي. فاتح أو داكن، يتبع إعداد جهازك.',
+      subheading:
+        'التطبيق الحقيقي، على iPhone وiPad حقيقيين. طلباتك وتقويمك وواجهة متجر يتصفّحها العملاء.',
       altPhone:
-        'الشاشة الرئيسية لـ SeamFlow على هاتف أندرويد في الوضع الداكن، وتظهر فيها الطلبات والعملاء والمجموعات والتقويم والقوالب والأقمشة واستوديو التصميم والمساعد.',
+        'الشاشة الرئيسية لـ SeamFlow على iPhone، وتظهر فيها الطلبات المستحقة قريبًا وزر بدء طلب جديد والاختصارات.',
       altTablet:
-        'الشاشة الرئيسية لـ SeamFlow على جهاز لوحي في الوضع الفاتح، بنفس المربّعات موزّعة على شاشة أعرض.',
+        'واجهة المتجر العامة لخيّاط في SeamFlow على iPad، مع تخصّصاته وزر المراسلة وشبكة من تصاميمه.',
+      altDesigns:
+        'تصاميمي على iPhone: معرض القطع المكتملة لخيّاط، وكل قطعة معلَّمة بأنها منشورة.',
+      altDesign:
+        'صفحة تصميم على iPad، فيها الصورة والوصف والسعر وزر للاستفسار، وفوق تصاميم مشابهة.',
+      altCalendar:
+        'تقويم SeamFlow على iPhone، مع تواريخ التسليم معلَّمة وطلب ذلك اليوم مدرج تحته.',
     },
     faq: {
       heading: 'أسئلة وإجابات',
