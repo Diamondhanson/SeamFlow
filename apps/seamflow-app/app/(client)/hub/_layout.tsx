@@ -4,10 +4,12 @@
 // (/discover, /t) stays outside it. Mirrors the tailor gate: auth →
 // LockProvider → PIN overlay → Stack. Inherits the rose theme from
 // app/(client)/_layout.
+import { useEffect } from 'react';
 import { Redirect, Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../../../lib/auth-context';
 import { LockProvider, useLock } from '../../../lib/lock-context';
+import { setPinGateShown } from '../../../lib/pin-gate';
 import { FloatingScrollProvider } from '../../../lib/floating-scroll';
 import { PinLockScreen } from '../../../components/PinLockScreen';
 import { useNotificationTapHandler } from '../../../lib/notifications';
@@ -30,6 +32,12 @@ export default function ClientHubLayout() {
 function GatedStack() {
   const { ready, pinSet, locked } = useLock();
   const colors = useThemeColors();
+
+  // Tell the tab bar to get out of the way while the PIN screen is showing.
+  useEffect(() => {
+    setPinGateShown(pinSet && locked);
+    return () => setPinGateShown(false);
+  }, [pinSet, locked]);
 
   // Route notification taps into the client tree (/hub/...). The handler is
   // role-aware; only one tree is mounted at a time, so this doesn't double up.

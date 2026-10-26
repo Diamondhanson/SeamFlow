@@ -35,6 +35,7 @@ import {
 } from '../../lib/queries';
 import { api, ApiError } from '../../lib/api';
 import { useDialog } from '../../lib/dialog';
+import { usePinReminder } from '../../lib/use-pin-reminder';
 import type { OrderStatus } from '@seamflow/schemas';
 import { daysUntil } from '../../lib/order-status';
 import { spacing } from '../../lib/theme';
@@ -57,6 +58,8 @@ export default function Home() {
   const scroll = useFloatingScroll();
   const { t } = useTranslation();
   const dialog = useDialog();
+  // Every now and then, ask a designer with a finished shop to set a PIN.
+  usePinReminder();
 
   // Advance an order to its next status straight from the due-soon card, then
   // refresh the dashboard lists. Errors surface through the mapped dialog.

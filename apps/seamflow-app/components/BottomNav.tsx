@@ -37,6 +37,7 @@ import * as Haptics from 'expo-haptics';
 import { activeFontFamilies, Text, useAtelierTheme, withAlpha } from '@seamflow/ui';
 import { spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
+import { usePinGateShown } from '../lib/pin-gate';
 
 // Approx height the chrome occupies — screens add this as bottom padding so
 // content never hides behind the bar (see BOTTOM_CHROME_SPACE users).
@@ -81,11 +82,24 @@ function haptic() {
   if (Platform.OS !== 'web') void Haptics.selectionAsync().catch(() => {});
 }
 
+/**
+ * True while the PIN screen is up. The bar sits at zIndex 20 so it stays above
+ * screen content, and the PIN overlay has no zIndex at all, so the bar floated
+ * OVER the keypad — covering its bottom row and leaving the app's navigation (and
+ * the Ask pill) tappable-looking on a locked screen. Hidden outright rather than
+ * out-stacked, so no other overlay can ever bring it back. (A shared flag, not the
+ * lock context: the customer bar is mounted above the layout that provides it.)
+ */
+function useHiddenByPinLock(): boolean {
+  return usePinGateShown();
+}
+
 export function BottomChrome() {
   const pathname = usePathname();
+  const hidden = useHiddenByPinLock();
 
   // Detail and modal screens go full-bleed.
-  if (!SHOW_ON.has(pathname)) return null;
+  if (hidden || !SHOW_ON.has(pathname)) return null;
   return <Chrome pathname={pathname} tabs={TABS} ask={<AskPill />} />;
 }
 
@@ -97,8 +111,9 @@ export function BottomChrome() {
 export function ClientBottomChrome() {
   const pathname = usePathname();
   const { session } = useAuth();
+  const hidden = useHiddenByPinLock();
 
-  if (!session || !CLIENT_SHOW_ON.has(pathname)) return null;
+  if (hidden || !session || !CLIENT_SHOW_ON.has(pathname)) return null;
   return <Chrome pathname={pathname} tabs={CLIENT_TABS} />;
 }
 

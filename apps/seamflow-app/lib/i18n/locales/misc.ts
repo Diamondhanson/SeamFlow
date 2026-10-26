@@ -30,6 +30,10 @@ export const misc = {
     reenterPin: 'Re-enter the PIN to confirm',
     // PIN lock screen
     enterYourPin: 'Enter your PIN',
+    pinReminderTitle: 'Protect your shop with a PIN',
+    pinReminderBody: 'Your clients, orders and measurements are private. Set a {digits}-digit PIN so nobody else can open SeamFlow on this phone.',
+    pinReminderSet: 'Set a PIN',
+    pinReminderLater: 'Not now',
     tooManyAttemptsTitle: 'Too many attempts',
     tooManyAttemptsBody:
       '{max} wrong tries. Signing you out, please sign in again to continue.',
@@ -111,6 +115,10 @@ export const misc = {
     reenterPin: 'Ressaisissez le code pour confirmer',
     // PIN lock screen
     enterYourPin: 'Saisissez votre code',
+    pinReminderTitle: 'Protégez votre atelier avec un code PIN',
+    pinReminderBody: 'Vos clients, commandes et mesures sont privés. Définissez un code PIN à {digits} chiffres pour que personne d’autre ne puisse ouvrir SeamFlow sur ce téléphone.',
+    pinReminderSet: 'Définir un PIN',
+    pinReminderLater: 'Plus tard',
     tooManyAttemptsTitle: 'Trop de tentatives',
     tooManyAttemptsBody:
       '{max} mauvaises tentatives. Déconnexion, veuillez vous reconnecter pour continuer.',
@@ -192,6 +200,10 @@ export const misc = {
     reenterPin: 'Volte a introduzir o PIN para confirmar',
     // Ecrã de bloqueio
     enterYourPin: 'Introduza o seu PIN',
+    pinReminderTitle: 'Proteja a sua loja com um PIN',
+    pinReminderBody: 'Os seus clientes, encomendas e medidas são privados. Defina um PIN de {digits} dígitos para que ninguém mais possa abrir o SeamFlow neste telemóvel.',
+    pinReminderSet: 'Definir PIN',
+    pinReminderLater: 'Agora não',
     tooManyAttemptsTitle: 'Demasiadas tentativas',
     tooManyAttemptsBody:
       '{max} tentativas erradas. A terminar a sessão, inicie sessão novamente para continuar.',
@@ -274,6 +286,10 @@ export const misc = {
     reenterPin: 'Vuelva a escribir el PIN para confirmar',
     // Pantalla de bloqueo con PIN
     enterYourPin: 'Escriba su PIN',
+    pinReminderTitle: 'Protege tu taller con un PIN',
+    pinReminderBody: 'Tus clientes, pedidos y medidas son privados. Define un PIN de {digits} dígitos para que nadie más pueda abrir SeamFlow en este teléfono.',
+    pinReminderSet: 'Definir PIN',
+    pinReminderLater: 'Ahora no',
     tooManyAttemptsTitle: 'Demasiados intentos',
     tooManyAttemptsBody:
       '{max} intentos fallidos. Cerrando su sesión, vuelva a iniciar sesión para continuar.',
@@ -355,6 +371,10 @@ export const misc = {
     reenterPin: 'Weka PIN tena ili kuthibitisha',
     // Skrini ya kufuli ya PIN
     enterYourPin: 'Weka PIN yako',
+    pinReminderTitle: 'Linda duka lako kwa PIN',
+    pinReminderBody: 'Wateja wako, oda na vipimo ni siri. Weka PIN ya tarakimu {digits} ili mtu mwingine asiweze kufungua SeamFlow kwenye simu hii.',
+    pinReminderSet: 'Weka PIN',
+    pinReminderLater: 'Si sasa',
     tooManyAttemptsTitle: 'Majaribio mengi mno',
     tooManyAttemptsBody:
       'Majaribio {max} yasiyo sahihi. Tunakutoa, tafadhali ingia tena ili kuendelea.',
@@ -434,6 +454,10 @@ export const misc = {
     choosePin: 'اختر رمزًا من 4 أرقام',
     reenterPin: 'أعِد إدخال الرمز للتأكيد',
     enterYourPin: 'أدخل رمزك',
+    pinReminderTitle: 'احمِ متجرك برمز PIN',
+    pinReminderBody: 'عملاؤك وطلباتك ومقاساتك خاصة. عيّن رمز PIN من {digits} أرقام حتى لا يتمكن أي شخص آخر من فتح SeamFlow على هذا الهاتف.',
+    pinReminderSet: 'تعيين PIN',
+    pinReminderLater: 'ليس الآن',
     tooManyAttemptsTitle: 'محاولات كثيرة',
     tooManyAttemptsBody:
       '{max} محاولات خاطئة. يجري تسجيل خروجك، سجّل الدخول مجددًا للمتابعة.',

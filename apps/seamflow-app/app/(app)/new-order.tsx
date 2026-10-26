@@ -1050,6 +1050,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.sm,
+    // Space above, so it doesn't sit flush against the template button (or the
+    // saved-measurements link) before it.
+    marginTop: spacing.sm,
     marginBottom: spacing.md,
     borderWidth: 1,
     borderRadius: radii.md,

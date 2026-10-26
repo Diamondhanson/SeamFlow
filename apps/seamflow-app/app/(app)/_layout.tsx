@@ -1,7 +1,9 @@
 import { Redirect, Stack } from 'expo-router';
+import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View, Platform } from 'react-native';
 import { useAuth } from '../../lib/auth-context';
 import { LockProvider, useLock } from '../../lib/lock-context';
+import { setPinGateShown } from '../../lib/pin-gate';
 import { ProfileGateProvider } from '../../lib/profile-gate';
 import { BottomChrome } from '../../components/BottomNav';
 import { PinLockScreen } from '../../components/PinLockScreen';
@@ -63,6 +65,12 @@ export default function AppLayout() {
 function GatedStack() {
   const { ready, pinSet, locked } = useLock();
   const colors = useThemeColors();
+
+  // Tell the tab bar to get out of the way while the PIN screen is showing.
+  useEffect(() => {
+    setPinGateShown(pinSet && locked);
+    return () => setPinGateShown(false);
+  }, [pinSet, locked]);
 
   // Route to the relevant order when a reminder / status push is tapped.
   useNotificationTapHandler();

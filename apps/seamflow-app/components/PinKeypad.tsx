@@ -149,5 +149,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  keyText: { fontSize: 30 },
+  // `numeric` switches <Text> to the mono style, whose line height is 22, and
+  // this then asks for a 30pt size. iOS sizes the text box from the line height,
+  // so the box ended up SHORTER than the digit and the top half was clipped (a 7
+  // read as "/", a 0 as "U"). Android doesn't clip, which is why only iPhone
+  // looked broken. Always set the line height with the size.
+  keyText: { fontSize: 30, lineHeight: 38 },
 });
