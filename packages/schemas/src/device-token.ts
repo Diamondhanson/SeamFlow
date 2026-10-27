@@ -9,9 +9,19 @@ export type DevicePlatform = z.infer<typeof DevicePlatformSchema>;
 // any given token is deliverable, so we don't try to validate the inner part.
 const EXPO_TOKEN_RE = /^(?:Exponent|Expo)PushToken\[[A-Za-z0-9_\-:.]+\]$/;
 
+/** The languages the apps ship. Mirrors the apps' LanguageCode. */
+export const DeviceLanguageSchema = z.enum(['en', 'fr', 'pt', 'es', 'sw', 'ar']);
+export type DeviceLanguage = z.infer<typeof DeviceLanguageSchema>;
+
 export const DeviceTokenRegisterSchema = z.object({
   expoToken: z.string().regex(EXPO_TOKEN_RE, 'Not a valid Expo push token'),
   platform: DevicePlatformSchema,
+  /**
+   * The language the app is showing right now, so the server can word a push in
+   * it. Optional: older installs do not send it, and the server then falls back
+   * to English exactly as it did before.
+   */
+  language: DeviceLanguageSchema.optional(),
 });
 export type DeviceTokenRegisterInput = z.infer<typeof DeviceTokenRegisterSchema>;
 

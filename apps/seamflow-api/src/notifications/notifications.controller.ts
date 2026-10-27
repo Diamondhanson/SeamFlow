@@ -25,7 +25,12 @@ export class NotificationsController {
     @CurrentUser() user: AuthedUser,
     @Body() body: DeviceTokenRegisterDto,
   ): Promise<void> {
-    await this.notifications.registerToken(user.id, body.expoToken, body.platform);
+    await this.notifications.registerToken(
+      user.id,
+      body.expoToken,
+      body.platform,
+      body.language,
+    );
   }
 
   /** Drop a token (mobile calls this on sign-out). */

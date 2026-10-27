@@ -39,7 +39,8 @@ import { initCrashReporting } from '../lib/crash-reporting';
 import { installWebStyles } from '../lib/web-styles';
 import { installPwa } from '../lib/pwa';
 import { installOutboxFlusher } from '../lib/chat-outbox';
-import { AuthProvider } from '../lib/auth-context';
+import { AuthProvider, useAuth } from '../lib/auth-context';
+import { ensurePushRegistered } from '../lib/notifications';
 import {
   installOfflineListeners,
   queryClient,
@@ -53,7 +54,7 @@ import { FavoritesProvider } from '../lib/favorites';
 import { GuidesProvider } from '../lib/guides';
 import { FirstRunProvider } from '../lib/first-run';
 import { ModeProvider } from '../lib/mode';
-import { LanguageProvider } from '../lib/i18n';
+import { LanguageProvider, useTranslation } from '../lib/i18n';
 
 /**
  * How a screen arrives.
@@ -93,6 +94,21 @@ export default function RootLayout() {
       <ThemedRoot />
     </ThemeModeProvider>
   );
+}
+
+/**
+ * Tells the server which language this phone is showing, so a push is worded in
+ * it. Runs on sign-in and again whenever the language is changed in Settings.
+ * Renders nothing; ensurePushRegistered() never throws.
+ */
+function PushLanguageSync() {
+  const { language } = useTranslation();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  useEffect(() => {
+    if (userId) void ensurePushRegistered(language);
+  }, [userId, language]);
+  return null;
 }
 
 function ThemedRoot() {
@@ -207,6 +223,7 @@ function ThemedRoot() {
             <AuthProvider>
             <ModeProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
+              <PushLanguageSync />
               <OfflineBanner />
               {/* Around the router, inside the providers: it catches every
                   screen and has the theme and translations to say so in the

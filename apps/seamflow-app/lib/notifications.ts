@@ -24,7 +24,7 @@ import { Platform } from 'react-native';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import type * as ExpoNotifications from 'expo-notifications';
-import type { DevicePlatform } from '@seamflow/schemas';
+import type { DeviceLanguage, DevicePlatform } from '@seamflow/schemas';
 import { api } from './api';
 import { canUsePushNotifications } from './platform-capabilities';
 import { useMode } from './mode';
@@ -57,6 +57,8 @@ function getNotifications(): typeof ExpoNotifications | null {
 }
 
 let lastRegisteredToken: string | null = null;
+/** What the server was last told for `lastRegisteredToken`, so a changed language re-registers. */
+let lastRegisteredLanguage: string | null = null;
 
 // Show banner + play sound even when the app is foregrounded so the tailor
 // gets confirmation for self-triggered events. Wrapped so a missing native
@@ -81,7 +83,7 @@ let lastRegisteredToken: string | null = null;
  * `null` when push isn't available (simulator, denied permission, missing
  * project id, etc.). Never throws.
  */
-export async function ensurePushRegistered(): Promise<string | null> {
+export async function ensurePushRegistered(language?: DeviceLanguage): Promise<string | null> {
   // Web has no native push (and web push is unreliable in iOS PWAs) — bail
   // before touching any native module. See lib/platform-capabilities.ts.
   if (!canUsePushNotifications) return null;
@@ -125,13 +127,15 @@ export async function ensurePushRegistered(): Promise<string | null> {
     const token = tokenResp.data;
 
     // Skip the round-trip if we registered this exact token this session.
-    if (lastRegisteredToken === token) return token;
+    if (lastRegisteredToken === token && (language ?? null) === lastRegisteredLanguage) return token;
 
     await api.notifications.registerToken({
       expoToken: token,
       platform: currentPlatform(),
+      ...(language ? { language } : {}),
     });
     lastRegisteredToken = token;
+    lastRegisteredLanguage = language ?? null;
     return token;
   } catch {
     // Network down on first run, permission revoked between checks, etc.
@@ -187,6 +191,7 @@ export async function unregisterPushOnSignOut(): Promise<void> {
     // will eventually prune dead tokens if delete fails.
   }
   lastRegisteredToken = null;
+  lastRegisteredLanguage = null;
 }
 
 /**

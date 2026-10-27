@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { deviceTokens, notificationSettings, notifications } from '../db/schema';
 import type {
+  DeviceLanguage,
   DevicePlatform,
   NotificationEntityType,
   NotificationType,
@@ -71,14 +72,38 @@ export class NotificationsService {
     userId: string,
     expoToken: string,
     platform: DevicePlatform,
+    language?: DeviceLanguage,
   ): Promise<void> {
     await this.dbService.db
       .insert(deviceTokens)
-      .values({ userId, expoToken, platform })
+      .values({ userId, expoToken, platform, language: language ?? null })
       .onConflictDoUpdate({
         target: [deviceTokens.userId, deviceTokens.expoToken],
-        set: { lastSeenAt: new Date(), platform },
+        // An install that does not send a language (an older build) must not
+        // wipe the one a newer build already told us — so it is only written
+        // when this call actually carries one.
+        set: { lastSeenAt: new Date(), platform, ...(language ? { language } : {}) },
       });
+  }
+
+  /**
+   * The language each of these users last said their phone is showing, for
+   * wording a push. A user with several phones gets the one seen most recently;
+   * a user nobody has heard a language from is simply absent from the map, and
+   * the caller treats that as English.
+   */
+  async deviceLanguages(userIds: string[]): Promise<Map<string, DeviceLanguage>> {
+    const out = new Map<string, DeviceLanguage>();
+    if (userIds.length === 0) return out;
+    const rows = await this.dbService.db
+      .select({ userId: deviceTokens.userId, language: deviceTokens.language })
+      .from(deviceTokens)
+      .where(and(inArray(deviceTokens.userId, userIds), isNotNull(deviceTokens.language)))
+      .orderBy(desc(deviceTokens.lastSeenAt));
+    for (const r of rows) {
+      if (r.language && !out.has(r.userId)) out.set(r.userId, r.language as DeviceLanguage);
+    }
+    return out;
   }
 
   /** Remove a token (called from the mobile sign-out flow). */

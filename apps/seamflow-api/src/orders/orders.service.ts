@@ -28,6 +28,7 @@ import {
 } from '@seamflow/schemas';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationPreferencesService } from '../notifications/notification-preferences.service';
+import { clientStatusBody } from './client-status-copy';
 
 // Human-friendly labels for push body text. Mirrors the mobile STATUS_LABEL
 // map so the wording stays consistent across surfaces. Living here avoids
@@ -431,14 +432,17 @@ export class OrdersService {
         .from(orderClaims)
         .where(eq(orderClaims.orderId, orderId));
 
-      const body =
-        to === 'delivered'
-          ? `“${orderName}” has been delivered`
-          : `“${orderName}” is ready for fitting`;
+      // One question for everyone, not one per customer: the language each
+      // phone last said it was showing. Anyone not in the map gets English.
+      const languages = await this.notifications.deviceLanguages(
+        claimants.map((c) => c.userId),
+      );
+      const kind = to === 'delivered' ? 'delivered' : 'ready_for_fitting';
 
       await Promise.all(
-        claimants.map((c) =>
-          this.notifications.emit(c.userId, {
+        claimants.map((c) => {
+          const body = clientStatusBody(kind, orderName, languages.get(c.userId));
+          return this.notifications.emit(c.userId, {
             type,
             // Snapshot the name: the row must still read correctly if the
             // order is later renamed or deleted.
@@ -449,8 +453,8 @@ export class OrdersService {
               body,
               data: { type, entityType: 'order', entityId: orderId },
             },
-          }),
-        ),
+          });
+        }),
       );
     } catch (err) {
       this.logger.warn(

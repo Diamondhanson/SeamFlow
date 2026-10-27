@@ -153,13 +153,20 @@ describe('OrdersService.create — all three writes or none', () => {
 describe('OrdersService.transition — telling the customer', () => {
   const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-  function setup(from: string, to: string, claimants: Array<{ userId: string }>) {
+  function setup(
+    from: string,
+    to: string,
+    claimants: Array<{ userId: string }>,
+    languages: Record<string, string> = {},
+  ) {
     const emitted: Array<{ userId: string; input: Record<string, any> }> = [];
     const notifications = {
       emit: async (userId: string, input: Record<string, any>) => {
         emitted.push({ userId, input });
       },
       fireAndForget: () => {},
+      // The language each phone last reported; anyone missing is English.
+      deviceLanguages: async () => new Map(Object.entries(languages)),
     };
     // getById → update … returning → audit event → claimants lookup
     const queue: unknown[][] = [
@@ -191,6 +198,29 @@ describe('OrdersService.transition — telling the customer', () => {
     await flush();
     expect(emitted).toHaveLength(1);
     expect(emitted[0]!.input.type).toBe('order.delivered');
+  });
+
+  it('words the push in each customer’s own language', async () => {
+    const { svc, emitted } = setup(
+      'in_progress',
+      'testing',
+      [{ userId: 'cust-fr' }, { userId: 'cust-ar' }, { userId: 'cust-unknown' }],
+      { 'cust-fr': 'fr', 'cust-ar': 'ar' },
+    );
+    await svc.transition(TAILOR, 'user-1', 'order-1', { to: 'testing' } as never);
+    await flush();
+    const body = (u: string) => emitted.find((e) => e.userId === u)!.input.push.body as string;
+    expect(body('cust-fr')).toBe('« Gown » est prêt pour l’essayage');
+    expect(body('cust-ar')).toBe('«Gown» جاهز للقياس');
+    // Nobody has told us this customer's language: English, as before.
+    expect(body('cust-unknown')).toBe('“Gown” is ready for fitting');
+  });
+
+  it('falls back to English for a language it has no wording for', async () => {
+    const { svc, emitted } = setup('testing', 'delivered', [{ userId: 'cust-1' }], { 'cust-1': 'xx' });
+    await svc.transition(TAILOR, 'user-1', 'order-1', { to: 'delivered' } as never);
+    await flush();
+    expect(emitted[0]!.input.push.body).toBe('“Gown” has been delivered');
   });
 
   it('says nothing for the designer’s internal steps', async () => {
