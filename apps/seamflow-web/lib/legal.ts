@@ -31,7 +31,7 @@ export interface LegalDoc {
 }
 
 /** ISO date shown as "Last updated" on both legal pages. */
-export const LEGAL_UPDATED = '2026-10-08';
+export const LEGAL_UPDATED = '2026-10-27';
 
 export const privacy: Record<Lang, LegalDoc> = {
   en: {
@@ -153,13 +153,20 @@ export const privacy: Record<Lang, LegalDoc> = {
         ],
       },
       {
-        heading: '14. Changes to this policy',
+        heading: '14. Cookies and similar storage',
+        paragraphs: [
+          'SeamFlow does not use advertising or analytics cookies, and we do not track you across other websites or apps.',
+          'The website remembers one display choice (which kind of visitor you said you were) in your browser’s local storage, on your own device. The browser version of the app keeps you signed in by storing your session the same way, so signing out or clearing site data ends it. Our hosting providers keep standard server logs, as described above. You can clear this storage at any time in your browser settings.',
+        ],
+      },
+      {
+        heading: '15. Changes to this policy',
         paragraphs: [
           'We may update this policy as SeamFlow evolves. The "last updated" date at the top reflects the latest version, and we will make reasonable efforts to notify you of material changes.',
         ],
       },
       {
-        heading: '15. Contact',
+        heading: '16. Contact',
         paragraphs: [
           'Questions about privacy? Email us at contactseamflow@gmail.com and we’ll get back to you.',
         ],
@@ -286,13 +293,20 @@ export const privacy: Record<Lang, LegalDoc> = {
         ],
       },
       {
-        heading: '14. Modifications de cette politique',
+        heading: '14. Cookies et stockage similaire',
+        paragraphs: [
+          'SeamFlow n’utilise ni cookies publicitaires ni cookies d’analyse, et nous ne vous suivons pas sur d’autres sites web ou applications.',
+          'Le site mémorise un seul choix d’affichage (le type de visiteur que vous avez indiqué) dans le stockage local de votre navigateur, sur votre propre appareil. La version navigateur de l’application vous garde connecté en conservant votre session de la même manière ; se déconnecter ou effacer les données du site y met fin. Nos hébergeurs conservent des journaux de serveur standard, comme décrit plus haut. Vous pouvez effacer ce stockage à tout moment dans les paramètres de votre navigateur.',
+        ],
+      },
+      {
+        heading: '15. Modifications de cette politique',
         paragraphs: [
           'Nous pouvons mettre à jour cette politique à mesure que SeamFlow évolue. La date de « dernière mise à jour » en haut de page correspond à la version la plus récente, et nous ferons des efforts raisonnables pour vous informer des changements importants.',
         ],
       },
       {
-        heading: '15. Contact',
+        heading: '16. Contact',
         paragraphs: [
           'Des questions sur la confidentialité ? Écrivez-nous à contactseamflow@gmail.com et nous vous répondrons.',
         ],
@@ -419,13 +433,20 @@ export const privacy: Record<Lang, LegalDoc> = {
         ],
       },
       {
-        heading: '14. Alterações a esta política',
+        heading: '14. Cookies e armazenamento semelhante',
+        paragraphs: [
+          'O SeamFlow não usa cookies de publicidade nem de análise, e não o rastreamos em outros sites ou aplicações.',
+          'O site memoriza uma única escolha de apresentação (o tipo de visitante que indicou) no armazenamento local do seu navegador, no seu próprio dispositivo. A versão da aplicação no navegador mantém a sua sessão iniciada guardando-a da mesma forma, por isso terminar a sessão ou limpar os dados do site termina-a. Os nossos fornecedores de alojamento mantêm registos de servidor padrão, como descrito acima. Pode limpar este armazenamento a qualquer momento nas definições do navegador.',
+        ],
+      },
+      {
+        heading: '15. Alterações a esta política',
         paragraphs: [
           'Podemos atualizar esta política à medida que o SeamFlow evolui. A data de «última atualização» no topo reflete a versão mais recente, e faremos esforços razoáveis para o avisar de alterações importantes.',
         ],
       },
       {
-        heading: '15. Contacto',
+        heading: '16. Contacto',
         paragraphs: [
           'Dúvidas sobre privacidade? Escreva para contactseamflow@gmail.com e respondemos.',
         ],
@@ -552,13 +573,20 @@ export const privacy: Record<Lang, LegalDoc> = {
         ],
       },
       {
-        heading: '14. Cambios en esta política',
+        heading: '14. Cookies y almacenamiento similar',
+        paragraphs: [
+          'SeamFlow no usa cookies publicitarias ni de análisis, y no te rastreamos en otros sitios web ni aplicaciones.',
+          'El sitio web recuerda una sola preferencia de visualización (el tipo de visitante que indicaste) en el almacenamiento local de tu navegador, en tu propio dispositivo. La versión de la aplicación en el navegador mantiene tu sesión iniciada guardándola del mismo modo, así que cerrar sesión o borrar los datos del sitio la termina. Nuestros proveedores de alojamiento conservan registros de servidor estándar, como se describe arriba. Puedes borrar este almacenamiento en cualquier momento desde los ajustes de tu navegador.',
+        ],
+      },
+      {
+        heading: '15. Cambios en esta política',
         paragraphs: [
           'Podemos actualizar esta política a medida que SeamFlow evoluciona. La fecha de «última actualización» en la parte superior refleja la versión más reciente, y haremos esfuerzos razonables por avisarle de los cambios importantes.',
         ],
       },
       {
-        heading: '15. Contacto',
+        heading: '16. Contacto',
         paragraphs: [
           '¿Preguntas sobre privacidad? Escríbanos a contactseamflow@gmail.com y le responderemos.',
         ],
@@ -685,13 +713,20 @@ export const privacy: Record<Lang, LegalDoc> = {
         ],
       },
       {
-        heading: '14. Mabadiliko ya sera hii',
+        heading: '14. Vidakuzi na uhifadhi unaofanana',
+        paragraphs: [
+          'SeamFlow haitumii vidakuzi vya matangazo wala vya uchambuzi, na hatukufuatilii kwenye tovuti au programu nyingine.',
+          'Tovuti hukumbuka chaguo moja la onyesho (aina ya mgeni uliyesema wewe ni) kwenye hifadhi ya ndani ya kivinjari chako, kwenye kifaa chako mwenyewe. Toleo la programu kwenye kivinjari hukuweka umeingia kwa kuhifadhi kikao chako kwa njia hiyo hiyo, hivyo kutoka au kufuta data ya tovuti hukimaliza. Watoa huduma wetu wa mwenyeji hutunza kumbukumbu za kawaida za seva, kama ilivyoelezwa hapo juu. Unaweza kufuta hifadhi hii wakati wowote kwenye mipangilio ya kivinjari chako.',
+        ],
+      },
+      {
+        heading: '15. Mabadiliko ya sera hii',
         paragraphs: [
           'Tunaweza kusasisha sera hii kadri SeamFlow inavyoendelea. Tarehe ya “ilisasishwa mwisho” juu inaonyesha toleo la hivi karibuni, na tutafanya juhudi za busara kukujulisha mabadiliko makubwa.',
         ],
       },
       {
-        heading: '15. Mawasiliano',
+        heading: '16. Mawasiliano',
         paragraphs: [
           'Maswali kuhusu faragha? Tuandikie contactseamflow@gmail.com nasi tutakujibu.',
         ],
@@ -818,13 +853,20 @@ export const privacy: Record<Lang, LegalDoc> = {
         ],
       },
       {
-        heading: '١٤. تغييرات هذه السياسة',
+        heading: '١٤. ملفات تعريف الارتباط والتخزين المشابه',
+        paragraphs: [
+          'لا يستخدم SeamFlow ملفات تعريف ارتباط إعلانية أو تحليلية، ولا نتتبعك عبر مواقع أو تطبيقات أخرى.',
+          'يتذكر الموقع اختيار عرض واحدًا (نوع الزائر الذي ذكرت أنك تنتمي إليه) في التخزين المحلي لمتصفحك على جهازك أنت. وتُبقيك نسخة التطبيق على المتصفح مسجّل الدخول بحفظ جلستك بالطريقة نفسها، لذا فإن تسجيل الخروج أو مسح بيانات الموقع ينهيها. يحتفظ مزوّدو الاستضافة لدينا بسجلات خوادم قياسية كما هو موضح أعلاه. يمكنك مسح هذا التخزين في أي وقت من إعدادات متصفحك.',
+        ],
+      },
+      {
+        heading: '١٥. تغييرات هذه السياسة',
         paragraphs: [
           'قد نُحدّث هذه السياسة مع تطوّر SeamFlow. ويعكس تاريخ «آخر تحديث» في الأعلى أحدث نسخة، وسنبذل جهدًا معقولًا لإخطارك بالتغييرات الجوهرية.',
         ],
       },
       {
-        heading: '١٥. التواصل',
+        heading: '١٦. التواصل',
         paragraphs: [
           'أسئلة عن الخصوصية؟ راسلنا على contactseamflow@gmail.com وسنعود إليك.',
         ],
