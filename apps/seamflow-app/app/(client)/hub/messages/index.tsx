@@ -26,6 +26,7 @@ import { useConversations } from '../../../../lib/queries';
 import { useFloatingScroll } from '../../../../lib/floating-scroll';
 import { spacing, radii, useThemeColors } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
+import { useRefreshControl } from '../../../../lib/use-refresh-control';
 
 /** "14:32" today, "Yesterday", else a short date. */
 function whenLabel(iso: string, t: (k: string) => string): string {
@@ -42,6 +43,7 @@ function whenLabel(iso: string, t: (k: string) => string): string {
 }
 
 export default function Messages() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
@@ -94,7 +96,7 @@ export default function Messages() {
           </View>
                   </View>
       ) : (
-        <ScrollView
+        <ScrollView refreshControl={refreshControl}
           {...scroll}
           contentContainerStyle={styles.list}
           onMomentumScrollEnd={() => {

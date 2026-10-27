@@ -15,6 +15,7 @@ import { useOrders } from '../../../lib/queries';
 import { useTranslation } from '../../../lib/i18n';
 import { radii, spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 // ============================================================================
 // Delivery calendar — a month grid highlighting days with a delivery due, and
@@ -35,6 +36,7 @@ function mondayIndex(jsDay: number) {
 }
 
 export default function CalendarScreen() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
   const scroll = useFloatingScroll();
@@ -107,7 +109,7 @@ export default function CalendarScreen() {
 
   return (
     <Screen bleed padded={false} width="wide">
-      <ScrollView
+      <ScrollView refreshControl={refreshControl}
         {...scroll}
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}

@@ -27,8 +27,10 @@ import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { useMe, useOpenRequests } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useTranslation, type LanguageCode } from '../../../lib/i18n';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 export default function RequestsBoard() {
+  const refreshControl = useRefreshControl();
   const { t, language } = useTranslation();
   const colors = useThemeColors();
 
@@ -50,7 +52,7 @@ export default function RequestsBoard() {
   return (
     <Screen bleed>
       <ScreenHeader title={t('requests.boardTitle')} />
-      <FormScroll contentContainerStyle={{ paddingBottom: 96 }}>
+      <FormScroll refreshControl={refreshControl} contentContainerStyle={{ paddingBottom: 96 }}>
         <HelpCard
           guideKey="flow.requests"
           title={t('requests.guideTitle')}

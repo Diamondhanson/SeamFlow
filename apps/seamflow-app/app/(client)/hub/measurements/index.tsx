@@ -17,8 +17,10 @@ import { api } from '../../../../lib/api';
 import { useDialog } from '../../../../lib/dialog';
 import { spacing, radii } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
+import { useRefreshControl } from '../../../../lib/use-refresh-control';
 
 export default function MeasurementsLocker() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
   const dialog = useDialog();
@@ -124,7 +126,7 @@ export default function MeasurementsLocker() {
           </Pressable>
         </View>
       ) : (
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           data={items}
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.list}

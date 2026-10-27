@@ -31,10 +31,12 @@ import { haptics } from '../../../lib/haptics';
 import { useTranslation } from '../../../lib/i18n';
 import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useContentWidth, useGridColumns } from '../../../lib/use-breakpoint';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 const GAP = spacing.sm;
 
 export default function SavedDesigns() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const { colors: atelier } = useAtelierTheme();
@@ -107,7 +109,7 @@ export default function SavedDesigns() {
       <View style={styles.padded}>
         <ScreenHeader title={t('saved.title')} />
       </View>
-      <FlatList
+      <FlatList refreshControl={refreshControl}
         data={rows}
         keyExtractor={(r) => r.feedPostId}
         numColumns={columns}

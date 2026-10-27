@@ -11,6 +11,7 @@ import { LoadFailed } from '../../../../components/LoadFailed';
 import { useConsumerOrder } from '../../../../lib/consumer-queries';
 import { spacing, radii } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
+import { useRefreshControl } from '../../../../lib/use-refresh-control';
 
 const STATUS_TONE: Record<OrderStatus, keyof SemanticColors> = {
   registered: 'statusRegistered',
@@ -21,6 +22,7 @@ const STATUS_TONE: Record<OrderStatus, keyof SemanticColors> = {
 };
 
 export default function ConsumerOrderDetail() {
+  const refreshControl = useRefreshControl();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
@@ -56,7 +58,7 @@ export default function ConsumerOrderDetail() {
   return (
     <Screen bleed>
       <ScreenHeader title={order.orderName} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
+      <ScrollView refreshControl={refreshControl} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 96 }}>
         {/* Summary */}
         <View style={[styles.hero, { backgroundColor: colors.surface, borderColor: colors.hairline }]}>
           <View style={[styles.chip, { backgroundColor: withAlpha(tone, 0.16), alignSelf: 'flex-start' }]}>

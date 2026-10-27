@@ -38,6 +38,7 @@ import {
 import { useNotificationDetail } from '../../lib/notification-detail';
 import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
+import { useRefreshControl } from '../../lib/use-refresh-control';
 
 /** Icon per family. Falls back rather than throwing on an unknown type. */
 function iconFor(type: string): keyof typeof Ionicons.glyphMap {
@@ -77,6 +78,7 @@ const TAILOR_ROUTES = {
 };
 
 export default function Notifications() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const q = useNotifications();
@@ -189,7 +191,7 @@ export default function Notifications() {
           history. A .map does not trip React Native's nested-VirtualizedList
           warning, which is why it went unnoticed — the orders, clients, groups
           and fabrics lists all use FlatList already. */}
-      <FlatList
+      <FlatList refreshControl={refreshControl}
         data={items}
         keyExtractor={(n) => n.id}
         contentContainerStyle={styles.list}

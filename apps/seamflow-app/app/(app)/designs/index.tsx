@@ -20,8 +20,10 @@ import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 export default function DesignStudio() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { colors, radii } = useAtelierTheme();
   const qc = useQueryClient();
@@ -208,7 +210,7 @@ export default function DesignStudio() {
           </Text>
         </View>
       ) : (
-        <ScrollView
+        <ScrollView refreshControl={refreshControl}
           {...scroll}
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}

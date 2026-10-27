@@ -20,6 +20,7 @@ import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
 import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 // ============================================================================
 // Global orders list with filters — Phase 1.10, restyled to the redesign.
@@ -32,6 +33,7 @@ import { BOTTOM_CHROME_SPACE } from '../../../components/BottomNav';
 type TimeFilter = 'all' | 'overdue' | 'thisWeek';
 
 export default function OrdersList() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
   // Deep-linkable: home's "Overdue" pill and global search open this list with
@@ -170,7 +172,7 @@ export default function OrdersList() {
           {t('orders.emptyNoMatch')}
         </Text>
       ) : (
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           {...scroll}
           data={items}
           keyExtractor={(o) => o.id}

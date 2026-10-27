@@ -142,3 +142,79 @@ describe('OrdersService.create — all three writes or none', () => {
     expect(db.committed).not.toContain('insert');
   });
 });
+
+// What a customer is told when the designer moves their order.
+//
+// The customer is reached through `order_claims` (the order↔account link made
+// when they save a shared order). Only the statuses that are theirs to care
+// about notify them — see CLIENT_VISIBLE_STATUS — and a walk-in order with no
+// claim has nobody to notify. Nothing checked any of this before, so a refactor
+// of `transition` could have silenced customers without a single test failing.
+describe('OrdersService.transition — telling the customer', () => {
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  function setup(from: string, to: string, claimants: Array<{ userId: string }>) {
+    const emitted: Array<{ userId: string; input: Record<string, any> }> = [];
+    const notifications = {
+      emit: async (userId: string, input: Record<string, any>) => {
+        emitted.push({ userId, input });
+      },
+      fireAndForget: () => {},
+    };
+    // getById → update … returning → audit event → claimants lookup
+    const queue: unknown[][] = [
+      [order({ status: from })],
+      [order({ status: to })],
+      [],
+      claimants,
+    ];
+    const db = fakeDbQueue(queue);
+    const svc = new OrdersService(db.service as never, notifications as never, noPrefs as never);
+    return { svc, emitted };
+  }
+
+  it('tells every customer who saved the order when it is ready for fitting', async () => {
+    const { svc, emitted } = setup('in_progress', 'testing', [{ userId: 'cust-1' }, { userId: 'cust-2' }]);
+    await svc.transition(TAILOR, 'user-1', 'order-1', { to: 'testing' } as never);
+    await flush();
+    expect(emitted.map((e) => e.userId).sort()).toEqual(['cust-1', 'cust-2']);
+    expect(emitted[0]!.input.type).toBe('order.ready_for_fitting');
+    expect(emitted[0]!.input.entity).toEqual({ type: 'order', id: 'order-1' });
+    // The inbox row keeps the name as a snapshot, and the push opens the order.
+    expect(emitted[0]!.input.params).toEqual({ orderName: 'Gown' });
+    expect(emitted[0]!.input.push.data).toMatchObject({ entityType: 'order', entityId: 'order-1' });
+  });
+
+  it('tells them when it has been delivered', async () => {
+    const { svc, emitted } = setup('testing', 'delivered', [{ userId: 'cust-1' }]);
+    await svc.transition(TAILOR, 'user-1', 'order-1', { to: 'delivered' } as never);
+    await flush();
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0]!.input.type).toBe('order.delivered');
+  });
+
+  it('says nothing for the designer’s internal steps', async () => {
+    // Only three queries run: no claimants lookup is even attempted.
+    const { svc, emitted } = setup('registered', 'in_progress', [{ userId: 'cust-1' }]);
+    await svc.transition(TAILOR, 'user-1', 'order-1', { to: 'in_progress' } as never);
+    await flush();
+    expect(emitted).toHaveLength(0);
+  });
+
+  it('has nobody to tell for a walk-in order that no customer saved', async () => {
+    const { svc, emitted } = setup('in_progress', 'testing', []);
+    await svc.transition(TAILOR, 'user-1', 'order-1', { to: 'testing' } as never);
+    await flush();
+    expect(emitted).toHaveLength(0);
+  });
+
+  it('still completes the status change when telling the customer fails', async () => {
+    const { svc } = setup('in_progress', 'testing', [{ userId: 'cust-1' }]);
+    (svc as any).notifications.emit = async () => {
+      throw new Error('push provider down');
+    };
+    const row = await svc.transition(TAILOR, 'user-1', 'order-1', { to: 'testing' } as never);
+    await flush();
+    expect(row.status).toBe('testing');
+  });
+});

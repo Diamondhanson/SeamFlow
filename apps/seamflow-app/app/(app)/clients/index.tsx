@@ -20,8 +20,10 @@ import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 export default function ClientsList() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const dialog = useDialog();
   const [q, setQ] = useState('');
@@ -103,7 +105,7 @@ export default function ClientsList() {
           {t('clients.emptyList')}
         </Text>
       ) : (
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           {...scroll}
           data={items}
           keyExtractor={(c) => c.id}

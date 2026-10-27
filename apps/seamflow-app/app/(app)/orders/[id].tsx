@@ -50,6 +50,7 @@ import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useTranslation } from '../../../lib/i18n';
 import { draftKey, useDraft } from '../../../lib/drafts';
 import { NO_PENDING, type PendingMeasurement } from '../../../components/MeasurementsEditor';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 const STATUS_TONE: Record<OrderStatus, ChipTone> = {
   registered: 'statusRegistered',
@@ -60,6 +61,7 @@ const STATUS_TONE: Record<OrderStatus, ChipTone> = {
 };
 
 export default function OrderDetailScreen() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const statusLabel = (s: OrderStatus) => t(`orders.status_${s}`);
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -355,7 +357,7 @@ export default function OrderDetailScreen() {
   return (
     <Screen bleed>
       <ScreenHeader title={order.orderName} />
-      <FormScroll
+      <FormScroll refreshControl={refreshControl}
         contentContainerStyle={{ paddingBottom: 96 }}
         showsVerticalScrollIndicator={false}
       >

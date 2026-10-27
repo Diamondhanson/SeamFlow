@@ -27,8 +27,10 @@ import {
 import { radii, spacing, useThemeColors } from '../../../../lib/theme';
 import { useDialog } from '../../../../lib/dialog';
 import { useTranslation } from '../../../../lib/i18n';
+import { useRefreshControl } from '../../../../lib/use-refresh-control';
 
 export default function RequestDetail() {
+  const refreshControl = useRefreshControl();
   const { t, language } = useTranslation();
   const colors = useThemeColors();
   const dialog = useDialog();
@@ -90,7 +92,7 @@ export default function RequestDetail() {
   return (
     <Screen bleed>
       <ScreenHeader title={request.title || garmentLabel(request.garmentType, language)} />
-      <FormScroll contentContainerStyle={{ paddingBottom: 96 }}>
+      <FormScroll refreshControl={refreshControl} contentContainerStyle={{ paddingBottom: 96 }}>
         {photo ? <Image source={{ uri: photo }} style={styles.hero} resizeMode="cover" /> : null}
 
         <Card>

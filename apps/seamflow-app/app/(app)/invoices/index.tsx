@@ -14,11 +14,13 @@ import { useInvoices, useOrders } from '../../../lib/queries';
 import { spacing } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 const money = (amt: number, cur: string | null) =>
   cur ? formatCurrency(amt, cur) : String(amt);
 
 export default function InvoicingHome() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
   const scroll = useFloatingScroll();
@@ -71,7 +73,7 @@ export default function InvoicingHome() {
           message={t('guides.invoicesBody')}
         />
       </View>
-      <ScrollView
+      <ScrollView refreshControl={refreshControl}
         {...scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.body}

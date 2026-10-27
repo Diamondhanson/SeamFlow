@@ -66,6 +66,7 @@ import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useDialog } from '../../lib/dialog';
 import { reportContent } from '../../lib/report';
 import { useTranslation } from '../../lib/i18n';
+import { useRefreshControl } from '../../lib/use-refresh-control';
 
 export interface StorefrontViewProps {
   tailor: TailorPublicProfile | undefined;
@@ -99,6 +100,7 @@ export function StorefrontView({
   notFound,
   notFoundLabel,
 }: StorefrontViewProps) {
+  const refreshControl = useRefreshControl();
   const { t, language } = useTranslation();
   const lang: GarmentLang = (['en', 'fr', 'pt', 'es', 'sw', 'ar'] as const).includes(
     language as never,
@@ -142,7 +144,7 @@ export function StorefrontView({
 
   return (
     <Screen padded={false} width="wide">
-      <ScrollView {...scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView refreshControl={refreshControl} {...scroll} showsVerticalScrollIndicator={false}>
         {tailor ? (
           <ShopHeader
             tailor={tailor}

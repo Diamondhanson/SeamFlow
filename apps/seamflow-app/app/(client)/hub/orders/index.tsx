@@ -12,6 +12,7 @@ import { BOTTOM_CHROME_SPACE } from '../../../../components/BottomNav';
 import { useConsumerOrders } from '../../../../lib/consumer-queries';
 import { spacing, radii } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
+import { useRefreshControl } from '../../../../lib/use-refresh-control';
 
 const STATUS_TONE: Record<OrderStatus, keyof SemanticColors> = {
   registered: 'statusRegistered',
@@ -22,6 +23,7 @@ const STATUS_TONE: Record<OrderStatus, keyof SemanticColors> = {
 };
 
 export default function OrdersInbox() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { colors } = useAtelierTheme();
   const { data, isLoading, isError, refetch } = useConsumerOrders();
@@ -71,7 +73,7 @@ export default function OrdersInbox() {
           </Pressable>
         </View>
       ) : (
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           data={items}
           keyExtractor={(o) => o.id}
           contentContainerStyle={styles.list}

@@ -42,6 +42,7 @@ import { spacing } from '../../lib/theme';
 import { useContentWidth } from '../../lib/use-breakpoint';
 import { useFloatingScroll } from '../../lib/floating-scroll';
 import { useTranslation } from '../../lib/i18n';
+import { useRefreshControl } from '../../lib/use-refresh-control';
 
 const GAP = spacing.md;
 
@@ -52,6 +53,7 @@ function greetingKeyFor(hour: number): 'goodMorning' | 'goodAfternoon' | 'goodEv
 }
 
 export default function Home() {
+  const refreshControl = useRefreshControl();
   const { signOut } = useAuth();
   const { data: me, error, isLoading: meLoading } = useMe();
   const { colors } = useAtelierTheme();
@@ -146,7 +148,7 @@ export default function Home() {
 
   return (
     <Screen bleed padded={false} width="wide">
-      <ScrollView
+      <ScrollView refreshControl={refreshControl}
         {...scroll}
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}

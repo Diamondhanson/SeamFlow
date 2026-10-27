@@ -42,6 +42,7 @@ import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useAuth } from '../../../lib/auth-context';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 const AUDIENCES: WorkAudience[] = ['women', 'men', 'unisex', 'children'];
 const OCCASIONS: WorkOccasion[] = [
@@ -53,6 +54,7 @@ const OCCASIONS: WorkOccasion[] = [
 ];
 
 export default function Discover() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
@@ -310,7 +312,7 @@ export default function Discover() {
           ) : null}
         </View>
       ) : (
-        <ScrollView
+        <ScrollView refreshControl={refreshControl}
           {...scroll}
           onScroll={onGridScroll}
           contentContainerStyle={styles.grid}

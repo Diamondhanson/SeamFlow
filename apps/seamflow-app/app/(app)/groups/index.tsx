@@ -30,6 +30,7 @@ import { useTranslation } from '../../../lib/i18n';
 import { usePremiumGate } from '../../../lib/subscription';
 import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
 import { useDialog } from '../../../lib/dialog';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 const GROUP_STATUS_LABEL_KEY: Record<GroupOrderStatus, string> = {
   planning: 'groups.statusPlanning',
@@ -109,6 +110,7 @@ function GroupCard({ group, onPress }: { group: GroupOrder; onPress: () => void 
 }
 
 export default function GroupsList() {
+  const refreshControl = useRefreshControl();
   const premium = usePremiumGate();
   const { data, isLoading, isError, error, refetch } = useGroupOrders();
   const { colors } = useAtelierTheme();
@@ -183,7 +185,7 @@ export default function GroupsList() {
           {t('groups.noGroupsYet')}
         </Text>
       ) : (
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           {...scroll}
           data={items}
           keyExtractor={(g) => g.id}

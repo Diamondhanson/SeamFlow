@@ -38,6 +38,7 @@ import {
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useNotificationDetail } from '../../../lib/notification-detail';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 /** Icon per family. Falls back rather than throwing on an unknown type. */
 function iconFor(type: string): keyof typeof Ionicons.glyphMap {
@@ -74,6 +75,7 @@ const CLIENT_ROUTES = {
 };
 
 export default function Notifications() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const q = useNotifications();
@@ -169,7 +171,7 @@ export default function Notifications() {
         </View>
       ) : null}
 
-      <ScrollView
+      <ScrollView refreshControl={refreshControl}
         contentContainerStyle={styles.list}
         onScroll={({ nativeEvent: e }) => {
           const nearEnd =

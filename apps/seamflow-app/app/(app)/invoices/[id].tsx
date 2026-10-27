@@ -40,6 +40,7 @@ import { parseDecimal, parsePositive } from '../../../lib/numeric';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 // Local, editable line (numbers kept as strings for smooth text editing).
 interface EditLine {
@@ -61,6 +62,7 @@ const toEdit = (l: InvoiceLineItem): EditLine => ({
 const num = (s: string) => parseDecimal(s) ?? 0;
 
 export default function InvoiceEditor() {
+  const refreshControl = useRefreshControl();
   // Two entry modes: an existing invoice (`id` is the invoice id) or a fresh
   // one for an order (`orderId` set — we create-or-open it here so the tap on
   // the list navigates instantly instead of waiting on the create round-trip).
@@ -299,7 +301,7 @@ export default function InvoiceEditor() {
         title={invoice.number}
         subtitle={`${t(`invoices.status_${invoice.status}`)} · ${invoice.clientName ?? ''}`}
       />
-      <FormScroll
+      <FormScroll refreshControl={refreshControl}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
       >

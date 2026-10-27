@@ -46,10 +46,12 @@ import { useGridColumns, useContentWidth } from '../../../lib/use-breakpoint';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 type PublishedFilter = 'all' | 'published' | 'unpublished';
 
 export default function MyDesigns() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const dialog = useDialog();
@@ -417,7 +419,7 @@ export default function MyDesigns() {
           </Text>
         </View>
       ) : (
-        <ScrollView
+        <ScrollView refreshControl={refreshControl}
           {...scroll}
           contentContainerStyle={styles.grid}
           showsVerticalScrollIndicator={false}

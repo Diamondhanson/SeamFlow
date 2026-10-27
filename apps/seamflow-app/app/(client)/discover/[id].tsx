@@ -45,8 +45,10 @@ import { api } from '../../../lib/api';
 import { haptics } from '../../../lib/haptics';
 import { reportContent } from '../../../lib/report';
 import { useTranslation } from '../../../lib/i18n';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 export default function DesignDetail() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const { colors: atelier } = useAtelierTheme();
@@ -169,7 +171,7 @@ export default function DesignDetail() {
 
   return (
     <Screen bleed padded={false}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView refreshControl={refreshControl} showsVerticalScrollIndicator={false}>
         <View>
           <HeroCarousel
             images={post.images}

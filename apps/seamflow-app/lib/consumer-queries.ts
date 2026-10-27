@@ -72,8 +72,17 @@ export function useCreateConversation() {
 // ── Consumer inbox: orders claimed by share-link, and the measurement locker ──
 
 /** The user's unified orders inbox, across every tailor. */
+// `refetchOnMount: 'always'` on both order queries: a customer opens their order
+// precisely because the designer moved it, usually by tapping the notification.
+// With the app-wide 5 minute freshness window, an order they had looked at a
+// minute earlier would otherwise open showing the OLD status and only correct
+// itself later. The cached copy still paints first; the new one replaces it.
 export const useConsumerOrders = () =>
-  useQuery({ queryKey: qk.consumerOrders(), queryFn: () => api.consumer.listOrders() });
+  useQuery({
+    queryKey: qk.consumerOrders(),
+    queryFn: () => api.consumer.listOrders(),
+    refetchOnMount: 'always',
+  });
 
 /** Full detail for one claimed order. */
 export const useConsumerOrder = (id: string) =>
@@ -81,6 +90,7 @@ export const useConsumerOrder = (id: string) =>
     queryKey: qk.consumerOrder(id),
     queryFn: () => api.consumer.getOrder(id),
     enabled: !!id,
+    refetchOnMount: 'always',
   });
 
 /** The user's measurement locker: their own sets + tailor-saved ones. */

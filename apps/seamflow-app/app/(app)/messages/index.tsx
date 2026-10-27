@@ -26,6 +26,7 @@ import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 /** "14:32" today, "Yesterday", else a short date. */
 function whenLabel(iso: string, t: (k: string) => string): string {
@@ -42,6 +43,7 @@ function whenLabel(iso: string, t: (k: string) => string): string {
 }
 
 export default function Messages() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const scroll = useFloatingScroll();
@@ -115,7 +117,7 @@ export default function Messages() {
            stayed mounted and memory grew for as long as someone kept going.
            `{...scroll}` passes straight through, the same way the orders list
            already uses it. */
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           {...scroll}
           data={items}
           keyExtractor={(c) => c.id}

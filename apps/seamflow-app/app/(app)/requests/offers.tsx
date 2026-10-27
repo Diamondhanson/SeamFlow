@@ -20,8 +20,10 @@ import { useMyOffers, useWithdrawOffer } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { useDialog } from '../../../lib/dialog';
 import { useTranslation } from '../../../lib/i18n';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 export default function MyOffers() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const dialog = useDialog();
@@ -44,7 +46,7 @@ export default function MyOffers() {
   return (
     <Screen bleed>
       <ScreenHeader title={t('requests.myOffersTitle')} />
-      <FormScroll contentContainerStyle={{ paddingBottom: 96 }}>
+      <FormScroll refreshControl={refreshControl} contentContainerStyle={{ paddingBottom: 96 }}>
         {q.isLoading ? (
           <SkeletonList chip />
         ) : items.length === 0 ? (

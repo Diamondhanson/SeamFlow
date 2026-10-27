@@ -29,12 +29,14 @@ import { useContactActions } from '../../../lib/contact-actions';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
 import { draftKey, useDraft } from '../../../lib/drafts';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 /** Starting contents of the manual measurement-set box. Also the yardstick for
  *  "has this been touched?" — see the draft wiring below. */
 const BLANK_VALUES_JSON = '{\n  "chest": 88,\n  "waist": 70,\n  "hips": 96\n}';
 
 export default function ClientDetail() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const clientQ = useClient(id);
@@ -146,7 +148,7 @@ export default function ClientDetail() {
   return (
     <Screen bleed>
       <ScreenHeader title={client.fullName} />
-      <FormScroll
+      <FormScroll refreshControl={refreshControl}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
       >

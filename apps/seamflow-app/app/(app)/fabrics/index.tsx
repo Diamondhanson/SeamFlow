@@ -18,8 +18,10 @@ import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useDebouncedValue } from '../../../lib/use-debounced-value';
 import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 export default function FabricsList() {
+  const refreshControl = useRefreshControl();
   const { data, isLoading, isError, refetch } = useFabrics();
   // Refresh when returning from create / edit / delete so the list is current.
   useFocusEffect(useCallback(() => { void refetch(); }, [refetch]));
@@ -102,7 +104,7 @@ export default function FabricsList() {
         // fabric library.
         <LoadFailed onRetry={() => void refetch()} />
       ) : (
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           {...scroll}
           data={items}
           keyExtractor={(f) => f.id}

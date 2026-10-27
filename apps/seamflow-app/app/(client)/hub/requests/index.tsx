@@ -15,8 +15,10 @@ import { Button } from '../../../../components/Button';
 import { useMyRequests } from '../../../../lib/consumer-queries';
 import { spacing, useThemeColors } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
+import { useRefreshControl } from '../../../../lib/use-refresh-control';
 
 export default function MyRequests() {
+  const refreshControl = useRefreshControl();
   const { t, language } = useTranslation();
   const colors = useThemeColors();
   const q = useMyRequests();
@@ -25,7 +27,7 @@ export default function MyRequests() {
   return (
     <Screen bleed>
       <ScreenHeader title={t('crequests.mineTitle')} />
-      <FormScroll contentContainerStyle={{ paddingBottom: BOTTOM_CHROME_SPACE }}>
+      <FormScroll refreshControl={refreshControl} contentContainerStyle={{ paddingBottom: BOTTOM_CHROME_SPACE }}>
         <Button
           label={t('crequests.askForSomething')}
           onPress={() => router.push('/hub/requests/new')}

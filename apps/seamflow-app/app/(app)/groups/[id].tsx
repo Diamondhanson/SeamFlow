@@ -53,8 +53,10 @@ import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
 import { draftKey, useDraft } from '../../../lib/drafts';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 export default function GroupDetail() {
+  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const groupQ = useGroupOrder(id);
@@ -242,7 +244,7 @@ export default function GroupDetail() {
   return (
     <Screen bleed>
       <ScreenHeader title={group.name} />
-      <FormScroll
+      <FormScroll refreshControl={refreshControl}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
       >

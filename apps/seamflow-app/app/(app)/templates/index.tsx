@@ -21,12 +21,14 @@ import { useFloatingScroll } from '../../../lib/floating-scroll';
 import { useTranslation } from '../../../lib/i18n';
 import { useResponsiveValue, useContentWidth } from '../../../lib/use-breakpoint';
 import { useDialog } from '../../../lib/dialog';
+import { useRefreshControl } from '../../../lib/use-refresh-control';
 
 // Quick-start garments. Each opens the new-template form (passing the garment
 // so the form can pre-fill it once it reads the param).
 const STARTERS = ['Agbada', 'Suit', 'Lehenga', 'Abaya', 'Kaftan', 'Gown'];
 
 export default function TemplatesList() {
+  const refreshControl = useRefreshControl();
   const [items, setItems] = useState<MeasurementTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const { colors } = useAtelierTheme();
@@ -130,7 +132,7 @@ export default function TemplatesList() {
           <SkeletonList leading="square" />
         </View>
       ) : (
-        <FlatList
+        <FlatList refreshControl={refreshControl}
           {...scroll}
           data={items}
           keyExtractor={(t) => t.id}
