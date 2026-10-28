@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq, gte, ilike, lte, type SQL } from 'drizzle-orm';
+import { and, desc, eq, gte, ilike, lte, ne, type SQL } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import {
   clients,
@@ -61,6 +61,8 @@ interface ListOptions {
   /** ISO timestamps — caller-side semantics: inclusive on both ends. */
   dueBefore?: string;
   dueAfter?: string;
+  /** 'true' excludes delivered orders. */
+  open?: 'true' | 'false';
 }
 
 @Injectable()
@@ -195,6 +197,7 @@ export class OrdersService {
     if (opts.dueBefore) {
       filters.push(lte(orders.dateDelivery, new Date(opts.dueBefore)));
     }
+    if (opts.open === 'true') filters.push(ne(orders.status, 'delivered'));
     return this.dbService.db
       .select()
       .from(orders)

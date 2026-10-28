@@ -208,6 +208,16 @@ export default function ClientHome() {
           </Text>
         </Pressable>
 
+        <Pressable onPress={() => router.push('/hub/appearance')} hitSlop={8} style={styles.signOut}>
+          <Ionicons name="contrast-outline" size={16} color={themeColors.textMuted} />
+          <Text variant="bodySm" tone="textMuted">{t('settings.appearance')}</Text>
+        </Pressable>
+
+        <Pressable onPress={() => router.push('/hub/blocked')} hitSlop={8} style={styles.signOut}>
+          <Ionicons name="hand-left-outline" size={16} color={themeColors.textMuted} />
+          <Text variant="bodySm" tone="textMuted">{t('report.blockedTitle')}</Text>
+        </Pressable>
+
         {/* How long messages and chat photos are kept (plan step 5). */}
         <Pressable
           onPress={() =>

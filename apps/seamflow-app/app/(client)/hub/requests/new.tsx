@@ -32,6 +32,7 @@ import { pickPhoto, uploadRequestPhoto } from '../../../../lib/photo-upload';
 import { radii, spacing, useThemeColors } from '../../../../lib/theme';
 import { useDialog } from '../../../../lib/dialog';
 import { useTranslation } from '../../../../lib/i18n';
+import { useSubmitOnce } from '../../../../lib/use-submit-once';
 
 export default function NewRequest() {
   const { t, language } = useTranslation();
@@ -39,6 +40,7 @@ export default function NewRequest() {
   const dialog = useDialog();
   const { session } = useAuth();
   const create = useCreateRequest();
+  const begin = useSubmitOnce();
 
   const [photos, setPhotos] = useState<RequestPhoto[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -81,6 +83,8 @@ export default function NewRequest() {
 
   const post = () => {
     if (!garmentType) return;
+    const release = begin();
+    if (!release) return;
     create.mutate(
       {
         description: description.trim(),
@@ -101,7 +105,10 @@ export default function NewRequest() {
         onSuccess: (created) => {
           router.replace(`/hub/requests/${created.id}`);
         },
-        onError: (err) => void dialog.error(err),
+        onError: (err) => {
+          release();
+          void dialog.error(err);
+        },
       },
     );
   };

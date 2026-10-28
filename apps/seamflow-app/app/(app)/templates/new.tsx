@@ -34,6 +34,8 @@ import { useTranslation } from '../../../lib/i18n';
 import { draftKey, useDraft } from '../../../lib/drafts';
 import { useDialog } from '../../../lib/dialog';
 import { useAiConsent } from '../../../lib/ai-consent';
+import { useSubmitOnce } from '../../../lib/use-submit-once';
+import { settleModals } from '../../../lib/modal-gap';
 
 export default function NewTemplate() {
   const { t } = useTranslation();
@@ -55,6 +57,7 @@ export default function NewTemplate() {
   const [scanning, setScanning] = useState(false);
   const [scanBanner, setScanBanner] = useState(false);
   const create = useCreateTemplate();
+  const begin = useSubmitOnce();
   const { data: me } = useMe();
   const tailorId = me?.tailor?.id;
   const dialog = useDialog();
@@ -87,6 +90,9 @@ export default function NewTemplate() {
       const { extraction, image, previewUri } = result;
       if (extraction.items.length === 0) {
         void discardScanUpload(image);
+        setScanning(false);
+        setScanningUri(null);
+        await settleModals();
         await dialog.alert({
           title: t('templates.scanEmptyTitle'),
           message: t('templates.scanEmptyBody'),
@@ -116,6 +122,9 @@ export default function NewTemplate() {
 
       // Extract → review → save: the fields land in the normal editor above;
       // the photo itself is optional — attach as a reference image or discard.
+      setScanning(false);
+      setScanningUri(null);
+      await settleModals();
       const attach = await dialog.confirm({
         title: t('templates.scanAttachTitle'),
         message: t('templates.scanAttachBody'),
@@ -127,6 +136,9 @@ export default function NewTemplate() {
         void discardScanUpload(image);
       }
     } catch (err) {
+      setScanning(false);
+      setScanningUri(null);
+      await settleModals();
       if (err instanceof ApiError && err.status === 503) {
         await dialog.alert({
           title: t('templates.scanUnavailableTitle'),
@@ -186,6 +198,8 @@ export default function NewTemplate() {
 
   const submit = () => {
     if (!name.trim()) return;
+    const release = begin();
+    if (!release) return;
     create.mutate(
       {
         name,
@@ -200,7 +214,10 @@ export default function NewTemplate() {
           router.dismiss();
           router.push(`/(app)/templates/${t.id}`);
         },
-        onError: (err) => void dialog.error(err),
+        onError: (err) => {
+          release();
+          void dialog.error(err);
+        },
       },
     );
   };

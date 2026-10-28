@@ -147,6 +147,36 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const queue = useRef<Pending[]>([]);
   const idRef = useRef(0);
 
+  // The dialog on screen right now. Mirrored in a ref because the bookkeeping
+  // below must run exactly once per call. It used to live inside `setPending`
+  // updater functions — pushing to the queue and resolving promises as side
+  // effects — and React is free to run an updater more than once. A queued dialog
+  // could then be pushed twice or skipped, and a skipped one is a promise nobody
+  // ever resolves: the caller's `await dialog.…()` hangs, and with it whatever
+  // screen was waiting to move on.
+  const current = useRef<Pending | null>(null);
+
+  // When the last dialog closed. A dialog is a native modal, and on iPhone a
+  // modal cannot be shown while another is still animating away: it is silently
+  // dropped, and the caller's `await` never returns. Dialogs routinely follow one
+  // another (pick a reason → write a note → "report sent"), so each is held back
+  // until the previous has had time to finish closing.
+  const closedAt = useRef(0);
+  const DIALOG_GAP_MS = 380;
+
+  const show = useCallback((p: Pending | null) => {
+    current.current = p;
+    if (!p) {
+      setPending(null);
+      return;
+    }
+    const wait = Math.max(0, closedAt.current + DIALOG_GAP_MS - Date.now());
+    // The slot is claimed straight away, so anything enqueued during the gap
+    // lines up behind this one instead of racing it.
+    if (wait === 0) setPending(p);
+    else setTimeout(() => setPending(p), wait);
+  }, []);
+
   const enqueue = useCallback((req: Request) => {
     // The phone confirms the OUTCOME, not the press. A dialog appearing is
     // always the result of something having happened, which is exactly the
@@ -157,24 +187,24 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     else if (tone === 'warning') haptics.warning();
     return new Promise<unknown>((resolve) => {
       const p: Pending = { id: ++idRef.current, req, resolve };
-      setPending((cur) => {
-        if (cur) {
-          queue.current.push(p);
-          return cur;
-        }
-        return p;
-      });
+      if (current.current) queue.current.push(p);
+      else show(p);
     });
-  }, []);
+  }, [show]);
 
   // Resolve the visible dialog, then surface the next queued one (so rapid
-  // successive calls — e.g. an error right after another — don't stomp).
-  const finish = useCallback((value: unknown) => {
-    setPending((cur) => {
-      cur?.resolve(value);
-      return queue.current.shift() ?? null;
-    });
-  }, []);
+  // successive calls — e.g. an error right after another — don't stomp). Keyed
+  // by id so a double-tap on a button cannot resolve the NEXT dialog too.
+  const finish = useCallback((id: number, value: unknown) => {
+    const cur = current.current;
+    if (!cur || cur.id !== id) return;
+    closedAt.current = Date.now();
+    setPending(null);
+    current.current = null;
+    cur.resolve(value);
+    const next = queue.current.shift();
+    if (next) show(next);
+  }, [show]);
 
   const api = useMemo<DialogApi>(
     () => ({
@@ -230,7 +260,7 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   return (
     <DialogContext.Provider value={api}>
       {children}
-      <DialogHost pending={pending} onResolve={finish} />
+      <DialogHost pending={pending} onResolve={(value) => pending && finish(pending.id, value)} />
     </DialogContext.Provider>
   );
 }

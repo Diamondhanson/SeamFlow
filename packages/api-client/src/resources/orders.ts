@@ -20,6 +20,8 @@ export interface ListOrdersQuery {
   dueBefore?: string;
   /** ISO timestamp. */
   dueAfter?: string;
+  /** 'true' leaves out delivered orders. */
+  open?: 'true';
 }
 
 export interface ListOrdersResponse {

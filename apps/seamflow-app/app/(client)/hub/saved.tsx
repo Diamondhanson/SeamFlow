@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { FlatList } from '../../../components/EdgeScroll';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import type { SavedDesign } from '@seamflow/schemas';
 import { Text, useAtelierTheme } from '@seamflow/ui';
@@ -36,7 +36,6 @@ import { useRefreshControl } from '../../../lib/use-refresh-control';
 const GAP = spacing.sm;
 
 export default function SavedDesigns() {
-  const refreshControl = useRefreshControl();
   const { t } = useTranslation();
   const colors = useThemeColors();
   const { colors: atelier } = useAtelierTheme();
@@ -59,9 +58,16 @@ export default function SavedDesigns() {
     }
   }, []);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  // Reload whenever this screen comes back into view, so a design unsaved from
+  // its own page is gone from this list as soon as you return to it — and a
+  // pull reloads it too (it is not in the query cache, so the generic refresh
+  // would not have touched it).
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
+  const refreshControl = useRefreshControl(load);
 
   const remove = async (item: SavedDesign) => {
     setBusy(item.feedPostId);

@@ -8,7 +8,7 @@ import { DbService } from '../db/db.service';
 import { users } from '../db/schema';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { AccountService } from '../account/account.service';
-import { EmailConsentDto } from './me.dto';
+import { EmailConsentDto, NameDto } from './me.dto';
 
 @Controller('me')
 export class MeController {
@@ -37,6 +37,19 @@ export class MeController {
       .set({ subscriptionEmailsOptIn: value, updatedAt: new Date() })
       .where(eq(users.id, user.id));
     return { subscriptionEmails: value };
+  }
+
+  /** Set the display name (see NameSchema). */
+  @Patch('name')
+  async setName(
+    @CurrentUser() user: AuthedUser,
+    @Body() body: NameDto,
+  ): Promise<{ fullName: string }> {
+    await this.dbService.db
+      .update(users)
+      .set({ fullName: body.fullName, updatedAt: new Date() })
+      .where(eq(users.id, user.id));
+    return { fullName: body.fullName };
   }
 
   @Get()

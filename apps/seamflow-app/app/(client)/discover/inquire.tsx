@@ -22,11 +22,13 @@ import { useCreateConversation, useFeedPost } from '../../../lib/consumer-querie
 import { DesignChangePicker } from '../../../components/DesignChangePicker';
 import type { DesignChange } from '@seamflow/schemas';
 import { useAuth } from '../../../lib/auth-context';
+import { useMe, useSetMyName } from '../../../lib/queries';
 import { signInHref } from '../../../lib/auth-return';
 import { useMode } from '../../../lib/mode';
 import { useDialog } from '../../../lib/dialog';
 import { spacing, radii, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
+import { useSubmitOnce } from '../../../lib/use-submit-once';
 
 export default function Inquire() {
   const { t } = useTranslation();
@@ -47,6 +49,9 @@ export default function Inquire() {
   const [changes, setChanges] = useState<DesignChange[]>([]);
   const { setMode } = useMode();
   const create = useCreateConversation();
+  const meQ = useMe();
+  const setMyName = useSetMyName();
+  const begin = useSubmitOnce();
 
   // Name the piece when there is one. A tailor with thirty designs published
   // cannot act on "could you make something like this?" — the thread carries
@@ -60,9 +65,35 @@ export default function Inquire() {
       : t('discover.inquireAboutDesign', { design });
   });
 
-  const send = () => {
+  const send = async () => {
     const body = message.trim();
     if (!body) return;
+    const release = begin();
+    if (!release) return;
+
+    // A designer reads a customer by name. An account made before sign-up asked
+    // for one has none, and would show as "Client" in the designer's list — so
+    // ask once, here, where it is obviously relevant.
+    if (!meQ.data?.profile?.fullName?.trim()) {
+      const name = await dialog.prompt({
+        title: t('auth.nameAskTitle'),
+        message: t('auth.nameAskBody'),
+        placeholder: t('auth.fullName'),
+        confirmLabel: t('common.save'),
+      });
+      if (!name?.trim()) {
+        release();
+        return;
+      }
+      try {
+        await setMyName.mutateAsync(name.trim());
+      } catch (err) {
+        release();
+        void dialog.error(err);
+        return;
+      }
+    }
+
     create.mutate(
       {
         tailorId: params.tailorId,
@@ -90,7 +121,10 @@ export default function Inquire() {
             params: { id: conversation.id },
           });
         },
-        onError: (err) => void dialog.error(err),
+        onError: (err) => {
+          release();
+          void dialog.error(err);
+        },
       },
     );
   };
@@ -158,7 +192,7 @@ export default function Inquire() {
         <View style={styles.cta}>
           <Button
             label={create.isPending ? t('discover.inquireSending') : t('discover.inquireSend')}
-            onPress={send}
+            onPress={() => void send()}
             disabled={create.isPending || !message.trim()}
             loading={create.isPending}
           />

@@ -20,7 +20,8 @@ export default function ClientHubLayout() {
   const colors = useThemeColors();
 
   if (loading) return <Center bg={colors.bg} tint={colors.accent} />;
-  if (!session) return <Redirect href="/sign-in" />;
+  // Signed out (including right after tapping Sign out) goes back to browsing.
+  if (!session) return <Redirect href="/(client)/discover" />;
 
   return (
     <LockProvider>

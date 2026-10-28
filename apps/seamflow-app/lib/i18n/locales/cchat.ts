@@ -2,6 +2,8 @@
 // this is human ↔ human. English is the source of truth; French mirrors it.
 export const cchat = {
   en: {
+    aboutRequest: 'About this request',
+    requestBudget: 'Budget: {range}',
     shareMeasurements: 'Share measurements',
     measurementsAsked: 'Your tailor asked for your measurements.',
     measurementsAskedSent: 'You asked for their measurements.',
@@ -104,6 +106,8 @@ export const cchat = {
     devSimulateDone: 'Simulated enquiry created',
   },
   fr: {
+    aboutRequest: 'À propos de cette demande',
+    requestBudget: 'Budget : {range}',
     shareMeasurements: 'Partager les mesures',
     measurementsAsked: 'Votre couturier demande vos mesures.',
     measurementsAskedSent: 'Vous avez demandé ses mesures.',
@@ -197,6 +201,8 @@ export const cchat = {
     devSimulateDone: 'Demande simulée créée',
   },
   pt: {
+    aboutRequest: 'Sobre este pedido',
+    requestBudget: 'Orçamento: {range}',
     shareMeasurements: 'Compartilhar medidas',
     measurementsAsked: 'O seu alfaiate pediu as suas medidas.',
     measurementsAskedSent: 'Pediu as medidas desta pessoa.',
@@ -296,6 +302,8 @@ export const cchat = {
     devSimulateDone: 'Pedido simulado criado',
   },
   es: {
+    aboutRequest: 'Sobre esta solicitud',
+    requestBudget: 'Presupuesto: {range}',
     shareMeasurements: 'Compartir medidas',
     measurementsAsked: 'Tu sastre te pidió tus medidas.',
     measurementsAskedSent: 'Le pediste sus medidas.',
@@ -393,6 +401,8 @@ export const cchat = {
     devSimulateDone: 'Consulta simulada creada',
   },
   sw: {
+    aboutRequest: 'Kuhusu ombi hili',
+    requestBudget: 'Bajeti: {range}',
     shareMeasurements: 'Shiriki vipimo',
     measurementsAsked: 'Fundi wako ameomba vipimo vyako.',
     measurementsAskedSent: 'Umeomba vipimo vyake.',
@@ -490,6 +500,8 @@ export const cchat = {
     devSimulateDone: 'Ulizo la kuiga limetengenezwa',
   },
   ar: {
+    aboutRequest: 'حول هذا الطلب',
+    requestBudget: 'الميزانية: {range}',
     shareMeasurements: 'مشاركة القياسات',
     measurementsAsked: 'طلب منك الخياط قياساتك.',
     measurementsAskedSent: 'طلبت منه قياساته.',

@@ -1,5 +1,8 @@
 export const claim = {
   en: {
+    opening: 'Saving your order…',
+    goToOrders: 'Go to my orders',
+    tryAgain: 'Try again',
     title: 'Add an order',
     subtitle: 'Paste the link your tailor sent you and it lands in My orders.',
     inputLabel: 'Order link or code',
@@ -11,6 +14,9 @@ export const claim = {
     emptyInput: 'Paste a link or code first.',
   },
   fr: {
+    opening: 'Enregistrement de votre commande…',
+    goToOrders: 'Aller à mes commandes',
+    tryAgain: 'Réessayer',
     title: 'Ajouter une commande',
     subtitle: 'Collez le lien envoyé par votre tailleur ; il apparaîtra dans Mes commandes.',
     inputLabel: 'Lien ou code de la commande',
@@ -22,6 +28,9 @@ export const claim = {
     emptyInput: 'Collez d’abord un lien ou un code.',
   },
   pt: {
+    opening: 'A guardar a sua encomenda…',
+    goToOrders: 'Ir para as minhas encomendas',
+    tryAgain: 'Tentar novamente',
     title: 'Adicionar uma encomenda',
     subtitle:
       'Cole a ligação que o seu alfaiate lhe enviou e ela aparece em As minhas encomendas.',
@@ -34,6 +43,9 @@ export const claim = {
     emptyInput: 'Cole primeiro uma ligação ou código.',
   },
   es: {
+    opening: 'Guardando tu pedido…',
+    goToOrders: 'Ir a mis pedidos',
+    tryAgain: 'Intentar de nuevo',
     title: 'Agregar un pedido',
     subtitle: 'Pegue el enlace que le envió su sastre y aparecerá en Mis pedidos.',
     inputLabel: 'Enlace o código del pedido',
@@ -45,6 +57,9 @@ export const claim = {
     emptyInput: 'Pegue primero un enlace o un código.',
   },
   sw: {
+    opening: 'Inahifadhi oda yako…',
+    goToOrders: 'Nenda kwa oda zangu',
+    tryAgain: 'Jaribu tena',
     title: 'Ongeza agizo',
     subtitle: 'Bandika kiungo alichokutumia mshonaji wako nalo litaingia kwenye Maagizo yangu.',
     inputLabel: 'Kiungo au msimbo wa agizo',
@@ -56,6 +71,9 @@ export const claim = {
     emptyInput: 'Bandika kiungo au msimbo kwanza.',
   },
   ar: {
+    opening: 'جارٍ حفظ طلبك…',
+    goToOrders: 'اذهب إلى طلباتي',
+    tryAgain: 'حاول مرة أخرى',
     title: 'إضافة طلب',
     subtitle: 'الصق الرابط الذي أرسله لك خيّاطك فيظهر في «طلباتي».',
     inputLabel: 'رابط الطلب أو رمزه',

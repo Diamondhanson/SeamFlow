@@ -345,11 +345,31 @@ export const ConversationLinkedClientSchema = z.object({
 });
 export type ConversationLinkedClient = z.infer<typeof ConversationLinkedClientSchema>;
 
+/**
+ * The request a thread began from, when it began from one.
+ *
+ * A thread that starts from an accepted offer opens with the other person's first
+ * message and nothing to say what the conversation is FOR. This is the reminder
+ * both sides see pinned at the top: what was asked for, and the budget. Text only
+ * — the photos stay on the request itself.
+ */
+export const ConversationRequestSchema = z.object({
+  id: z.string().uuid(),
+  garmentType: z.string(),
+  description: z.string(),
+  budgetMin: z.string().nullable(),
+  budgetMax: z.string().nullable(),
+  currency: z.string().nullable(),
+});
+export type ConversationRequest = z.infer<typeof ConversationRequestSchema>;
+
 export const ConversationSchema = z.object({
   id: z.string().uuid(),
   origin: ConversationOriginSchema,
   counterparty: ConversationCounterpartySchema,
   design: ConversationDesignSchema.nullable(),
+  /** Set when the thread began from an accepted offer. */
+  request: ConversationRequestSchema.nullable().default(null),
   /** Set once the thread has become a commission. */
   orderId: z.string().uuid().nullable(),
   /** Tailor side only. See ConversationLinkedClientSchema. */

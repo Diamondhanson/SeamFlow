@@ -58,7 +58,9 @@ export default function SignIn() {
   // fixed rather than making them leave the field again to find out.
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [fullName, setFullName] = useState('');
   const keyboardAppearance = useKeyboardAppearance();
+  const nameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
@@ -129,6 +131,7 @@ export default function SignIn() {
     setSubmitAttempted(true);
     // Focus the first offending field rather than just painting it red — on a
     // phone the bad field may well be scrolled out of view.
+    if (mode === 'signUp' && !fullName.trim()) return nameRef.current?.focus();
     if (emailError) return emailRef.current?.focus();
     if (passwordError) return passwordRef.current?.focus();
 
@@ -139,7 +142,7 @@ export default function SignIn() {
         await signInWithPassword(normalisedEmail, password);
         finish();
       } else {
-        await signUpWithPassword(normalisedEmail, password);
+        await signUpWithPassword(normalisedEmail, password, fullName);
         router.replace(`/verify-otp?email=${encodeURIComponent(normalisedEmail)}${nextQuery}` as Href);
       }
     } catch (err: unknown) {
@@ -258,6 +261,19 @@ export default function SignIn() {
         <View style={[styles.dividerLine, { backgroundColor: theme.colors.hairline }]} />
       </View>
 
+      {mode === 'signUp' ? (
+        <Input
+          ref={nameRef}
+          label={t('auth.fullName')}
+          value={fullName}
+          onChangeText={setFullName}
+          error={submitAttempted && !fullName.trim() ? t('auth.nameRequired') : undefined}
+          autoCapitalize="words"
+          autoComplete="name"
+          returnKeyType="next"
+          onSubmitEditing={() => emailRef.current?.focus()}
+        />
+      ) : null}
       <Input
         ref={emailRef}
         label={t('auth.email')}
@@ -322,6 +338,20 @@ export default function SignIn() {
           {t('auth.signUpHint')}
         </Text>
       ) : null}
+
+      {/* The way out for someone who is not ready to sign in — and the only way
+          back to browsing after signing out, which used to leave people here
+          until they closed and reopened the app. */}
+      <Pressable
+        onPress={() => router.replace('/(client)/discover' as Href)}
+        hitSlop={8}
+        style={{ marginTop: spacing.lg }}
+        accessibilityRole="button"
+      >
+        <Text variant="bodySm" tone="primary" style={{ textAlign: 'center' }}>
+          {t('auth.browseAsGuest')}
+        </Text>
+      </Pressable>
 
       <Text
         variant="caption"

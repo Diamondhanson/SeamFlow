@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSubmitOnce } from '../../../lib/use-submit-once';
 import { ScrollView } from '../../../components/EdgeScroll';
 import { router } from 'expo-router';
 import { Screen } from '../../../components/Screen';
@@ -24,11 +25,16 @@ export default function NewClient() {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const create = useCreateClient();
+  const begin = useSubmitOnce();
 
   const canSubmit = !!fullName.trim() && !!phone.trim() && !!address.trim();
 
   const submit = () => {
     if (!canSubmit) return;
+    // One press, one client. The first save used to leave the screen looking
+    // unchanged for a moment, and a second press made a second client.
+    const release = begin();
+    if (!release) return;
     create.mutate(
       {
         fullName: fullName.trim(),
@@ -36,20 +42,28 @@ export default function NewClient() {
         address: address.trim(),
       },
       {
-        onSuccess: async (c) => {
-          // One-time reassurance the first time a client is saved.
-          if (!isDismissed('success.firstClient')) {
-            dismiss('success.firstClient');
-            await dialog.alert({
-              title: t('guides.firstClientTitle'),
-              message: t('guides.firstClientBody'),
-              tone: 'success',
-            });
-          }
+        onSuccess: (c) => {
+          // Leave first, explain afterwards. This used to await the one-time
+          // "first client" dialog BEFORE leaving, and a dialog that does not
+          // appear above a modal screen left the form open — looking unsaved —
+          // while the client had in fact been created.
           router.dismiss();
           router.push(`/(app)/clients/${c.id}`);
+          if (!isDismissed('success.firstClient')) {
+            dismiss('success.firstClient');
+            setTimeout(() => {
+              void dialog.alert({
+                title: t('guides.firstClientTitle'),
+                message: t('guides.firstClientBody'),
+                tone: 'success',
+              });
+            }, 500);
+          }
         },
-        onError: (err) => void dialog.error(err),
+        onError: (err) => {
+          release();
+          void dialog.error(err);
+        },
       },
     );
   };
@@ -81,7 +95,7 @@ export default function NewClient() {
           label={t('clients.createClient')}
           onPress={submit}
           loading={create.isPending}
-          disabled={!canSubmit}
+          disabled={!canSubmit || create.isPending}
         />
       </FormScroll>
     </Screen>

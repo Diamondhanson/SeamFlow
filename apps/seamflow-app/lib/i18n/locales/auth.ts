@@ -2,6 +2,11 @@
 // French mirrors it. Keys are camelCase and referenced as t('auth.key').
 export const auth = {
   en: {
+    nameAskTitle: 'What should we call you?',
+    nameAskBody: 'The designer will see this name on your message.',
+    fullName: 'Your name',
+    nameRequired: 'Tell us your name',
+    browseAsGuest: 'Browse without an account',
     tagline: 'Tailor CRM',
     signIn: 'Sign in',
     createAccount: 'Create account',
@@ -64,6 +69,11 @@ export const auth = {
     passwordResetDoneMessage: "You're all set and now signed in.",
   },
   fr: {
+    nameAskTitle: 'Comment devons-nous vous appeler ?',
+    nameAskBody: 'Le créateur verra ce nom sur votre message.',
+    fullName: 'Votre nom',
+    nameRequired: 'Indiquez votre nom',
+    browseAsGuest: 'Parcourir sans compte',
     tagline: 'CRM Tailleur',
     signIn: 'Se connecter',
     createAccount: 'Créer un compte',
@@ -127,6 +137,11 @@ export const auth = {
     passwordResetDoneMessage: 'C’est fait, vous êtes maintenant connecté.',
   },
   pt: {
+    nameAskTitle: 'Como devemos chamá-lo?',
+    nameAskBody: 'O designer verá este nome na sua mensagem.',
+    fullName: 'O seu nome',
+    nameRequired: 'Diga-nos o seu nome',
+    browseAsGuest: 'Explorar sem conta',
     tagline: 'CRM para alfaiates',
     signIn: 'Iniciar sessão',
     createAccount: 'Criar conta',
@@ -191,6 +206,11 @@ export const auth = {
     passwordResetDoneMessage: 'Está tudo pronto e a sessão já está iniciada.',
   },
   es: {
+    nameAskTitle: '¿Cómo te llamamos?',
+    nameAskBody: 'El diseñador verá este nombre en tu mensaje.',
+    fullName: 'Tu nombre',
+    nameRequired: 'Dinos tu nombre',
+    browseAsGuest: 'Explorar sin cuenta',
     tagline: 'CRM para sastres',
     signIn: 'Iniciar sesión',
     createAccount: 'Crear cuenta',
@@ -253,6 +273,11 @@ export const auth = {
     passwordResetDoneMessage: 'Todo listo, ya inició sesión.',
   },
   sw: {
+    nameAskTitle: 'Tukuite nani?',
+    nameAskBody: 'Mbunifu ataona jina hili kwenye ujumbe wako.',
+    fullName: 'Jina lako',
+    nameRequired: 'Tuambie jina lako',
+    browseAsGuest: 'Vinjari bila akaunti',
     tagline: 'CRM ya mshonaji',
     signIn: 'Ingia',
     createAccount: 'Fungua akaunti',
@@ -315,6 +340,11 @@ export const auth = {
     passwordResetDoneMessage: 'Kila kitu kiko sawa, sasa umeingia.',
   },
   ar: {
+    nameAskTitle: 'بماذا نناديك؟',
+    nameAskBody: 'سيرى المصمم هذا الاسم على رسالتك.',
+    fullName: 'اسمك',
+    nameRequired: 'أخبرنا باسمك',
+    browseAsGuest: 'تصفّح بدون حساب',
     tagline: 'نظام إدارة للخيّاطين',
     signIn: 'تسجيل الدخول',
     createAccount: 'إنشاء حساب',

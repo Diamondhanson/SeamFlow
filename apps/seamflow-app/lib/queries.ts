@@ -70,6 +70,15 @@ export { qk } from './query-keys';
 
 export const useMe = () => useQuery({ queryKey: qk.me(), queryFn: () => api.me.get() });
 
+/** Save the name other people see this account under, then refresh /me. */
+export function useSetMyName() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (fullName: string) => api.me.setName(fullName),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.me() }),
+  });
+}
+
 /**
  * Is this account's number proven, and can it even be proven right now?
  *
@@ -466,6 +475,8 @@ interface UseOrdersFilter {
   dueBefore?: string;
   /** ISO timestamp. */
   dueAfter?: string;
+  /** Leave out delivered orders (for the overdue / due-this-week views). */
+  open?: 'true';
 }
 
 export const useOrders = (filter?: UseOrdersFilter) =>

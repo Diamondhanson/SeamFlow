@@ -16,9 +16,13 @@
  *   - It must NOT be signed or redirected. Apple follows no redirects here, so
  *     the host serving it has to be the exact host in the links themselves.
  *
- * Paths are scoped to /t/* — the catalogue. Order share links (/o/*) stay in
- * the browser on purpose: they are read by a tailor's client, who is not the
- * audience for the client app and should not be pushed toward an install.
+ * Paths: /t/* (a shop's catalogue), /o/* (an order a designer shared with a
+ * customer) and /d/* (one design). Order links used to stay in the browser on
+ * purpose; they now open the app, because the customer who receives one is
+ * exactly the person who benefits from having the order saved and tracked in it
+ * — and when the app is not installed the same link still opens the web page.
+ * Invoice links (/i/*) stay in the browser: there is no invoice screen in the
+ * app, and they are meant to be read or downloaded as a document.
  */
 
 /**
@@ -41,7 +45,7 @@ export function GET() {
   // treats that as "this domain claims nothing", which is exactly true today,
   // and is safer than publishing an appID built around a guessed Team ID.
   const details = teamId
-    ? [{ appID: `${teamId}.${APP_BUNDLE_ID}`, paths: ['/t/*', '/fr/t/*'] }]
+    ? [{ appID: `${teamId}.${APP_BUNDLE_ID}`, paths: ['/t/*', '/fr/t/*', '/o/*', '/d/*'] }]
     : [];
 
   const body = {

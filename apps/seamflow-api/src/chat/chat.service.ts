@@ -37,6 +37,7 @@ import {
   messages,
   orderClaims,
   orders,
+  requests,
   tailors,
   users,
 } from '../db/schema';
@@ -376,6 +377,24 @@ export class ChatService {
       }
     }
 
+    // What this thread is for, when it began from an accepted offer.
+    let request: Conversation['request'] = null;
+    if (convo.requestId) {
+      const rows = await db
+        .select({
+          id: requests.id,
+          garmentType: requests.garmentType,
+          description: requests.description,
+          budgetMin: requests.budgetMin,
+          budgetMax: requests.budgetMax,
+          currency: requests.currency,
+        })
+        .from(requests)
+        .where(eq(requests.id, convo.requestId))
+        .limit(1);
+      request = rows[0] ?? null;
+    }
+
     // The tailor's own record for this person, when they have said who it is.
     // Never resolved for the client side: it is the tailor's book, and the
     // name in it may not be the one the customer uses.
@@ -394,6 +413,7 @@ export class ChatService {
       origin: convo.origin,
       counterparty,
       design,
+      request,
       orderId: convo.orderId ?? null,
       linkedClient,
       lastMessageAt: convo.lastMessageAt.toISOString(),

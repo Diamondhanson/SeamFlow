@@ -39,7 +39,10 @@ import { MeasurementValueInput } from './MeasurementValueInput';
 import { spacing, radii } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 import { useDialog } from '../lib/dialog';
+import { useSubmitOnce } from '../lib/use-submit-once';
+import { haptics } from '../lib/haptics';
 import { useAiConsent } from '../lib/ai-consent';
+import { settleModals } from '../lib/modal-gap';
 
 interface ReviewRow {
   label: string;
@@ -69,6 +72,7 @@ export function MeasurementSheetScan({
   const aiConsent = useAiConsent();
   const qc = useQueryClient();
   const createSet = useCreateMeasurementSet(clientId);
+  const lock = useSubmitOnce();
 
   const [phase, setPhase] = useState<'idle' | 'scanning' | 'review'>('idle');
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -110,6 +114,9 @@ export function MeasurementSheetScan({
 
       if (result.extraction.items.length === 0) {
         void discardScanUpload(result.image);
+        setPhase('idle');
+        setPreviewUri(null);
+        await settleModals();
         await dialog.alert({
           title: t('clients.scanEmptyTitle'),
           message: t('clients.scanEmptyBody'),
@@ -139,6 +146,10 @@ export function MeasurementSheetScan({
       setScanResult(result);
       setPhase('review');
     } catch (err) {
+      // The "Reading…" overlay must be gone before any dialog can show.
+      setPhase('idle');
+      setPreviewUri(null);
+      await settleModals();
       if (err instanceof ApiError && err.status === 503) {
         await dialog.alert({
           title: t('clients.scanUnavailableTitle'),
@@ -177,7 +188,12 @@ export function MeasurementSheetScan({
 
   /** Offer "also save as a template": strip values, dedupe against existing
    *  templates by field-key set, attach the sheet photo as reference. */
-  const offerPromote = async () => {
+  const offerPromote = async (snap: {
+    rows: ReviewRow[];
+    unit: 'cm' | 'in';
+    label: string;
+    image: MeasurementScan['image'] | null;
+  }) => {
     const promote = await dialog.confirm({
       title: t('clients.promoteTitle'),
       message: t('clients.promoteBody'),
@@ -187,7 +203,7 @@ export function MeasurementSheetScan({
 
     // Same save path as a hand-built template: labels+units only.
     const tplFields = finalizeTemplateFields(
-      rows.filter((r) => r.label.trim()).map((r) => ({ label: r.label, unit })),
+      snap.rows.filter((r) => r.label.trim()).map((r) => ({ label: r.label, unit: snap.unit })),
     );
     const sig = tplFields.map((f) => f.key.toLowerCase()).sort().join('|');
     try {
@@ -205,19 +221,19 @@ export function MeasurementSheetScan({
       const name = await dialog.prompt({
         title: t('clients.promoteNameTitle'),
         placeholder: t('clients.promoteNamePlaceholder'),
-        defaultValue: setLabel,
+        defaultValue: snap.label,
       });
       if (!name) return;
       await api.measurementTemplates.create({
         name,
         fields: tplFields,
-        images: scanResult
+        images: snap.image
           ? [
               {
-                id: scanResult.image.id,
-                storagePath: scanResult.image.storagePath,
-                thumbnailPath: scanResult.image.thumbnailPath,
-                contentType: scanResult.image.contentType,
+                id: snap.image.id,
+                storagePath: snap.image.storagePath,
+                thumbnailPath: snap.image.thumbnailPath,
+                contentType: snap.image.contentType,
               },
             ]
           : [],
@@ -257,6 +273,11 @@ export function MeasurementSheetScan({
       values[f.key] = withNums[i].parsed!;
     });
 
+    const release = lock();
+    if (!release) return;
+    // What the follow-up question needs, taken BEFORE the sheet closes and
+    // clears its state.
+    const snapshot = { rows: [...rows], unit, label: setLabel, image: scanResult?.image ?? null };
     createSet.mutate(
       {
         label: setLabel.trim() || t('clients.scanDefaultSetLabel'),
@@ -264,12 +285,19 @@ export function MeasurementSheetScan({
         unitPreference: unit,
       },
       {
-        onSuccess: async () => {
-          // The sheet photo stays in storage as provenance of the numbers.
-          await offerPromote();
+        onSuccess: () => {
+          haptics.success();
+          // Close the review sheet FIRST, then ask. This used to ask "also save
+          // as a template?" while the sheet's own modal was still open, and a
+          // dialog cannot open on top of another modal on iPhone: it never
+          // appeared, the save never visibly finished, and pressing Save again
+          // saved the set twice. The sheet photo stays in storage as provenance
+          // of the numbers either way.
           close();
+          setTimeout(() => void offerPromote(snapshot), 600);
         },
         onError: (err) => void dialog.error(err),
+        onSettled: release,
       },
     );
   };

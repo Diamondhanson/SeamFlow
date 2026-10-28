@@ -28,7 +28,6 @@ import { useRefreshControl } from '../../../lib/use-refresh-control';
 const STARTERS = ['Agbada', 'Suit', 'Lehenga', 'Abaya', 'Kaftan', 'Gown'];
 
 export default function TemplatesList() {
-  const refreshControl = useRefreshControl();
   const [items, setItems] = useState<MeasurementTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const { colors } = useAtelierTheme();
@@ -36,8 +35,10 @@ export default function TemplatesList() {
   const { t } = useTranslation();
   const dialog = useDialog();
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent?: boolean) => {
+    // A pull keeps the list on screen while it reloads; only a first load
+    // swaps in the skeleton.
+    if (silent !== true) setLoading(true);
     try {
       const res = await api.measurementTemplates.list();
       setItems(res.items);
@@ -59,7 +60,8 @@ export default function TemplatesList() {
     }
   }, [t, dialog]);
 
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+  const refreshControl = useRefreshControl(() => load(true));
 
   const starterSection = (
     <View style={styles.starter}>

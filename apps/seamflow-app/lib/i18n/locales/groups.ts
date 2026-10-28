@@ -2,6 +2,8 @@
 // French mirrors it. Keys are camelCase and referenced as t('groups.key').
 export const groups = {
   en: {
+    memberFromClients: 'Pick from my clients',
+    memberFromContacts: 'Pick from contacts',
     // ----- list screen -----
     listTitle: 'Group orders',
     listSubtitle: 'Bridal parties, family events & uniforms',
@@ -150,6 +152,8 @@ export const groups = {
     deletePhotoMessage: 'This reference photo will be removed from the group order.',
   },
   fr: {
+    memberFromClients: 'Choisir parmi mes clients',
+    memberFromContacts: 'Choisir dans les contacts',
     // ----- list screen -----
     listTitle: 'Commandes de groupe',
     listSubtitle: 'Cortèges de mariage, événements familiaux et uniformes',
@@ -289,6 +293,8 @@ export const groups = {
     deletePhotoMessage: 'Cette photo de référence sera retirée de la commande de groupe.',
   },
   pt: {
+    memberFromClients: 'Escolher entre os meus clientes',
+    memberFromContacts: 'Escolher dos contactos',
     // ----- ecrã de lista -----
     listTitle: 'Encomendas de grupo',
     listSubtitle: 'Cortejos de casamento, eventos de família e fardas',
@@ -440,6 +446,8 @@ export const groups = {
       'Esta foto de referência será removida da encomenda de grupo.',
   },
   es: {
+    memberFromClients: 'Elegir entre mis clientes',
+    memberFromContacts: 'Elegir de los contactos',
     // ----- pantalla de lista -----
     listTitle: 'Pedidos de grupo',
     listSubtitle: 'Cortejos de boda, eventos familiares y uniformes',
@@ -583,6 +591,8 @@ export const groups = {
     deletePhotoMessage: 'Esta foto de referencia se quitará del pedido de grupo.',
   },
   sw: {
+    memberFromClients: 'Chagua kutoka kwa wateja wangu',
+    memberFromContacts: 'Chagua kutoka kwa anwani',
     // ----- skrini ya orodha -----
     listTitle: 'Maagizo ya kikundi',
     listSubtitle: 'Wasindikizaji wa harusi, matukio ya familia na sare',
@@ -726,6 +736,8 @@ export const groups = {
     deletePhotoMessage: 'Picha hii ya rejeleo itaondolewa kwenye agizo la kikundi.',
   },
   ar: {
+    memberFromClients: 'اختر من عملائي',
+    memberFromContacts: 'اختر من جهات الاتصال',
     listTitle: 'طلبات المجموعات',
     listSubtitle: 'حفلات الزفاف والمناسبات العائلية والأزياء الموحّدة',
     newGroupOrder: 'طلب مجموعة جديد',

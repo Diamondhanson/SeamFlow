@@ -18,3 +18,11 @@ export const EmailConsentSchema = z
   .strict();
 
 export class EmailConsentDto extends createZodDto(EmailConsentSchema) {}
+
+/**
+ * The name other people see this account under — a designer's conversation list
+ * shows it for every customer who writes to them. Accounts made before sign-up
+ * asked for a name have none, and the app asks for it the first time it matters.
+ */
+export const NameSchema = z.object({ fullName: z.string().trim().min(1).max(80) }).strict();
+export class NameDto extends createZodDto(NameSchema) {}

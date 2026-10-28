@@ -42,7 +42,9 @@ export default function AppLayout() {
   }
 
   if (!session) {
-    return <Redirect href="/sign-in" />;
+    // Signed out lands back on browsing, not on a sign-in wall: Discover is
+    // open to everyone and has its own way to sign in.
+    return <Redirect href="/(client)/discover" />;
   }
 
   // The lock provider has to live INSIDE the auth gate — there's nothing

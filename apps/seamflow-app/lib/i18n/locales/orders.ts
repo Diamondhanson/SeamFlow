@@ -2,6 +2,9 @@
 // French mirrors it. Keys are camelCase and referenced as t('orders.key').
 export const orders = {
   en: {
+    editOrderTitle: 'Edit order',
+    editOrderA11y: 'Edit order',
+    saveChanges: 'Save changes',
     scanMeasurements: 'Scan a filled sheet',
     scanReading: 'Reading the measurements…',
     scanNoRows: 'Could not read any measurements, try a clearer photo.',
@@ -170,6 +173,9 @@ export const orders = {
     deleteOrderMessage: '{name} will be permanently deleted.',
   },
   fr: {
+    editOrderTitle: 'Modifier la commande',
+    editOrderA11y: 'Modifier la commande',
+    saveChanges: 'Enregistrer les modifications',
     scanMeasurements: 'Scanner une fiche remplie',
     scanReading: 'Lecture des mesures…',
     scanNoRows: 'Aucune mesure lisible, essayez une photo plus nette.',
@@ -335,6 +341,9 @@ export const orders = {
     deleteOrderMessage: '{name} sera définitivement supprimée.',
   },
   pt: {
+    editOrderTitle: 'Editar encomenda',
+    editOrderA11y: 'Editar encomenda',
+    saveChanges: 'Guardar alterações',
     scanMeasurements: 'Escanear uma ficha preenchida',
     scanReading: 'Lendo as medidas…',
     scanNoRows: 'Não foi possível ler medidas, tente uma foto mais nítida.',
@@ -507,6 +516,9 @@ export const orders = {
     deleteOrderMessage: '{name} será eliminada definitivamente.',
   },
   es: {
+    editOrderTitle: 'Editar pedido',
+    editOrderA11y: 'Editar pedido',
+    saveChanges: 'Guardar cambios',
     scanMeasurements: 'Escanear una hoja rellenada',
     scanReading: 'Leyendo las medidas…',
     scanNoRows: 'No se pudieron leer medidas, prueba una foto más clara.',
@@ -673,6 +685,9 @@ export const orders = {
     deleteOrderMessage: '{name} se eliminará de forma permanente.',
   },
   sw: {
+    editOrderTitle: 'Hariri oda',
+    editOrderA11y: 'Hariri oda',
+    saveChanges: 'Hifadhi mabadiliko',
     scanMeasurements: 'Changanua fomu iliyojazwa',
     scanReading: 'Inasoma vipimo…',
     scanNoRows: 'Hakuna vipimo vilivyosomeka, jaribu picha wazi zaidi.',
@@ -839,6 +854,9 @@ export const orders = {
     deleteOrderMessage: '{name} litafutwa kabisa.',
   },
   ar: {
+    editOrderTitle: 'تعديل الطلب',
+    editOrderA11y: 'تعديل الطلب',
+    saveChanges: 'حفظ التغييرات',
     scanMeasurements: 'مسح ورقة مقاسات معبأة',
     scanReading: 'جارٍ قراءة القياسات…',
     scanNoRows: 'تعذّرت قراءة أي قياسات، جرّب صورة أوضح.',

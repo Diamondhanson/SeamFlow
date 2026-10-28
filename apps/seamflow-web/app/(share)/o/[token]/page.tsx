@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ApiError } from '@seamflow/api-client';
 import type { PublicOrderResponse } from '@seamflow/schemas';
@@ -25,6 +26,33 @@ const STATUS: Record<string, { label: string; color: string }> = {
 async function loadPayload(token: string): Promise<PublicOrderResponse> {
   const api = publicApi();
   return api.shareLinks.resolvePublic(token);
+}
+
+/**
+ * What a chat app shows when this link is pasted: the order's name and the shop,
+ * and a branded card (opengraph-image.tsx). Nothing private goes in here — chat
+ * apps keep previews and show them to whoever the link is forwarded to — and the
+ * page is kept out of search engines: it is reachable by anyone holding the link,
+ * which is not the same as being public.
+ */
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { token } = await params;
+  const robots = { index: false, follow: false } as const;
+  try {
+    const { order, tailor } = await loadPayload(token);
+    const title = `${order.orderName} · ${tailor.businessName}`;
+    const description = `Track your order from ${tailor.businessName} on SeamFlow.`;
+    return {
+      title,
+      description,
+      robots,
+      openGraph: { title, description, type: 'website', siteName: 'SeamFlow' },
+      twitter: { card: 'summary_large_image', title, description },
+    };
+  } catch {
+    // Expired, invalid or the API is down: say nothing specific.
+    return { title: 'Your order · SeamFlow', robots };
+  }
 }
 
 export default async function PublicOrderPage({ params }: PageProps) {

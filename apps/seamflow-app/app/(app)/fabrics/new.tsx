@@ -8,9 +8,11 @@ import { deliverFabric } from '../../../lib/fabric-handoff';
 import { spacing } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { useSubmitOnce } from '../../../lib/use-submit-once';
 
 export default function NewFabric() {
   const create = useCreateFabric();
+  const begin = useSubmitOnce();
   const { data: me } = useMe();
   const { t } = useTranslation();
   const dialog = useDialog();
@@ -27,7 +29,9 @@ export default function NewFabric() {
           tailorId={me?.tailor?.id}
           submitLabel={t('fabrics.saveFabric')}
           submitting={create.isPending}
-          onSubmit={(payload) =>
+          onSubmit={(payload) => {
+            const release = begin();
+            if (!release) return;
             create.mutate(payload, {
               onSuccess: (fabric) => {
                 // If a fabric picker sent them here, hand the new fabric back
@@ -36,9 +40,12 @@ export default function NewFabric() {
                 deliverFabric(fabric.id);
                 router.back();
               },
-              onError: (err) => void dialog.error(err),
-            })
-          }
+              onError: (err) => {
+                release();
+                void dialog.error(err);
+              },
+            });
+          }}
         />
       </ScrollView>
     </Screen>

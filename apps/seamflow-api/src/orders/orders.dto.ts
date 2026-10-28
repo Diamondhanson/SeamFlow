@@ -23,5 +23,11 @@ export const ListOrdersQuerySchema = z.object({
   dueBefore: z.string().datetime().optional(),
   /** ISO timestamp — only orders with dateDelivery on or after this are returned. */
   dueAfter: z.string().datetime().optional(),
+  /**
+   * 'true' = leave out delivered orders. The "overdue" and "due this week"
+   * views mean work still to do; a delivered order has no due date to miss, so
+   * it must not appear there however long ago it was due.
+   */
+  open: z.enum(['true', 'false']).optional(),
 });
 export class ListOrdersQueryDto extends createZodDto(ListOrdersQuerySchema) {}

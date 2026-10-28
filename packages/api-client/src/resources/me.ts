@@ -57,6 +57,10 @@ export function makeMeResource(http: HttpClient) {
     checkout(input: CheckoutInput): Promise<CheckoutResult> {
       return http.post<CheckoutResult>('/subscriptions/checkout', input);
     },
+    /** Set the name other people see this account under. */
+    setName(fullName: string): Promise<{ fullName: string }> {
+      return http.patch<{ fullName: string }>('/me/name', { fullName });
+    },
     /** Turn subscription emails on or off. */
     setEmailConsent(subscriptionEmails: boolean): Promise<{ subscriptionEmails: boolean }> {
       return http.patch<{ subscriptionEmails: boolean }>('/me/emails', { subscriptionEmails });

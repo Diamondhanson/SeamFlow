@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import {
   clients,
@@ -255,8 +255,21 @@ export class GroupOrdersService {
       // -------- 3. Insert members (if any) --------
       let members: GroupOrderMemberRow[] = [];
       if (data.members.length > 0) {
+        // A member may point at a client in the designer's book. Only THEIR clients
+        // — an id from anywhere else would attach someone else's measurements.
+        const linkIds = [...new Set(data.members.map((m) => m.clientId).filter((x): x is string => !!x))];
+        if (linkIds.length > 0) {
+          const owned = await tx
+            .select({ id: clients.id })
+            .from(clients)
+            .where(and(eq(clients.tailorId, tailorId), inArray(clients.id, linkIds)));
+          if (owned.length !== linkIds.length) {
+            throw new BadRequestException('One of the members is not one of your clients');
+          }
+        }
         const values = data.members.map((m, i) => ({
           groupOrderId: group.id,
+          clientId: m.clientId ?? null,
           fullName: m.fullName,
           roleLabel: m.roleLabel ?? null,
           notes: m.notes ?? null,

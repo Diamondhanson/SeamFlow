@@ -2,6 +2,8 @@
 // this is human ↔ human. English is the source of truth; French mirrors it.
 export const chat = {
   en: {
+    aboutRequest: 'About this request',
+    requestBudget: 'Budget: {range}',
     measurementMessage: 'Measurements',
 
     // ── A measurement a client sent (tailor side of the card) ───────────────
@@ -134,6 +136,8 @@ export const chat = {
     aDesign: 'a design',
   },
   fr: {
+    aboutRequest: 'À propos de cette demande',
+    requestBudget: 'Budget : {range}',
     measurementMessage: 'Mesures',
 
     // ── Mesures envoyées par une cliente (côté couturier) ───────────────────
@@ -260,6 +264,8 @@ export const chat = {
     aDesign: 'une création',
   },
   pt: {
+    aboutRequest: 'Sobre este pedido',
+    requestBudget: 'Orçamento: {range}',
     measurementMessage: 'Medidas',
 
     // ── Medidas enviadas por um cliente (lado do alfaiate) ──────────────────
@@ -391,6 +397,8 @@ export const chat = {
     aDesign: 'uma criação',
   },
   es: {
+    aboutRequest: 'Sobre esta solicitud',
+    requestBudget: 'Presupuesto: {range}',
     measurementMessage: 'Medidas',
 
     // ── Medidas que envió una clienta (lado del sastre) ─────────────────────
@@ -521,6 +529,8 @@ export const chat = {
     aDesign: 'un diseño',
   },
   sw: {
+    aboutRequest: 'Kuhusu ombi hili',
+    requestBudget: 'Bajeti: {range}',
     measurementMessage: 'Vipimo',
 
     // ── Vipimo alivyotuma mteja (upande wa fundi) ──────────────────────────
@@ -651,6 +661,8 @@ export const chat = {
     aDesign: 'ubunifu',
   },
   ar: {
+    aboutRequest: 'حول هذا الطلب',
+    requestBudget: 'الميزانية: {range}',
     measurementMessage: 'القياسات',
 
     // ── قياسات أرسلها العميل (جانب الخياط) ────────────────────────────────

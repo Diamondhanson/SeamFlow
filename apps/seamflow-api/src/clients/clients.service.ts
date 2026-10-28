@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, desc, eq, ilike, or } from 'drizzle-orm';
+import { and, desc, eq, gte, ilike, or } from 'drizzle-orm';
 import { DbService } from '../db/db.service';
 import { clients } from '../db/schema';
 import type {
@@ -51,7 +51,27 @@ export class ClientsService {
     return row;
   }
 
+  /** Two saves of the same person this close together are one save pressed twice. */
+  static readonly DUPLICATE_WINDOW_MS = 30_000;
+
   async create(tailorId: string, data: ClientCreateInput): Promise<ClientRow> {
+    // A second Save press, or a retried request, must not make a second client.
+    // The app now guards the button, but a slow connection can still deliver the
+    // same request twice, and a phone that retries a queued save would too.
+    const recent = await this.dbService.db
+      .select()
+      .from(clients)
+      .where(
+        and(
+          eq(clients.tailorId, tailorId),
+          eq(clients.fullName, data.fullName),
+          eq(clients.phone, data.phone),
+          gte(clients.createdAt, new Date(Date.now() - ClientsService.DUPLICATE_WINDOW_MS)),
+        ),
+      )
+      .limit(1);
+    if (recent[0]) return recent[0];
+
     const rows = await this.dbService.db
       .insert(clients)
       .values({

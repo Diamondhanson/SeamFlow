@@ -51,12 +51,22 @@
             {
               "scheme": "https",
               "host": "www.seamflowtech.com",
-              "pathPrefix": "/t"
+              "pathPrefix": "/t/"
             },
             {
               "scheme": "https",
               "host": "www.seamflowtech.com",
-              "pathPrefix": "/fr/t"
+              "pathPrefix": "/fr/t/"
+            },
+            {
+              "scheme": "https",
+              "host": "www.seamflowtech.com",
+              "pathPrefix": "/o/"
+            },
+            {
+              "scheme": "https",
+              "host": "www.seamflowtech.com",
+              "pathPrefix": "/d/"
             }
           ],
           "category": [

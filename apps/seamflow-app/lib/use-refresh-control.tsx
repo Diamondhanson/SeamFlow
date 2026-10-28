@@ -35,7 +35,12 @@ export const REFRESH_MIN_MS = 500;
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export function useRefreshControl(): ReactElement<RefreshControlProps> {
+/**
+ * `extra` is for the few screens that load their data themselves instead of
+ * through the query cache (the Saved list, templates): a pull has to reload
+ * those too, or it would spin and change nothing.
+ */
+export function useRefreshControl(extra?: () => unknown): ReactElement<RefreshControlProps> {
   const qc = useQueryClient();
   const online = useOnline();
   const { colors } = useAtelierTheme();
@@ -48,7 +53,10 @@ export function useRefreshControl(): ReactElement<RefreshControlProps> {
         ? Promise.race([
             // Errors are left to each screen's own error state; a failed pull
             // must not throw out of a gesture handler.
-            qc.refetchQueries({ type: 'active' }).catch(() => undefined),
+            Promise.all([
+              qc.refetchQueries({ type: 'active' }).catch(() => undefined),
+              Promise.resolve(extra?.()).catch(() => undefined),
+            ]),
             wait(REFRESH_MAX_MS),
           ])
         : Promise.resolve();
@@ -56,7 +64,7 @@ export function useRefreshControl(): ReactElement<RefreshControlProps> {
     } finally {
       setRefreshing(false);
     }
-  }, [qc, online]);
+  }, [qc, online, extra]);
 
   return (
     <RefreshControl

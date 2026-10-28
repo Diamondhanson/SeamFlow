@@ -12,6 +12,14 @@ import { Card, CardLine, CardTitle } from '../../../components/Card';
 import { HelpCard } from '../../../components/HelpCard';
 import { Button } from '../../../components/Button';
 import { Input } from '../../../components/Input';
+import {
+  MeasurementsEditor,
+  NO_PENDING,
+  numericMeasurements,
+  type PendingMeasurement,
+} from '../../../components/MeasurementsEditor';
+import { useSubmitOnce } from '../../../lib/use-submit-once';
+import { haptics } from '../../../lib/haptics';
 import { MeasurementSheetScan } from '../../../components/MeasurementSheetScan';
 import {
   useClient,
@@ -21,6 +29,7 @@ import {
   useMe,
   useMeasurementSets,
   useOrders,
+  useUpdateMeasurementSet,
 } from '../../../lib/queries';
 import { spacing, useThemeColors } from '../../../lib/theme';
 import { prettyMeasurementLabel } from '../../../lib/measurements';
@@ -30,10 +39,6 @@ import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
 import { draftKey, useDraft } from '../../../lib/drafts';
 import { useRefreshControl } from '../../../lib/use-refresh-control';
-
-/** Starting contents of the manual measurement-set box. Also the yardstick for
- *  "has this been touched?" — see the draft wiring below. */
-const BLANK_VALUES_JSON = '{\n  "chest": 88,\n  "waist": 70,\n  "hips": 96\n}';
 
 export default function ClientDetail() {
   const refreshControl = useRefreshControl();
@@ -51,24 +56,32 @@ export default function ClientDetail() {
   // Inline new-measurement-set form
   const [showForm, setShowForm] = useState(false);
   const [label, setLabel] = useState('default');
-  const [valuesJson, setValuesJson] = useState(BLANK_VALUES_JSON);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [pending, setPending] = useState<PendingMeasurement>(NO_PENDING);
+  const begin = useSubmitOnce();
 
   // Keep this form on the device as it is typed. It is the third place a
   // tailor can enter measurements, and it loses them the same way the order
   // wizard did: everything sits in state until the button is pressed.
   //
-  // Untouched starting values are not "work" — only an edited label or edited
-  // JSON counts, or every visit would open with a pointless restore prompt.
+  // Untouched starting values are not "work" — only an edited label, a value
+  // that has been added, or a row half-typed counts, or every visit would open
+  // with a pointless restore prompt.
   const { clear: clearDraft } = useDraft({
-    key: draftKey('client-set', id),
-    value: { label, valuesJson },
-    hasContent: (d) => d.label !== 'default' || d.valuesJson !== BLANK_VALUES_JSON,
+    key: draftKey('client-set-rows', id),
+    value: { label, values, pending },
+    hasContent: (d) =>
+      d.label !== 'default' ||
+      Object.keys(d.values).length > 0 ||
+      !!d.pending.name.trim() ||
+      !!d.pending.value.trim(),
     // The client's name comes from the screen, not the draft — the draft holds
     // only the measurement box, and the URL already fixes whose it is.
     describe: () => clientQ.data?.fullName ?? null,
     onRestore: (d) => {
       setLabel(d.label);
-      setValuesJson(d.valuesJson);
+      setValues(d.values);
+      setPending(d.pending);
       // Restoring is pointless if the form they were typing into is closed.
       setShowForm(true);
     },
@@ -96,28 +109,35 @@ export default function ClientDetail() {
   const orders = ordersQ.data?.items ?? [];
   const loading = clientQ.isLoading;
 
-  const addSet = async () => {
-    let parsed: Record<string, number>;
-    try {
-      parsed = JSON.parse(valuesJson);
-    } catch {
-      await dialog.alert({
-        title: t('clients.invalidJsonTitle'),
-        message: t('clients.invalidJsonBody'),
-        tone: 'error',
+  const addSet = () => {
+    // A row typed but not yet added with "Add attribute" still counts: losing
+    // the measurement someone is looking at is the worst way to fail.
+    const merged = { ...values };
+    if (pending.name.trim() && pending.value.trim()) merged[pending.name.trim()] = pending.value.trim();
+    const parsed = numericMeasurements(merged);
+    if (Object.keys(parsed).length === 0) {
+      void dialog.alert({
+        title: t('clients.noValuesTitle'),
+        message: t('clients.noValuesBody'),
+        tone: 'warning',
       });
       return;
     }
+    const release = begin();
+    if (!release) return;
     createSet.mutate(
-      { label: label || 'default', values: parsed },
+      { label: label.trim() || 'default', values: parsed },
       {
         onSuccess: () => {
+          haptics.success();
           setShowForm(false);
           setLabel('default');
-          setValuesJson(BLANK_VALUES_JSON);
+          setValues({});
+          setPending(NO_PENDING);
           clearDraft();
         },
         onError: (err) => void dialog.error(err),
+        onSettled: release,
       },
     );
   };
@@ -147,7 +167,19 @@ export default function ClientDetail() {
 
   return (
     <Screen bleed>
-      <ScreenHeader title={client.fullName} />
+      <ScreenHeader
+        title={client.fullName}
+        right={
+          <Pressable
+            onPress={() => router.push(`/(app)/clients/edit?id=${id}`)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t('clients.editClientTitle')}
+          >
+            <Ionicons name="create-outline" size={22} color={colors.accent} />
+          </Pressable>
+        }
+      />
       <FormScroll refreshControl={refreshControl}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 96 }}
@@ -202,16 +234,18 @@ export default function ClientDetail() {
         {showForm ? (
           <Card>
             <Input label={t('clients.labelLabel')} value={label} onChangeText={setLabel} />
-            <Input
-              label={t('clients.valuesLabel')}
-              value={valuesJson}
-              onChangeText={setValuesJson}
-              multiline
-              numberOfLines={6}
-              autoCapitalize="none"
-              style={styles.jsonInput}
+            <MeasurementsEditor
+              values={values}
+              setValues={setValues}
+              pending={pending}
+              setPending={setPending}
             />
-            <Button label={t('clients.saveSet')} onPress={addSet} loading={createSet.isPending} />
+            <Button
+              label={t('clients.saveSet')}
+              onPress={addSet}
+              loading={createSet.isPending}
+              disabled={createSet.isPending}
+            />
             <View style={{ height: spacing.sm }} />
             <Button
               label={t('common.cancel')}
@@ -281,10 +315,87 @@ function MeasurementSetCard({
   const dialog = useDialog();
   const colors = useThemeColors();
   const del = useDeleteMeasurementSet(setId, clientId);
+  const update = useUpdateMeasurementSet(setId, clientId);
+  const begin = useSubmitOnce();
   // Two columns on tablets/landscape, one on a phone — 17 measurements in a
   // single narrow column is a wall of text on a wide screen.
   const columns = useResponsiveValue({ compact: 1, medium: 2, expanded: 2 });
   const entries = Object.entries(set.values);
+
+  // Editing in place, with the same editor used to add a set, so what a tailor
+  // learned adding measurements is exactly what they use to correct them.
+  const [editing, setEditing] = useState(false);
+  const [label, setLabel] = useState(set.label);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [pending, setPending] = useState<PendingMeasurement>(NO_PENDING);
+
+  const startEdit = () => {
+    setLabel(set.label);
+    setValues(Object.fromEntries(entries.map(([k, v]) => [k, String(v)])));
+    setPending(NO_PENDING);
+    setEditing(true);
+  };
+
+  const saveEdit = () => {
+    const merged = { ...values };
+    if (pending.name.trim() && pending.value.trim()) merged[pending.name.trim()] = pending.value.trim();
+    const parsed = numericMeasurements(merged);
+    if (Object.keys(parsed).length === 0) {
+      void dialog.alert({
+        title: t('clients.noValuesTitle'),
+        message: t('clients.noValuesBody'),
+        tone: 'warning',
+      });
+      return;
+    }
+    const release = begin();
+    if (!release) return;
+    update.mutate(
+      { label: label.trim() || set.label, values: parsed },
+      {
+        onSuccess: () => {
+          haptics.success();
+          setEditing(false);
+        },
+        onError: (err) => void dialog.error(err),
+        onSettled: release,
+      },
+    );
+  };
+
+  const confirmDelete = async () => {
+    const ok = await dialog.confirm({
+      title: t('clients.deleteSetTitle'),
+      message: t('clients.deleteSetBody', { label: set.label }),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    });
+    if (!ok) return;
+    del.mutate(undefined, { onError: (err) => void dialog.error(err) });
+  };
+
+  if (editing) {
+    return (
+      <Card>
+        <Text variant="h3" style={{ marginBottom: spacing.sm }}>{t('clients.editSetTitle')}</Text>
+        <Input label={t('clients.labelLabel')} value={label} onChangeText={setLabel} />
+        <MeasurementsEditor
+          values={values}
+          setValues={setValues}
+          pending={pending}
+          setPending={setPending}
+        />
+        <Button
+          label={t('clients.saveChanges')}
+          onPress={saveEdit}
+          loading={update.isPending}
+          disabled={update.isPending}
+        />
+        <View style={{ height: spacing.sm }} />
+        <Button label={t('common.cancel')} variant="secondary" onPress={() => setEditing(false)} />
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -324,15 +435,13 @@ function MeasurementSetCard({
       </View>
 
       <View style={{ marginTop: spacing.md }}>
+        <Button label={t('common.edit')} variant="secondary" onPress={startEdit} />
+        <View style={{ height: spacing.sm }} />
         <Button
           label={t('common.delete')}
           variant="danger"
           loading={del.isPending}
-          onPress={() =>
-            del.mutate(undefined, {
-              onError: (err) => void dialog.error(err),
-            })
-          }
+          onPress={() => void confirmDelete()}
         />
       </View>
     </Card>
@@ -368,5 +477,4 @@ const styles = StyleSheet.create({
   },
   divider: { height: 1, marginVertical: spacing.lg },
   phoneRow: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
-  jsonInput: { fontFamily: 'Courier', minHeight: 120 },
 });

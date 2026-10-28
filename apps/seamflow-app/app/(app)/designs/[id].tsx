@@ -23,6 +23,7 @@ import {
 import { spacing } from '../../../lib/theme';
 import { useDialog } from '../../../lib/dialog';
 import { useTranslation } from '../../../lib/i18n';
+import { settleModals } from '../../../lib/modal-gap';
 
 export default function DesignDetail() {
   const { t } = useTranslation();
@@ -77,12 +78,13 @@ export default function DesignDetail() {
     attachM.mutate(
       { designId: id, orderId },
       {
+        // The picker sheet is still fading out; give it time before the dialog.
         onSuccess: () =>
-          void dialog.alert({
+          void settleModals().then(() => dialog.alert({
             title: t('designs.attachedTitle'),
             message: t('designs.attachedBody'),
             tone: 'success',
-          }),
+          })),
         onError: (e) => void dialog.error(e),
       },
     );

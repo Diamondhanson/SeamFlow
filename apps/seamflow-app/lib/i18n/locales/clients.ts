@@ -2,6 +2,15 @@
 // French mirrors it. Keys are camelCase and referenced as t('clients.key').
 export const clients = {
   en: {
+    editClientTitle: 'Edit client',
+    emailLabel: 'Email',
+    notesLabel: 'Notes',
+    saveChanges: 'Save changes',
+    noValuesTitle: 'No values to save',
+    noValuesBody: 'Add at least one measurement with a number before saving.',
+    deleteSetTitle: 'Delete this measurement set?',
+    deleteSetBody: '“{label}” will be deleted. This can’t be undone.',
+    editSetTitle: 'Edit measurements',
     // clients list
     title: 'Clients',
     contactTitle: 'Contact client',
@@ -84,6 +93,15 @@ export const clients = {
     duplicateTemplateBody: '“{name}” already has these same fields, reuse it instead of creating a duplicate.',
   },
   fr: {
+    editClientTitle: 'Modifier le client',
+    emailLabel: 'E-mail',
+    notesLabel: 'Notes',
+    saveChanges: 'Enregistrer les modifications',
+    noValuesTitle: 'Aucune valeur à enregistrer',
+    noValuesBody: 'Ajoutez au moins une mesure avec un nombre avant d’enregistrer.',
+    deleteSetTitle: 'Supprimer ce jeu de mesures ?',
+    deleteSetBody: '« {label} » sera supprimé. Cette action est irréversible.',
+    editSetTitle: 'Modifier les mesures',
     // clients list
     title: 'Clients',
     contactTitle: 'Contacter le client',
@@ -166,6 +184,15 @@ export const clients = {
     duplicateTemplateBody: '« {name} » contient déjà exactement ces champs, réutilisez-le plutôt que d’en créer un doublon.',
   },
   pt: {
+    editClientTitle: 'Editar cliente',
+    emailLabel: 'E-mail',
+    notesLabel: 'Notas',
+    saveChanges: 'Guardar alterações',
+    noValuesTitle: 'Sem valores para guardar',
+    noValuesBody: 'Adicione pelo menos uma medida com um número antes de guardar.',
+    deleteSetTitle: 'Eliminar este conjunto de medidas?',
+    deleteSetBody: '“{label}” será eliminado. Não pode ser desfeito.',
+    editSetTitle: 'Editar medidas',
     // lista de clientes
     title: 'Clientes',
     contactTitle: 'Contactar cliente',
@@ -257,6 +284,15 @@ export const clients = {
       '“{name}” já tem exatamente estes campos, reutilize-o em vez de criar um duplicado.',
   },
   es: {
+    editClientTitle: 'Editar cliente',
+    emailLabel: 'Correo electrónico',
+    notesLabel: 'Notas',
+    saveChanges: 'Guardar cambios',
+    noValuesTitle: 'No hay valores que guardar',
+    noValuesBody: 'Añade al menos una medida con un número antes de guardar.',
+    deleteSetTitle: '¿Eliminar este conjunto de medidas?',
+    deleteSetBody: '«{label}» se eliminará. No se puede deshacer.',
+    editSetTitle: 'Editar medidas',
     // lista de clientes
     title: 'Clientes',
     contactTitle: 'Contactar al cliente',
@@ -339,6 +375,15 @@ export const clients = {
     duplicateTemplateBody: '“{name}” ya tiene exactamente estos campos, úsela en lugar de crear una copia.',
   },
   sw: {
+    editClientTitle: 'Hariri mteja',
+    emailLabel: 'Barua pepe',
+    notesLabel: 'Maelezo',
+    saveChanges: 'Hifadhi mabadiliko',
+    noValuesTitle: 'Hakuna thamani za kuhifadhi',
+    noValuesBody: 'Ongeza angalau kipimo kimoja chenye nambari kabla ya kuhifadhi.',
+    deleteSetTitle: 'Futa seti hii ya vipimo?',
+    deleteSetBody: '“{label}” itafutwa. Haiwezi kutenduliwa.',
+    editSetTitle: 'Hariri vipimo',
     // orodha ya wateja
     title: 'Wateja',
     contactTitle: 'Wasiliana na mteja',
@@ -421,6 +466,15 @@ export const clients = {
     duplicateTemplateBody: '“{name}” tayari kina sehemu hizi hizi, kitumie badala ya kutengeneza nakala.',
   },
   ar: {
+    editClientTitle: 'تعديل العميل',
+    emailLabel: 'البريد الإلكتروني',
+    notesLabel: 'ملاحظات',
+    saveChanges: 'حفظ التغييرات',
+    noValuesTitle: 'لا توجد قيم للحفظ',
+    noValuesBody: 'أضف مقاسًا واحدًا على الأقل برقم قبل الحفظ.',
+    deleteSetTitle: 'حذف مجموعة المقاسات هذه؟',
+    deleteSetBody: 'سيتم حذف «{label}». لا يمكن التراجع عن ذلك.',
+    editSetTitle: 'تعديل المقاسات',
     title: 'العملاء',
     contactTitle: 'التواصل مع العميل',
     callAction: 'اتصال',

@@ -90,8 +90,11 @@ export default function OrdersList() {
       q: debouncedQ || undefined,
       dueAfter,
       dueBefore,
+      // "Overdue" and "this week" mean work still to do: a delivered order
+      // must never appear under them, however long ago it was due.
+      open: timeFilter !== 'all' ? ('true' as const) : undefined,
     }),
-    [status, debouncedQ, dueAfter, dueBefore],
+    [status, debouncedQ, dueAfter, dueBefore, timeFilter],
   );
 
   const { data, isLoading, isError, refetch } = useOrders(filter);

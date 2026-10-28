@@ -43,6 +43,7 @@ import { draftKey, useDraft, useUnsavedWarning } from '../../lib/drafts';
 import { QUICK_MEASUREMENT_KEYS, matchMeasurementLabel } from '../../lib/measurements';
 import { scanMeasurementPage } from '../../lib/measurement-scan';
 import { ScanOverlay } from '../../components/ScanOverlay';
+import { settleModals } from '../../lib/modal-gap';
 
 /** A person chosen for the order who isn't a saved client yet (picked from
  *  phone contacts). Materialized into a client on the server at submit. */
@@ -499,11 +500,19 @@ export default function NewOrderWizard() {
         add[matchMeasurementLabel(it.label, t).label] = String(it.value);
       }
       if (Object.keys(add).length === 0) {
+        // Take the full-screen overlay down before asking anything: a dialog
+        // cannot open over it on iPhone (see lib/modal-gap).
+        setScanning(false);
+        setScanPreview(null);
+        await settleModals();
         await dialog.alert({ title: t('orders.scanMeasurements'), message: t('orders.scanNoRows'), tone: 'info' });
         return;
       }
       updateGarment(g.id, { values: { ...g.values, ...add } });
     } catch (err) {
+      setScanning(false);
+      setScanPreview(null);
+      await settleModals();
       await dialog.error(err);
     } finally {
       setScanning(false);

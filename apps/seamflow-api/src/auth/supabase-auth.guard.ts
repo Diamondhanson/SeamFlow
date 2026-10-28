@@ -96,6 +96,27 @@ export class SupabaseAuthGuard implements CanActivate {
         ? prefetched
         : await this.loadUserRow(data.user.id);
 
+    // Heal a missing display name from what the sign-in provider told us. The
+    // database copies the name onto the profile when the account is created, but
+    // only if it was known THEN — Apple, for one, hands over a name once, after
+    // the account exists. Without this such accounts stayed nameless and showed
+    // up as "Client" in every designer's conversation list. Fire-and-forget: it
+    // must never slow or fail a request.
+    if (row && !row.fullName?.trim()) {
+      const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+      const name = [meta.full_name, meta.name].find(
+        (v): v is string => typeof v === 'string' && v.trim().length > 0,
+      );
+      if (name) {
+        row.fullName = name.trim().slice(0, 80);
+        void this.db.db
+          .update(users)
+          .set({ fullName: row.fullName })
+          .where(eq(users.id, row.id))
+          .catch((err: unknown) => this.logger.warn(`Name heal failed: ${String(err)}`));
+      }
+    }
+
     let profile: ProfileRow | null = null;
     let suspendedAt: Date | null = null;
     let suspensionReason: string | null = null;

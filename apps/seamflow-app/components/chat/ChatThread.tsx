@@ -93,6 +93,9 @@ import { spacing, radii, useThemeColors } from '../../lib/theme';
 import { useTranslation } from '../../lib/i18n';
 import { haptics } from '../../lib/haptics';
 import { blockUser, reportContent } from '../../lib/report';
+import { settleModals } from '../../lib/modal-gap';
+import { FullscreenGallery } from '../client/FullscreenGallery';
+import type { FeedImage } from '@seamflow/schemas';
 import {
   COMPOSER_CONTROL,
   COMPOSER_LINE_H,
@@ -913,6 +916,28 @@ export function ChatThread({
 
   /** `messageId` is null for a queued message and inside the action overlay:
    *  both are previews, and neither can be filed. */
+  // Full-screen viewer for chat pictures.
+  const [viewer, setViewer] = useState<{ images: FeedImage[]; index: number } | null>(null);
+  const openPictures = (messageId: string | null, tappedUrl: string | undefined) => {
+    if (!tappedUrl) return;
+    const msg = messageId ? messages.find((m) => m.id === messageId) : undefined;
+    const images: FeedImage[] = [];
+    for (const x of msg?.attachments ?? []) {
+      if (x.kind !== 'image' || !x.url) continue;
+      images.push({
+        imageUrl: x.url,
+        thumbnailUrl: x.thumbnailUrl ?? x.url,
+        width: x.width ?? null,
+        height: x.height ?? null,
+        position: images.length,
+      });
+    }
+    if (images.length === 0) {
+      images.push({ imageUrl: tappedUrl, thumbnailUrl: tappedUrl, width: null, height: null, position: 0 });
+    }
+    setViewer({ images, index: Math.max(0, images.findIndex((x) => x.imageUrl === tappedUrl)) });
+  };
+
   const renderAttachment = (
     a: MessageAttachment,
     i: number,
@@ -940,17 +965,24 @@ export function ChatThread({
     }
     if (a.kind === 'image') {
       return (
-        <Image
-          key={i}
-          source={{ uri: a.thumbnailUrl ?? a.url }}
-          style={[styles.attachment, { borderRadius: radii.md }]}
-        />
+        // Tap to see it full screen, and to swipe through the other pictures in
+        // the same message. A picture that cannot be opened is a picture you
+        // cannot check — which is the whole reason it was sent.
+        <Pressable key={i} onPress={() => openPictures(messageId ?? null, a.url)}>
+          <Image
+            source={{ uri: a.thumbnailUrl ?? a.url }}
+            style={[styles.attachment, { borderRadius: radii.md }]}
+          />
+        </Pressable>
       );
     }
     if (a.kind === 'design') {
       const uri = a.thumbnailUrl ?? a.imageUrl;
       return uri ? (
-        <Image key={i} source={{ uri }} style={[styles.attachment, { borderRadius: radii.md }]} />
+        // The design card opens the design it is about.
+        <Pressable key={i} onPress={() => router.push(`/discover/${a.designPostId}` as never)}>
+          <Image source={{ uri }} style={[styles.attachment, { borderRadius: radii.md }]} />
+        </Pressable>
       ) : (
         <View key={i} style={styles.designChip}>
           <Ionicons name="pricetag-outline" size={14} color={colors.textMuted} />
@@ -1172,19 +1204,29 @@ export function ChatThread({
             ) : null
           }
           right={
-            conversation?.orderId ? (
-              <Pressable onPress={() => onViewOrder(conversation.orderId!)}>
-                <Text variant="bodySm" style={{ color: atelier.primary }}>
-                  {tk('viewOrder')}
-                </Text>
+            <>
+              {conversation?.orderId ? (
+                <Pressable onPress={() => onViewOrder(conversation.orderId!)}>
+                  <Text variant="bodySm" style={{ color: atelier.primary }}>
+                    {tk('viewOrder')}
+                  </Text>
+                </Pressable>
+              ) : onCreateQuote ? (
+                <Pressable onPress={onCreateQuote}>
+                  <Text variant="bodySm" style={{ color: atelier.primary }}>
+                    {tk('createQuote')}
+                  </Text>
+                </Pressable>
+              ) : null}
+              <Pressable
+                onPress={() => void openSafetyMenu()}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={t('report.menuA11y')}
+              >
+                <Ionicons name="ellipsis-horizontal" size={22} color={colors.text} />
               </Pressable>
-            ) : onCreateQuote ? (
-              <Pressable onPress={onCreateQuote}>
-                <Text variant="bodySm" style={{ color: atelier.primary }}>
-                  {tk('createQuote')}
-                </Text>
-              </Pressable>
-            ) : null
+            </>
           }
         />
         <Text variant="caption" tone="textMuted">
@@ -1216,6 +1258,35 @@ export function ChatThread({
                     Number(conversation.design.startingPrice),
                     conversation.design.currency ?? 'XAF',
                   ),
+                })}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
+
+      {/* What this conversation is for, when it began from an accepted offer: a
+          thread that opens with a reply and nothing else leaves both people
+          guessing which garment, which budget. */}
+      {conversation?.request ? (
+        <View style={[styles.pinned, { backgroundColor: colors.card, borderRadius: radii.lg }]}>
+          <View style={{ flex: 1 }}>
+            <Text variant="caption" tone="textMuted">
+              {tk('aboutRequest')}
+            </Text>
+            <Text variant="bodySm" numberOfLines={1}>
+              {conversation.request.garmentType}
+            </Text>
+            <Text variant="caption" tone="textMuted" numberOfLines={2}>
+              {conversation.request.description}
+            </Text>
+            {conversation.request.budgetMin || conversation.request.budgetMax ? (
+              <Text variant="caption" tone="textMuted" numberOfLines={1}>
+                {tk('requestBudget', {
+                  range: [conversation.request.budgetMin, conversation.request.budgetMax]
+                    .filter(Boolean)
+                    .map((n) => formatCurrency(Number(n), conversation.request?.currency ?? 'XAF'))
+                    .join(' – '),
                 })}
               </Text>
             ) : null}
@@ -1386,6 +1457,13 @@ export function ChatThread({
         )}
       </KeyboardStickyView>
 
+      <FullscreenGallery
+        images={viewer?.images ?? []}
+        visible={!!viewer}
+        startIndex={viewer?.index ?? 0}
+        onClose={() => setViewer(null)}
+      />
+
       {/* WhatsApp-style long-press overlay: dim the thread, float the bubble in
           the middle with an emoji reaction bar above and an action menu below. */}
       <Modal visible={!!menu} transparent animationType="fade" onRequestClose={() => setMenu(null)}>
@@ -1456,7 +1534,7 @@ export function ChatThread({
                             style={styles.actionRow}
                             onPress={() => {
                               setMenu(null);
-                              void reportContent(dialog, t, 'message', m.id);
+                              void settleModals().then(() => reportContent(dialog, t, 'message', m.id));
                             }}
                           >
                             <Text variant="body">{t('report.reportAction')}</Text>
@@ -1492,12 +1570,57 @@ export function ChatThread({
     const other = conversation?.counterparty;
     if (!other?.userId) return;
     setMenu(null);
+    // The long-press menu is a modal and is still fading out; a dialog opened
+    // now would not appear on iPhone.
+    await settleModals();
     const done = await blockUser(dialog, t, other.userId, other.name || tk('threadTitle'));
     if (done) {
       await qc.invalidateQueries({ queryKey: qk.conversation(id) });
       await qc.invalidateQueries({ queryKey: qk.conversations() });
       router.back();
     }
+  }
+
+  /**
+   * The always-visible way to Block or Report, from the thread's header.
+   *
+   * The long-press menu on a message is the right place to respond to something
+   * specific that was said, but it is invisible until you know to press and hold,
+   * and it only exists on THEIR messages. Someone who simply wants this
+   * conversation to stop had no way to find the Block button. This is the
+   * discoverable route to the same actions.
+   */
+  async function openSafetyMenu() {
+    const other = conversation?.counterparty;
+    const lastTheirs = [...messages].reverse().find((m) => !isMine(m) && !!m.id);
+    const actions: { label: string; value: 'shop' | 'message' | 'block'; destructive?: boolean }[] = [
+      ...(role === 'client' && other?.id
+        ? [{ label: t('report.title_shop'), value: 'shop' as const }]
+        : []),
+      ...(role === 'tailor' && lastTheirs
+        ? [{ label: t('report.menuReportLast'), value: 'message' as const }]
+        : []),
+      ...(other?.userId
+        ? [
+            {
+              label: t('report.menuBlock', { name: other.name || tk('threadTitle') }),
+              value: 'block' as const,
+              destructive: true,
+            },
+          ]
+        : []),
+    ];
+    if (actions.length === 0) return;
+    const choice = await dialog.choose<'shop' | 'message' | 'block'>({
+      title: t('report.menuTitle'),
+      message: t('report.menuHint'),
+      actions,
+    });
+    if (!choice) return;
+    await settleModals();
+    if (choice === 'block') await blockFromThread();
+    else if (choice === 'shop' && other?.id) await reportContent(dialog, t, 'shop', other.id);
+    else if (choice === 'message' && lastTheirs) await reportContent(dialog, t, 'message', lastTheirs.id);
   }
 
   function onFailedPress(p: PendingMessage) {

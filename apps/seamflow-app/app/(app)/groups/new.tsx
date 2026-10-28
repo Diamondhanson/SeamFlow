@@ -24,6 +24,7 @@ import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
 import { canPickContacts } from '../../../lib/platform-capabilities';
+import { useSubmitOnce } from '../../../lib/use-submit-once';
 
 // ============================================================================
 // New group order — atomic create flow.
@@ -42,6 +43,8 @@ interface DraftMember {
   localId: string;
   fullName: string;
   roleLabel: string;
+  /** Set when picked from the designer's own clients, so measurements can be copied later. */
+  clientId: string | null;
 }
 
 function newLocalId(): string {
@@ -76,10 +79,15 @@ export default function NewGroup() {
   const [members, setMembers] = useState<DraftMember[]>([]);
   const [memberDraftName, setMemberDraftName] = useState('');
   const [memberDraftRole, setMemberDraftRole] = useState('');
+  const [memberDraftClientId, setMemberDraftClientId] = useState<string | null>(null);
+  const [memberContactsOpen, setMemberContactsOpen] = useState(false);
+  // Every client, not the owner picker's search results.
+  const allClientsQ = useClients();
 
   // ----- data + mutation -----
   const clientsQ = useClients(clientSearch);
   const create = useCreateGroupOrderWithMembers();
+  const begin = useSubmitOnce();
 
   // Validation: title required + a valid owner shape.
   const ownerValid =
@@ -103,10 +111,12 @@ export default function NewGroup() {
         localId: newLocalId(),
         fullName: trimmed,
         roleLabel: memberDraftRole.trim(),
+        clientId: memberDraftClientId,
       },
     ]);
     setMemberDraftName('');
     setMemberDraftRole('');
+    setMemberDraftClientId(null);
   };
 
   const removeMember = (localId: string) =>
@@ -135,16 +145,22 @@ export default function NewGroup() {
             },
       members: members.map((m) => ({
         fullName: m.fullName,
+        clientId: m.clientId,
         roleLabel: m.roleLabel || null,
       })),
     };
 
+    const release = begin();
+    if (!release) return;
     create.mutate(payload, {
       onSuccess: (g) => {
         router.dismiss();
         router.push(`/(app)/groups/${g.id}`);
       },
-      onError: (err) => void dialog.error(err),
+      onError: (err) => {
+        release();
+        void dialog.error(err);
+      },
     });
   };
 
@@ -299,6 +315,9 @@ export default function NewGroup() {
                 {m.roleLabel ? (
                   <Text variant="bodySm" tone="textMuted">{m.roleLabel}</Text>
                 ) : null}
+                {m.clientId ? (
+                  <Text variant="caption" tone="textMuted">{t('groups.linkedToClient')}</Text>
+                ) : null}
               </View>
               <Pressable onPress={() => removeMember(m.localId)}>
                 <Text variant="bodySm" tone="danger" style={styles.linkDanger}>{t('common.remove')}</Text>
@@ -308,10 +327,47 @@ export default function NewGroup() {
         )}
 
         <View style={[styles.memberDraft, { backgroundColor: colors.card }]}>
+          {/* The people in a group are usually already clients, or in the phone's
+              contacts. Typing every name out again is how typos get in. */}
+          <View style={{ flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <Button
+                label={t('groups.memberFromClients')}
+                variant="secondary"
+                size="sm"
+                onPress={async () => {
+                  const list = allClientsQ.data?.items ?? [];
+                  const key = await dialog.pick({
+                    title: t('groups.pickClientTitle'),
+                    emptyText: list.length === 0 ? t('groups.noClientsMessage') : undefined,
+                    options: list.map((c) => ({ key: c.id, label: c.fullName })),
+                  });
+                  if (!key) return;
+                  const picked = list.find((c) => c.id === key);
+                  if (picked) {
+                    setMemberDraftName(picked.fullName);
+                    setMemberDraftClientId(picked.id);
+                  }
+                }}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button
+                label={t('groups.memberFromContacts')}
+                variant="secondary"
+                size="sm"
+                onPress={() => setMemberContactsOpen(true)}
+              />
+            </View>
+          </View>
           <Input
             label={t('groups.memberNameLabel')}
             value={memberDraftName}
-            onChangeText={setMemberDraftName}
+            onChangeText={(v) => {
+              setMemberDraftName(v);
+              // Typing over a picked client makes it a different person.
+              setMemberDraftClientId(null);
+            }}
             placeholder={t('groups.memberNamePlaceholder')}
           />
           <Input
@@ -367,6 +423,17 @@ export default function NewGroup() {
           disabled={!canSubmit}
         />
       </FormScroll>
+
+      <ContactPickerModal
+        visible={memberContactsOpen}
+        onClose={() => setMemberContactsOpen(false)}
+        onSelect={(contact) => {
+          setMemberDraftName(contact.name);
+          setMemberDraftClientId(null);
+          setMemberContactsOpen(false);
+        }}
+        defaultCountry={defaultCountry}
+      />
 
       <ContactPickerModal
         visible={contactsOpen}

@@ -33,6 +33,7 @@ import { matchMeasurementLabel } from '../../../../lib/measurements';
 import { api } from '../../../../lib/api';
 import { spacing, radii } from '../../../../lib/theme';
 import { useTranslation } from '../../../../lib/i18n';
+import { settleModals } from '../../../../lib/modal-gap';
 
 const UNITS: MeasurementUnit[] = ['cm', 'in'];
 
@@ -83,12 +84,18 @@ export default function EditMeasurements() {
         add[matchMeasurementLabel(it.label, t).label] = String(it.value);
       }
       if (Object.keys(add).length === 0) {
+        setScanning(false);
+        setScanPreview(null);
+        await settleModals();
         await dialog.alert({ title: t('cmeasurements.scan'), message: t('cmeasurements.scanNoRows'), tone: 'info' });
         return;
       }
       setValues((cur) => ({ ...cur, ...add }));
       if (res.detectedUnit === 'cm' || res.detectedUnit === 'in') setUnit(res.detectedUnit);
     } catch (err) {
+      setScanning(false);
+      setScanPreview(null);
+      await settleModals();
       await dialog.error(err);
     } finally {
       setScanning(false);

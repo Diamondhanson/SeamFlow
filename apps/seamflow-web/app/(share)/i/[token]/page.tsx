@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ApiError } from '@seamflow/api-client';
 import type { PublicInvoiceResponse } from '@seamflow/schemas';
@@ -21,6 +22,31 @@ const CATEGORY_LABEL: Record<string, string> = {
 async function loadPayload(token: string): Promise<PublicInvoiceResponse> {
   const api = publicApi();
   return api.invoices.resolvePublic(token);
+}
+
+/**
+ * Preview text for a pasted invoice link. Deliberately names only the shop: the
+ * amounts, line items and the client's name stay on the page, because chat apps
+ * keep previews and show them to anyone the link is forwarded to. Kept out of
+ * search engines as well.
+ */
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { token } = await params;
+  const robots = { index: false, follow: false } as const;
+  try {
+    const inv = await loadPayload(token);
+    const title = `Invoice from ${inv.tailor.businessName}`;
+    const description = `An invoice from ${inv.tailor.businessName}, sent with SeamFlow.`;
+    return {
+      title,
+      description,
+      robots,
+      openGraph: { title, description, type: 'website', siteName: 'SeamFlow' },
+      twitter: { card: 'summary', title, description },
+    };
+  } catch {
+    return { title: 'Invoice · SeamFlow', robots };
+  }
 }
 
 export default async function PublicInvoicePage({ params }: PageProps) {

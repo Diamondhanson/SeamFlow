@@ -100,6 +100,8 @@ export type GroupOrderOwnerInput = z.infer<typeof GroupOrderOwnerInputSchema>;
 
 export const GroupOrderMemberInlineSchema = z.object({
   fullName: z.string().min(1),
+  /** A client in the designer's book this member is, so their measurements can be copied across. */
+  clientId: z.string().uuid().nullable().optional(),
   roleLabel: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   /** Position is auto-assigned by the server if omitted. */

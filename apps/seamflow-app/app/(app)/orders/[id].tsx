@@ -356,7 +356,19 @@ export default function OrderDetailScreen() {
 
   return (
     <Screen bleed>
-      <ScreenHeader title={order.orderName} />
+      <ScreenHeader
+        title={order.orderName}
+        right={
+          <Pressable
+            onPress={() => router.push(`/(app)/orders/edit?id=${id}`)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t('orders.editOrderA11y')}
+          >
+            <Ionicons name="create-outline" size={22} color={colors.accent} />
+          </Pressable>
+        }
+      />
       <FormScroll refreshControl={refreshControl}
         contentContainerStyle={{ paddingBottom: 96 }}
         showsVerticalScrollIndicator={false}

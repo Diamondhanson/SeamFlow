@@ -83,7 +83,7 @@ interface AuthState {
    * verifyOtpSignup() with the code before they're signed in. Throws on
    * already-existing-email or other validation errors.
    */
-  signUpWithPassword: (email: string, password: string) => Promise<void>;
+  signUpWithPassword: (email: string, password: string, fullName?: string) => Promise<void>;
   /** Verify the 6-digit signup OTP. On success, session is created. */
   verifyOtpSignup: (email: string, token: string) => Promise<void>;
   /** Re-send the signup OTP. Rate-limited by Supabase server-side. */
@@ -187,8 +187,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const signUpWithPassword = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+  const signUpWithPassword = useCallback(async (email: string, password: string, fullName?: string) => {
+    // The name rides along as account metadata; the database copies it onto the
+    // person's profile, which is what a designer sees on a customer's enquiry.
+    // Without it every email sign-up showed up as "Client".
+    const name = fullName?.trim();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      ...(name ? { options: { data: { full_name: name } } } : {}),
+    });
     if (error) throw error;
     // When email confirmation is required (our setting), `session` comes
     // back null and `user.identities` is empty if the email is already
