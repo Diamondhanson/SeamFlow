@@ -142,7 +142,11 @@ export function usePremiumGate(): { locked: boolean; prompt: () => void } {
  */
 export function formatPlanPrice(amount: number, currency: 'XAF' | 'USD'): string {
   if (currency === 'XAF') return `${amount.toLocaleString('fr-FR').replace(/ | /g, ' ')} FCFA`;
-  return `$${amount.toLocaleString('en-US')}`;
+  // Whole dollars stay whole ($5); anything with cents shows both digits ($4.50).
+  return `$${amount.toLocaleString('en-US', {
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export interface PlanRow {

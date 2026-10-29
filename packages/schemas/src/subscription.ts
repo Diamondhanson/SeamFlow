@@ -103,6 +103,16 @@ export interface BillingOptions {
  * commit and two deploys. Anything missing or malformed falls back to the
  * default, because a bad edit must not be able to take pricing down.
  */
+function usdPrice() {
+  return z
+    .number()
+    .min(0.5)
+    .max(10_000)
+    .refine((v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, {
+      message: 'A dollar price can have at most two decimal places',
+    });
+}
+
 export const PriceTableSchema = z.object({
   XAF: z.object({
     // Fapshi refuses anything under 100 XAF, so a price below it would be a
@@ -111,10 +121,13 @@ export const PriceTableSchema = z.object({
     quarterly: z.number().int().min(100).max(1_000_000),
     annual: z.number().int().min(100).max(1_000_000),
   }),
+  // Dollars, with cents: $4.99 is a normal price, and the payments table already
+  // stores two decimals. The refine rejects a third decimal (4.999) rather than
+  // letting it round silently somewhere between the dashboard and the card.
   USD: z.object({
-    monthly: z.number().int().min(1).max(10_000),
-    quarterly: z.number().int().min(1).max(10_000),
-    annual: z.number().int().min(1).max(10_000),
+    monthly: usdPrice(),
+    quarterly: usdPrice(),
+    annual: usdPrice(),
   }),
 });
 export type PriceTable = z.infer<typeof PriceTableSchema>;

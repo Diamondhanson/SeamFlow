@@ -251,6 +251,10 @@ const PLAN_LABEL: Record<(typeof PLAN_KEYS)[number], string> = {
 export function PriceEditor({ prices, defaults }: { prices: PriceTable; defaults: PriceTable }) {
   const [pending, start] = useTransition();
   const [draft, setDraft] = useState<PriceTable>(prices);
+  // What is currently TYPED in a dollar box. The box cannot be driven straight
+  // from the number: typing "4." parses to 4, the number is unchanged, and the
+  // box snaps back to "4" — the decimal point could never be entered.
+  const [typed, setTyped] = useState<Record<string, string>>({});
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -275,8 +279,9 @@ export function PriceEditor({ prices, defaults }: { prices: PriceTable; defaults
     });
   };
 
+  const usd = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(v) ? 0 : 2, maximumFractionDigits: 2 });
   const summary = (t: PriceTable) =>
-    `Cameroon ${PLAN_KEYS.map((k) => t.XAF[k].toLocaleString('en-GB')).join(' / ')} FCFA, elsewhere ${PLAN_KEYS.map((k) => `$${t.USD[k]}`).join(' / ')}`;
+    `Cameroon ${PLAN_KEYS.map((k) => t.XAF[k].toLocaleString('en-GB')).join(' / ')} FCFA, elsewhere ${PLAN_KEYS.map((k) => `$${usd(t.USD[k])}`).join(' / ')}`;
 
   return (
     <div>
@@ -296,14 +301,38 @@ export function PriceEditor({ prices, defaults }: { prices: PriceTable; defaults
               {PLAN_KEYS.map((plan) => (
                 <label key={plan} className="flex items-center justify-between gap-3">
                   <span className="text-sm text-muted">{PLAN_LABEL[plan]}</span>
-                  <input
-                    type="number"
-                    min={cur === 'XAF' ? 100 : 1}
-                    step={cur === 'XAF' ? 100 : 1}
-                    value={draft[cur][plan]}
-                    onChange={(e) => set(cur, plan, Math.floor(Number(e.target.value)))}
-                    className="w-32 border border-rule bg-paper px-2.5 py-1.5 text-right text-sm tnum outline-none focus:border-primary"
-                  />
+                  {cur === 'XAF' ? (
+                    <input
+                      type="number"
+                      min={100}
+                      step={100}
+                      value={draft.XAF[plan]}
+                      onChange={(e) => set('XAF', plan, Math.floor(Number(e.target.value)))}
+                      className="w-32 border border-rule bg-paper px-2.5 py-1.5 text-right text-sm tnum outline-none focus:border-primary"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      aria-label={`${PLAN_LABEL[plan]} price in dollars`}
+                      value={typed[plan] ?? String(draft.USD[plan])}
+                      onChange={(e) => {
+                        const text = e.target.value.replace(',', '.');
+                        // Digits with at most one point and two decimals — nothing else.
+                        if (!/^\d{0,5}(\.\d{0,2})?$/.test(text)) return;
+                        setTyped((t) => ({ ...t, [plan]: text }));
+                        const n = Number(text);
+                        if (text !== '' && Number.isFinite(n) && n > 0) set('USD', plan, n);
+                      }}
+                      onBlur={() =>
+                        setTyped((t) => {
+                          const { [plan]: _drop, ...rest } = t;
+                          return rest;
+                        })
+                      }
+                      className="w-32 border border-rule bg-paper px-2.5 py-1.5 text-right text-sm tnum outline-none focus:border-primary"
+                    />
+                  )}
                 </label>
               ))}
             </div>
