@@ -17,6 +17,7 @@
 
 import postgres from 'postgres';
 import { assertSignInConfigured } from './guard';
+import { withReadRetry } from './db-retry';
 
 assertSignInConfigured();
 
@@ -38,14 +39,21 @@ if (!url) {
 // getting it wrong yields intermittent "prepared statement does not exist".
 const globalForDb = globalThis as unknown as { __seamflowOpsSql?: postgres.Sql };
 
+// Reads retry once if the connection turns out to be dead — see ./db-retry for
+// why an instance that was frozen between requests needs that.
 export const sql =
   globalForDb.__seamflowOpsSql ??
-  postgres(url, {
-    prepare: false,
-    // Small on purpose: one reader on a shared pooler. A dashboard does not
-    // need headroom and taking it starves the actual API.
-    max: 3,
-    idle_timeout: 20,
-  });
+  withReadRetry(
+    postgres(url, {
+      prepare: false,
+      // Small on purpose: one reader on a shared pooler. A dashboard does not
+      // need headroom and taking it starves the actual API.
+      max: 3,
+      idle_timeout: 20,
+      // Give up on a connection attempt quickly so the retry can take over,
+      // instead of holding a page for the library's 30-second default.
+      connect_timeout: 10,
+    }),
+  );
 
 if (process.env.NODE_ENV !== 'production') globalForDb.__seamflowOpsSql = sql;
