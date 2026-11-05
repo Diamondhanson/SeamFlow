@@ -14,6 +14,8 @@
     "test": "jest --ci --passWithNoTests",
     "test:watch": "jest --watchAll",
     "i18n:check": "node scripts/verify-i18n.mjs",
+    "update:production": "bash scripts/publish-update.sh production",
+    "update:preview": "bash scripts/publish-update.sh preview",
     "lint": "expo lint && node scripts/verify-i18n.mjs",
     "eas-build-post-install": "pnpm --filter \"seamflow-app^...\" build"
   },

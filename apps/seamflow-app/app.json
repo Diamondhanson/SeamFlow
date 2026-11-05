@@ -2,10 +2,10 @@
   "expo": {
     "name": "SeamFlow",
     "slug": "FashionApp",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "updates": {
       "url": "https://u.expo.dev/da3ea415-e753-4047-b8cb-a1601ebfad64",
-      "checkAutomatically": "NEVER",
+      "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
     },
     "runtimeVersion": {

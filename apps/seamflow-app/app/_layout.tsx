@@ -41,6 +41,7 @@ import { installPwa } from '../lib/pwa';
 import { installOutboxFlusher } from '../lib/chat-outbox';
 import { AuthProvider, useAuth } from '../lib/auth-context';
 import { ensurePushRegistered } from '../lib/notifications';
+import { OtaUpdatePrompt } from '../lib/ota-update';
 import {
   installOfflineListeners,
   queryClient,
@@ -224,6 +225,7 @@ function ThemedRoot() {
             <ModeProvider>
               <StatusBar style={mode === 'midnight' ? 'light' : 'dark'} />
               <PushLanguageSync />
+              <OtaUpdatePrompt />
               <OfflineBanner />
               {/* Around the router, inside the providers: it catches every
                   screen and has the theme and translations to say so in the
