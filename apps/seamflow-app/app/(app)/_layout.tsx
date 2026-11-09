@@ -124,20 +124,14 @@ function GatedStack() {
           <Stack.Screen name="calendar/index" options={{ gestureEnabled: false }} />
           <Stack.Screen name="more" options={{ gestureEnabled: false }} />
 
-          {/* Only the modal routes need explicit options now that headers
-              are off — everything else inherits the slide + swipe defaults. */}
-          <Stack.Screen
-            name="clients/new"
-            options={{ presentation: 'modal', gestureEnabled: true }}
-          />
-          <Stack.Screen
-            name="groups/new"
-            options={{ presentation: 'modal', gestureEnabled: true }}
-          />
-          <Stack.Screen
-            name="templates/new"
-            options={{ presentation: 'modal', gestureEnabled: true }}
-          />
+          {/* No route here may use `presentation: 'modal'` (clients/new,
+              groups/new and templates/new used to). Every dialog is a modal
+              hosted at the app root, and on an iPhone a modal cannot open over
+              a native modal route: the dialog never appears and whatever is
+              awaiting it hangs (the template scan button spun forever; errors
+              and pickers on the new-client / new-group forms were lost). The
+              form routes inherit the slide + swipe defaults like every other
+              screen. See lib/modal-gap.ts. */}
         </Stack>
 
         {/* Persistent navigation + Ask pill, at every width. Renders itself

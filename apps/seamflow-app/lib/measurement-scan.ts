@@ -13,6 +13,7 @@
 import type { AiExtractMeasurementsResponse, AiExtractMode } from '@seamflow/schemas';
 import { api } from './api';
 import { supabase } from './supabase';
+import { settleModals } from './modal-gap';
 import { pickPhoto, uploadTemplateImage } from './photo-upload';
 
 /** Metadata of the uploaded scan photo — shaped so it can be attached to a
@@ -47,6 +48,10 @@ export async function scanMeasurementPage(args: {
 }): Promise<MeasurementScan | null> {
   const asset = await pickPhoto(args.source);
   if (!asset) return null;
+  // The picker is still dismissing; the caller raises its full-screen
+  // "Reading…" overlay in response to this, and a modal opened over a closing
+  // one is dropped on iPhone.
+  await settleModals();
   args.onPicked?.(asset.uri);
 
   const image = await uploadTemplateImage({ tailorId: args.tailorId, asset });

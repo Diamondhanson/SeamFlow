@@ -1019,7 +1019,7 @@ export default function NewOrderWizard() {
         onAccept={setOrderNotes}
       />
 
-      <ScanOverlay visible={scanning} imageUri={scanPreview} label={t('orders.scanReading')} />
+      <ScanOverlay visible={scanning && scanPreview !== null} imageUri={scanPreview} label={t('orders.scanReading')} />
     </Screen>
   );
 }

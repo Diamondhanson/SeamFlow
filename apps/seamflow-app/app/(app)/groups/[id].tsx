@@ -52,6 +52,7 @@ import { radii, spacing, useThemeColors } from '../../../lib/theme';
 import { useResponsiveValue } from '../../../lib/use-breakpoint';
 import { useTranslation } from '../../../lib/i18n';
 import { useDialog } from '../../../lib/dialog';
+import { settleModals } from '../../../lib/modal-gap';
 import { draftKey, useDraft } from '../../../lib/drafts';
 import { useRefreshControl } from '../../../lib/use-refresh-control';
 
@@ -152,12 +153,17 @@ export default function GroupDetail() {
       const added = await api.groupOrderPhotos.attachFromLibrary(id, selection);
       qc.invalidateQueries({ queryKey: qk.groupPhotos(id) });
       setLibraryOpen(false);
+      // The picker sheet is a modal and is still fading out; a dialog opened now
+      // never appears on iPhone, and `attaching` would stay set forever.
+      await settleModals();
       await dialog.alert({
         title: t('orders.attachedTitle'),
         message: t('orders.attachedBody', { count: added.length }),
         tone: 'success',
       });
     } catch (err) {
+      setLibraryOpen(false);
+      await settleModals();
       if (!(await alertIfOffline(err, dialog, t))) await dialog.error(err);
     } finally {
       setAttaching(false);

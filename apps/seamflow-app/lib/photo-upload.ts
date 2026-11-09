@@ -3,6 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { onlineManager } from '@tanstack/react-query';
 import { PermissionDeniedError, PhotoOfflineError } from './permissions';
 import { UploadError } from './errors';
+import { settleModals } from './modal-gap';
 import { supabase } from './supabase';
 import { api } from './api';
 import type {
@@ -150,6 +151,9 @@ export async function pickPhotos(
   if (!onlineManager.isOnline()) {
     throw new PhotoOfflineError();
   }
+  // Usually reached straight after a "camera or gallery?" dialog; the picker
+  // cannot open over a modal that is still fading out (see lib/modal-gap).
+  await settleModals();
   await ensurePermission(source);
 
   const toAsset = (a: ImagePicker.ImagePickerAsset): PickedAsset => ({
@@ -193,6 +197,8 @@ export async function pickPhoto(
   if (!onlineManager.isOnline()) {
     throw new PhotoOfflineError();
   }
+  // Same as pickPhotos: let the "camera or gallery?" dialog finish closing.
+  await settleModals();
   await ensurePermission(source);
 
   const opts: ImagePicker.ImagePickerOptions = {

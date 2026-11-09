@@ -80,6 +80,20 @@ export function MeasurementSheetScan({
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [unit, setUnit] = useState<'cm' | 'in'>('cm');
   const [setLabel, setSetLabel] = useState('');
+  // The review sheet is a modal, and a dialog cannot open over another modal on
+  // iPhone. A dialog raised from inside the sheet therefore never appeared, and
+  // the Save button that awaited it spun forever. The sheet stands down while it
+  // is asked, then comes back with everything the person typed still in it.
+  const [paused, setPaused] = useState(false);
+  const overReview = async (show: () => Promise<unknown>) => {
+    setPaused(true);
+    await settleModals();
+    try {
+      await show();
+    } finally {
+      setPaused(false);
+    }
+  };
 
   const close = () => {
     setPhase('idle');
@@ -258,11 +272,13 @@ export function MeasurementSheetScan({
       .map((r) => ({ ...r, parsed: parseMeasurementValue(r.value) }))
       .filter((r) => r.label.trim() && r.parsed != null);
     if (withNums.length === 0) {
-      await dialog.alert({
-        title: t('clients.scanNoValuesTitle'),
-        message: t('clients.scanNoValuesBody'),
-        tone: 'warning',
-      });
+      await overReview(() =>
+        dialog.alert({
+          title: t('clients.scanNoValuesTitle'),
+          message: t('clients.scanNoValuesBody'),
+          tone: 'warning',
+        }),
+      );
       return;
     }
     const fields = finalizeTemplateFields(
@@ -296,7 +312,7 @@ export function MeasurementSheetScan({
           close();
           setTimeout(() => void offerPromote(snapshot), 600);
         },
-        onError: (err) => void dialog.error(err),
+        onError: (err) => void overReview(() => dialog.error(err)),
         onSettled: release,
       },
     );
@@ -316,7 +332,7 @@ export function MeasurementSheetScan({
       />
 
       <Modal
-        visible={phase === 'review'}
+        visible={phase === 'review' && !paused}
         animationType="slide"
         onRequestClose={cancelReview}
       >

@@ -85,7 +85,9 @@ export default function DesignDetail() {
             message: t('designs.attachedBody'),
             tone: 'success',
           })),
-        onError: (e) => void dialog.error(e),
+        // Same wait on failure: a fast error would otherwise land while the
+        // sheet is still closing and never be shown.
+        onError: (e) => void settleModals().then(() => dialog.error(e)),
       },
     );
   };

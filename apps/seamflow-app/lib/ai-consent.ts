@@ -21,6 +21,7 @@ import { useAuth } from './auth-context';
 import { useDialog } from './dialog';
 import { useTranslation } from './i18n';
 import { openLegal } from './legal-links';
+import { settleModals } from './modal-gap';
 
 /** Per account, so two people sharing a phone each answer for themselves. */
 export const aiConsentKey = (userId: string): string => `seamflow.aiConsent.v1.${userId}`;
@@ -69,12 +70,21 @@ export function useAiConsent(): {
         await openLegal('privacy', language);
         continue;
       }
-      if (answer !== 'allow') return false;
+      // Every caller goes on to open something else — the camera/gallery
+      // question, a photo picker, a sheet. This dialog is a modal and is still
+      // fading out at this point, and on iPhone whatever opens over it is
+      // dropped, leaving the caller (and its spinning button) waiting forever.
+      // So the answer is only handed back once the dialog is really gone.
+      if (answer !== 'allow') {
+        await settleModals();
+        return false;
+      }
       try {
         await AsyncStorage.setItem(aiConsentKey(userId), '1');
       } catch {
         // Could not remember it; they will simply be asked again next time.
       }
+      await settleModals();
       return true;
     }
   }, [userId, isGranted, dialog, t, language]);
