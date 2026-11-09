@@ -56,6 +56,20 @@ export function missingShopVitals(shop: ShopLike | null | undefined): ShopVital[
 }
 
 /**
+ * Did the person fill in the shop form — a business name and where they are?
+ *
+ * The getting-started checklist asks "Set up your shop" ONLY of someone who
+ * skipped that form. A shop row cannot exist without a business name, so this
+ * is "a shop exists and it has a location" (the free-text location or a city).
+ * Deliberately narrower than shopSetup(): no photo or specialties here — those
+ * have their own steps or screens, and the checklist must not nag someone who
+ * already answered the question it is asking.
+ */
+export function hasShopBasics(shop: ShopLike | null | undefined): boolean {
+  return !!shop && (filled(shop.city) || filled(shop.location));
+}
+
+/**
  * `me` is `undefined` while the profile is still loading — that is 'unknown',
  * not 'none', so the button doesn't flash "Set up your shop" at someone who has
  * one. `null` (loaded, no shop) is 'none'.

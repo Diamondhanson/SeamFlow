@@ -1,4 +1,10 @@
-import { missingShopVitals, nextShopStepHref, shopSetup, type ShopLike } from './shop-setup';
+import {
+  hasShopBasics,
+  missingShopVitals,
+  nextShopStepHref,
+  shopSetup,
+  type ShopLike,
+} from './shop-setup';
 
 const full: ShopLike = {
   specialties: ['Kaftan'],
@@ -58,5 +64,26 @@ describe('nextShopStepHref', () => {
     expect(nextShopStepHref({})).toBe('/(app)/specialties');
     expect(nextShopStepHref({ specialties: ['x'] })).toBe('/(app)/feed/storefront'); // city
     expect(nextShopStepHref({ specialties: ['x'], city: 'Douala' })).toBe('/(app)/me'); // photo
+  });
+});
+
+describe('hasShopBasics', () => {
+  it('is false when there is no shop — they skipped the form', () => {
+    expect(hasShopBasics(null)).toBe(false);
+    expect(hasShopBasics(undefined)).toBe(false);
+  });
+
+  it('is false for a shop with a name but no location', () => {
+    expect(hasShopBasics({})).toBe(false);
+    expect(hasShopBasics({ location: '   ', city: '' })).toBe(false);
+  });
+
+  it('is true once a location or a city is filled in', () => {
+    expect(hasShopBasics({ location: 'Akwa, Douala' })).toBe(true);
+    expect(hasShopBasics({ city: 'Douala' })).toBe(true);
+  });
+
+  it('does not need specialties or a photo — those are other steps', () => {
+    expect(hasShopBasics({ location: 'Douala', specialties: [], photoUrl: null })).toBe(true);
   });
 });

@@ -1,9 +1,13 @@
 // ============================================================================
 // <GettingStarted> — a first-timer checklist on the home screen.
 //
-// Shows a brand-new user the handful of steps to get their shop going: add a
-// client, create an order, save a template (the shop profile is already done
-// by the time this shows, so it lands pre-ticked as a little "1 of 4" win).
+// Shows a brand-new user the steps to get their shop going. Three always:
+//   1. Tell us what you make   (specialties)
+//   2. Save a measurement template
+//   3. Create your first order (a new client can be added right inside it)
+// and a fourth, "Set up your shop", slotted in as step 2 ONLY for someone who
+// skipped the business-name-and-location form that follows "I'm a designer".
+// Someone who filled it in is never asked again. Tapping it opens that form.
 //
 // Ticks derive from live data, so they fill in as the user actually does each
 // thing. The card fades for good once every step is done OR the user dismisses
@@ -16,8 +20,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, IconButton, useAtelierTheme } from '@seamflow/ui';
 import { SkeletonLine } from './Skeleton';
 import { useGuides } from '../lib/guides';
-import { useMe, useClients, useOrders, useTemplates } from '../lib/queries';
-import { missingShopVitals } from '../lib/shop-setup';
+import { useMe, useOrders, useTemplates } from '../lib/queries';
+import { hasShopBasics } from '../lib/shop-setup';
 import { radii, spacing } from '../lib/theme';
 import { useTranslation } from '../lib/i18n';
 
@@ -37,12 +41,8 @@ export function GettingStarted() {
   const { ready, isDismissed, dismiss } = useGuides();
 
   const { data: me } = useMe();
-  const { data: clientsData } = useClients('');
   const { data: ordersData } = useOrders({});
   const { data: templatesData } = useTemplates();
-
-  // Specialties has its own step, so this one is only the rest of the vitals.
-  const profileGaps = missingShopVitals(me?.tailor).filter((v) => v !== 'specialties');
 
   const steps = [
     {
@@ -54,38 +54,36 @@ export function GettingStarted() {
       done: (me?.tailor?.specialties?.length ?? 0) > 0,
       go: () => router.push('/(app)/specialties'),
     },
-    {
-      // Done when the shop could be recognised: a city and a photo (specialties
-      // is the step above). "A shop row exists" is true after one tap and said
-      // nothing about whether anyone could tell who this is. lib/shop-setup.
-      key: 'profile',
-      label: t('guides.checklistProfile'),
-      done: !!me?.tailor && profileGaps.length === 0,
-      go: () => router.push((profileGaps[0] === 'photo' ? '/(app)/me' : '/(app)/feed/storefront') as never),
-    },
-    {
-      key: 'client',
-      label: t('guides.checklistClient'),
-      done: (clientsData?.items.length ?? 0) > 0,
-      go: () => router.push('/(app)/clients/new'),
-    },
-    {
-      key: 'order',
-      label: t('guides.checklistOrder'),
-      done: (ordersData?.items.length ?? 0) > 0,
-      go: () => router.push('/(app)/new-order'),
-    },
+    // Only for someone who skipped the shop form. Once a name and location are
+    // saved the row disappears rather than ticking, so the list is simply the
+    // three everyone gets. It opens the form itself, not Settings.
+    ...(hasShopBasics(me?.tailor)
+      ? []
+      : [
+          {
+            key: 'profile',
+            label: t('guides.checklistProfile'),
+            done: false,
+            go: () => router.push('/(app)/profile-edit'),
+          },
+        ]),
     {
       key: 'template',
       label: t('guides.checklistTemplate'),
       done: (templatesData?.items.length ?? 0) > 0,
       go: () => router.push('/(app)/templates'),
     },
+    {
+      // A client is added inside the order flow, so there is no separate step.
+      key: 'order',
+      label: t('guides.checklistOrder'),
+      done: (ordersData?.items.length ?? 0) > 0,
+      go: () => router.push('/(app)/new-order'),
+    },
   ];
 
   // Wait until the cached data has hydrated so we don't flash a wrong count.
-  const loaded =
-    me != null && clientsData != null && ordersData != null && templatesData != null;
+  const loaded = me != null && ordersData != null && templatesData != null;
   const doneCount = steps.filter((s) => s.done).length;
   const allDone = doneCount === steps.length;
 
@@ -104,7 +102,6 @@ export function GettingStarted() {
           <SkeletonLine width="70%" />
           <SkeletonLine width="55%" />
           <SkeletonLine width="62%" />
-          <SkeletonLine width="58%" />
         </View>
       </View>
     );
