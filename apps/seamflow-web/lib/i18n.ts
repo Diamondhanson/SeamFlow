@@ -271,6 +271,8 @@ export const copy = {
       soon: 'Coming soon',
       appStore: 'Download on the App Store',
       googlePlay: 'Get it on Google Play',
+      appleEyebrow: 'Download on the',
+      appleCta: 'App Store',
       androidEyebrow: 'Get it on',
       androidCta: 'Google Play',
     },
@@ -340,7 +342,7 @@ export const copy = {
         {
           key: 'devices',
           title: 'Phone, tablet or browser',
-          body: 'The Android app on the shop floor, the same SeamFlow in a browser on a laptop. Install it to your home screen and it behaves like an app.',
+          body: 'The iPhone, iPad or Android app on the shop floor, the same SeamFlow in a browser on a laptop. Install it to your home screen and it behaves like an app.',
         },
         {
           key: 'offline',
@@ -421,7 +423,7 @@ export const copy = {
         },
         {
           q: 'Does SeamFlow work on a computer, or only on a phone?',
-          a: 'Both. There’s an Android app for the shop floor, and the same SeamFlow runs in any modern browser on a laptop or desktop. You can install it to your home screen or desktop and it behaves like a native app.',
+          a: 'Both. There are apps for iPhone, iPad and Android for the shop floor, and the same SeamFlow runs in any modern browser on a laptop or desktop. You can install it to your home screen or desktop and it behaves like a native app.',
         },
         {
           q: 'How much does it cost?',
@@ -455,7 +457,7 @@ export const copy = {
         },
         {
           q: 'Which devices does it run on?',
-          a: 'Android phones and tablets today, any browser on laptop or desktop, and iOS soon.',
+          a: 'iPhone and iPad from the App Store, Android phones and tablets from Google Play, and any browser on a laptop or desktop.',
         },
       ] as Faq[],
     },
@@ -787,6 +789,8 @@ export const copy = {
       soon: 'Bientôt disponible',
       appStore: 'Télécharger sur l’App Store',
       googlePlay: 'Disponible sur Google Play',
+      appleEyebrow: 'Télécharger dans l’',
+      appleCta: 'App Store',
       androidEyebrow: 'Disponible sur',
       androidCta: 'Google Play',
     },
@@ -856,7 +860,7 @@ export const copy = {
         {
           key: 'devices',
           title: 'Téléphone, tablette ou navigateur',
-          body: 'L’app Android à l’atelier, le même SeamFlow dans un navigateur sur ordinateur. Installez-le sur votre écran d’accueil et il se comporte comme une vraie app.',
+          body: 'L’app iPhone, iPad ou Android à l’atelier, le même SeamFlow dans un navigateur sur ordinateur. Installez-le sur votre écran d’accueil et il se comporte comme une vraie app.',
         },
         {
           key: 'offline',
@@ -936,7 +940,7 @@ export const copy = {
         },
         {
           q: 'SeamFlow fonctionne-t-il sur ordinateur, ou seulement sur téléphone ?',
-          a: 'Les deux. Il y a une app Android pour l’atelier, et le même SeamFlow tourne dans n’importe quel navigateur moderne sur ordinateur portable ou de bureau. Vous pouvez l’installer sur votre écran d’accueil ou votre bureau et il se comporte comme une app native.',
+          a: 'Les deux. Il y a des apps iPhone, iPad et Android pour l’atelier, et le même SeamFlow tourne dans n’importe quel navigateur moderne sur ordinateur portable ou de bureau. Vous pouvez l’installer sur votre écran d’accueil ou votre bureau et il se comporte comme une app native.',
         },
         {
           q: 'Combien ça coûte ?',
@@ -970,7 +974,7 @@ export const copy = {
         },
         {
           q: 'Sur quels appareils ?',
-          a: 'Téléphones et tablettes Android aujourd’hui, n’importe quel navigateur sur ordinateur, et iOS bientôt.',
+          a: 'iPhone et iPad via l’App Store, téléphones et tablettes Android via Google Play, et n’importe quel navigateur sur ordinateur.',
         },
       ] as Faq[],
     },
@@ -1303,6 +1307,8 @@ export const copy = {
       soon: 'Em breve',
       appStore: 'Descarregar na App Store',
       googlePlay: 'Disponível no Google Play',
+      appleEyebrow: 'Descarregar na',
+      appleCta: 'App Store',
       androidEyebrow: 'Disponível no',
       androidCta: 'Google Play',
     },
@@ -1373,7 +1379,7 @@ export const copy = {
         {
           key: 'devices',
           title: 'Telemóvel, tablet ou navegador',
-          body: 'A aplicação Android no atelier, o mesmo SeamFlow no navegador de um portátil. Instale-o no ecrã principal e comporta-se como uma aplicação.',
+          body: 'A aplicação para iPhone, iPad ou Android no atelier, o mesmo SeamFlow no navegador de um portátil. Instale-o no ecrã principal e comporta-se como uma aplicação.',
         },
         {
           key: 'offline',
@@ -1453,7 +1459,7 @@ export const copy = {
         },
         {
           q: 'O SeamFlow funciona no computador ou só no telemóvel?',
-          a: 'Nos dois. Há uma aplicação Android para o atelier e o mesmo SeamFlow corre em qualquer navegador moderno num portátil ou computador. Pode instalá-lo no ecrã principal ou no ambiente de trabalho e comporta-se como uma aplicação nativa.',
+          a: 'Nos dois. Há aplicações para iPhone, iPad e Android para o atelier e o mesmo SeamFlow corre em qualquer navegador moderno num portátil ou computador. Pode instalá-lo no ecrã principal ou no ambiente de trabalho e comporta-se como uma aplicação nativa.',
         },
         {
           q: 'Quanto custa?',
@@ -1487,7 +1493,7 @@ export const copy = {
         },
         {
           q: 'Em que dispositivos funciona?',
-          a: 'Telemóveis e tablets Android hoje, qualquer navegador em portátil ou computador, e iOS em breve.',
+          a: 'iPhone e iPad pela App Store, telemóveis e tablets Android pelo Google Play, e qualquer navegador em portátil ou computador.',
         },
       ] as Faq[],
     },
@@ -1820,6 +1826,8 @@ export const copy = {
       soon: 'Próximamente',
       appStore: 'Descargar en el App Store',
       googlePlay: 'Disponible en Google Play',
+      appleEyebrow: 'Descargar en el',
+      appleCta: 'App Store',
       androidEyebrow: 'Disponible en',
       androidCta: 'Google Play',
     },
@@ -1889,7 +1897,7 @@ export const copy = {
         {
           key: 'devices',
           title: 'Teléfono, tableta o navegador',
-          body: 'La app de Android en el taller, el mismo SeamFlow en el navegador de una laptop. Instálelo en su pantalla de inicio y se comporta como una app.',
+          body: 'La app para iPhone, iPad o Android en el taller, el mismo SeamFlow en el navegador de una laptop. Instálelo en su pantalla de inicio y se comporta como una app.',
         },
         {
           key: 'offline',
@@ -1969,7 +1977,7 @@ export const copy = {
         },
         {
           q: '¿SeamFlow funciona en una computadora o solo en el teléfono?',
-          a: 'En ambos. Hay una app de Android para el taller, y el mismo SeamFlow corre en cualquier navegador moderno de una laptop o computadora de escritorio. Puede instalarlo en su pantalla de inicio o escritorio y se comporta como una app nativa.',
+          a: 'En ambos. Hay apps para iPhone, iPad y Android para el taller, y el mismo SeamFlow corre en cualquier navegador moderno de una laptop o computadora de escritorio. Puede instalarlo en su pantalla de inicio o escritorio y se comporta como una app nativa.',
         },
         {
           q: '¿Cuánto cuesta?',
@@ -2003,7 +2011,7 @@ export const copy = {
         },
         {
           q: '¿En qué dispositivos funciona?',
-          a: 'Hoy en teléfonos y tabletas Android, en cualquier navegador de laptop o escritorio, y pronto en iOS.',
+          a: 'iPhone y iPad desde el App Store, teléfonos y tabletas Android desde Google Play, y cualquier navegador de laptop o escritorio.',
         },
       ] as Faq[],
     },
@@ -2327,6 +2335,8 @@ export const copy = {
       soon: 'Inakuja hivi karibuni',
       appStore: 'Pakua kwenye App Store',
       googlePlay: 'Ipate kwenye Google Play',
+      appleEyebrow: 'Pakua kwenye',
+      appleCta: 'App Store',
       androidEyebrow: 'Ipate kwenye',
       androidCta: 'Google Play',
     },
@@ -2396,7 +2406,7 @@ export const copy = {
         {
           key: 'devices',
           title: 'Simu, kompyuta kibao au kivinjari',
-          body: 'Programu ya Android dukani, na SeamFlow ile ile kwenye kivinjari cha kompyuta. Isakinishe kwenye skrini yako ya mwanzo nayo hufanya kazi kama programu.',
+          body: 'Programu ya iPhone, iPad au Android dukani, na SeamFlow ile ile kwenye kivinjari cha kompyuta. Isakinishe kwenye skrini yako ya mwanzo nayo hufanya kazi kama programu.',
         },
         {
           key: 'offline',
@@ -2476,7 +2486,7 @@ export const copy = {
         },
         {
           q: 'Je, SeamFlow hufanya kazi kwenye kompyuta, au kwenye simu tu?',
-          a: 'Zote mbili. Kuna programu ya Android kwa matumizi dukani, na SeamFlow ile ile hufanya kazi kwenye kivinjari chochote cha kisasa cha kompyuta. Unaweza kuisakinisha kwenye skrini yako ya mwanzo au eneo-kazi nayo hufanya kazi kama programu halisi.',
+          a: 'Zote mbili. Kuna programu za iPhone, iPad na Android kwa matumizi dukani, na SeamFlow ile ile hufanya kazi kwenye kivinjari chochote cha kisasa cha kompyuta. Unaweza kuisakinisha kwenye skrini yako ya mwanzo au eneo-kazi nayo hufanya kazi kama programu halisi.',
         },
         {
           q: 'Gharama yake ni kiasi gani?',
@@ -2510,7 +2520,7 @@ export const copy = {
         },
         {
           q: 'Hufanya kazi kwenye vifaa gani?',
-          a: 'Leo simu na kompyuta kibao za Android, kivinjari chochote cha kompyuta, na iOS hivi karibuni.',
+          a: 'iPhone na iPad kupitia App Store, simu na kompyuta kibao za Android kupitia Google Play, na kivinjari chochote cha kompyuta.',
         },
       ] as Faq[],
     },
@@ -2832,6 +2842,8 @@ export const copy = {
       soon: 'قريبًا',
       appStore: 'حمّله من App Store',
       googlePlay: 'احصل عليه من Google Play',
+      appleEyebrow: 'حمّله من',
+      appleCta: 'App Store',
       androidEyebrow: 'احصل عليه من',
       androidCta: 'Google Play',
     },
@@ -2900,7 +2912,7 @@ export const copy = {
         {
           key: 'devices',
           title: 'هاتف أو جهاز لوحي أو متصفح',
-          body: 'تطبيق أندرويد في الورشة، ونفس SeamFlow في متصفح على الحاسوب. ثبّته على شاشتك الرئيسية فيعمل كتطبيق.',
+          body: 'تطبيق iPhone أو iPad أو أندرويد في الورشة، ونفس SeamFlow في متصفح على الحاسوب. ثبّته على شاشتك الرئيسية فيعمل كتطبيق.',
         },
         {
           key: 'offline',
@@ -2979,7 +2991,7 @@ export const copy = {
         },
         {
           q: 'هل يعمل SeamFlow على الحاسوب أم على الهاتف فقط؟',
-          a: 'على الاثنين. هناك تطبيق أندرويد للاستخدام في الورشة، ونفس SeamFlow يعمل في أي متصفح حديث على حاسوب محمول أو مكتبي. ويمكنك تثبيته على شاشتك الرئيسية أو سطح مكتبك فيعمل كتطبيق أصلي.',
+          a: 'على الاثنين. هناك تطبيقات iPhone وiPad وأندرويد للاستخدام في الورشة، ونفس SeamFlow يعمل في أي متصفح حديث على حاسوب محمول أو مكتبي. ويمكنك تثبيته على شاشتك الرئيسية أو سطح مكتبك فيعمل كتطبيق أصلي.',
         },
         {
           q: 'كم يكلّف؟',
@@ -3013,7 +3025,7 @@ export const copy = {
         },
         {
           q: 'على أي أجهزة يعمل؟',
-          a: 'اليوم على هواتف وأجهزة أندرويد اللوحية، وفي أي متصفح على حاسوب محمول أو مكتبي، وعلى iOS قريبًا.',
+          a: 'على iPhone وiPad من App Store، وعلى هواتف وأجهزة أندرويد اللوحية من Google Play، وفي أي متصفح على حاسوب محمول أو مكتبي.',
         },
       ] as Faq[],
     },
@@ -3269,6 +3281,11 @@ export const SITE = {
 // share sheet appends belongs to that share, not to our own site.
 export const GOOGLE_PLAY_URL =
   'https://play.google.com/store/apps/details?id=com.bambothanson.FashionApp';
+
+// App Store listing for the tailor app (iPhone and iPad). Same rule as
+// Google Play: no tracking parameters, and no country segment, so Apple sends
+// each visitor to their own storefront.
+export const APP_STORE_URL = 'https://apps.apple.com/app/id6826401334';
 
 // The installable browser build of the tailor app (seamflow-app's web target,
 // `expo export --platform web`). Empty string → not deployed yet: the badge

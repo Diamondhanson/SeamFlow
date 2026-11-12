@@ -75,7 +75,7 @@ export function SoftwareApplicationLd({ d, lang }: { d: Dict; lang: Lang }) {
         alternateName: ['SeamFlow Tailor Assistant', d.seo.altName],
         applicationCategory: 'BusinessApplication',
         applicationSubCategory: d.seo.subCategory,
-        operatingSystem: 'Android, Web',
+        operatingSystem: 'iOS, iPadOS, Android, Web',
         url: `${SITE.url}${withLang('/', lang)}`,
         inLanguage: LANGS,
         description: d.seo.description,
